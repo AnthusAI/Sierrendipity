@@ -202,7 +202,7 @@ Then("the current instruction is {string}", async function (this: WebWorld, text
 });
 
 Then("there is no inspector pane", async function (this: WebWorld) {
-  await this.page.getByRole("button", { name: "Explore", exact: true }).waitFor();
+  await this.page.getByRole("button", { name: "Run", exact: true }).waitFor();
   assert.equal(await this.page.getByRole("complementary", { name: "Inspector" }).count(), 0);
 });
 
@@ -268,7 +268,7 @@ Then("the stale source note is gone", async function (this: WebWorld) {
 
 Then("the editor shows no linked highlight", async function (this: WebWorld) {
   await this.page.getByText("The source changed since Explore").waitFor();
-  assert.equal(await this.page.locator(".monaco-editor .src-linked, .monaco-editor .src-pc").count(), 0);
+  await this.page.waitForFunction(`document.querySelectorAll(".monaco-editor .src-linked, .monaco-editor .src-pc").length === 0`);
 });
 
 Then("no source line is highlighted in the editor", async function (this: WebWorld) {

@@ -559,7 +559,7 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
                   editor.revealLineInCenter(reveal.current);
                   reveal.current = null;
                 }
-                setMountedKey(sessionKey);
+                setMountedKey(`${store.current}|${language}|${ws.active}`);
                 setEditorVersion((v) => v + 1);
               }}
             />

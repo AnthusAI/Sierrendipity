@@ -66,7 +66,7 @@ export function decorate(
   collection.set([
     ...(focusLine ? [at(focusLine, { isWholeLine: true, className: `src-linked src-linked-${focusLine}` })] : []),
     ...(pcLine ? [at(pcLine, { isWholeLine: true, className: `src-pc src-pc-${pcLine}`, glyphMarginClassName: "pc-glyph", glyphMarginHoverMessage: { value: "Current instruction (PC)" } })] : []),
-    ...breakpointLines.map((line) => at(line, { className: `src-bp-${line}`, glyphMarginClassName: "bp-glyph", glyphMarginHoverMessage: { value: "Breakpoint" } })),
+    ...breakpointLines.map((line) => at(line, { isWholeLine: true, className: `src-bp-${line}`, glyphMarginClassName: "bp-glyph", glyphMarginHoverMessage: { value: "Breakpoint" } })),
   ]);
 }
 
