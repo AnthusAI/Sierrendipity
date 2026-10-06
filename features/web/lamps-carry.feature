@@ -47,6 +47,7 @@ Feature: Adding in binary with a carry that hops left
     And "Carry ripple 5 + 7" announces the answer "5 + 7 = 12"
 
   Scenario: A full 32-lamp sum scrolls inside its own box instead of the page
+    When the screen is 400 pixels wide
     Then "Carry ripple 4294967295 + 1" scrolls sideways inside itself
     And the page does not scroll sideways
 

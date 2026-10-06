@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ALL_LENSES, LensFace, type Lens, type LensFaceProps } from "./LensFace";
 
-export interface WordEditorProps extends Pick<LensFaceProps, "lockedBits" | "allowedBits" | "signed"> {
+export interface WordEditorProps extends Pick<LensFaceProps, "lockedBits" | "allowedBits" | "signed" | "aliases"> {
   /** The real 32-bit word being edited. */
   word: number;
   /** Called with the new word each time a lamp is flipped. */
@@ -16,7 +16,8 @@ export interface WordEditorProps extends Pick<LensFaceProps, "lockedBits" | "all
  * Flip lamps to edit a real instruction word. The card, the bands, the hex and the assembly all
  * follow live. `lockedBits` or `allowedBits` limit which lamps can be flipped.
  */
-export function WordEditor({ word, onChange, lenses = ALL_LENSES, label = "Word editor", ...limits }: WordEditorProps) {
+export function WordEditor({ word, onChange, lenses: offered = ALL_LENSES, label = "Word editor", ...limits }: WordEditorProps) {
+  const lenses: readonly Lens[] = offered.length > 0 ? offered : ["card"];
   const [hot, setHot] = useState<string | null>(null);
   return (
     <div role="group" aria-label={label} className="space-y-4 rounded-lg border bg-card p-4 text-card-foreground">

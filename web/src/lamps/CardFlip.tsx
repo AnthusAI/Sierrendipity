@@ -20,7 +20,9 @@ export interface CardFlipProps extends Omit<LensFaceProps, "lens" | "highlight">
 }
 
 /** One card that flips through ways of looking at the same real 32-bit word. */
-export function CardFlip({ word, lens, defaultLens, onLensChange, lenses = ALL_LENSES, label = "Card", ...face }: CardFlipProps) {
+export function CardFlip({ word, lens, defaultLens, onLensChange, lenses: offered = ALL_LENSES, label = "Card", ...face }: CardFlipProps) {
+  // No views offered means just the card face.
+  const lenses: readonly Lens[] = offered.length > 0 ? offered : ["card"];
   const reduced = useReducedMotion();
   const [inner, setInner] = useState<Lens>(defaultLens ?? lenses[0] ?? "card");
   const [hot, setHot] = useState<string | null>(null);
@@ -35,6 +37,7 @@ export function CardFlip({ word, lens, defaultLens, onLensChange, lenses = ALL_L
 
   return (
     <div role="group" aria-label={label} className="space-y-3">
+      {lenses.length > 1 && (
       <div className="flex flex-wrap items-center gap-2">
         {lenses.map((l) => (
           <Button
@@ -48,12 +51,11 @@ export function CardFlip({ word, lens, defaultLens, onLensChange, lenses = ALL_L
             {LENS_LABELS[l]}
           </Button>
         ))}
-        {lenses.length > 1 && (
-          <Button variant="ghost" size="sm" onClick={flipOn}>
-            Flip to the next view
-          </Button>
-        )}
+        <Button variant="ghost" size="sm" onClick={flipOn}>
+          Flip to the next view
+        </Button>
       </div>
+      )}
       <div data-flip={reduced ? "instant" : "animated"}>
         <div
           key={current}

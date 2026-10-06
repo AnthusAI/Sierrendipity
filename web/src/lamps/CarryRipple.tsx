@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import "./lamps.css";
-import { bitLength, isLit } from "./bits";
+import { bitLength, isLit, isWord } from "./bits";
 import { useReducedMotion } from "./motion";
 
 export interface CarryStep {
@@ -49,7 +49,8 @@ export interface CarryRippleProps {
  */
 export function CarryRipple({ a, b, label, intervalMs = 700 }: CarryRippleProps) {
   const reduced = useReducedMotion();
-  const steps = useMemo(() => carrySteps(a, b), [a, b]);
+  const valid = isWord(a) && isWord(b);
+  const steps = useMemo(() => (valid ? carrySteps(a, b) : []), [a, b, valid]);
   const columns = steps.length;
   const [step, setStep] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -84,8 +85,17 @@ export function CarryRipple({ a, b, label, intervalMs = 700 }: CarryRippleProps)
   const answer = a + b;
   const cell = "h-8 w-8 text-center font-mono text-base";
 
+  if (!valid) {
+    return (
+      <div role="group" aria-label={label ?? "Carry ripple"} className="min-w-0 max-w-full">
+        <p className="text-sm">Carry ripple needs whole numbers from 0 to 4294967295</p>
+      </div>
+    );
+  }
+
   return (
-    <div role="group" aria-label={label ?? `Carry ripple ${a} + ${b}`} className="space-y-3">
+    <div role="group" aria-label={label ?? `Carry ripple ${a} + ${b}`} className="min-w-0 max-w-full space-y-3">
+      <div data-scroll-x className="overflow-x-auto">
       <table aria-label={`Adding ${a} and ${b} in binary`} className="border-separate border-spacing-1">
         <thead>
           <tr>
@@ -129,6 +139,7 @@ export function CarryRipple({ a, b, label, intervalMs = 700 }: CarryRippleProps)
           </tr>
         </tbody>
       </table>
+      </div>
 
       {shown.length === 0 ? (
         <p className="text-sm text-muted-foreground">No steps yet</p>

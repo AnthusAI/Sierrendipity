@@ -296,7 +296,7 @@ const PLAIN = new Set([
 
 Then("the field bands of the {word} word tile bits 31 to 0 without gaps", async function (this: WebWorld, format: string) {
   const bands = await readBands(this, rWord(this, format));
-  assert.ok(bands.length >= 3, "expected bands");
+  assert.ok(bands.length >= 1, "expected bands");
   let next = 31;
   for (const b of bands) {
     assert.equal(b.hi, next, `a band starts at bit ${b.hi}, expected ${next}`);
@@ -587,7 +587,14 @@ Then("the band {string} in the {string} word has a different colour from the one
 
 /** Wait for colour transitions to finish, so computed colours are the final ones. */
 const settled = (w: WebWorld) =>
-  w.page.evaluate(`Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined)))`);
+  w.page.evaluate(`(async () => {
+    const frame = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    await frame();
+    while (document.getAnimations().length > 0) {
+      await Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined)));
+      await frame();
+    }
+  })()`);
 
 interface TextSample {
   text: string;

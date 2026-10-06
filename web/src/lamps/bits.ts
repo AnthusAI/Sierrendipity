@@ -41,3 +41,9 @@ export function rangesText(ranges: [number, number][]): string {
   const list = parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}` : parts[0]!;
   return ranges.length === 1 && ranges[0]![0] === ranges[0]![1] ? `bit ${list}` : `bits ${list}`;
 }
+
+/** Lamp counts are kept between 1 and 32 (the width of a machine word). */
+export const clampWidth = (width: number): number => (Number.isFinite(width) ? Math.min(32, Math.max(1, Math.trunc(width))) : 32);
+
+/** Is `n` a whole number that fits in an unsigned 32-bit word? */
+export const isWord = (n: number): boolean => Number.isInteger(n) && n >= 0 && n <= 0xffffffff;

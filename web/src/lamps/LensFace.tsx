@@ -17,10 +17,12 @@ export interface LensFaceProps extends Pick<FieldBandsProps, "lockedBits" | "all
   highlight?: string | null;
   onHoverField?: (field: string | null) => void;
   onFieldClick?: (field: string) => void;
+  /** Show friendly forms in the assembly view (li, mv, nop, ret) instead of the plain instruction (default true). */
+  aliases?: boolean;
 }
 
 /** The inside of one lens. Used by the card flip (one at a time) and the word editor (stacked). */
-export function LensFace({ word, lens, onWordChange, highlight, onHoverField, onFieldClick, ...rest }: LensFaceProps) {
+export function LensFace({ word, lens, onWordChange, highlight, onHoverField, onFieldClick, aliases = true, ...rest }: LensFaceProps) {
   switch (lens) {
     case "card":
       return <CardFace word={word} highlight={highlight} />;
@@ -43,7 +45,7 @@ export function LensFace({ word, lens, onWordChange, highlight, onHoverField, on
         </div>
       );
     case "assembly": {
-      const decoded = decode(word);
+      const decoded = decode(word, { aliases });
       return decoded ? (
         <code data-assembly className="block font-mono text-xl">{decoded.text}</code>
       ) : (

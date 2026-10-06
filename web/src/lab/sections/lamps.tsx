@@ -15,6 +15,9 @@ const FORMATS: [string, number, string][] = [
   ["B", 0x00b50463, "beq a0, a1, 8"],
   ["U", 0x12345537, "lui a0, 0x12345"],
   ["J", 0x008000ef, "jal ra, 8"],
+  ["load", 0x0085a503, "lw a0, 8(a1)"],
+  ["jalr", 0x000500e7, "jalr ra, 0(a0)"],
+  ["ecall", 0x00000073, "ecall"],
 ];
 
 function Demo({ name, children }: { name: string; children: ReactNode }) {
@@ -26,13 +29,13 @@ function Demo({ name, children }: { name: string; children: ReactNode }) {
   );
 }
 
-function BandExplorer() {
+function BandExplorer({ word = ADD, name = "Band explorer" }: { word?: number; name?: string }) {
   const [hot, setHot] = useState<string | null>(null);
   const [clicked, setClicked] = useState<string | null>(null);
   return (
-    <div role="group" aria-label="Band explorer" className="space-y-3">
-      <FieldBands word={ADD} label="Band explorer bands" onHoverField={setHot} onFieldClick={setClicked} />
-      <CardFace word={ADD} highlight={hot} />
+    <div role="group" aria-label={name} className="space-y-3">
+      <FieldBands word={word} label={`${name} bands`} onHoverField={setHot} onFieldClick={setClicked} />
+      <CardFace word={word} highlight={hot} />
       <p className="text-sm">{`Pointing at: ${hot ?? "nothing"}`}</p>
       <p className="text-sm">Click the band that says which box gets the answer</p>
       {clicked && (
@@ -58,6 +61,9 @@ export default function LampsSection() {
       <Demo name="Bit lamps">
         <BitLamps label="Bit lamps demo" value={number} onChange={setNumber} signed />
       </Demo>
+      <Demo name="Too many lamps (64 asked for, 32 shown)">
+        <BitLamps label="Too many lamps demo" value={1} width={64} readOnly showTotal={false} />
+      </Demo>
       <Demo name="Eight lamps">
         <BitLamps label="Eight lamps demo" value={eight} onChange={setEight} width={8} />
       </Demo>
@@ -70,12 +76,21 @@ export default function LampsSection() {
       </Demo>
       <Demo name="Make this number">
         <BinaryCounter label="Make this number" target={12} width={8} />
+        <BinaryCounter label="Make zero" target={0} width={8} />
+        <BinaryCounter label="Make 300 with eight lamps" target={300} width={8} />
       </Demo>
 
       <Demo name="Carry ripple">
         <div className="grid gap-6 md:grid-cols-2">
           <CarryRipple a={5} b={7} label="Carry ripple 5 + 7" intervalMs={400} />
           <CarryRipple a={15} b={1} label="Carry ripple 15 + 1" intervalMs={400} />
+        </div>
+      </Demo>
+
+      <Demo name="Carry ripple, a full 32-lamp sum and bad input">
+        <div className="space-y-6">
+          <CarryRipple a={0xffffffff} b={1} label="Carry ripple 4294967295 + 1" />
+          <CarryRipple a={-1} b={1} label="Carry ripple of a negative number" />
         </div>
       </Demo>
 
@@ -91,11 +106,18 @@ export default function LampsSection() {
       </Demo>
       <Demo name="Pointing at bands and clicking them">
         <BandExplorer />
+        <BandExplorer word={0x00a50533} name="Repeated boxes explorer" />
       </Demo>
 
       <Demo name="Card flip (addi a0, zero, 5)">
         <CardFlip word={ADDI} label="Card flip demo" lens={lens} onLensChange={setLens} />
         <p className="text-sm">{`Card flip demo view: ${lens}`}</p>
+      </Demo>
+      <Demo name="Card flip showing plain assembly (no aliases)">
+        <CardFlip word={ADDI} label="Card flip plain demo" aliases={false} />
+      </Demo>
+      <Demo name="Card flip with no views offered: just the card">
+        <CardFlip word={ADDI} label="Card only demo" lenses={[]} />
       </Demo>
       <Demo name="Card flip with only the first two views">
         <CardFlip word={ADDI} label="Early card flip demo" lenses={["card", "lamps"]} />

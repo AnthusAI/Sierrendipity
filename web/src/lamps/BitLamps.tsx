@@ -1,16 +1,17 @@
+import { Lock } from "lucide-react";
 import { useRef, useState, type KeyboardEvent } from "react";
 import { cn } from "@/lib/utils";
-import { isLit, placeText, placeValue, signed as signedValue, toggleBit, unsigned } from "./bits";
+import { clampWidth, isLit, placeText, placeValue, signed as signedValue, toggleBit, unsigned } from "./bits";
 
 /** The seven field colour tokens as full class names (Tailwind only keeps classes it can read). */
 export const FIELD_CLASSES = [
-  { fill: "bg-field-1 text-field-foreground border-field-1", edge: "border-field-1" },
-  { fill: "bg-field-2 text-field-foreground border-field-2", edge: "border-field-2" },
-  { fill: "bg-field-3 text-field-foreground border-field-3", edge: "border-field-3" },
-  { fill: "bg-field-4 text-field-foreground border-field-4", edge: "border-field-4" },
-  { fill: "bg-field-5 text-field-foreground border-field-5", edge: "border-field-5" },
-  { fill: "bg-field-6 text-field-foreground border-field-6", edge: "border-field-6" },
-  { fill: "bg-field-7 text-field-foreground border-field-7", edge: "border-field-7" },
+  { fill: "bg-field-1 text-field-foreground border-field-1", ring: "ring-2 ring-inset ring-field-1" },
+  { fill: "bg-field-2 text-field-foreground border-field-2", ring: "ring-2 ring-inset ring-field-2" },
+  { fill: "bg-field-3 text-field-foreground border-field-3", ring: "ring-2 ring-inset ring-field-3" },
+  { fill: "bg-field-4 text-field-foreground border-field-4", ring: "ring-2 ring-inset ring-field-4" },
+  { fill: "bg-field-5 text-field-foreground border-field-5", ring: "ring-2 ring-inset ring-field-5" },
+  { fill: "bg-field-6 text-field-foreground border-field-6", ring: "ring-2 ring-inset ring-field-6" },
+  { fill: "bg-field-7 text-field-foreground border-field-7", ring: "ring-2 ring-inset ring-field-7" },
 ] as const;
 
 export interface BitLampsProps {
@@ -48,7 +49,7 @@ export interface BitLampsProps {
 export function BitLamps({
   value,
   onChange,
-  width = 32,
+  width: requestedWidth = 32,
   labels = true,
   label = "Bit lamps",
   readOnly = false,
@@ -60,6 +61,7 @@ export function BitLamps({
   allowedBits,
   className,
 }: BitLampsProps) {
+  const width = clampWidth(requestedWidth);
   const number = unsigned(value, width);
   const inert = readOnly || !onChange;
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -87,7 +89,7 @@ export function BitLamps({
   };
 
   return (
-    <div role="group" aria-label={label} className={cn("space-y-2", className)}>
+    <div role="group" aria-label={label} dir="ltr" className={cn("space-y-2", className)}>
       <div className="flex flex-wrap gap-x-3 gap-y-3">
         {groups.map((group) => (
           <div key={group[0]} data-lamp-group className="flex gap-0.5">
@@ -96,7 +98,7 @@ export function BitLamps({
               const band = bandOf?.(bit);
               const colours = band ? FIELD_CLASSES[band - 1] : undefined;
               const isLocked = !inert && locked(bit);
-              const name = `bit ${bit}, worth ${placeValue(bit)}, ${lit ? "on" : "off"}${isLocked ? ", locked" : ""}`;
+              const name = `bit ${bit}, worth ${placeValue(bit)}`;
               return (
                 <div key={bit} data-bit={bit} className="flex w-6 flex-col items-center gap-0.5">
                   <button
@@ -117,19 +119,22 @@ export function BitLamps({
                       onChange?.(toggleBit(number, bit));
                     }}
                     className={cn(
-                      "grid size-6 place-items-center rounded-full border-2 font-mono text-xs font-semibold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+                      "relative grid size-6 place-items-center rounded-full border-2 border-foreground font-mono text-xs font-semibold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
                       lit
-                        ? (colours?.fill ?? "border-primary bg-primary text-primary-foreground")
-                        : cn("bg-background text-foreground", colours?.edge ?? "border-input"),
+                        ? cn(colours ? colours.fill : "bg-primary text-primary-foreground", "border-foreground")
+                        : cn("bg-background text-foreground", colours?.ring),
                       isLocked && "cursor-not-allowed border-dashed",
                       isLocked && !lit && "bg-muted text-muted-foreground",
                       inert ? "cursor-default" : !isLocked && "cursor-pointer hover:brightness-95",
                     )}
                   >
                     {lit ? "1" : "0"}
+                    {isLocked && (
+                      <Lock data-lock-icon aria-hidden="true" className="absolute -right-1.5 -top-1.5 size-3 rounded-full bg-background p-px text-foreground" />
+                    )}
                   </button>
                   {labels && (
-                    <span data-place={placeText(bit)} title={`worth ${placeValue(bit)}`} className="font-mono text-[11px] leading-none text-muted-foreground">
+                    <span data-place={placeText(bit)} aria-hidden="true" className="font-mono text-[11px] leading-none text-muted-foreground">
                       {bit < 10 ? placeValue(bit) : <>2<sup>{bit}</sup></>}
                     </span>
                   )}
