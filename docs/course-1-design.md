@@ -41,8 +41,11 @@ New opening ladder, replacing the old lessons 1 to 3:
 4. Two boxes: a second box appears; put 4 in A and 6 in B; make B hold 9 by changing one card.
 5. Add: put 5, put 7, add them into a third box; predict (the 57 misconception), then 12. This is the old lesson 1.
 6. In order: the pointing hand appears; drag two cards into the right order so the add works.
-7. Add one: the card "add 1 to the box"; make the box show 3 with three cards.
-8. Make it count to 7: seven copies is tedious, which motivates loops later.
+7. Multiply: the card "multiply box A by box B"; make 6 x 7 = 42, then square 7 (a card may use the same box twice) to get 49.
+8. Make your own card (functions): select two cards ("multiply the box by itself", "add 1"), save them as a new card named Square-and-add-one (n squared plus one); put 7 in the box, drop the new card in, get 50; peek inside to see its two cards. Under the hood this is a real call: the body is placed after the main program and entered with `jal ra, f`, left with `jalr zero, 0(ra)`; the student only sees one card. Course 3 peels it back ("a call is a bookmark").
+9. Use it again: use the card on 3, 5 and 7; bonus, feed a result back into the card.
+
+Counting by dragging many copies of one card is moved to the loops lesson, where it is the motivation for loops.
 
 The first ten-minute session is lessons 1 to 4. After this ladder the earlier plan resumes at a similarly slow pace: flip a card to see its number, lamps and binary, fields, the pixel, then decisions and loops. The table below is the earlier plan and should be renumbered after the ladder.
 
