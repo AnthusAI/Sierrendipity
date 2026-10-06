@@ -86,7 +86,7 @@ Feature: Diagrams tell the truth about faults, limits and every kind of card
     Then the "Custom program" demo has 4 most recent pixels
 
   Scenario: A store outside the screen clears the most recent pixel
-    Given the lab runs the program "addi t0,zero,3; sb t0,1024(zero); sb t0,2048(zero)" with the boxes "t0"
+    Given the lab runs the program "addi t0,zero,3; sb t0,1024(zero); sb t0,2000(zero)" with the boxes "t0"
     When I press Step in the "Custom program" demo 2 times
     Then the most recent pixel of the "Custom program" demo is (0, 0)
     When I press Step in the "Custom program" demo

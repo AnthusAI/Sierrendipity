@@ -1,14 +1,8 @@
 import { ArrowRight } from "lucide-react";
-import { forwardRef } from "react";
+import { forwardRef, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { cardText } from "./narrate";
+import { ease } from "./ease";
 import type { MachineTimeline } from "./useMachineTimeline";
-
-/** Every card row is this tall (px) plus the gap, so the pointing hand can be placed without measuring. */
-export const ROW = 40;
-export const GAP = 4;
-export const PITCH = ROW + GAP;
-
-const ease = (t: number) => t * t * (3 - 2 * t);
 
 interface Props {
   timeline: MachineTimeline;
@@ -18,47 +12,86 @@ interface Props {
   hand?: boolean;
 }
 
+interface Row {
+  top: number;
+  height: number;
+}
+
+const HAND = 32;
+const sameRows = (a: Row[], b: Row[]) => a.length === b.length && a.every((row, i) => row.top === b[i].top && row.height === b[i].height);
+
 /**
- * The cards in memory order, the hand at the program counter and, when the end is hidden, the
- * "end of the list" marker. Never draws a Stop card for a hidden end.
+ * The cards in memory order, numbered from 1, with the pointing hand at the program counter and, when
+ * the end is hidden, the "end of the list" marker. Cards wrap their text; the hand follows the measured
+ * rows. A hidden end is never drawn as a Stop card.
  */
-export const CardList = forwardRef<HTMLOListElement, Props>(function CardList({ timeline: tl, addresses = false, hand = false }, ref) {
+export const CardList = forwardRef<HTMLOListElement, Props>(function CardList({ timeline: tl, addresses = false, hand = false }, forwarded) {
+  const list = useRef<HTMLOListElement | null>(null);
+  const [rows, setRows] = useState<Row[]>([]);
+  const measure = useCallback(() => {
+    const next = [...(list.current?.querySelectorAll<HTMLElement>("[data-row]") ?? [])].map((row) => ({ top: row.offsetTop, height: row.offsetHeight }));
+    setRows((prev) => (sameRows(prev, next) ? prev : next));
+  }, []);
+  useLayoutEffect(measure);
+  useEffect(() => {
+    if (!list.current) return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(list.current);
+    return () => observer.disconnect();
+  }, [measure]);
+
   const lastRun = tl.lastStep ? tl.lastStep.pc / 4 : -1;
   const pcIndex = tl.snapshot.pc / 4;
   const sliding = tl.from !== null && tl.from === tl.position - 1 && !tl.reducedMotion && tl.t < 1;
+  const center = (index: number) => (rows[index] ? rows[index].top + rows[index].height / 2 : index * 44 + 20);
   // While a forward step animates, the hand slides from the card that ran to where the program counter ended up.
-  const handIndex = sliding ? lastRun + (pcIndex - lastRun) * ease(tl.t) : pcIndex;
-  const endReached = tl.hideEnd && tl.isAtEnd;
+  const handY = sliding ? center(lastRun) + (center(pcIndex) - center(lastRun)) * ease(tl.t) : center(pcIndex);
+  const endReached = tl.hideEnd && tl.endHidden && tl.isAtEnd;
+
   return (
-    <ol ref={ref} aria-label="Cards" className="relative flex flex-col pl-9" style={{ gap: GAP }}>
+    <ol
+      ref={(el) => {
+        list.current = el;
+        if (typeof forwarded === "function") forwarded(el);
+        else if (forwarded) forwarded.current = el;
+      }}
+      aria-label="Cards"
+      className="relative flex min-w-0 flex-col gap-1 pl-10"
+    >
       {tl.words.map((word, i) => (
         <li
           key={i}
+          data-row
           data-card
           data-card-index={i}
-          data-last-run={i === lastRun ? "true" : undefined}
-          className={`flex items-center gap-3 rounded-md border px-3 text-sm whitespace-nowrap ${
-            i === lastRun ? "border-foreground bg-changed text-changed-foreground font-medium" : "bg-card text-foreground"
+          aria-current={i === lastRun ? "true" : undefined}
+          className={`flex min-h-10 items-start gap-3 rounded-md border px-3 py-2 text-sm ${
+            i === lastRun ? "border-foreground bg-changed font-medium text-changed-foreground" : "bg-card text-foreground"
           }`}
-          style={{ height: ROW }}
         >
+          <span data-card-number className="w-4 shrink-0 text-right tabular-nums text-muted-foreground">
+            {i + 1}
+          </span>
           {addresses && (
-            <span data-address-label className="w-6 shrink-0 text-right font-mono text-xs tabular-nums text-muted-foreground">
+            <span data-address-label className="w-7 shrink-0 text-right font-mono text-xs leading-5 tabular-nums text-muted-foreground">
               {i * 4}
             </span>
           )}
-          <span>{cardText(word, i)}</span>
+          <span className="min-w-0 break-words">{cardText(word)}</span>
         </li>
       ))}
       {tl.hideEnd && (
         <li
+          data-row
           data-end-marker
           data-reached={String(endReached)}
-          className={`flex items-center gap-3 rounded-md border border-dashed px-3 text-sm italic text-foreground ${endReached ? "bg-changed text-changed-foreground" : ""}`}
-          style={{ height: ROW }}
+          className={`flex min-h-10 items-start gap-3 rounded-md border border-dashed px-3 py-2 text-sm italic ${
+            endReached ? "bg-changed text-changed-foreground" : "text-foreground"
+          }`}
         >
+          <span className="w-4 shrink-0" />
           {addresses && (
-            <span data-address-label-end className="w-6 shrink-0 text-right font-mono text-xs tabular-nums text-muted-foreground">
+            <span data-address-label-end className="w-7 shrink-0 text-right font-mono text-xs leading-5 tabular-nums text-muted-foreground">
               {tl.words.length * 4}
             </span>
           )}
@@ -71,8 +104,8 @@ export const CardList = forwardRef<HTMLOListElement, Props>(function CardList({ 
           data-pointer-hand
           data-address={pcIndex * 4}
           aria-label={`The arrow points at address ${pcIndex * 4}`}
-          className="absolute left-0 top-0 flex size-8 items-center justify-center rounded-full bg-pc-mark text-pc-mark-foreground"
-          style={{ transform: `translateY(${handIndex * PITCH + (ROW - 32) / 2}px)` }}
+          className="absolute left-0 top-0 flex items-center justify-center rounded-full bg-pc-mark text-pc-mark-foreground"
+          style={{ width: HAND, height: HAND, transform: `translateY(${handY - HAND / 2}px)` }}
         >
           <ArrowRight aria-hidden className="size-4" />
         </span>

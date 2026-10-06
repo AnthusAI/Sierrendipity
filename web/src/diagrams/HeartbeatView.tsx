@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import { Fragment } from "react";
 import { cardText } from "./narrate";
+import { Notice } from "./Notice";
 import { TEST_CLOCK, type MachineTimeline } from "./useMachineTimeline";
 
 const STATIONS = [
@@ -56,7 +57,7 @@ export function HeartbeatView({ timeline: tl, pointer = tl.pointer }: { timeline
         <p>
           <span className="text-muted-foreground">{stepped ? "This beat's card: " : "Next card: "}</span>
           <span data-heartbeat-card className="font-medium">
-            {word === undefined ? "the end of the list" : cardText(word, index)}
+            {word !== undefined ? cardText(word) : tl.hideEnd && !tl.lastStep?.fault ? "the end of the list" : "no card at this address"}
           </span>
         </p>
         {pointer && (
@@ -65,6 +66,7 @@ export function HeartbeatView({ timeline: tl, pointer = tl.pointer }: { timeline
           </p>
         )}
       </div>
+      <Notice timeline={tl} />
     </div>
   );
 }

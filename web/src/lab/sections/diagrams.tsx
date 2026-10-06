@@ -62,6 +62,28 @@ function Pixels({ reducedMotion }: DemoProps) {
   );
 }
 
+/** `/lab?program=addi a0,zero,1;lw a1,2(zero)&boxes=a0,a1&hideEnd=0&limit=300` runs any program in every diagram (specs use it). */
+function Custom({ reducedMotion }: DemoProps) {
+  const params = new URLSearchParams(location.search);
+  const assembled = assemble((params.get("program") ?? "").split(";").join("\n"));
+  const tl = useMachineTimeline(assembled.words, {
+    hideEnd: params.get("hideEnd") !== "0",
+    boxes: (params.get("boxes") ?? "a0").split(",").filter(Boolean),
+    pointer: true,
+    maxSteps: params.has("limit") ? Number(params.get("limit")) : undefined,
+    reducedMotion,
+  });
+  return (
+    <Demo name="Custom program">
+      {assembled.errors.length > 0 && <p role="alert">{assembled.errors.map((e) => e.message).join("; ")}</p>}
+      <MachineView timeline={tl} />
+      <HeartbeatView timeline={tl} />
+      <PixelDisplay timeline={tl} />
+      <TimelineControls timeline={tl} />
+    </Demo>
+  );
+}
+
 export default function DiagramsSection() {
   const [reduced, setReduced] = useState(false);
   const reducedMotion = reduced ? true : undefined;
@@ -77,6 +99,7 @@ export default function DiagramsSection() {
       <Heartbeat reducedMotion={reducedMotion} />
       <Walk reducedMotion={reducedMotion} />
       <Pixels reducedMotion={reducedMotion} />
+      {new URLSearchParams(location.search).has("program") && <Custom reducedMotion={reducedMotion} />}
     </div>
   );
 }

@@ -6,4 +6,5 @@ export { PointerWalk } from "./PointerWalk";
 export { PixelDisplay } from "./PixelDisplay";
 export { CardList } from "./CardList";
 export { PIXEL_PALETTE, type PixelColor } from "./palette";
-export { narrate, type LogEntry, type NumberFormat } from "./narrate";
+export { narrate, stopNotice, explainFault, type LogEntry, type NumberFormat } from "./narrate";
+export { Notice } from "./Notice";

@@ -1,9 +1,9 @@
 import { useRef } from "react";
 import { CardList } from "./CardList";
-import { BLANK, formatValue, narrate, type NumberFormat } from "./narrate";
+import { ease } from "./ease";
+import { BLANK, formatValue, narrate, stopNotice, type NumberFormat } from "./narrate";
+import { Notice } from "./Notice";
 import { TEST_CLOCK, registerIndex, type MachineTimeline } from "./useMachineTimeline";
-
-const ease = (t: number) => t * t * (3 - 2 * t);
 
 interface Props {
   timeline: MachineTimeline;
@@ -20,12 +20,13 @@ export function MachineView({ timeline: tl, boxes = tl.boxes, pointer = tl.point
   const cards = useRef<HTMLOListElement>(null);
   const desk = useRef<HTMLDivElement>(null);
   const entries = narrate(tl, format);
+  const limitNotice = tl.hitStepLimit ? stopNotice(tl) : null;
   const lastRd = tl.lastStep?.rd ?? null;
 
   // The token flies from the card that ran to the first visible box it wrote, while the clock runs.
   let token: { x: number; y: number; value: string } | null = null;
   const flying = tl.from !== null && tl.from === tl.position - 1 && !tl.reducedMotion && tl.t < 1;
-  const target = tl.lastStep && boxes.find((name) => registerIndex(name) === lastRd && lastRd !== 0);
+  const target = tl.lastStep && lastRd !== null && lastRd !== 0 ? boxes.find((name) => registerIndex(name) === lastRd) : undefined;
   if (flying && target && tl.lastStep && surface.current && cards.current && desk.current) {
     const origin = surface.current.getBoundingClientRect();
     const card = cards.current.querySelector<HTMLElement>(`[data-card-index="${tl.lastStep.pc / 4}"]`)?.getBoundingClientRect();
@@ -43,11 +44,13 @@ export function MachineView({ timeline: tl, boxes = tl.boxes, pointer = tl.point
       ref={surface}
       data-diagram-surface
       data-animation-t={TEST_CLOCK ? tl.t : undefined}
-      className="relative rounded-lg border bg-card p-4 text-card-foreground"
+      className="relative space-y-4 rounded-lg border bg-card p-4 text-card-foreground"
     >
-      <div className="flex flex-wrap items-start gap-8">
-        <CardList ref={cards} timeline={tl} hand={pointer} />
-        <div ref={desk} className="flex flex-col gap-3">
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
+        <div className="min-w-0 sm:w-[26rem] sm:max-w-full sm:shrink-0">
+          <CardList ref={cards} timeline={tl} hand={pointer} />
+        </div>
+        <div ref={desk} className="flex min-w-0 flex-col gap-3">
           <p className="text-sm font-medium">The desk</p>
           <div className="flex flex-wrap gap-3">
             {boxes.map((name) => {
@@ -59,6 +62,7 @@ export function MachineView({ timeline: tl, boxes = tl.boxes, pointer = tl.point
                   key={name}
                   role="group"
                   aria-label={`Box ${name}`}
+                  aria-current={changed ? "true" : undefined}
                   data-box
                   data-changed={String(changed)}
                   className={`flex h-24 w-28 flex-col items-center justify-between rounded-md border-2 px-2 py-2 ${
@@ -68,16 +72,18 @@ export function MachineView({ timeline: tl, boxes = tl.boxes, pointer = tl.point
                   <span data-box-label className="font-mono text-sm text-muted-foreground">
                     {name}
                   </span>
-                  <span data-value className="text-3xl font-semibold tabular-nums">
+                  <span data-value aria-hidden={written ? undefined : true} className="text-3xl font-semibold tabular-nums">
                     {written ? formatValue(tl.snapshot.regs[reg], format) : BLANK}
                   </span>
+                  {!written && <span className="sr-only">empty</span>}
                 </div>
               );
             })}
           </div>
         </div>
       </div>
-      <section role="log" aria-live="polite" aria-relevant="additions text" aria-label="What just happened" data-log className="mt-4 border-t pt-3 text-sm">
+      <Notice timeline={tl} />
+      <section role="log" aria-live="polite" aria-relevant="additions" aria-label="What just happened" data-log className="border-t pt-3 text-sm">
         <h3 className="mb-1 font-medium">What just happened</h3>
         {entries.length === 0 ? (
           <p>Nothing has happened yet.</p>
@@ -88,9 +94,13 @@ export function MachineView({ timeline: tl, boxes = tl.boxes, pointer = tl.point
                 {entry.sentences.join(" ")}
               </li>
             ))}
+            {limitNotice && <li key="limit">{limitNotice}</li>}
           </ol>
         )}
       </section>
+      <p role="status" data-announce className="sr-only">
+        {tl.announcement}
+      </p>
       {token && (
         <span
           data-token
