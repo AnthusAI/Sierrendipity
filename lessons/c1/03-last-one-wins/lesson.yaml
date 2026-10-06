@@ -1,0 +1,70 @@
+id: c1/03-last-one-wins
+title: Last One Wins
+minutes: 3
+concepts:
+  introduces: [last-wins]
+  requires: [cards, numbers-on-cards]
+# One new idea (a later card replaces what an earlier one put in the box), one action (predict, then watch).
+boxes: [a0]
+pointer: false
+hideEnd: true
+starter:
+  hex: ["0x00300513", "0x00800513"]   # put 3 in box a0, then put 8 in box a0
+tabs: [cards]
+scenes:
+  - id: look
+    say: Two cards now. Both put a number in the same box.
+    show: [cards, boxes]
+
+  - id: predict
+    say: The machine will do both cards, one after the other. What will the box hold at the end?
+    show: [cards, boxes]
+    spotlight: "box:a0"
+    ask:
+      kind: number
+      question: What will the box hold after both cards?
+      target: a0
+      answer: 8
+    hints:
+      - The machine does the first card, then the second.
+      - The second card puts its number in the same box.
+      - The second number is the one left in the box.
+    onWrong:
+      - match: 3
+        say: That's what the first card put in. The second card runs after it, so let's watch.
+        goto: watch
+      - match: 11
+        say: You added them, but these cards don't add. Each puts a number in, and the second replaces the first.
+        goto: watch
+    lock: [edit, drag, toggle]
+
+  - id: watch
+    say: Press Step twice and watch the box.
+    show: [cards, boxes]
+    spotlight: "button:step"
+    until:
+      - the machine has taken at least 2 steps
+      - the box shows 8
+    hints:
+      - Press the Step button.
+      - Press it a second time.
+      - After two steps the box shows 8.
+    showMe: demo-step-twice
+    lock: [edit, drag, toggle]
+
+  - id: done
+    say: The last card to run wins, because it replaces what was in the box.
+    show: [cards, boxes]
+nowYouCan:
+  - Guess what a list of cards will do.
+  - Know that the last card to run wins.
+warmups:
+  - id: two-puts
+    concept: last-wins
+    question: The cards say put 2 in the box, then put 9 in the box. What does the box show at the end?
+    program:
+      asm: |
+        addi a0, zero, 2
+        addi a0, zero, 9
+    target: a0
+    expected: 9

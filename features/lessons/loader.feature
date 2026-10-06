@@ -16,6 +16,12 @@ Feature: Loading and validating a lesson
     And the lesson declares the solution "good.s" earning "pass, called-it"
     And the checks have 2 scenarios
 
+  Scenario: With hideEnd the programs list only the student's cards
+    When I make the test lesson hide its end marker
+    And I load the lesson
+    Then the lesson loads
+    And the starter has 1 cards
+
   Scenario: The starter can be assembly text
     When I replace the starter with the assembly "addi a0, zero, 5; ebreak"
     And I load the lesson
@@ -25,7 +31,7 @@ Feature: Loading and validating a lesson
   Scenario Outline: A broken lesson is rejected with a clear message
     When I replace "<find>" with "<replace>" in "<file>"
     And I load the lesson
-    Then loading fails with "<message>"
+    Then the lesson fails to load with "<message>"
 
     Examples: lesson.yaml basics
       | file        | find                 | replace              | message                                  |
@@ -35,6 +41,14 @@ Feature: Loading and validating a lesson
       | lesson.yaml | tabs: [cards, boxes] | tabs: [cards, bogus] | unknown tab "bogus"                      |
       | lesson.yaml | introduces: [machine] | introduces: [wizardry] | unknown concept "wizardry"            |
       | lesson.yaml | requires: []         | requires: [phantom]  | unknown concept "phantom"                |
+
+    Examples: the small machine and the hidden end
+      | file        | find                 | replace                                          | message                              |
+      | lesson.yaml | boxes: [a0]          | boxes: [q9]                                      | boxes must be a non-empty list       |
+      | lesson.yaml | boxes: [a0]          | boxes: []                                        | boxes must be a non-empty list       |
+      | lesson.yaml | minutes: 5           | minutes: 5\npointer: maybe                       | pointer must be true or false        |
+      | lesson.yaml | minutes: 5           | minutes: 5\nhideEnd: true                        | remove the final Stop card           |
+      | lesson.yaml | minutes: 5           | minutes: 5\nhideEnd: sometimes                   | hideEnd must be true or false        |
 
     Examples: scenes
       | file        | find                              | replace                                  | message                                |
@@ -73,7 +87,7 @@ Feature: Loading and validating a lesson
   Scenario Outline: Whole files can be missing
     When I remove the file "<file>"
     And I load the lesson
-    Then loading fails with "<message>"
+    Then the lesson fails to load with "<message>"
 
     Examples:
       | file                     | message                       |
@@ -84,7 +98,7 @@ Feature: Loading and validating a lesson
   Scenario: Malformed YAML and JSON are reported, not thrown
     When I replace "title: Test lesson" with "title: [unclosed" in "lesson.yaml"
     And I load the lesson
-    Then loading fails with "lesson.yaml"
+    Then the lesson fails to load with "lesson.yaml"
 
   Scenario: A lesson can be published as plain JSON for the browser
     When I load the lesson

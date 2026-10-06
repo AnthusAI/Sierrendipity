@@ -129,13 +129,21 @@ export const PHRASES: Phrase[] = [
     const least = g.least !== undefined;
     return (run) => pass(least ? run.steps >= n : run.steps === n, `${plural(run.steps, "step", "steps")}`, `the machine has taken ${plural(run.steps, "step", "steps")}`);
   }),
-  P("box a2 holds 12", `box (?<reg>\\S+) (?:still )?holds (?<v>${NUM})`, (g) => {
-    const r = reg(g.reg);
+  P("box a2 holds 12", `(?:box (?<reg>\\S+)|the box) (?:still )?(?<not>does not )?(?:holds?|shows?) (?<v>${NUM})`, (g) => {
+    const r = reg(g.reg ?? "a0"); // "the box" is the first box, a0
     const want = word32(g.v);
+    const negate = g.not !== undefined;
+    const name = g.reg ?? "a0";
     return (run) => {
       const have = run.machine.regs[r]! >>> 0;
-      return pass(have === want, `box ${g.reg} holds ${signed(have)}`, `box ${g.reg} holds ${signed(have)}${have > 0x7fffffff ? ` (${have})` : ""}, not ${g.v}`);
+      if (negate) return pass(have !== want, `box ${name} holds ${signed(have)}`, `box ${name} holds ${g.v}`);
+      return pass(have === want, `box ${name} holds ${signed(have)}`, `box ${name} holds ${signed(have)}${have > 0x7fffffff ? ` (${have})` : ""}, not ${g.v}`);
     };
+  }),
+  P("the machine reached the end", "the machine reached the end", () => (run) => {
+    const m = run.machine;
+    const atEnd = m.state === "halted" && m.exitCode === null && m.pc === (run.words.length - 1) * 4;
+    return pass(atEnd, "the machine reached the end of the list", m.state === "halted" ? "the machine stopped before the end of the list" : `the machine has not reached the end (it is ${m.state})`);
   }),
   P("memory at 1024 holds 3", `memory at (?<a>${NUM}) holds (?<v>${NUM})`, (g) => {
     const a = address(g.a);
@@ -200,7 +208,11 @@ export const PHRASES: Phrase[] = [
   }),
   P("the program has at most 4 cards", `the program has at most (?<n>${NUM}) cards?`, (g) => {
     const n = count(g.n!, 1);
-    return (run) => pass(run.words.length <= n, `${plural(run.words.length, "card", "cards")}`, `the program has ${plural(run.words.length, "card", "cards")}`);
+    return (run) => pass(run.cards <= n, `${plural(run.cards, "card", "cards")}`, `the program has ${plural(run.cards, "card", "cards")}`);
+  }),
+  P("the program has 3 cards", `the program has (?<n>${NUM}) cards?`, (g) => {
+    const n = count(g.n!, 0);
+    return (run) => pass(run.cards === n, `${plural(run.cards, "card", "cards")}`, `the program has ${plural(run.cards, "card", "cards")}`);
   }),
   P("the program ran at most 4 steps", `the program ran at most (?<n>${NUM}) steps?`, (g) => {
     const n = count(g.n!, 1);
@@ -222,13 +234,15 @@ export const PHRASES: Phrase[] = [
       return pass(bad.length === 0, "no banned cards used", `the program uses: ${bad.join(", ")}`);
     };
   }),
-  P("the program differs from the starter by exactly 1 bit", `the program differs from the starter by exactly (?<n>${NUM}) bits?`, (g) => {
-    const n = count(g.n!, 0);
+  P("the program differs from the starter by exactly 1 bit", `the program differs from the starter(?: by exactly (?<n>${NUM}) bits?)?`, (g) => {
+    const n = g.n === undefined ? undefined : count(g.n, 0);
     return (run) => {
       if (!run.starter) return no("this lesson run has no starter program to compare with");
       let bits = 0;
-      const len = Math.max(run.starter.length, run.words.length);
-      for (let i = 0; i < len; i++) bits += popcount((run.starter[i] ?? 0) ^ (run.words[i] ?? 0));
+      const mine = run.words.slice(0, run.cards); // the hidden end marker is not the student's
+      const len = Math.max(run.starter.length, mine.length);
+      for (let i = 0; i < len; i++) bits += popcount((run.starter[i] ?? 0) ^ (mine[i] ?? 0));
+      if (n === undefined) return pass(bits > 0, `differs by ${plural(bits, "bit", "bits")}`, "the program is the same as the starter");
       return pass(bits === n, `differs by ${plural(bits, "bit", "bits")}`, `the program differs from the starter by ${plural(bits, "bit", "bits")}`);
     };
   }),

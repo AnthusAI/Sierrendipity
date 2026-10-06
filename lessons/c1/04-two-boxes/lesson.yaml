@@ -1,0 +1,64 @@
+id: c1/04-two-boxes
+title: Two Boxes
+minutes: 3
+concepts:
+  introduces: [two-boxes]
+  requires: [cards, numbers-on-cards, last-wins]
+# One new idea (a second box, a1, keeps its own number), one action (change one card).
+boxes: [a0, a1]
+pointer: false
+hideEnd: true
+starter:
+  hex: ["0x00400513", "0x00600593"]   # put 4 in box a0, put 6 in box a1
+tabs: [cards]
+scenes:
+  - id: look
+    say: A second box has appeared. It is called a1.
+    show: [cards, boxes]
+    spotlight: "box:a1"
+
+  - id: run
+    say: Press Step twice. Each card fills its own box.
+    show: [cards, boxes]
+    spotlight: "button:step"
+    until:
+      - the machine has taken at least 2 steps
+      - box a0 holds 4
+      - box a1 holds 6
+    hints:
+      - Press the Step button.
+      - Press it a second time.
+      - Box a0 gets 4 and box a1 gets 6.
+    showMe: demo-step-twice
+    lock: [edit, drag, toggle]
+
+  - id: change
+    say: Change one card so that box a1 holds 9.
+    show: [cards, boxes]
+    spotlight: "card:1"
+    until:
+      - the student edited a card
+      - box a1 holds 9
+    hints:
+      - Which card fills box a1? It is the second one.
+      - Spin the number on the second card.
+      - Spin the second card up to 9, then press Step twice.
+    showMe: demo-spin-second
+    lock: [drag, toggle]
+
+  - id: done
+    say: Each box keeps its own number, so changing one card changes only one box.
+    show: [cards, boxes]
+nowYouCan:
+  - Tell the boxes apart by their names.
+  - Change the card that fills the box you want.
+warmups:
+  - id: fill-two
+    concept: two-boxes
+    question: The cards say put 1 in box a0 and put 2 in box a1. What does box a1 hold at the end?
+    program:
+      asm: |
+        addi a0, zero, 1
+        addi a1, zero, 2
+    target: a1
+    expected: 2

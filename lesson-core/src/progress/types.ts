@@ -9,7 +9,7 @@ export const MAX_ID_LENGTH = 100;
 /** One try at a lesson goal, as reported by the player after running the checks. */
 export interface Attempt {
   passed: boolean;
-  /** Stars earned: "pass" and bonus ids (bonuses count only on a passing attempt). */
+  /** Stars earned: "pass" and bonus ids (bonuses count from any attempt; only a pass gates the path). */
   stars: string[];
   cards: number;
   steps: number;

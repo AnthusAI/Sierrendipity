@@ -1,7 +1,0 @@
-{
-  "id": "demo-rewind",
-  "events": [
-    { "at": 0, "type": "point", "target": "button:back" },
-    { "at": 900, "type": "press", "control": "back" }
-  ]
-}

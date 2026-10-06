@@ -4,41 +4,41 @@ Feature: Warm-ups and the course path
   Stars never gate the path: passing opens the next lesson, bonuses only open side rooms.
 
   Background:
-    Given the authored lessons c1/01-wake and c1/02-change-one-number
+    Given the five authored lessons of Course 1
     And the clock is at day 1
     And a new in-memory progress store
 
   Scenario: A concept introduced less than a day ago gets no warm-up yet
-    Given "ana" passed "c1/01-wake" teaching "add, boxes" on day 1
+    Given "ana" passed "c1/01-press-the-button" teaching "last-wins, add" on day 1
     And the clock is at day 1.5
     Then there is no warm-up for "ana"
 
   Scenario: The first warm-up is for the weakest concept introduced at least a day ago
-    Given "ana" passed "c1/01-wake" teaching "add, boxes" on day 1
+    Given "ana" passed "c1/01-press-the-button" teaching "last-wins, add" on day 1
     And "ana" does the following about "add": a correct warm-up
     And the clock is at day 3
-    Then the warm-up for "ana" is for the concept "boxes"
-    And the warm-up question mentions "Card one puts 9"
-    And the warm-up expects 10
+    Then the warm-up for "ana" is for the concept "last-wins"
+    And the warm-up question mentions "put 2 in the box"
+    And the warm-up expects 9
 
   Scenario: Ties go to the concept seen longest ago
-    Given "ana" passed "c1/01-wake" teaching "boxes" on day 1
-    And "ana" passed "c1/01-wake" teaching "add" on day 2
+    Given "ana" passed "c1/01-press-the-button" teaching "last-wins" on day 1
+    And "ana" passed "c1/01-press-the-button" teaching "add" on day 2
     And the clock is at day 4
-    Then the warm-up for "ana" is for the concept "boxes"
+    Then the warm-up for "ana" is for the concept "last-wins"
 
   Scenario: A missed concept comes back first
-    Given "ana" passed "c1/01-wake" teaching "add, boxes" on day 1
-    And "ana" does the following about "boxes": 2 correct warm-ups
+    Given "ana" passed "c1/01-press-the-button" teaching "add, last-wins" on day 1
+    And "ana" does the following about "last-wins": 2 correct warm-ups
     And "ana" does the following about "add": a correct warm-up
     And the clock is at day 3
     Then the warm-up for "ana" is for the concept "add"
     When "ana" does the following about "add": 2 missed warm-ups
-    And "ana" does the following about "boxes": 3 missed warm-ups
+    And "ana" does the following about "last-wins": 3 missed warm-ups
     Then the warm-up for "ana" is for the concept "add"
 
   Scenario: Concepts without a warm-up are skipped
-    Given "ana" passed "c1/01-wake" teaching "stop" on day 1
+    Given "ana" passed "c1/01-press-the-button" teaching "nothing-here" on day 1
     And the clock is at day 3
     Then there is no warm-up for "ana"
 
@@ -53,30 +53,39 @@ Feature: Warm-ups and the course path
     Then the warm-up for "ana" has the id "w1"
 
   Scenario: Answering a warm-up moves mastery
-    Given "ana" passed "c1/01-wake" teaching "add" on day 1
+    Given "ana" passed "c1/01-press-the-button" teaching "add" on day 1
     And the clock is at day 3
     When "ana" answers the warm-up with 7
     Then the mastery of "add" for "ana" is box 2, last seen on day 3
-    When "ana" answers the warm-up with 8
+    When "ana" answers the warm-up with 9
     Then the mastery of "add" for "ana" is box 1, last seen on day 3
 
   Scenario: A new student starts at lesson 1 with exactly one Continue
-    Then the path for "ana" shows "c1/01-wake" as current
-    And the path for "ana" shows "c1/02-change-one-number" as next
-    And the continue target for "ana" is the lesson "c1/01-wake"
+    Then the path for "ana" shows "c1/01-press-the-button" as current
+    And the path for "ana" shows "c1/02-change-the-number" as next
+    And the continue target for "ana" is the lesson "c1/01-press-the-button"
 
   Scenario: Passing a lesson moves the path on, whatever the stars
-    When "ana" attempts "c1/01-wake" and passes with stars "pass" using 4 cards and 4 steps
-    Then the path for "ana" shows "c1/01-wake" as done
-    And the path for "ana" shows "c1/02-change-one-number" as current
-    And the continue target for "ana" is the lesson "c1/02-change-one-number"
+    When "ana" attempts "c1/01-press-the-button" and passes with stars "pass" using 4 cards and 4 steps
+    Then the path for "ana" shows "c1/01-press-the-button" as done
+    And the path for "ana" shows "c1/02-change-the-number" as current
+    And the continue target for "ana" is the lesson "c1/02-change-the-number"
     And "ana" has exactly one continue target
 
   Scenario: Finishing every lesson ends the path
-    When "ana" attempts "c1/01-wake" and passes with stars "pass, called-it" using 4 cards and 4 steps
-    And "ana" attempts "c1/02-change-one-number" and passes with stars "pass" using 4 cards and 4 steps
+    When "ana" attempts "c1/01-press-the-button" and passes with stars "pass" using 1 cards and 2 steps
+    And "ana" attempts "c1/02-change-the-number" and passes with stars "pass, another-way" using 1 cards and 2 steps
+    And "ana" attempts "c1/03-last-one-wins" and passes with stars "pass, called-it" using 2 cards and 3 steps
+    And "ana" attempts "c1/04-two-boxes" and passes with stars "pass" using 2 cards and 3 steps
+    And "ana" attempts "c1/05-add" and passes with stars "pass" using 3 cards and 4 steps
     Then the continue target for "ana" is the end of the course
     And the path for "ana" shows no current lesson
+
+  Scenario: A bonus star from a failing try still counts but does not move the path
+    When "ana" attempts "c1/02-change-the-number" and fails but earns the stars "another-way"
+    Then lesson "c1/02-change-the-number" for "ana" has bonuses "another-way"
+    And lesson "c1/02-change-the-number" for "ana" is not passed with 1 attempts
+    And the path for "ana" shows "c1/01-press-the-button" as current
 
   Scenario: Lessons further along are in fog with their titles only
     Given a three-lesson course

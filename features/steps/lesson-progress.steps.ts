@@ -100,6 +100,9 @@ When("{string} passes {string} teaching {string} using {int} cards and {int} ste
 When("{string} attempts {string} and fails", (user: string, lesson: string) => {
   store.recordAttempt(user, lesson, { passed: false, stars: [], cards: 3, steps: 3 });
 });
+When("{string} attempts {string} and fails but earns the stars {string}", (user: string, lesson: string, stars: string) => {
+  store.recordAttempt(user, lesson, { passed: false, stars: list(stars), cards: 1, steps: 2 });
+});
 When("{string} attempts {string} and passes with stars {string} using {int} cards and {int} steps", (user: string, lesson: string, stars: string, cards: number, steps: number) => {
   store.recordAttempt(user, lesson, { passed: true, stars: list(stars), cards, steps });
 });
@@ -119,11 +122,11 @@ When(/^"([^"]*)" predicts (correctly|wrongly) on "([^"]*)" teaching "([^"]*)"$/,
 function act(user: string, concept: string, action: string): void {
   const m = /^(?:(a|\d+) )?(correct|missed) (warm-up|prediction)s?$/.exec(action) ?? (action === "Show me" ? ["", "", "show", "me"] : null);
   assert.ok(m, `cannot understand the action "${action}"`);
-  if (action === "Show me") return store.recordEvent(user, { type: "show-me", lessonId: "c1/01-wake", concepts: [concept] });
+  if (action === "Show me") return store.recordEvent(user, { type: "show-me", lessonId: "c1/01-press-the-button", concepts: [concept] });
   const times = m[1] === undefined || m[1] === "a" ? 1 : Number(m[1]);
   for (let i = 0; i < times; i++) {
     if (m[3] === "warm-up") store.recordEvent(user, { type: "warmup", concept, correct: m[2] === "correct" });
-    else store.recordEvent(user, { type: "prediction", lessonId: "c1/01-wake", correct: m[2] === "correct", concepts: [concept] });
+    else store.recordEvent(user, { type: "prediction", lessonId: "c1/01-press-the-button", correct: m[2] === "correct", concepts: [concept] });
   }
 }
 Given(/^"([^"]*)" does the following about "([^"]*)": (.*)$/, (user: string, concept: string, actions: string) => {
@@ -133,8 +136,8 @@ Given(/^"([^"]*)" does the following about "([^"]*)": (.*)$/, (user: string, con
 When(/^I record (.*) for "ana"$/, (what: string) => {
   refusal = undefined;
   try {
-    if (what === "a hint of rung 4") store.recordEvent("ana", { type: "hint", lessonId: "c1/01-wake", rung: 4 as 1 });
-    else if (what === "an attempt with -3 cards") store.recordAttempt("ana", "c1/01-wake", { passed: true, stars: ["pass"], cards: -3, steps: 1 });
+    if (what === "a hint of rung 4") store.recordEvent("ana", { type: "hint", lessonId: "c1/01-press-the-button", rung: 4 as 1 });
+    else if (what === "an attempt with -3 cards") store.recordAttempt("ana", "c1/01-press-the-button", { passed: true, stars: ["pass"], cards: -3, steps: 1 });
     else if (what === 'an attempt for ""') store.recordAttempt("ana", "", { passed: true, stars: ["pass"], cards: 1, steps: 1 });
     else assert.fail(`unknown input: ${what}`);
   } catch (e) {
@@ -207,8 +210,8 @@ Then("the subscriber heard {int} changes for {string}", (n: number, user: string
 });
 When("I export the progress of {string} and change the copy", (user: string) => {
   exported = store.export(user);
-  exported.lessons["c1/01-wake"]!.passed = false;
-  exported.lessons["c1/01-wake"]!.bonuses.push("tampered");
+  exported.lessons["c1/01-press-the-button"]!.passed = false;
+  exported.lessons["c1/01-press-the-button"]!.bonuses.push("tampered");
   exported.events.length = 0;
 });
 Then("the export is version {int} for {string} and survives a JSON round trip", (version: number, user: string) => {
@@ -238,8 +241,8 @@ function summarize(id: string): LessonSummary {
   assert.ok(loaded.ok, loaded.ok ? "" : loaded.errors.join("\n"));
   return loaded.lesson;
 }
-Given(/^the authored lessons c1\/01-wake and c1\/02-change-one-number$/, () => {
-  lessons = [summarize("c1/01-wake"), summarize("c1/02-change-one-number")];
+Given("the five authored lessons of Course 1", () => {
+  lessons = ["01-press-the-button", "02-change-the-number", "03-last-one-wins", "04-two-boxes", "05-add"].map((slug) => summarize(`c1/${slug}`));
 });
 Given("a three-lesson course", () => {
   const warm = (id: string, expected: number) => ({

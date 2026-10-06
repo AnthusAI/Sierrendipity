@@ -20,7 +20,7 @@ import {
   type SolutionDecl,
   type Warmup,
 } from "./lesson";
-import { registerNumber } from "./steps/run";
+import { registerNumber, STOP_WORD } from "./steps/run";
 import { featureProblems } from "./steps/checks";
 import { parseStep } from "./steps/table";
 
@@ -235,7 +235,7 @@ export function loadLesson(files: Record<string, string>, opts: LoadOptions = {}
   }
 
   const stars = new Set(feature?.scenarios.flatMap((s) => (s.tags.includes("pass") ? ["pass"] : s.tags.filter((t) => t.startsWith("star=")).map((t) => t.slice(5)))) ?? []);
-  const solutions = parseSolutions(files, stars, errors);
+  const solutions = parseSolutions(files, stars, lesson?.hideEnd === true, errors);
 
   if (errors.length || !lesson || !feature) return { ok: false, errors };
   return { ok: true, lesson: { ...lesson, checks: feature, solutions } };
@@ -244,7 +244,7 @@ export function loadLesson(files: Record<string, string>, opts: LoadOptions = {}
 function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set<string> | undefined, dir: string | undefined, errors: string[]): Omit<Lesson, "solutions" | "checks"> | undefined {
   const n = errors.length;
   if (!isObj(raw)) return void errors.push("lesson.yaml: must be a mapping");
-  unknownKeys(raw, ["id", "title", "minutes", "concepts", "starter", "tabs", "scenes", "nowYouCan", "warmups", "sideRooms"], "lesson.yaml", errors);
+  unknownKeys(raw, ["id", "title", "minutes", "concepts", "boxes", "pointer", "hideEnd", "starter", "tabs", "scenes", "nowYouCan", "warmups", "sideRooms"], "lesson.yaml", errors);
 
   if (!isStr(raw.id) || !/^[a-z0-9]+\/[a-z0-9-]+$/.test(raw.id)) errors.push('lesson.yaml: id must look like "c1/01-wake"');
   else if (dir !== undefined && raw.id !== dir) errors.push(`lesson.yaml: id "${raw.id}" does not match the directory "${dir}"`);
@@ -266,7 +266,15 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
     }
   }
 
+  const boxes = raw.boxes;
+  if (!(isStrList(boxes) && boxes.length > 0 && boxes.every((b) => registerNumber(b) !== undefined))) errors.push("lesson.yaml: boxes must be a non-empty list of box names (like a0, a1)");
+  for (const key of ["pointer", "hideEnd"] as const) if (raw[key] !== undefined && typeof raw[key] !== "boolean") errors.push(`lesson.yaml: ${key} must be true or false`);
+  const hideEnd = raw.hideEnd === true;
+  const endProblem = (p: Program | undefined, where: string): void => {
+    if (hideEnd && p && p.words.at(-1) === STOP_WORD) errors.push(`${where}: with hideEnd the end marker is added for you; remove the final Stop card (ebreak)`);
+  };
   const starter = programOf(raw.starter, "starter", errors);
+  endProblem(starter, "starter");
   const tabs = raw.tabs ?? [];
   if (!isStrList(tabs)) errors.push("lesson.yaml: tabs must be a list");
   else for (const t of tabs) if (!(TABS as readonly string[]).includes(t)) errors.push(`lesson.yaml: unknown tab "${t}" (use ${TABS.join(", ")})`);
@@ -311,6 +319,7 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
         else errors.push(`${where}: startRegs must map box names to numbers`);
       }
       const program = programOf(w.program, `${where}: program`, errors);
+      endProblem(program, `${where}: program`);
       if (program && typeof w.expected === "number" && isStr(w.concept) && isStr(w.question) && typeof w.target === "string") {
         warmups.push({ id: w.id, concept: w.concept, question: w.question, program, target: w.target, expected: w.expected, ...(startRegs ? { startRegs } : {}) });
       }
@@ -331,6 +340,9 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
     title: raw.title as string,
     minutes: raw.minutes as number,
     concepts,
+    boxes: boxes as string[],
+    pointer: raw.pointer === true,
+    hideEnd,
     starter,
     tabs: tabs as string[],
     scenes,
@@ -341,7 +353,7 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
   };
 }
 
-function parseSolutions(files: Record<string, string>, stars: Set<string>, errors: string[]): SolutionDecl[] {
+function parseSolutions(files: Record<string, string>, stars: Set<string>, hideEnd: boolean, errors: string[]): SolutionDecl[] {
   const raw = yaml(files, "solutions/solutions.yaml", errors);
   const out: SolutionDecl[] = [];
   if (raw === undefined) return out;
@@ -370,6 +382,7 @@ function parseSolutions(files: Record<string, string>, stars: Set<string>, error
     }
     const label = `solutions/${s.file}`;
     const program = programOf(/\.hex$/.test(s.file) ? { hex: text } : { asm: text }, label, errors);
+    if (hideEnd && program?.words.at(-1) === STOP_WORD) errors.push(`${label}: with hideEnd the end marker is added for you; remove the final Stop card (ebreak)`);
     if (!program || typeof s.capped === "string" || !isStrList(s.earns)) return;
     out.push({
       file: s.file,

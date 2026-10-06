@@ -60,6 +60,12 @@ Given("the starting memory at {int} is {int}", (addr: number, value: number) => 
 Given("the program has run", () => {
   world.run = runProgram(words, { ...options, events, predictions });
 });
+Given("the program has run hiding the end", () => {
+  world.run = runProgram(words, { ...options, events, predictions, hideEnd: true });
+});
+Given("the program has run with a cap of {int} steps hiding the end", (cap: number) => {
+  world.run = runProgram(words, { ...options, events, predictions, maxSteps: cap, hideEnd: true });
+});
 Given("the program has run with a cap of {int} steps", (cap: number) => {
   world.run = runProgram(words, { ...options, events, predictions, maxSteps: cap });
 });

@@ -10,8 +10,10 @@ export type LessonEvent =
 /** A machine plus everything recorded about how it got where it is. Plain data: pure and no DOM. */
 export interface LessonRun {
   machine: Machine;
-  /** The program (one word per card) that was loaded at address 0. */
+  /** The program loaded at address 0: one word per card, plus the hidden end marker when `hideEnd` was used. */
   words: number[];
+  /** How many cards the student sees: `words` without the hidden end marker. */
+  cards: number;
   /** The lesson's starter program, when the check compares against it. */
   starter?: number[];
   /** Everything written to file descriptor 1. */
@@ -44,7 +46,12 @@ export interface RunOptions {
   events?: LessonEvent[];
   position?: number;
   memorySize?: number;
+  /** Append the end marker (Stop, ebreak) after the cards; the student sees it only as "the end of the list". */
+  hideEnd?: boolean;
 }
+
+/** The Stop card (ebreak). */
+export const STOP_WORD = 0x00100073;
 
 export const DEFAULT_MAX_STEPS = 10_000;
 export const PIXEL_BASE = 1024;
@@ -65,7 +72,8 @@ export function registerNumber(name: string): number | undefined {
 const JUMPS = new Set(["beq", "bne", "blt", "bge", "bltu", "bgeu", "jal", "jalr"]);
 
 /** Run a program from address 0 until it stops, faults, waits for input or hits the step cap. */
-export function runProgram(words: number[], opts: RunOptions = {}): LessonRun {
+export function runProgram(cards: number[], opts: RunOptions = {}): LessonRun {
+  const words = opts.hideEnd ? [...cards, STOP_WORD] : cards;
   const maxSteps = opts.maxSteps ?? DEFAULT_MAX_STEPS;
   let output = "";
   const decoder = new TextDecoder();
@@ -119,6 +127,7 @@ export function runProgram(words: number[], opts: RunOptions = {}): LessonRun {
   return {
     machine,
     words: [...words],
+    cards: cards.length,
     ...(opts.starter ? { starter: [...opts.starter] } : {}),
     output,
     predictions: opts.predictions ?? {},
@@ -134,6 +143,7 @@ export function runProgram(words: number[], opts: RunOptions = {}): LessonRun {
 /** Wrap a live machine (for example the one in the browser) as a run, with facts supplied by the caller. */
 export function liveRun(machine: Machine, facts: Partial<Omit<LessonRun, "machine" | "steps">> & { words: number[] }): LessonRun {
   return {
+    cards: facts.words.length,
     output: "",
     predictions: {},
     events: [],

@@ -5,15 +5,16 @@ Feature: The lesson authoring CLI and the CI gate
   Scenario: Every authored lesson passes the checker
     When I run the lesson CLI with "check --all"
     Then the CLI exits with 0
-    And the CLI output mentions "ok   c1/01-wake"
-    And the CLI output mentions "ok   c1/02-change-one-number"
+    And the CLI output mentions "ok   c1/01-press-the-button"
+    And the CLI output mentions "ok   c1/02-change-the-number"
+    And the CLI output mentions "c1/05-add"
     And the CLI output mentions "good.hex"
     And the CLI output mentions "(step cap)"
 
   Scenario: A single lesson can be checked by its path
-    When I run the lesson CLI with "check lessons/c1/01-wake"
+    When I run the lesson CLI with "check lessons/c1/01-press-the-button"
     Then the CLI exits with 0
-    And the CLI output mentions "stars: pass, called-it"
+    And the CLI output mentions "stars: pass"
 
   Scenario: A broken lesson fails the CLI with a clear reason
     Given a scratch lessons folder holding the valid test lesson as "c1/99-test"

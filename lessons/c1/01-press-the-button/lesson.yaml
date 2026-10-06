@@ -1,0 +1,48 @@
+id: c1/01-press-the-button
+title: Press the Button
+minutes: 3
+concepts:
+  introduces: [cards]
+  requires: []
+# One new idea (a card tells the machine what to do), one action (press Step), one card.
+# The machine starts small: one box, no pointing arrow, no hex. Cannot be failed.
+boxes: [a0]
+pointer: false
+hideEnd: true
+starter:
+  hex: ["0x00500513"]   # put 5 in box a0
+tabs: [cards]
+scenes:
+  - id: meet
+    say: This is a tiny machine. It has one card and one box.
+    show: [cards, boxes]
+
+  - id: press-step
+    say: Press Step to make the machine do what the card says.
+    show: [cards, boxes]
+    spotlight: "button:step"
+    until:
+      - the machine has taken at least 1 step
+    hints:
+      - The Step button is under the card.
+      - Press Step once.
+      - Press Step. The box will change.
+    showMe: demo-step
+    lock: [edit, drag, toggle]
+
+  - id: did-it
+    say: It did what the card said. The box now shows 5.
+    show: [cards, boxes]
+    spotlight: "box:a0"
+nowYouCan:
+  - Make the machine follow a card.
+  - See what a box shows.
+warmups:
+  - id: one-card
+    concept: cards
+    question: The card says put 5 in the box. After you press Step, what does the box show?
+    program:
+      asm: |
+        addi a0, zero, 5
+    target: a0
+    expected: 5

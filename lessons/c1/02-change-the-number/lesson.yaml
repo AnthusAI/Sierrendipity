@@ -1,0 +1,49 @@
+id: c1/02-change-the-number
+title: Change the Number
+minutes: 3
+concepts:
+  introduces: [numbers-on-cards]
+  requires: [cards]
+# One new idea (a card carries a number you can change), one action (spin the number), one card.
+boxes: [a0]
+pointer: false
+hideEnd: true
+starter:
+  hex: ["0x00500513"]   # put 5 in box a0
+tabs: [cards]
+scenes:
+  - id: look
+    say: This is the same card. It has a number you can change.
+    show: [cards, boxes]
+    spotlight: "card:0"
+
+  - id: spin
+    say: Spin the number until the box shows 9. Then press Step.
+    show: [cards, boxes]
+    spotlight: "card:0"
+    until:
+      - the student edited a card
+      - the box shows 9
+    hints:
+      - Spin the number on the card.
+      - The box shows whatever number the card has.
+      - Spin the number up to 9, then press Step.
+    showMe: demo-spin
+    lock: [drag, toggle]
+
+  - id: another
+    say: You changed what the machine does by changing one number. Try a different number if you like.
+    show: [cards, boxes]
+    skippable: true
+nowYouCan:
+  - Change the number on a card.
+  - Make the box show the number you want.
+warmups:
+  - id: change-the-six
+    concept: numbers-on-cards
+    question: The card says put 6 in the box. After you press Step, what does the box show?
+    program:
+      asm: |
+        addi a0, zero, 6
+    target: a0
+    expected: 6

@@ -74,6 +74,19 @@ export interface Lesson {
   title: string;
   minutes: number;
   concepts: { introduces: string[]; requires: string[] };
+  /**
+   * The machine starts small: only these boxes are shown (ABI names), in this order. More appear in
+   * later lessons when they are needed.
+   */
+  boxes: string[];
+  /** Show the arrow that points at the card being run (the program counter). Default false in early lessons. */
+  pointer: boolean;
+  /**
+   * Hide the Stop card. Programs (starter, solutions, warm-ups) then list only the student's cards;
+   * the player appends the end marker (`runProgram(cards, { hideEnd: true })`) and shows it only as
+   * "the end of the list" until a later lesson introduces Stop.
+   */
+  hideEnd: boolean;
   starter: Program;
   tabs: string[];
   scenes: Scene[];

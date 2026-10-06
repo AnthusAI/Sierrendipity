@@ -40,6 +40,7 @@ export function checkLesson(lesson: Lesson): LessonReport {
       maxSteps: decl.maxSteps ?? DEFAULT_MAX_STEPS,
       predictions: decl.predictions,
       starter: lesson.starter.words,
+      hideEnd: lesson.hideEnd,
     });
     const report = runChecks(lesson.checks, run);
     const earned = earnedStars(report);
@@ -55,11 +56,11 @@ export function checkLesson(lesson: Lesson): LessonReport {
     }
     if (decl.capped && !run.hitStepCap) out.push(`declared capped (never terminating) but stopped by itself after ${run.steps} steps (${run.machine.state})`);
     if (!decl.capped && run.hitStepCap) out.push(`was stopped by the step cap after ${run.steps} steps but is not declared capped`);
-    return { file: decl.file, declared: decl.earns, earned, steps: run.steps, cards: decl.words.length, hitStepCap: run.hitStepCap, problems: out };
+    return { file: decl.file, declared: decl.earns, earned, steps: run.steps, cards: run.cards, hitStepCap: run.hitStepCap, problems: out };
   });
 
   for (const w of lesson.warmups) {
-    const run = runProgram(w.program.words, w.startRegs ? { startRegs: w.startRegs } : {});
+    const run = runProgram(w.program.words, { hideEnd: lesson.hideEnd, ...(w.startRegs ? { startRegs: w.startRegs } : {}) });
     const index = registerNumber(w.target);
     const have = index === undefined ? undefined : run.machine.regs[index]! | 0;
     if (run.hitStepCap || run.machine.state !== "halted") problems.push(`warmup "${w.id}": the program does not halt (${run.machine.state})`);

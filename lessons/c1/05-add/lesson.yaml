@@ -1,0 +1,90 @@
+id: c1/05-add
+title: Add
+minutes: 4
+concepts:
+  introduces: [add]
+  requires: [cards, two-boxes]
+# One new idea (a card can add two boxes into a third), one action (predict, then watch).
+boxes: [a0, a1, a2]
+pointer: false
+hideEnd: true
+starter:
+  hex: ["0x00500513", "0x00700593", "0x00b50633"]   # put 5 in a0, put 7 in a1, add a0 and a1 into a2
+tabs: [cards]
+scenes:
+  - id: meet
+    say: Three cards now, and a third box. The last card adds the first two boxes.
+    show: [cards, boxes]
+    spotlight: "box:a2"
+
+  - id: fill
+    say: Press Step twice. The cards put 5 in box a0 and 7 in box a1.
+    show: [cards, boxes]
+    spotlight: "button:step"
+    until:
+      - the machine has taken at least 2 steps
+      - box a0 holds 5
+      - box a1 holds 7
+    hints:
+      - Press the Step button.
+      - Press it a second time.
+      - Box a0 gets 5 and box a1 gets 7.
+    showMe: demo-step-twice
+    lock: [edit, drag, toggle]
+
+  - id: predict
+    say: The next card adds a0 and a1 into box a2. What will a2 hold?
+    show: [cards, boxes]
+    spotlight: "box:a2"
+    ask:
+      kind: number
+      question: What will box a2 hold after the add card?
+      target: a2
+      answer: 12
+    hints:
+      - Box a0 holds 5 and box a1 holds 7.
+      - Add means the numbers are added, like 2 and 3 make 5.
+      - 5 plus 7 is 12.
+    onWrong:
+      - match: 57
+        say: Close! Adding is not gluing digits together, so let's watch.
+        goto: watch-add
+    lock: [edit, drag, toggle]
+
+  - id: watch-add
+    say: Press Step and watch the two numbers meet in box a2.
+    show: [cards, boxes]
+    spotlight: "button:step"
+    until:
+      - the machine has taken at least 3 steps
+      - box a2 holds 12
+    hints:
+      - Press the Step button again.
+      - Watch box a2 while the add card runs.
+      - Press Step. Box a2 will change to 12.
+    showMe: demo-step
+    lock: [edit, drag, toggle]
+nowYouCan:
+  - Add two boxes into a third.
+  - Guess a result, then check it.
+warmups:
+  - id: add-three-four
+    concept: add
+    question: Box a0 holds 3 and box a1 holds 4. After the add card, what does box a2 hold?
+    program:
+      asm: |
+        addi a0, zero, 3
+        addi a1, zero, 4
+        add a2, a0, a1
+    target: a2
+    expected: 7
+  - id: add-two-six
+    concept: add
+    question: Box a0 holds 2 and box a1 holds 6. After the add card, what does box a2 hold?
+    program:
+      asm: |
+        addi a0, zero, 2
+        addi a1, zero, 6
+        add a2, a0, a1
+    target: a2
+    expected: 8

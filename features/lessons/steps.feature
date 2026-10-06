@@ -199,3 +199,41 @@ Feature: The lesson step vocabulary
     Then the scenario "The machine adds" passed
     And the scenario "Never matches" failed with "box a2 holds 99"
     And the earned stars are "pass"
+
+  Scenario: The box phrases and the end of the list
+    Given the lesson program "addi a0, zero, 9; addi a1, zero, 4"
+    And the program has run hiding the end
+    Then the phrase "the box shows 9" passes
+    And the phrase "the box shows 8" fails
+    And the phrase "the box does not show 8" passes
+    And the phrase "the box does not show 9" fails
+    And the phrase "box a1 shows 4" passes
+    And the phrase "box a1 does not hold 4" fails
+    And the phrase "the machine reached the end" passes
+    And the phrase "the program has 2 cards" passes
+    And the phrase "the program has 3 cards" fails
+    And the phrase "the program has at most 2 cards" passes
+    And the phrase "the program has at most 1 card" fails
+    And the phrase "the machine has taken 3 steps" passes
+
+  Scenario: The machine has not reached the end until it has run every card
+    Given the lesson program "addi a0, zero, 9; addi a1, zero, 4"
+    And the program has run with a cap of 1 steps hiding the end
+    Then the phrase "the machine reached the end" fails
+    And the phrase "the program has 2 cards" passes
+
+  Scenario: A program that stops early has not reached the end
+    Given the lesson program "addi a0, zero, 9; ebreak; addi a1, zero, 4"
+    And the program has run hiding the end
+    Then the phrase "the machine reached the end" fails
+
+  Scenario: Differing from the starter ignores the hidden end marker
+    Given the lesson program "addi a0, zero, 4"
+    And the starter program "addi a0, zero, 5"
+    And the program has run hiding the end
+    Then the phrase "the program differs from the starter" passes
+    And the phrase "the program differs from the starter by exactly 1 bit" passes
+    Given the lesson program "addi a0, zero, 5"
+    And the starter program "addi a0, zero, 5"
+    And the program has run hiding the end
+    Then the phrase "the program differs from the starter" fails

@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { earnedStars, parseStep, runChecks, runProgram, type Lesson, type PublishedLesson } from "@sierrendipity/lesson-core";
 import { checkLesson, type LessonReport } from "@sierrendipity/lesson-core/check";
 import { crossCheckGherkin, readConcepts, readLessonDir } from "@sierrendipity/lesson-core/node";
-import { countSentences, loadLesson, publishLesson, type LoadResult } from "@sierrendipity/lesson-core/loader";
+import { countSentences, countWords, loadLesson, publishLesson, type LoadResult } from "@sierrendipity/lesson-core/loader";
 import { assembleOrThrow, validTestLesson, world } from "./lesson-fixtures";
 
 let files: Record<string, string>;
@@ -21,15 +21,24 @@ Given("a valid test lesson", () => {
 Given("the known concepts are {string}", (list: string) => {
   concepts = list.split(/,\s*/);
 });
-When(/^I replace "(.*?)" with "(.*)" in "([^"]*)"$/, (find: string, replace: string, file: string) => {
+When(/^I replace "([\s\S]*?)" with "([\s\S]*)" in "([^"]*)"$/, (find: string, replace: string, file: string) => {
   const text = files[file];
   assert.ok(text !== undefined, `no file ${file}`);
   assert.ok(text.includes(find), `${file} does not contain ${find}`);
-  files[file] = text.replace(find, () => replace);
+  files[file] = text.replace(find, () => replace.replace(/\\n/g, "\n"));
 });
 When("I replace the starter with the assembly {string}", (source: string) => {
   const indented = source.split(";").map((l) => `    ${l.trim()}`).join("\n");
   files["lesson.yaml"] = files["lesson.yaml"]!.replace(/starter:\n  hex: .*\n/, `starter:\n  asm: |\n${indented}\n`);
+});
+When("I make the test lesson hide its end marker", () => {
+  const y = files["lesson.yaml"]!;
+  files["lesson.yaml"] = y
+    .replace("minutes: 5", "minutes: 5\nhideEnd: true\npointer: false")
+    .replace('["0x00500513", "0x00100073"]', '["0x00500513"]')
+    .replace("addi a0, zero, 5\n        ebreak", "addi a0, zero, 5");
+  files["solutions/good.s"] = "addi a0, zero, 5\n";
+  files["solutions/wrong.s"] = "addi a0, zero, 6\n";
 });
 When("I remove the file {string}", (file: string) => {
   assert.ok(file in files, `no file ${file}`);
@@ -39,6 +48,7 @@ When("I load the lesson", () => {
   result = loadLesson(files, { dir, ...(concepts ? { knownConcepts: concepts } : {}) });
 });
 
+const list = (text: string): string[] => text.split(/,\s*/);
 const lesson = (): Lesson => {
   assert.ok(result.ok, result.ok ? "" : result.errors.join("\n"));
   return result.lesson;
@@ -58,7 +68,7 @@ Then("the lesson declares the solution {string} earning {string}", (file: string
   assert.deepEqual(s.earns, earns.split(/,\s*/));
 });
 Then("the checks have {int} scenarios", (n: number) => assert.equal(lesson().checks.scenarios.length, n));
-Then(/^loading fails with "(.*)"$/, (message: string) => {
+Then(/^the lesson fails to load with "(.*)"$/, (message: string) => {
   assert.equal(result.ok, false, "the lesson should not load");
   if (!result.ok) assert.ok(result.errors.some((e) => e.includes(message)), `expected "${message}" in:\n${result.errors.join("\n")}`);
 });
@@ -92,7 +102,7 @@ Then("the lesson loads from disk", () => {
 Then("every scene says at most {int} sentences", (n: number) => {
   for (const s of lesson().scenes) assert.ok(countSentences(s.say) <= n, `${s.id}: ${s.say}`);
 });
-Then("the starter is the four cards {string}", (hexWords: string) => {
+Then("the starter is the cards {string}", (hexWords: string) => {
   assert.deepEqual(lesson().starter.words, hexWords.split(" ").map(Number));
 });
 Then("the lesson introduces {string}", (list: string) => {
@@ -105,8 +115,17 @@ Then("the lesson has a ghost for every Show me", () => {
   for (const id of wanted) assert.ok(id in l.ghosts, `no ghost ${id}`);
 });
 When("the starter program runs", () => {
-  world.run = runProgram(lesson().starter.words);
+  world.run = runProgram(lesson().starter.words, { hideEnd: lesson().hideEnd });
 });
+Then("every scene says at most {int} words", (n: number) => {
+  for (const s of lesson().scenes) assert.ok(countWords(s.say) <= n, `${s.id}: ${s.say}`);
+});
+Then("the lesson shows the boxes {string}", (boxes: string) => assert.deepEqual(lesson().boxes, list(boxes)));
+Then("the lesson hides the end marker and the pointing arrow", () => {
+  assert.equal(lesson().hideEnd, true);
+  assert.equal(lesson().pointer, false);
+});
+Then("the lesson takes at most {int} minutes", (n: number) => assert.ok(lesson().minutes <= n));
 Then("the scene {string} asks for the number {int} for {string}", (id: string, answer: number, target: string) => {
   const ask = lesson().scenes.find((s) => s.id === id)?.ask;
   assert.deepEqual(ask && { kind: ask.kind, answer: "answer" in ask ? ask.answer : undefined, target: "target" in ask ? ask.target : undefined }, { kind: "number", answer, target });
@@ -117,7 +136,7 @@ Then("the scene {string} answers a guess of {int} with a {string} reply that goe
   assert.ok(reply.say.toLowerCase().includes(word), reply.say);
   assert.equal(reply.goto, target);
 });
-Then("every scene condition holds at the end, except {string}", (except: string) => {
+Then(/^every scene condition holds at the end(?:, except "(.*)")?$/, (except?: string) => {
   const phrases = lesson().scenes.flatMap((s) => s.until).filter((p) => p !== except);
   assert.ok(phrases.length > 0);
   for (const p of phrases) {

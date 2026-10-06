@@ -22,6 +22,7 @@ minutes: 5
 concepts:
   introduces: [machine]
   requires: []
+boxes: [a0]
 starter:
   hex: ["0x00500513", "0x00100073"]
 tabs: [cards, boxes]

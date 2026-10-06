@@ -71,12 +71,13 @@ export class MemoryProgressStore implements ProgressStore {
     const lp = (d.lessons[lessonId] ??= emptyLesson());
     lp.attempts++;
     lp.lastAttemptAt = now;
+    // Bonus stars count from any attempt (a different try can earn one); only a pass gates the path.
+    for (const star of attempt.stars) if (star !== "pass" && !lp.bonuses.includes(star)) lp.bonuses.push(star);
     if (attempt.passed) {
       if (!lp.passed) {
         lp.passed = true;
         lp.firstPassedAt = now;
       }
-      for (const star of attempt.stars) if (star !== "pass" && !lp.bonuses.includes(star)) lp.bonuses.push(star);
       lp.bestCards = lp.bestCards === null ? attempt.cards : Math.min(lp.bestCards, attempt.cards);
       lp.bestSteps = lp.bestSteps === null ? attempt.steps : Math.min(lp.bestSteps, attempt.steps);
       for (const concept of attempt.concepts ?? []) {
