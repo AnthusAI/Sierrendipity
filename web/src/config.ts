@@ -21,6 +21,9 @@ export async function loadConfig(): Promise<Config> {
   if (!devBackend(config)) {
     const missing = REQUIRED.filter((key) => typeof config[key] !== "string" || !config[key]);
     if (missing.length > 0) throw new Error(`config.json is missing: ${missing.join(", ")}`);
+    // The deployed stack publishes the bare hosted-UI host name; accept a full origin too.
+    config.cognitoDomain = config.cognitoDomain!.replace(/\/+$/, "");
+    if (!/^https?:\/\//.test(config.cognitoDomain)) config.cognitoDomain = `https://${config.cognitoDomain}`;
   }
   return config;
 }
