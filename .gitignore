@@ -6,3 +6,4 @@ cdk.out/
 coverage/
 .env
 project/.cache/
+.claude/worktrees/
