@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "93715564-0b0d-40f5-a059-e85f524ac8f5",
+  "issue_id": "SIE-a5c96027-0ef0-4502-a395-ca0af914c212",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T19:10:46.987Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "E4: Timeline: trace recorder and scrub over step and stepBack (M)",
+    "description": "Feature: Timeline\n  Scenario: Scrubbing back restores registers and memory\n  Scenario: Playing at 4x reaches the halted state",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-e8c91813-9ff5-4d5a-9ac2-ccef5abae556",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-orchestrator"
+    }
+  }
+}

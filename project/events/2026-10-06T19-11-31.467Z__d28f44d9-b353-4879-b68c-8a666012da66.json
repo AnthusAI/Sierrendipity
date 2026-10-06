@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "d28f44d9-b353-4879-b68c-8a666012da66",
+  "issue_id": "SIE-76150c42-45bc-4174-9e48-e558e613ef41",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T19:11:31.467Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "E10: Pixel display view over shelves 1024 to 1279 (S)",
+    "description": "Feature: Pixel display\n  Scenario: A byte of 3 at 1024 lights the top-left pixel green",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-e8c91813-9ff5-4d5a-9ac2-ccef5abae556",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-orchestrator"
+    }
+  }
+}

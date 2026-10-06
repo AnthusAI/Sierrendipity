@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "993f7602-d7fb-47ab-b8ed-f2fe97f1e3f4",
+  "issue_id": "SIE-93b32f39-88f7-4d86-b4d8-7287c5fe8ee3",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T19:11:56.789Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Pilot lessons 1 to 4 with the student alone and measure before authoring the rest",
+    "description": "Instrument time per scene, idle over 60 s, hint rung and Show me use, prediction accuracy, resets, quit points, Next versus Stop, and an in-app too-easy/just-right/too-hard prompt plus one explain-back per lesson. Rule: if more than 20 percent of goals need rung 3 or Show me, or a lesson is abandoned twice, rewrite it first.",
+    "issue_type": "task",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-e8c91813-9ff5-4d5a-9ac2-ccef5abae556",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-orchestrator"
+    }
+  }
+}

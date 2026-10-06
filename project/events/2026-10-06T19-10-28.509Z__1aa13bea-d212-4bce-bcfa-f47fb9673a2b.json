@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "1aa13bea-d212-4bce-bcfa-f47fb9673a2b",
+  "issue_id": "SIE-c4e3a2b0-6c93-4260-a784-b486cee8cae2",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T19:10:28.509Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "E1: describe(word) renders English card text (S)",
+    "description": "Feature: Card text\n  Scenario: A decoded add word reads as plain English\n    When the word 0x00b50633 is described\n    Then the card says add box a0 and box a1 and put the answer in box a2\n  Scenario: An unknown instruction gets an honest fallback card\n    When a word outside the Course 1 set is described\n    Then the card says it is an instruction we have not met yet",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-e8c91813-9ff5-4d5a-9ac2-ccef5abae556",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-orchestrator"
+    }
+  }
+}

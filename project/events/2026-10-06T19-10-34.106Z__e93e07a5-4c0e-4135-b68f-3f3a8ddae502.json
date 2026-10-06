@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "e93e07a5-4c0e-4135-b68f-3f3a8ddae502",
+  "issue_id": "SIE-e39788aa-d62d-434f-8987-5ce9d190535f",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T19:10:34.106Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "E2: Lesson step library shared by CI and the browser (M)",
+    "description": "Feature: Lesson steps\n  Scenario: Box conditions are checked against machine state\n    Given a program that puts 12 in a2 and stops\n    Then box a2 holds 12\n  Scenario: The same steps run in CI and in the browser",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-e8c91813-9ff5-4d5a-9ac2-ccef5abae556",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-orchestrator"
+    }
+  }
+}

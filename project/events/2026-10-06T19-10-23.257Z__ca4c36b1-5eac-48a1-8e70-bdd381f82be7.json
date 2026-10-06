@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "ca4c36b1-5eac-48a1-8e70-bdd381f82be7",
+  "issue_id": "SIE-e8c91813-9ff5-4d5a-9ac2-ccef5abae556",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T19:10:23.257Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "M11: Self-guided lesson player and Course 1 (the tool is the tutor)",
+    "description": "Intent: As a total beginner, I want a tool that teaches me how a computer works from machine code up, with animated diagrams, a coach that guides and helps when I am stuck, and very easy early sessions, so that I can learn alone and gain confidence. Design: docs/course-1-design.md. Includes: instruction cards over the real RV32IM words (describe(word)), a lesson step library and authoring CLI, a scrubbable timeline and live animated machine diagrams, a scene engine and coach (spotlight, predictions, wrong-answer replies, hint ladder, Show me), drag-and-drop card builder, bit lamps, pixel display, progress and mastery, course path, Gallery and Deck, then the 13 Course 1 lessons. Excludes: later courses. Sequencing: build the smallest vertical slice (lesson 1 alone) and pilot lessons 1 to 4 with the student before authoring the rest. DoD: the student completes Course 1 alone; every lesson's reference solution passes its Gherkin checks in CI.",
+    "issue_type": "epic",
+    "status": "open",
+    "priority": 1,
+    "assignee": null,
+    "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-orchestrator"
+    }
+  }
+}
