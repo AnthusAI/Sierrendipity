@@ -7,7 +7,7 @@ import type { WebWorld } from "../support/web-world.ts";
 const terminal = (w: WebWorld) => w.page.getByRole("region", { name: "Terminal" });
 const button = (w: WebWorld, name: string) => w.page.getByRole("button", { name, exact: true });
 const treeItem = (w: WebWorld, file: string) => w.page.getByRole("treeitem", { name: file, exact: true });
-const languages = "Python|C\\+\\+|C";
+const languages = "RISC-V assembly|Machine code|Python|C\\+\\+|C";
 
 // Playwright's prompt()/confirm() dialogs: answer the next one, then click.
 async function answering(w: WebWorld, answer: string | null, click: () => Promise<unknown>) {

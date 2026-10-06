@@ -6,6 +6,7 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 //   "while True"      -> prints "still running" and waits for Stop
 //   more than 1 file  -> prints "files: <names>"
 //   anything else     -> prints "Name: ", reads a line, prints "Hello, <line>!"
+// POST /explain answers with the canned compilation below ("#error <text>" -> compile_error).
 // Standalone for manual smoke tests: `npx tsx features/support/mock-backend.ts [port] [startMs]`.
 
 export const SESSION_TOKEN = "mock-session-token";
@@ -21,6 +22,83 @@ interface Run {
   done: boolean;
   subscribers: Set<ServerResponse>;
   onStdin?: (line: string) => void;
+}
+
+// A small RV32 program, hand-assembled once and pasted here so the mock needs no assembler. The C it
+// stands for (the specs paste it into the editor):
+//   1 int putchar(int c);          6   }
+//   2 int main(void) {             7   putchar('0' + sum);
+//   3   int sum = 0;               8   return 0;
+//   4   for (int i = 1; ...) {     9 }
+//   5     sum += i;
+// [word, function, source line (0 = runtime)]. It prints "6" through putchar's write ecall and exits 0.
+const PROGRAM: [number, string, number][] = [
+  [0x030000ef, "_start", 0], // jal ra, main
+  [0x05d00893, "_start", 0], // addi a7, zero, 93
+  [0x00000073, "_start", 0], // ecall
+  [0xff010113, "putchar", 0], // addi sp, sp, -16
+  [0x00a107a3, "putchar", 0], // sb a0, 15(sp)
+  [0x00100513, "putchar", 0], // addi a0, zero, 1
+  [0x00f10593, "putchar", 0], // addi a1, sp, 15
+  [0x00100613, "putchar", 0], // addi a2, zero, 1
+  [0x04000893, "putchar", 0], // addi a7, zero, 64
+  [0x00000073, "putchar", 0], // ecall
+  [0x01010113, "putchar", 0], // addi sp, sp, 16
+  [0x00008067, "putchar", 0], // jalr zero, 0(ra)
+  [0xfe010113, "main", 2], // addi sp, sp, -32
+  [0x00112e23, "main", 2], // sw ra, 28(sp)
+  [0x00812c23, "main", 2], // sw s0, 24(sp)
+  [0x02010413, "main", 2], // addi s0, sp, 32
+  [0xfe042623, "main", 3], // sw zero, -20(s0)
+  [0x00100793, "main", 4], // addi a5, zero, 1
+  [0xfef42423, "main", 4], // sw a5, -24(s0)
+  [0x0200006f, "main", 4], // jal zero, 32
+  [0xfec42703, "main", 5], // lw a4, -20(s0)
+  [0xfe842783, "main", 5], // lw a5, -24(s0)
+  [0x00f707b3, "main", 5], // add a5, a4, a5
+  [0xfef42623, "main", 5], // sw a5, -20(s0)
+  [0xfe842783, "main", 4], // lw a5, -24(s0)
+  [0x00178793, "main", 4], // addi a5, a5, 1
+  [0xfef42423, "main", 4], // sw a5, -24(s0)
+  [0xfe842703, "main", 4], // lw a4, -24(s0)
+  [0x00300793, "main", 4], // addi a5, zero, 3
+  [0xfce7dee3, "main", 4], // bge a5, a4, -36
+  [0xfec42783, "main", 7], // lw a5, -20(s0)
+  [0x03078793, "main", 7], // addi a5, a5, 48
+  [0x00078513, "main", 7], // addi a0, a5, 0
+  [0xf89ff0ef, "main", 7], // jal ra, -120
+  [0x00000513, "main", 8], // addi a0, zero, 0
+  [0x01c12083, "main", 9], // lw ra, 28(sp)
+  [0x01812403, "main", 9], // lw s0, 24(sp)
+  [0x02010113, "main", 9], // addi sp, sp, 32
+  [0x00008067, "main", 9], // jalr zero, 0(ra)
+];
+
+function explain(files: { path: string; content: string }[]) {
+  const source = files.map((f) => f.content).join("\n");
+  const error = /#error (.*)/.exec(source);
+  if (error) return { status: "compile_error", compileOutput: `main.c:1:2: error: ${error[1]}\n` };
+  const image = Buffer.alloc(PROGRAM.length * 4);
+  PROGRAM.forEach(([word], i) => image.writeUInt32LE(word, i * 4));
+  const lineMap: Record<string, number[]> = {};
+  const instructions = PROGRAM.map(([word, fn, line], index) => {
+    if (line) (lineMap[`main.c:${line}`] ??= []).push(index);
+    return {
+      index,
+      addr: index * 4,
+      word,
+      origin: line ? "user" : "runtime",
+      function: fn,
+      ...(line ? { src: { path: "main.c", line, column: 1 } } : {}),
+    };
+  });
+  return {
+    status: "ok",
+    compileOutput: "",
+    program: { image: image.toString("base64"), loadAddress: 0, entry: 0, stackTop: 0x10000, memorySize: 0x10000 },
+    instructions,
+    lineMap,
+  };
 }
 
 export interface MockBackend {
@@ -115,6 +193,11 @@ export async function startMockBackend(options: { startDelayMs?: number; port?: 
       runs.set(runId, run);
       json(response, 202, { runId });
       return setTimeout(() => program(run, body.files), 50);
+    }
+
+    if (request.method === "POST" && path === "/explain") {
+      const body = await readJson(request);
+      return json(response, 200, explain(body.files));
     }
 
     const match = /^\/runs\/([^/]+)\/(events|stdin|stop)$/.exec(path);
