@@ -173,3 +173,104 @@ Feature: Write and run RISC-V programs in the browser
     When I press "Step"
     And I focus the "Registers" tab and press "ArrowRight"
     Then the "Memory" tab is selected
+
+  Scenario: Machine code lines map to the right editor lines
+    Given a project "hex" in Machine code with the program:
+      """
+      // a comment with words: 00000013 00000013
+      00500513
+      0b0000_0000 0101_0000 0000_0101 0001_0011
+      0x00000073
+      """
+    When I toggle the breakpoint at address 0x00000008
+    And I press "Continue"
+    Then the PC is 0x00000008
+    And the editor marks the current instruction on line 4
+    And the editor marks a breakpoint on line 4
+
+  Scenario: ebreak halts without an exit code
+    Given a project "hex" in Machine code with the program:
+      """
+      0x00100073
+      """
+    When I press Run
+    Then the terminal shows "[ebreak]"
+    And the machine status is "Halted (ebreak)"
+
+  Scenario: Stop while waiting for input updates the status
+    Given a project "wait" in RISC-V assembly with the program:
+      """
+      addi a0, zero, 0
+      addi a1, sp, -32
+      addi a2, zero, 8
+      addi a7, zero, 63
+      ecall
+      """
+    When I press Run
+    Then the machine status is "Waiting for input"
+    When I press Stop
+    Then the machine status is "Stopped"
+
+  Scenario: A long Continue keeps the registers and step count fresh
+    Given a project "loop" in RISC-V assembly with the program:
+      """
+      spin: jal zero, spin
+      """
+    When I press "Continue"
+    Then the step count exceeds 1000
+    And the machine status is "Running"
+    When I press Stop
+    Then the machine status is "Ready"
+
+  Scenario: Reset then Continue is not ignored
+    Given a project "loop" in RISC-V assembly with the program:
+      """
+      spin: jal zero, spin
+      """
+    When I press "Continue"
+    And I press "Reset"
+    And I press "Continue"
+    Then the machine status is "Running"
+    And the step count exceeds 1000
+    When I press Stop
+
+  Scenario: Editing while stepping resets the program and says so
+    Given a project "edit" in RISC-V assembly with the program:
+      """
+      addi a0, zero, 5
+      addi a1, zero, 7
+      """
+    When I press "Step"
+    And I paste this into the editor:
+      """
+      addi a0, zero, 6
+      addi a1, zero, 7
+      """
+    Then I see the message "The program was reset because the source changed"
+    And the PC is 0x00000000
+
+  Scenario: The Memory address box validates its input and is remembered
+    Given a project "mem" in RISC-V assembly with the program:
+      """
+      addi a0, zero, 12
+      """
+    When I open the "Memory" tab
+    And I enter the memory address "zz"
+    Then the memory address problem is "not a hex address"
+    When I enter the memory address "0x100"
+    Then the memory shows address 0x00000100
+    When I enter the memory address "0xffffffff"
+    Then the memory address problem is "beyond the end of memory"
+    When I open the "Registers" tab
+    And I open the "Memory" tab
+    Then the memory address box shows "0xffffffff"
+
+  Scenario: Machine tab rows and the splitter are accessible
+    Given a project "a11y" in RISC-V assembly with the program:
+      """
+      addi a0, zero, 5
+      """
+    When I open the "Machine" tab
+    And I select the machine row "addi a0, zero, 5" with the keyboard
+    Then the Bits card shows the decoded text "addi a0, zero, 5"
+    And the splitter has the limits 260 to 900

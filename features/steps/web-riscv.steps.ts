@@ -205,3 +205,99 @@ Then("there is no inspector pane", async function (this: WebWorld) {
   await this.page.getByRole("button", { name: "Explore", exact: true }).waitFor();
   assert.equal(await this.page.getByRole("complementary", { name: "Inspector" }).count(), 0);
 });
+
+// Robustness and accessibility
+
+Then("the editor marks the current instruction on line {int}", async function (this: WebWorld, line: number) {
+  await this.page.locator(`.monaco-editor .src-pc-${line}`).first().waitFor();
+});
+
+Then("the editor marks a breakpoint on line {int}", async function (this: WebWorld, line: number) {
+  await this.page.locator(`.monaco-editor .src-bp-${line}`).first().waitFor();
+});
+
+Then("the step count exceeds {int}", async function (this: WebWorld, count: number) {
+  await this.page.waitForFunction(
+    `Number(document.querySelector('output[aria-label="Steps"]')?.textContent) > ${count}`,
+  );
+});
+
+When("I enter the memory address {string}", async function (this: WebWorld, text: string) {
+  await this.page.getByLabel("Address", { exact: true }).fill(text);
+});
+
+Then("the memory address problem is {string}", async function (this: WebWorld, text: string) {
+  await this.page.getByRole("alert").filter({ hasText: text }).waitFor();
+});
+
+Then("the memory shows address {word}", async function (this: WebWorld, addr: string) {
+  await this.page.locator(`[data-addr="${addr}"]`).waitFor();
+});
+
+Then("the memory address box shows {string}", async function (this: WebWorld, text: string) {
+  assert.equal(await this.page.getByLabel("Address", { exact: true }).inputValue(), text);
+});
+
+When("I select the machine row {string} with the keyboard", async function (this: WebWorld, text: string) {
+  const button = machineRow(this, text).locator("button");
+  await button.focus();
+  await this.page.keyboard.press("Enter");
+});
+
+Then("the splitter has the limits {int} to {int}", async function (this: WebWorld, min: number, max: number) {
+  const splitter = this.page.getByRole("separator");
+  assert.equal(await splitter.getAttribute("aria-valuemin"), String(min));
+  assert.equal(await splitter.getAttribute("aria-valuemax"), String(max));
+  assert.ok(await splitter.getAttribute("aria-valuenow"));
+});
+
+// Explore edge cases
+
+When("I wait for the slow response", async function (this: WebWorld) {
+  await this.page.waitForTimeout(2200);
+});
+
+Then("the stale source note is shown", async function (this: WebWorld) {
+  await this.page.getByText("The source changed since Explore").waitFor();
+});
+
+Then("the stale source note is gone", async function (this: WebWorld) {
+  await this.page.getByRole("button", { name: "Explore", exact: true }).waitFor();
+  await this.page.getByText("The source changed since Explore").waitFor({ state: "detached" });
+});
+
+Then("the editor shows no linked highlight", async function (this: WebWorld) {
+  await this.page.getByText("The source changed since Explore").waitFor();
+  assert.equal(await this.page.locator(".monaco-editor .src-linked, .monaco-editor .src-pc").count(), 0);
+});
+
+Then("no source line is highlighted in the editor", async function (this: WebWorld) {
+  await this.page.locator('button.instr[aria-pressed="true"]').waitFor();
+  assert.equal(await this.page.locator(".monaco-editor .src-linked").count(), 0);
+});
+
+Then("the {string} button is disabled", async function (this: WebWorld, name: string) {
+  assert.equal(await this.page.getByRole("button", { name, exact: true }).isDisabled(), true);
+});
+
+Then("the assembly chips include {string}", async function (this: WebWorld, text: string) {
+  await this.page.locator("button.chip").filter({ hasText: text }).first().waitFor();
+});
+
+When("I click the chip {string}", async function (this: WebWorld, text: string) {
+  await this.page.locator("button.chip").filter({ hasText: text }).first().click();
+});
+
+Then("the file tab {string} is active", async function (this: WebWorld, file: string) {
+  await this.page.locator("[role=tab][aria-selected=true]").filter({ hasText: exact(file) }).waitFor();
+});
+
+Then("there are fewer than {int} instruction rows", async function (this: WebWorld, max: number) {
+  await this.page.locator("button.instr").first().waitFor();
+  assert.ok((await this.page.locator("button.instr").count()) < max);
+});
+
+Then("there are fewer than {int} machine rows", async function (this: WebWorld, max: number) {
+  await this.page.locator("tr[data-machine-row]").first().waitFor();
+  assert.ok((await this.page.locator("tr[data-machine-row]").count()) < max);
+});
