@@ -13,6 +13,7 @@
     "api",
     "runner",
     "explorer",
+    "lesson-core",
     "web"
   ],
   "scripts": {
@@ -21,7 +22,9 @@
     "test:linux": "cucumber-js --profile linux",
     "test:web": "cucumber-js --profile web",
     "test:docker": "cucumber-js --profile docker",
-    "release": "semantic-release"
+    "release": "semantic-release",
+    "lesson": "tsx lesson-core/src/node/cli.ts",
+    "lessons:build": "tsx lesson-core/src/node/cli.ts build --all"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.0.0",
