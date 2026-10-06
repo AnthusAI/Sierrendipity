@@ -1,0 +1,7 @@
+# The concept registry. Lessons introduce and require concepts by id; the checker rejects unknown ids.
+concepts:
+  - { id: cards, title: A card tells the machine what to do }
+  - { id: numbers-on-cards, title: A card carries a number you can change }
+  - { id: last-wins, title: The last card to run wins }
+  - { id: two-boxes, title: Each box holds its own number }
+  - { id: add, title: The machine can add }

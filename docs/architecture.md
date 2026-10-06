@@ -52,3 +52,9 @@ Forwards the runner API paths (a whitelist: `POST /run`, `POST /runs`, `POST /ex
 - Create the allowlist first (outside the repo): SSM SecureString `/sierrendipity/allowed-emails`, comma-separated. A missing parameter rejects every sign-up.
 - The site deploys `web/dist` when it exists (run the web build first), otherwise `infra/placeholder-site`. `/config.json` is written by the deployment: `{region, cognitoDomain, clientId, controlUrl, proxyUrl, redirectUri}`; URLs have no trailing slash.
 - Optional budget alert subscriber: `-c budgetAlertEmail=...` (never committed). Alerts go to an SNS topic regardless.
+
+## Custom domain
+
+- The site is served at `https://sierrendipity.anth.us` (the CloudFront default domain keeps working). Context keys: `siteDomain` (default `sierrendipity.anth.us`; an empty string disables the custom domain), `hostedZoneId` (default `Z02552332GG6AM25SFP73`) and `hostedZoneName` (default `anth.us`). The zone is imported by attributes, so synth stays offline.
+- The stack creates an ACM certificate for the domain (DNS-validated in that zone, us-east-1), attaches it to the distribution (TLS 1.2 minimum), and adds A and AAAA alias records. Output: `CustomDomainUrl`.
+- The Cognito app client allows the custom origin (with and without a trailing slash) alongside the CloudFront origin and `http://localhost:5173`; both Function URLs allow the custom origin in CORS; `/config.json` `redirectUri` is `https://<siteDomain>/`. The Cognito hosted-UI domain and the Google redirect URI are unchanged.

@@ -5,16 +5,21 @@
 import {
   amber, amberA, amberDark, amberDarkA,
   blue, blueA, blueDark, blueDarkA,
+  brown, brownDark,
   cyan, cyanDark,
   gray, grayA, grayDark, grayDarkA,
   green, greenDark,
   indigo, indigoA, indigoDark, indigoDarkA,
+  lime, limeDark,
   orange, orangeA, orangeDark, orangeDarkA,
+  pink, pinkDark,
   plum, plumDark,
   purple, purpleDark,
   red, redA, redDark, redDarkA,
   sand, sandA, sandDark, sandDarkA,
+  sky, skyDark,
   slate, slateA, slateDark, slateDarkA,
+  teal, tealDark,
   violet, violetDark,
   yellow, yellowDark,
 } from "@radix-ui/colors";
@@ -42,6 +47,11 @@ const SCALES: Record<string, ScaleSet> = {
   violet: { light: violet, dark: violetDark },
   plum: { light: plum, dark: plumDark },
   yellow: { light: yellow, dark: yellowDark },
+  pink: { light: pink, dark: pinkDark },
+  lime: { light: lime, dark: limeDark },
+  teal: { light: teal, dark: tealDark },
+  brown: { light: brown, dark: brownDark },
+  sky: { light: sky, dark: skyDark },
 };
 
 interface ThemeConfig {
@@ -88,6 +98,31 @@ export const THEME_LABELS: Record<ThemeName, string> = { cool: "Cool", warm: "Wa
 /** The seven instruction-field colors of the Bits card, as [token, Radix scale]. */
 const FIELD_SCALES = ["blue", "orange", "green", "purple", "red", "cyan", "yellow"] as const;
 export const FIELD_TOKENS = FIELD_SCALES.map((_, i) => ({ bg: `field-${i + 1}` as const, fg: "field-foreground" as const }));
+
+/**
+ * The 16 pixel colors of the pixel display, as [fill, number printed on it]. Fills are solid Radix steps
+ * (not the text steps the ANSI tokens use), so each looks like its label; the number is black or white,
+ * whichever reads at 4.5:1. Labels live in web/src/diagrams/palette.ts.
+ */
+export const PIXEL_COUNT = 16;
+const PIXEL_COLORS = (mode: Mode): [string, string][] => [
+  ["n.4", "n.12"], // blank
+  ["blue.9", "black"],
+  ["orange.9", "black"],
+  ["green.9", "black"],
+  ["purple.9", "white"],
+  ["red.9", "black"],
+  ["cyan.9", "black"],
+  ["yellow.9", "black"],
+  ["pink.9", "black"],
+  ["lime.9", "black"],
+  ["teal.9", "black"],
+  ["brown.9", "black"],
+  ["indigo.9", "white"],
+  ["gray.9", mode === "light" ? "black" : "white"], // grey
+  ["black", "white"],
+  ["sky.9", "black"],
+];
 
 /**
  * Token -> Radix reference. A reference is `<scale>.<step>` (`n` and `a` are the theme's neutral and
@@ -172,6 +207,8 @@ function refsFor(config: ThemeConfig, mode: Mode) {
     // instruction fields of the Bits card
     ...Object.fromEntries(FIELD_SCALES.map((scale, i) => [`field-${i + 1}`, `${scale}.5`])),
     "field-foreground": "n.12",
+    // the 16 pixel colors: pixel-N is the fill, pixel-N-fg the number printed on it
+    ...Object.fromEntries(PIXEL_COLORS(mode).flatMap(([fill, fg], i) => [[`pixel-${i}`, fill], [`pixel-${i}-fg`, fg]])),
   } as Record<string, string>;
 }
 
@@ -268,6 +305,7 @@ export const CONTRAST_PAIRS: ContrastPair[] = [
   ]),
   ...BRACKETS.map((fg) => text(fg, "editor-bg", `${fg} on the editor`)),
   ...FIELD_TOKENS.map(({ bg, fg }) => text(fg, bg, `label on ${bg}`)),
+  ...Array.from({ length: PIXEL_COUNT }, (_, i) => text(`pixel-${i}-fg`, `pixel-${i}`, `number on pixel color ${i}`)),
   ui("input", "background", "input borders on the page"),
   ui("input", "card", "input borders on cards"),
   ui("input", "popover", "input borders in dialogs"),

@@ -48,3 +48,19 @@ Feature: Cloud infrastructure
 
   Scenario: Deployment outputs
     Then the stack outputs the site, control and proxy URLs and the Cognito ids
+
+  Scenario: The site is served from a custom domain
+    Then there is a DNS-validated certificate for "sierrendipity.anth.us" in hosted zone "Z02552332GG6AM25SFP73"
+    And CloudFront serves "sierrendipity.anth.us" with that certificate and a TLS 1.2 minimum
+    And Route 53 aliases "sierrendipity.anth.us" to CloudFront with A and AAAA records in that zone
+    And the app client allows "https://sierrendipity.anth.us" with and without a trailing slash
+    And the app client still allows the CloudFront site and localhost:5173
+    And both function URLs allow the origin "https://sierrendipity.anth.us"
+    And the runtime config redirects to "https://sierrendipity.anth.us/"
+    And the stack outputs the custom domain URL
+
+  Scenario: The custom domain can be disabled
+    Given the Sierrendipity stack is synthesized without a custom domain
+    Then there is no certificate, DNS record or CloudFront alias
+    And the runtime config redirects to the CloudFront site
+    And the app client allows only the CloudFront site and localhost:5173

@@ -1,0 +1,17 @@
+solutions:
+  - file: good.hex
+    earns: [pass]
+    note: The second card changed from 6 to 9.
+  - file: unchanged.hex
+    earns: []
+    note: The starter as it came, so box a1 holds 6.
+  - file: wrong-first-card.hex
+    earns: []
+    note: The first card was changed to 9, which fills box a0, not box a1.
+  - file: wrong-both.hex
+    earns: []
+    note: Box a1 holds 9 but the first card was changed too, so box a0 no longer holds 4.
+  - file: forever.s
+    earns: []
+    capped: true
+    note: A card that jumps to itself; only the step cap stops it.

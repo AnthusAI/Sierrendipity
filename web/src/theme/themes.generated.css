@@ -78,6 +78,38 @@
   --field-6: #b5e9f0; /* cyan-5 */
   --field-7: #ffe770; /* yellow-5 */
   --field-foreground: #1c2024; /* slate-12 */
+  --pixel-0: #e8e8ec; /* slate-4 */
+  --pixel-0-fg: #1c2024; /* slate-12 */
+  --pixel-1: #0090ff; /* blue-9 */
+  --pixel-1-fg: #000000; /* black */
+  --pixel-2: #f76b15; /* orange-9 */
+  --pixel-2-fg: #000000; /* black */
+  --pixel-3: #30a46c; /* green-9 */
+  --pixel-3-fg: #000000; /* black */
+  --pixel-4: #8e4ec6; /* purple-9 */
+  --pixel-4-fg: #ffffff; /* white */
+  --pixel-5: #e5484d; /* red-9 */
+  --pixel-5-fg: #000000; /* black */
+  --pixel-6: #00a2c7; /* cyan-9 */
+  --pixel-6-fg: #000000; /* black */
+  --pixel-7: #ffe629; /* yellow-9 */
+  --pixel-7-fg: #000000; /* black */
+  --pixel-8: #d6409f; /* pink-9 */
+  --pixel-8-fg: #000000; /* black */
+  --pixel-9: #bdee63; /* lime-9 */
+  --pixel-9-fg: #000000; /* black */
+  --pixel-10: #12a594; /* teal-9 */
+  --pixel-10-fg: #000000; /* black */
+  --pixel-11: #ad7f58; /* brown-9 */
+  --pixel-11-fg: #000000; /* black */
+  --pixel-12: #3e63dd; /* indigo-9 */
+  --pixel-12-fg: #ffffff; /* white */
+  --pixel-13: #8d8d8d; /* gray-9 */
+  --pixel-13-fg: #000000; /* black */
+  --pixel-14: #000000; /* black */
+  --pixel-14-fg: #ffffff; /* white */
+  --pixel-15: #7ce2fe; /* sky-9 */
+  --pixel-15-fg: #000000; /* black */
 }
 :root.dark, :root[data-theme="cool"].dark {
   color-scheme: dark;
@@ -156,6 +188,38 @@
   --field-6: #004558; /* cyan-5 */
   --field-7: #433500; /* yellow-5 */
   --field-foreground: #edeef0; /* slate-12 */
+  --pixel-0: #272a2d; /* slate-4 */
+  --pixel-0-fg: #edeef0; /* slate-12 */
+  --pixel-1: #0090ff; /* blue-9 */
+  --pixel-1-fg: #000000; /* black */
+  --pixel-2: #f76b15; /* orange-9 */
+  --pixel-2-fg: #000000; /* black */
+  --pixel-3: #30a46c; /* green-9 */
+  --pixel-3-fg: #000000; /* black */
+  --pixel-4: #8e4ec6; /* purple-9 */
+  --pixel-4-fg: #ffffff; /* white */
+  --pixel-5: #e5484d; /* red-9 */
+  --pixel-5-fg: #000000; /* black */
+  --pixel-6: #00a2c7; /* cyan-9 */
+  --pixel-6-fg: #000000; /* black */
+  --pixel-7: #ffe629; /* yellow-9 */
+  --pixel-7-fg: #000000; /* black */
+  --pixel-8: #d6409f; /* pink-9 */
+  --pixel-8-fg: #000000; /* black */
+  --pixel-9: #bdee63; /* lime-9 */
+  --pixel-9-fg: #000000; /* black */
+  --pixel-10: #12a594; /* teal-9 */
+  --pixel-10-fg: #000000; /* black */
+  --pixel-11: #ad7f58; /* brown-9 */
+  --pixel-11-fg: #000000; /* black */
+  --pixel-12: #3e63dd; /* indigo-9 */
+  --pixel-12-fg: #ffffff; /* white */
+  --pixel-13: #6e6e6e; /* gray-9 */
+  --pixel-13-fg: #ffffff; /* white */
+  --pixel-14: #000000; /* black */
+  --pixel-14-fg: #ffffff; /* white */
+  --pixel-15: #7ce2fe; /* sky-9 */
+  --pixel-15-fg: #000000; /* black */
 }
 
 /* Warm: sand neutrals, orange accent */
@@ -236,6 +300,38 @@
   --field-6: #b5e9f0; /* cyan-5 */
   --field-7: #ffe770; /* yellow-5 */
   --field-foreground: #21201c; /* sand-12 */
+  --pixel-0: #e9e8e6; /* sand-4 */
+  --pixel-0-fg: #21201c; /* sand-12 */
+  --pixel-1: #0090ff; /* blue-9 */
+  --pixel-1-fg: #000000; /* black */
+  --pixel-2: #f76b15; /* orange-9 */
+  --pixel-2-fg: #000000; /* black */
+  --pixel-3: #30a46c; /* green-9 */
+  --pixel-3-fg: #000000; /* black */
+  --pixel-4: #8e4ec6; /* purple-9 */
+  --pixel-4-fg: #ffffff; /* white */
+  --pixel-5: #e5484d; /* red-9 */
+  --pixel-5-fg: #000000; /* black */
+  --pixel-6: #00a2c7; /* cyan-9 */
+  --pixel-6-fg: #000000; /* black */
+  --pixel-7: #ffe629; /* yellow-9 */
+  --pixel-7-fg: #000000; /* black */
+  --pixel-8: #d6409f; /* pink-9 */
+  --pixel-8-fg: #000000; /* black */
+  --pixel-9: #bdee63; /* lime-9 */
+  --pixel-9-fg: #000000; /* black */
+  --pixel-10: #12a594; /* teal-9 */
+  --pixel-10-fg: #000000; /* black */
+  --pixel-11: #ad7f58; /* brown-9 */
+  --pixel-11-fg: #000000; /* black */
+  --pixel-12: #3e63dd; /* indigo-9 */
+  --pixel-12-fg: #ffffff; /* white */
+  --pixel-13: #8d8d8d; /* gray-9 */
+  --pixel-13-fg: #000000; /* black */
+  --pixel-14: #000000; /* black */
+  --pixel-14-fg: #ffffff; /* white */
+  --pixel-15: #7ce2fe; /* sky-9 */
+  --pixel-15-fg: #000000; /* black */
 }
 :root[data-theme="warm"].dark {
   color-scheme: dark;
@@ -314,6 +410,38 @@
   --field-6: #004558; /* cyan-5 */
   --field-7: #433500; /* yellow-5 */
   --field-foreground: #eeeeec; /* sand-12 */
+  --pixel-0: #2a2a28; /* sand-4 */
+  --pixel-0-fg: #eeeeec; /* sand-12 */
+  --pixel-1: #0090ff; /* blue-9 */
+  --pixel-1-fg: #000000; /* black */
+  --pixel-2: #f76b15; /* orange-9 */
+  --pixel-2-fg: #000000; /* black */
+  --pixel-3: #30a46c; /* green-9 */
+  --pixel-3-fg: #000000; /* black */
+  --pixel-4: #8e4ec6; /* purple-9 */
+  --pixel-4-fg: #ffffff; /* white */
+  --pixel-5: #e5484d; /* red-9 */
+  --pixel-5-fg: #000000; /* black */
+  --pixel-6: #00a2c7; /* cyan-9 */
+  --pixel-6-fg: #000000; /* black */
+  --pixel-7: #ffe629; /* yellow-9 */
+  --pixel-7-fg: #000000; /* black */
+  --pixel-8: #d6409f; /* pink-9 */
+  --pixel-8-fg: #000000; /* black */
+  --pixel-9: #bdee63; /* lime-9 */
+  --pixel-9-fg: #000000; /* black */
+  --pixel-10: #12a594; /* teal-9 */
+  --pixel-10-fg: #000000; /* black */
+  --pixel-11: #ad7f58; /* brown-9 */
+  --pixel-11-fg: #000000; /* black */
+  --pixel-12: #3e63dd; /* indigo-9 */
+  --pixel-12-fg: #ffffff; /* white */
+  --pixel-13: #6e6e6e; /* gray-9 */
+  --pixel-13-fg: #ffffff; /* white */
+  --pixel-14: #000000; /* black */
+  --pixel-14-fg: #ffffff; /* white */
+  --pixel-15: #7ce2fe; /* sky-9 */
+  --pixel-15-fg: #000000; /* black */
 }
 
 /* Neutral: gray neutrals, gray accent */
@@ -394,6 +522,38 @@
   --field-6: #b5e9f0; /* cyan-5 */
   --field-7: #ffe770; /* yellow-5 */
   --field-foreground: #202020; /* gray-12 */
+  --pixel-0: #e8e8e8; /* gray-4 */
+  --pixel-0-fg: #202020; /* gray-12 */
+  --pixel-1: #0090ff; /* blue-9 */
+  --pixel-1-fg: #000000; /* black */
+  --pixel-2: #f76b15; /* orange-9 */
+  --pixel-2-fg: #000000; /* black */
+  --pixel-3: #30a46c; /* green-9 */
+  --pixel-3-fg: #000000; /* black */
+  --pixel-4: #8e4ec6; /* purple-9 */
+  --pixel-4-fg: #ffffff; /* white */
+  --pixel-5: #e5484d; /* red-9 */
+  --pixel-5-fg: #000000; /* black */
+  --pixel-6: #00a2c7; /* cyan-9 */
+  --pixel-6-fg: #000000; /* black */
+  --pixel-7: #ffe629; /* yellow-9 */
+  --pixel-7-fg: #000000; /* black */
+  --pixel-8: #d6409f; /* pink-9 */
+  --pixel-8-fg: #000000; /* black */
+  --pixel-9: #bdee63; /* lime-9 */
+  --pixel-9-fg: #000000; /* black */
+  --pixel-10: #12a594; /* teal-9 */
+  --pixel-10-fg: #000000; /* black */
+  --pixel-11: #ad7f58; /* brown-9 */
+  --pixel-11-fg: #000000; /* black */
+  --pixel-12: #3e63dd; /* indigo-9 */
+  --pixel-12-fg: #ffffff; /* white */
+  --pixel-13: #8d8d8d; /* gray-9 */
+  --pixel-13-fg: #000000; /* black */
+  --pixel-14: #000000; /* black */
+  --pixel-14-fg: #ffffff; /* white */
+  --pixel-15: #7ce2fe; /* sky-9 */
+  --pixel-15-fg: #000000; /* black */
 }
 :root[data-theme="neutral"].dark {
   color-scheme: dark;
@@ -472,4 +632,36 @@
   --field-6: #004558; /* cyan-5 */
   --field-7: #433500; /* yellow-5 */
   --field-foreground: #eeeeee; /* gray-12 */
+  --pixel-0: #2a2a2a; /* gray-4 */
+  --pixel-0-fg: #eeeeee; /* gray-12 */
+  --pixel-1: #0090ff; /* blue-9 */
+  --pixel-1-fg: #000000; /* black */
+  --pixel-2: #f76b15; /* orange-9 */
+  --pixel-2-fg: #000000; /* black */
+  --pixel-3: #30a46c; /* green-9 */
+  --pixel-3-fg: #000000; /* black */
+  --pixel-4: #8e4ec6; /* purple-9 */
+  --pixel-4-fg: #ffffff; /* white */
+  --pixel-5: #e5484d; /* red-9 */
+  --pixel-5-fg: #000000; /* black */
+  --pixel-6: #00a2c7; /* cyan-9 */
+  --pixel-6-fg: #000000; /* black */
+  --pixel-7: #ffe629; /* yellow-9 */
+  --pixel-7-fg: #000000; /* black */
+  --pixel-8: #d6409f; /* pink-9 */
+  --pixel-8-fg: #000000; /* black */
+  --pixel-9: #bdee63; /* lime-9 */
+  --pixel-9-fg: #000000; /* black */
+  --pixel-10: #12a594; /* teal-9 */
+  --pixel-10-fg: #000000; /* black */
+  --pixel-11: #ad7f58; /* brown-9 */
+  --pixel-11-fg: #000000; /* black */
+  --pixel-12: #3e63dd; /* indigo-9 */
+  --pixel-12-fg: #ffffff; /* white */
+  --pixel-13: #6e6e6e; /* gray-9 */
+  --pixel-13-fg: #ffffff; /* white */
+  --pixel-14: #000000; /* black */
+  --pixel-14-fg: #ffffff; /* white */
+  --pixel-15: #7ce2fe; /* sky-9 */
+  --pixel-15-fg: #000000; /* black */
 }
