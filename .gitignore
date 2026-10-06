@@ -7,3 +7,4 @@ coverage/
 .env
 project/.cache/
 .claude/worktrees/
+project/events/llm_usage.jsonl
