@@ -7,14 +7,18 @@ class TooLargeError extends Error {}
 
 function readBody(req: http.IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {
-    if (Number(req.headers["content-length"]) > MAX_BODY_BYTES) return reject(new TooLargeError());
+    if (Number(req.headers["content-length"]) > MAX_BODY_BYTES) {
+      req.resume();
+      return reject(new TooLargeError());
+    }
     const chunks: Buffer[] = [];
     let size = 0;
     req.on("data", (chunk: Buffer) => {
       size += chunk.length;
       if (size > MAX_BODY_BYTES) {
-        // Stop buffering; the response below closes the connection.
+        // Stop buffering but keep draining, so the client finishes its upload and can read the 413.
         req.removeAllListeners("data");
+        req.resume();
         reject(new TooLargeError());
       } else chunks.push(chunk);
     });
@@ -45,7 +49,6 @@ export function startServer(port: number): Promise<http.Server> {
       send(res, 404, { error: "not found" });
     } catch (error) {
       if (error instanceof TooLargeError) {
-        res.setHeader("connection", "close");
         return send(res, 413, { error: "request too large" });
       }
       if (error instanceof RequestError) return send(res, 400, { error: error.message });
