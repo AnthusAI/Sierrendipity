@@ -1,3 +1,4 @@
+import { decode } from "./decode";
 import type { Machine, MachineState, StepResult } from "./machine";
 
 /**
@@ -65,11 +66,18 @@ export interface InputEntry {
   bytes: Uint8Array;
 }
 
+/**
+ * One recorded step, kept small (a 500,000-step run must stay well under 200 MB): the decoded
+ * instruction is rebuilt from `word` on demand. A step changes at most one register.
+ */
 interface Rec {
-  result: StepResult;
-  regs: [number, number][];
-  mem?: { addr: number; bytes: Uint8Array };
-  pc: number;
+  pc: number; // pc of the step itself
+  word: number;
+  reg: number; // register changed, or -1
+  regValue: number;
+  memAddr: number;
+  memBytes: Uint8Array | null;
+  nextPc: number;
   state: MachineState;
   exitCode: number | null;
   fault: string | null;
@@ -122,6 +130,10 @@ export class Timeline {
   /** At the last recorded step and the program cannot go on (halted or faulted). */
   get isAtEnd(): boolean {
     return this._position === this.records.length && (this.front.state === "halted" || this.front.state === "faulted");
+  }
+  /** True when recording stopped at `maxSteps` although the program could go on (as opposed to ending or waiting for input). */
+  get hitStepLimit(): boolean {
+    return this.records.length >= this.maxSteps && this.front.state !== "halted" && this.front.state !== "faulted";
   }
   get outputLog(): readonly OutputEntry[] {
     return this._outputLog;
@@ -206,7 +218,7 @@ export class Timeline {
 
   snapshotAt(position: number): Snapshot {
     const v = this.view(this.check(position));
-    const last = position === 0 ? undefined : this.records[position - 1]!.result;
+    const last = position === 0 ? undefined : this.stepOf(this.records[position - 1]!);
     return {
       pc: v.pc,
       regs: Array.from(v.regs),
@@ -230,17 +242,16 @@ export class Timeline {
   diff(a: number, b: number): TimelineDiff {
     this.check(a);
     this.check(b);
-    const va = this.clone(this.view(a));
-    const vb = this.view(b);
-    const regs: RegisterChange[] = [];
-    for (let reg = 0; reg < 32; reg++) {
-      if (va.regs[reg] !== vb.regs[reg]) regs.push({ reg, before: va.regs[reg]!, after: vb.regs[reg]! });
-    }
+    // Everything about `a` is copied out before view(b) runs: view() may advance the shared cached
+    // view in place, which would otherwise change the pages `a` was reading.
+    const va = this.view(a);
+    const regsA = Uint32Array.from(va.regs);
+    const pcA = va.pc;
     // Candidate byte ranges: everything written by the steps between the two positions, merged.
     const ranges: [number, number][] = [];
     for (let i = Math.min(a, b); i < Math.max(a, b); i++) {
-      const mem = this.records[i]!.mem;
-      if (mem) ranges.push([mem.addr, mem.addr + mem.bytes.length]);
+      const rec = this.records[i]!;
+      if (rec.memBytes) ranges.push([rec.memAddr, rec.memAddr + rec.memBytes.length]);
     }
     ranges.sort((x, y) => x[0] - y[0]);
     const merged: [number, number][] = [];
@@ -249,9 +260,15 @@ export class Timeline {
       if (last && r[0] <= last[1]) last[1] = Math.max(last[1], r[1]);
       else merged.push([r[0], r[1]]);
     }
+    const befores = merged.map(([start, end]) => this.read(va, start, end - start)); // read() copies
+    const vb = this.view(b);
+    const regs: RegisterChange[] = [];
+    for (let reg = 0; reg < 32; reg++) {
+      if (regsA[reg] !== vb.regs[reg]) regs.push({ reg, before: regsA[reg]!, after: vb.regs[reg]! });
+    }
     const memory: MemoryChange[] = [];
-    for (const [start, end] of merged) {
-      const before = this.read(va, start, end - start);
+    merged.forEach(([start, end], k) => {
+      const before = befores[k]!;
       const after = this.read(vb, start, end - start);
       let i = 0;
       while (i < before.length) {
@@ -264,8 +281,8 @@ export class Timeline {
         memory.push({ addr: start + i, before: before.slice(i, j), after: after.slice(i, j) });
         i = j;
       }
-    }
-    return { pc: { before: va.pc, after: vb.pc }, regs, memory };
+    });
+    return { pc: { before: pcA, after: vb.pc }, regs, memory };
   }
 
   /** Text a program wrote to `fd` before `position` (default: the current one), decoded as UTF-8. */
@@ -282,11 +299,23 @@ export class Timeline {
 
   // ---- recording
 
+  /** Rebuild the StepResult of a record (the decoded instruction is derived from the word). */
+  private stepOf(rec: Rec): StepResult {
+    return {
+      pc: rec.pc,
+      word: rec.word,
+      decoded: decode(rec.word),
+      changedRegs: rec.reg >= 0 ? [rec.reg] : [],
+      ...(rec.memBytes ? { memWrite: { addr: rec.memAddr, length: rec.memBytes.length } } : {}),
+      state: rec.state,
+    };
+  }
+
   /** Run the Machine one step and append it to the log. */
   private record(): boolean {
     const f = this.front;
     if (f.state === "halted" || f.state === "faulted") return false;
-    if (this.records.length >= this.maxSteps) return false;
+    if (this.hitStepLimit) return false;
     const m = this.machine;
     const written = this.pendingWrite();
     const before = m.steps;
@@ -294,13 +323,15 @@ export class Timeline {
     const last = this.records[this.records.length - 1];
     if (result.state === "waiting-input" && last?.state === "waiting-input") {
       return false; // still waiting (the Machine keeps no history for a wait): nothing happened
-      return false;
     }
     const rec: Rec = {
-      result,
-      regs: result.changedRegs.map((r): [number, number] => [r, m.regs[r]!]),
-      ...(result.memWrite ? { mem: { addr: result.memWrite.addr, bytes: m.readMem(result.memWrite.addr, result.memWrite.length) } } : {}),
-      pc: m.pc,
+      pc: result.pc,
+      word: result.word,
+      reg: result.changedRegs.length > 0 ? result.changedRegs[0]! : -1,
+      regValue: result.changedRegs.length > 0 ? m.regs[result.changedRegs[0]!]! : 0,
+      memAddr: result.memWrite?.addr ?? 0,
+      memBytes: result.memWrite ? m.readMem(result.memWrite.addr, result.memWrite.length) : null,
+      nextPc: m.pc,
       state: m.state,
       exitCode: m.exitCode,
       fault: m.fault,
@@ -362,9 +393,9 @@ export class Timeline {
   }
 
   private apply(v: View, rec: Rec): void {
-    for (const [reg, value] of rec.regs) v.regs[reg] = value;
-    if (rec.mem) this.write(v, rec.mem.addr, rec.mem.bytes);
-    v.pc = rec.pc;
+    if (rec.reg >= 0) v.regs[rec.reg] = rec.regValue;
+    if (rec.memBytes) this.write(v, rec.memAddr, rec.memBytes);
+    v.pc = rec.nextPc;
     v.state = rec.state;
     v.exitCode = rec.exitCode;
     v.fault = rec.fault;

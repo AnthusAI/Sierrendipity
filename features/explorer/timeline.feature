@@ -234,3 +234,58 @@ Feature: A timeline over a running machine
       """
     When I run the timeline to the end
     Then 200 random positions match a fresh machine run
+
+  Scenario: The diff between neighbouring positions keeps the memory change
+    Given a timeline for the program
+      """
+      li t0, 1
+      li t1, 2000
+      sb t0, 0(t1)
+      li t0, 2
+      sb t0, 0(t1)
+      sb t0, 1(t1)
+      """
+    When I run the timeline to the end
+    Then the diff from 4 to 5 changes memory at 2000 from "01" to "02"
+    And the diff from 5 to 6 changes memory at 2001 from "00" to "02"
+    And the diff from 6 to 5 changes memory at 2001 from "02" to "00"
+
+  Scenario: Diffs between random positions match two fresh machine runs
+    Given a timeline for the program
+      """
+      li t0, 300
+      li t2, 1100
+      sb t0, 0(t2)
+      sb t0, 1(t2)
+      addi t2, t2, 3
+      addi t0, t0, -1
+      bne t0, zero, -16
+      ebreak
+      """
+    When I run the timeline to the end
+    Then 400 random diffs, including neighbouring positions, match two fresh machine runs
+
+  Scenario: A step-limited run says it hit the limit
+    Given a timeline limited to 5 steps for the program
+      """
+      addi t0, t0, 1
+      jal zero, -4
+      """
+    When I run the timeline to the end
+    Then the timeline has hit its step limit
+
+  Scenario: A finished run did not hit the step limit
+    When I run the timeline to the end
+    Then the timeline has not hit its step limit
+
+  Scenario: A half-million-step recording stays small
+    Given a timeline limited to 500000 steps for the program
+      """
+      li t0, 250000
+      addi t0, t0, -1
+      bne t0, zero, -4
+      ebreak
+      """
+    When I run the timeline to the end measuring the heap
+    Then the timeline has length 500000 and position 500000
+    And the recording took under 200 MB of heap when garbage collection is exposed

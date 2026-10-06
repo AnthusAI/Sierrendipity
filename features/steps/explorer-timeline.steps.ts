@@ -244,3 +244,54 @@ Then("the input log has one entry of {string} at position {int}", (text: string,
   assert.equal(new TextDecoder().decode(timeline.inputLog[0]!.bytes), text);
   assert.equal(timeline.inputLog[0]!.position, position);
 });
+
+Then("the timeline has hit its step limit", () => assert.equal(timeline.hitStepLimit, true));
+Then("the timeline has not hit its step limit", () => assert.equal(timeline.hitStepLimit, false));
+
+Then("{int} random diffs, including neighbouring positions, match two fresh machine runs", (count: number) => {
+  const memoryAt = new Map<number, Uint8Array>();
+  const at = (p: number): Uint8Array => {
+    let mem = memoryAt.get(p);
+    if (!mem) {
+      const fresh = newMachine();
+      for (let i = 0; i < p; i++) fresh.step();
+      mem = fresh.readMem(0, 4096);
+      memoryAt.set(p, mem);
+    }
+    return mem;
+  };
+  let seed = 4242;
+  const next = (n: number): number => {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    return (seed >>> 8) % n;
+  };
+  const clamp = (p: number): number => Math.max(0, Math.min(timeline.length, p));
+  for (let i = 0; i < count; i++) {
+    const a = next(timeline.length + 1);
+    const b = [() => next(timeline.length + 1), () => clamp(a + 1), () => clamp(a - 1)][i % 3]!();
+    const expected = new Map<number, string>();
+    const [ma, mb] = [at(a), at(b)];
+    for (let addr = 0; addr < ma.length; addr++) if (ma[addr] !== mb[addr]) expected.set(addr, `${ma[addr]}>${mb[addr]}`);
+    const actual = new Map<number, string>();
+    for (const change of timeline.diff(a, b).memory) {
+      change.before.forEach((before, k) => actual.set(change.addr + k, `${before}>${change.after[k]}`));
+    }
+    assert.deepEqual([...actual].sort((x, y) => x[0] - y[0]), [...expected].sort((x, y) => x[0] - y[0]), `diff(${a}, ${b})`);
+  }
+});
+
+let heapUsed: number | undefined;
+When("I run the timeline to the end measuring the heap", () => {
+  const gc = (globalThis as { gc?: () => void }).gc;
+  gc?.();
+  const before = process.memoryUsage();
+  timeline.runToEnd(1_000_000);
+  gc?.();
+  const after = process.memoryUsage();
+  heapUsed = gc ? after.heapUsed + after.external - before.heapUsed - before.external : undefined;
+});
+Then("the recording took under {int} MB of heap when garbage collection is exposed", (mb: number) => {
+  if (heapUsed === undefined) return; // run with NODE_OPTIONS=--expose-gc to measure
+  console.log(`timeline heap for 500k steps: ${(heapUsed / 1e6).toFixed(1)} MB`);
+  assert.ok(heapUsed < mb * 1e6, `${(heapUsed / 1e6).toFixed(1)} MB`);
+});
