@@ -43,10 +43,59 @@ other a7 -> `faulted` with a clear message. `ebreak` -> `run` returns with state
 dividend, no trap), INT_MIN/-1 -> INT_MIN with rem 0; mulh/mulhsu/mulhu are exact. Little-endian;
 lw/sw require 4-byte alignment (fault otherwise), lh/lhu/sh 2-byte, lb/lbu/sb any.
 
-## Notes on behaviour the contract leaves open
+## Behaviour the contract leaves open
 
-- `Machine.provideInput(bytes)` queues bytes for `read`; the built-in queue is used when no
-  `io.read` is supplied. An empty `provideInput` call signals end of input (EOF).
-- The default `io.write` collects nothing; supply `MachineIO` to see output.
-- Specs: `features/explorer/*.feature` (`npm test`). Docker-dependent differential and
-  riscv-tests specs are tagged `@docker` and run with `npm run test:docker`.
+Decoder
+- `fields` are ordered from bit 31 down to bit 0 and tile all 32 bits. Scattered immediates are
+  several `Field`s named `imm` (S: 2, B: 4, J: 4), each with the raw bits of its piece as `value`
+  and a label such as `imm = -36 (bits 11:5)`; a whole immediate is `imm = -36`; U is `imm = 0x12345`.
+- Shift-immediates are I-format with fields `funct7`, `shamt` (not `imm`). Only `ecall` (0x73) and
+  `ebreak` (0x100073) are accepted in the SYSTEM opcode.
+- Branch and `jal` operands are the relative byte offset as a decimal number (the pc is unknown).
+- Aliases: `nop`, `li rd, imm` (addi from zero), `mv rd, rs` (addi with imm 0), `ret`, `jr rs`, `j off`.
+
+Assembler
+- Line and column are 1-based; a program with any error returns empty `words` and `listing`.
+- Operands: `rd, rs1, rs2`; `imm(reg)` (offset optional); branch and `jal` targets are a label or a
+  plain relative byte offset (so decoder output assembles again); `jal label` means `jal ra, label`;
+  `jalr rs` means `jalr ra, 0(rs)`. Registers are ABI names, `x0`..`x31` and `fp`.
+- Ignored directives: `.text`, `.globl`, `.global`. `.word` takes one or more numbers.
+- `call label` is a single `jal ra, label` (range +-1 MiB), unlike GNU as, which emits auipc+jalr.
+- `li` takes -2^31..2^32-1 and emits one word if it fits in 12 bits, else `lui` (+ `addi` unless the
+  low 12 bits are zero) with the bit-11 carry fix.
+
+Machine
+- `provideInput(bytes)` queues bytes for `read`; an empty array marks end of input (read then
+  returns 0). If `io.read` is supplied it is asked when the queue is empty. While `waiting-input`,
+  `step()` and `run()` retry the ecall (so a custom `io.read` is polled); `provideInput` moves the
+  state back to `running`. A read with no data does not count as a step.
+- Without `io`, `write` output is discarded.
+- `exit` and `ebreak` leave `pc` at the halting instruction and count as a step. Faults do not count
+  as a step and leave `pc` at the faulting instruction; messages end with `at pc 0x...`.
+- `changedRegs` lists registers whose value changed. `memWrite` is set by stores and by `read`.
+- `stepBack` undoes registers, memory, pc, state, exit code, fault and the step counter, and puts input
+  consumed by a `read` back. Output already passed to `io.write` is not retracted. History keeps
+  between 10,000 and 20,000 steps. `reset()` also clears memory, queued input and history.
+- `run()` always executes at least one instruction before checking breakpoints, so a machine stopped
+  at a breakpoint can continue. `step()` ignores breakpoints.
+
+## Specs
+
+`npm test` runs `features/explorer/*.feature` without Docker. `npx cucumber-js --profile explorer`
+runs only those. Tagged `@docker` and run with `npm run test:docker` (builds
+`features/explorer/docker/Dockerfile`, a `debian:bookworm-slim` image with
+`binutils-riscv64-unknown-elf` and `gcc-riscv64-unknown-elf`):
+
+- `differential.feature`: a generated corpus of every mnemonic is assembled with
+  `riscv64-unknown-elf-as -march=rv32im -mabi=ilp32` and with `assemble`, and the words compared;
+  the same words are disassembled with `objdump -d -M no-aliases` and compared with `decode`.
+  Normalisations: GNU takes `.+N` where we take the plain offset `N`; objdump prints branch and `jal`
+  targets as absolute hex addresses (the words are placed at 0x200000 so they stay positive) and shift
+  amounts in hex, ours are relative decimals; spaces after commas are ignored. `call` is not in the
+  corpus (see above), and other pseudo-ops (`li`, `mv`, `nop`, `ret`, `jr`, `j`) are compared as
+  assembled words only.
+- `riscv-tests.feature`: rv32ui and rv32um from riscv-software-src/riscv-tests (BSD-3-Clause, commit
+  recorded in `/riscv-tests.commit`) are built with our own minimal environment
+  (`features/explorer/docker/riscv_test.h`, `link.ld`) and run in `Machine`; pass means `exit(0)`.
+  Skipped: `fence_i` (Zifencei and self-modifying code) and `ma_data` (needs a trap handler for
+  misaligned accesses; the Machine faults instead).
