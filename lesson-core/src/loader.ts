@@ -386,10 +386,5 @@ function parseSolutions(files: Record<string, string>, stars: Set<string>, error
     const m = /^solutions\/(.+)$/.exec(f);
     if (m && m[1] !== "solutions.yaml" && !declared.has(m[1]!)) errors.push(`${f} is not declared in solutions/solutions.yaml`);
   }
-  if (!out.some((s) => s.earns.length === 0 && !s.capped) && errors.length === 0) errors.push("solutions/solutions.yaml needs at least one wrong solution (earns: [] and not capped)");
-  if (errors.length === 0) {
-    if (!out.some((s) => s.earns.includes("pass"))) errors.push("solutions/solutions.yaml: no solution is declared to earn pass");
-    for (const star of stars) if (star !== "pass" && !out.some((s) => s.earns.includes(star))) errors.push(`solutions/solutions.yaml: no solution is declared to earn "${star}"`);
-  }
   return out;
 }

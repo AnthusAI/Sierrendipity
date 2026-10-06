@@ -81,11 +81,6 @@ Feature: Loading and validating a lesson
       | checks.feature           | missing checks.feature        |
       | solutions/solutions.yaml | missing solutions/solutions.yaml |
 
-  Scenario: A lesson with no wrong solution is rejected
-    When I replace "- {file: wrong.s, earns: []}" with "- {file: wrong.s, earns: [pass]}" in "solutions/solutions.yaml"
-    And I load the lesson
-    Then loading fails with "at least one wrong solution"
-
   Scenario: Malformed YAML and JSON are reported, not thrown
     When I replace "title: Test lesson" with "title: [unclosed" in "lesson.yaml"
     And I load the lesson

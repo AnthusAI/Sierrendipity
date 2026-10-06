@@ -1,6 +1,8 @@
 import { Given, Then, When } from "@cucumber/cucumber";
 import assert from "node:assert/strict";
 import { earnedStars, runChecks, runProgram, type Lesson, type PublishedLesson } from "@sierrendipity/lesson-core";
+import { checkLesson, type LessonReport } from "@sierrendipity/lesson-core/check";
+import { crossCheckGherkin } from "@sierrendipity/lesson-core/node";
 import { loadLesson, publishLesson, type LoadResult } from "@sierrendipity/lesson-core/loader";
 import { assembleOrThrow, validTestLesson } from "./lesson-fixtures";
 
@@ -71,4 +73,41 @@ Then("the published checks run without parsing Gherkin", () => {
   assert.equal(typeof published.checks, "object");
   const run = runProgram(assembleOrThrow("addi a0, zero, 5; ebreak"), { predictions: { a0: [5] } });
   assert.deepEqual(earnedStars(runChecks(published.checks, run)), ["pass", "called-it"]);
+});
+
+// ---- the checker
+
+let checkProblems: string[];
+let checkReport: LessonReport | undefined;
+
+When("I check the lesson", () => {
+  result = loadLesson(files, { dir: "c1/99-test", ...(concepts ? { knownConcepts: concepts } : {}) });
+  if (!result.ok) {
+    checkProblems = result.errors;
+    checkReport = undefined;
+    return;
+  }
+  checkReport = checkLesson(result.lesson);
+  checkProblems = checkReport.problems;
+});
+Then("the check passes", () => assert.deepEqual(checkProblems, []));
+Then(/^the check fails with "(.*)"$/, (message: string) => {
+  assert.ok(checkProblems.length > 0, "the check should fail");
+  assert.ok(checkProblems.some((p) => p.includes(message)), `expected "${message}" in:\n${checkProblems.join("\n")}`);
+});
+const solution = (file: string) => {
+  const s = checkReport?.solutions.find((x) => x.file === file);
+  assert.ok(s, `no solution report for ${file}`);
+  return s;
+};
+Then("the solution {string} earned {string} in {int} steps with {int} cards", (file: string, stars: string, steps: number, cards: number) => {
+  const s = solution(file);
+  assert.deepEqual(s.earned, stars === "nothing" ? [] : stars.split(/,\s*/));
+  assert.equal(s.steps, steps);
+  assert.equal(s.cards, cards);
+});
+Then("the solution {string} was stopped by the step cap", (file: string) => assert.equal(solution(file).hitStepCap, true));
+Then("the solution {string} ran {int} steps", (file: string, steps: number) => assert.equal(solution(file).steps, steps));
+Then("the official Gherkin parser agrees with ours about the checks", () => {
+  assert.deepEqual(crossCheckGherkin(files["checks.feature"]!), []);
 });

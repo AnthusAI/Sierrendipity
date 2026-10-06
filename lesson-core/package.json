@@ -8,12 +8,15 @@
   "exports": {
     ".": "./src/index.ts",
     "./loader": "./src/loader.ts",
+    "./check": "./src/check.ts",
     "./node": "./src/node/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@cucumber/gherkin": "30.0.4",
+    "@cucumber/messages": "27.2.0",
     "@sierrendipity/explorer": "*",
     "yaml": "^2.5.0"
   }
