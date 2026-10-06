@@ -1,5 +1,7 @@
 import { Given, When, Then, Before, After } from "@cucumber/cucumber";
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import { readdirSync, readFileSync } from "node:fs";
 
 type RunResult = {
   compile?: { ok: boolean; output: string; timedOut: boolean };
@@ -158,4 +160,49 @@ Then("{int} of them finish with status {string}", (count: number, status: string
 
 Then("{int} of them are refused with status {int}", (count: number, status: number) => {
   assert.equal(concurrent.filter((r) => r.status === status).length, count);
+});
+
+Given("a different project", () => {
+  request = { language: "", files: [], limits: {} };
+});
+
+let sequence: { status: number; body: RunResult; ms: number }[];
+
+When("the project is run {int} times in a row", async (count: number) => {
+  sequence = [];
+  for (let i = 0; i < count; i++) {
+    const started = Date.now();
+    const res = await fetch(`${process.env.RUNNER_URL}/run`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(request),
+    });
+    sequence.push({ status: res.status, body: (await res.json()) as RunResult, ms: Date.now() - started });
+  }
+});
+
+Then("every run finished with status {string} in under {int} seconds", (status: string, seconds: number) => {
+  for (const run of sequence) {
+    assert.equal(run.status, 200);
+    assert.equal(run.body.status, status);
+    assert.ok(run.ms < seconds * 1000, `took ${run.ms} ms`);
+  }
+});
+
+Then("no sleep process is left running", () => {
+  const names = readdirSync("/proc")
+    .filter((d) => /^\d+$/.test(d))
+    .map((d) => {
+      try {
+        return readFileSync(`/proc/${d}/comm`, "utf8").trim();
+      } catch {
+        return "";
+      }
+    });
+  assert.ok(!names.includes("sleep"), "a sleep process survived");
+});
+
+Then("no files owned by sandbox users remain", () => {
+  const found = execFileSync("find", ["/tmp", "/var/tmp", "/dev/shm", "-xdev", "-uid", "+19999"]).toString();
+  assert.equal(found.trim(), "");
 });

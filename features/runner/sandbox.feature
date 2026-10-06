@@ -106,3 +106,91 @@ Feature: Contain student code
     When the project is run
     Then the status is "compile_error"
     And the compiler did not time out
+
+  Scenario: Student code cannot read the runner's environment
+    Given a Python project
+    And the file "main.py" containing:
+      """
+      import os
+      for pid in (os.getppid(), 1):
+          try:
+              open(f"/proc/{pid}/environ", "rb").read()
+              print("read")
+          except PermissionError:
+              print("denied")
+      """
+    When the project is run
+    Then the program output is "denied\ndenied\n"
+
+  Scenario: Student code cannot kill the runner
+    Given a Python project
+    And the file "main.py" containing:
+      """
+      import os, signal
+      try:
+          os.kill(os.getppid(), signal.SIGKILL)
+          print("killed the runner")
+      except PermissionError:
+          print("PermissionError")
+      """
+    When the project is run
+    Then the program output is "PermissionError\n"
+    And the runner still answers health checks
+
+  Scenario: Processes that escape the process group do not hang the run or leak its slot
+    Given a Python project
+    And the file "main.py" containing:
+      """
+      import os, subprocess
+      if os.fork() == 0:
+          os.setsid()
+          subprocess.Popen(["sleep", "600"])
+          os._exit(0)
+      print("parent done", flush=True)
+      """
+    And a time limit of 3000 ms
+    When the project is run 5 times in a row
+    Then every run finished with status "ok" in under 10 seconds
+    And no sleep process is left running
+
+  Scenario: Files filling the disk are stopped and removed
+    Given a Python project
+    And the file "main.py" containing:
+      """
+      import time
+      for i in range(40):
+          with open(f"/tmp/fill{i}.dat", "wb") as f:
+              f.write(b"x" * (15 * 1024 * 1024))
+          time.sleep(0.2)
+      print("finished")
+      """
+    And a time limit of 20000 ms
+    When the project is run
+    Then the status is "output_limit_exceeded"
+    And no files owned by sandbox users remain
+
+  Scenario: Namespaces and mounts are refused
+    Given a C project
+    And the file "main.c" containing:
+      """
+      #define _GNU_SOURCE
+      #include <errno.h>
+      #include <sched.h>
+      #include <signal.h>
+      #include <stdio.h>
+      #include <string.h>
+      #include <sys/mount.h>
+      #include <sys/syscall.h>
+      #include <unistd.h>
+      int main() {
+        int r = unshare(CLONE_NEWUSER);
+        printf("unshare %d %s\n", r, strerror(errno));
+        r = mount("none", "/mnt", "tmpfs", 0, "");
+        printf("mount %d %s\n", r, strerror(errno));
+        long c = syscall(SYS_clone, CLONE_NEWUSER | SIGCHLD, 0, 0, 0, 0);
+        printf("clone %ld %s\n", c, strerror(errno));
+        return 0;
+      }
+      """
+    When the project is run
+    Then the program output is "unshare -1 Operation not permitted\nmount -1 Operation not permitted\nclone -1 Operation not permitted\n"

@@ -159,3 +159,52 @@ Feature: Interact with a running program
     When the project is started interactively
     And the event stream is opened
     Then the stream shows "PermissionError"
+
+  @linux-only
+  Scenario: One run cannot read another run's files
+    Given a Python project
+    And the file "main.py" containing:
+      """
+      open("secret.txt", "w").write("hidden")
+      print("ready", flush=True)
+      input()
+      """
+    When the project is started interactively
+    And the event stream is opened
+    Then the stream shows "ready"
+    Given a different project
+    And a Python project
+    And the file "main.py" containing:
+      """
+      import glob
+      print(len(glob.glob("/tmp/sierrendipity-*/secret.txt")))
+      """
+    When the project is run
+    Then the program output is "0\n"
+
+  Scenario: A huge stdin post does not stall the program's output
+    Given a Python project
+    And the file "main.py" containing:
+      """
+      import sys
+      sys.stdout.write("x" * 400000 + "\n")
+      sys.stdout.flush()
+      input()
+      print("done")
+      """
+    And a maximum output of 5000000 bytes
+    When the project is started interactively
+    And a large stdin is sent
+    And the event stream is opened
+    Then the stream shows "done"
+
+  Scenario: Interactive runs are bounded by a wall-clock limit
+    Given a runner process with an interactive wall limit of 2 seconds
+    And a Python project
+    And the file "main.py" containing:
+      """
+      input()
+      """
+    When the project is started interactively
+    And the event stream is opened
+    Then the run exits with status "time_limit_exceeded"

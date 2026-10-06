@@ -181,6 +181,19 @@ Given("a runner process with an idle timeout of {int} seconds", (seconds: number
 
 Given("a runner process requiring the secret {string}", (secret: string) => startRunnerProcess({ RUNNER_SECRET: secret }));
 
+Given("a runner process with an interactive wall limit of {int} seconds", (seconds: number) =>
+  startRunnerProcess({ INTERACTIVE_MAX_WALL_S: String(seconds) }),
+);
+
+When("a large stdin is sent", async () => {
+  const res = await fetch(`${base()}/runs/${runId}/stdin`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ data: "a\n".repeat(150_000) }),
+  });
+  assert.equal(res.status, 200);
+});
+
 Given("a runner process with no secret", () => startRunnerProcess({}));
 
 const hello = JSON.stringify({ language: "python", files: [{ path: "main.py", content: "print(1)" }] });
