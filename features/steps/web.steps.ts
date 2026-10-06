@@ -144,6 +144,7 @@ When("Google sends me back with a valid code for {string}", async function (this
   this.mock.requireControlToken(this.idToken);
   const state = this.authorizeUrl!.searchParams.get("state");
   await this.page.goto(`${this.appUrl}/callback?code=code-1&state=${state}`);
+  await this.toWorkspace();
 });
 
 Then("the IDE shows I am signed in as {string}", async function (this: WebWorld, email: string) {
