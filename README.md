@@ -17,10 +17,15 @@ The stack `Sierrendipity` is deployed to AWS (account `legacy`, us-east-1) from 
   the ARM64 runner container starts on Fargate with no NAT and logs `runner listening on 8080`
 
 Verified: 117 Gherkin scenarios pass on macOS (runner, cloud, web); the runner Linux profile
-passes 63 scenarios in the arm64 image; `cdk deploy` succeeds; Cognito authorize redirects to Google.
+passes 63 scenarios in the arm64 image; `cdk deploy` succeeds. End to end on 2026-10-06: a Google
+sign-in through the deployed site started a Fargate task, and a Python program ran interactively
+in the browser. On Fargate the sandbox blocks network sockets and runs student code as an
+unprivileged per-run user.
 
-Not yet verified: a real Google sign-in through the deployed site, a real session start through
-the control Lambda, the proxy streaming SSE from a real task, and seccomp on Fargate's kernel.
+Not yet verified: the one-task-per-user and global-cap limits against real concurrent requests,
+and rejection of an unapproved Google account (both covered by specs only).
+
+Not set up yet: CI and automated releases (milestone M8).
 
 ## Architecture
 
