@@ -12,6 +12,7 @@
     "infra",
     "api",
     "runner",
+    "explorer",
     "web"
   ],
   "scripts": {
@@ -19,6 +20,7 @@
     "test": "cucumber-js",
     "test:linux": "cucumber-js --profile linux",
     "test:web": "cucumber-js --profile web",
+    "test:docker": "cucumber-js --profile docker",
     "release": "semantic-release"
   },
   "devDependencies": {

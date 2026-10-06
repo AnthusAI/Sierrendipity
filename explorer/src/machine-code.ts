@@ -1,0 +1,72 @@
+import type { AsmError } from "./asm";
+
+/**
+ * Parse machine code typed by a learner: 32-bit words as hex (0x... or bare 8 digits) or binary
+ * (0b..., with underscores or spaces between groups). Words are separated by whitespace.
+ */
+const MAX_LINE_LENGTH = 4096;
+const TOKEN = /\S+/y;
+
+export function parseMachineCode(text: string): { words: number[]; errors: AsmError[] } {
+  const words: number[] = [];
+  const errors: AsmError[] = [];
+
+  text.split(/\r\n|[\r\n\u2028\u2029]/).forEach((raw, index) => {
+    const line = index + 1;
+    if (raw.length > MAX_LINE_LENGTH) {
+      errors.push({ line, column: 1, message: `line is longer than ${MAX_LINE_LENGTH} characters` });
+      return;
+    }
+    const comment = raw.search(/#|\/\//);
+    const code = comment >= 0 ? raw.slice(0, comment) : raw;
+    const fail = (column: number, message: string) => errors.push({ line, column, message });
+
+    let pos = 0;
+    while (pos < code.length) {
+      if (/\s/.test(code[pos]!)) {
+        pos++;
+        continue;
+      }
+      const column = pos + 1;
+      TOKEN.lastIndex = pos;
+      const token = TOKEN.exec(code)![0];
+      // A bare word of 8 hex digits wins over binary: 0b1234ef is hex.
+      if (!/^[0-9a-fA-F]{8}$/.test(token) && /^0[bB]/.test(token) && /^[01_]*$/.test(token.slice(2))) {
+        let count = 0;
+        let value = 0;
+        let end = pos + 2;
+        while (end < code.length && count <= 32) {
+          const c = code[end]!;
+          if (c === "0" || c === "1") {
+            value = value * 2 + Number(c);
+            count++;
+          } else if (c !== "_" && !/\s/.test(c)) {
+            break;
+          }
+          end++;
+        }
+        if (count === 32) words.push(value >>> 0);
+        else if (count > 32) {
+          while (end < code.length && /[01_]/.test(code[end]!)) end++; // swallow the rest of the digits
+          fail(column, "binary word has more than 32 bits");
+        }
+        else fail(column, `binary word has ${count} bits but needs 32`);
+        pos = end;
+        continue;
+      }
+      pos += token.length;
+      if (/^0[xX]/.test(token)) {
+        const digits = token.slice(2).replace(/_/g, "");
+        if (!/^[0-9a-fA-F]+$/.test(digits)) fail(column, `'${token}' is not a valid hex word`);
+        else if (digits.length > 8) fail(column, `'${token}' has more than 32 bits`);
+        else words.push(parseInt(digits, 16) >>> 0);
+      } else if (/^[0-9a-fA-F]{8}$/.test(token)) {
+        words.push(parseInt(token, 16) >>> 0);
+      } else {
+        fail(column, `'${token}' is not a hex or binary word`);
+      }
+    }
+  });
+
+  return { words, errors };
+}

@@ -69,4 +69,5 @@ jobs:
       - run: npx tsc -p api --noEmit
       - run: npx tsc -p infra --noEmit
       - run: npx tsc -p runner --noEmit
+      - run: npx tsc -p explorer --noEmit
       - run: npm run typecheck -w web
