@@ -10,4 +10,6 @@ module.exports = {
   default: { ...base, tags: "not @linux-only" },
   // `npm run test:linux` (run inside the runner container) includes them.
   linux: base,
+  // `npm run test:web`: only the browser specs (builds web/ and launches Chromium).
+  web: { ...base, paths: ["features/web/**/*.feature"] },
 };
