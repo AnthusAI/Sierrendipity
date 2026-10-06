@@ -300,7 +300,7 @@ async function dragTo(w: WebWorld, source: Locator, target: Locator) {
   await mouse.up();
 }
 When("I drag the tray card {string} into the lesson's program", async function (this: WebWorld, name: string) {
-  await dragTo(this, coachId(this, "tray").getByRole("button", { name, exact: true }), this.page.getByTestId("drop-end"));
+  await dragTo(this, coachId(this, "tray").getByRole("button", { name, exact: true }), player(this).getByTestId("drop-end"));
 });
 
 // ---------------------------------------------------------------- the ghost

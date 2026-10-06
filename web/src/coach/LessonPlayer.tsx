@@ -97,7 +97,10 @@ export function LessonPlayer({ lesson, store = null, userId = "local", clock = r
     const active = document.activeElement as HTMLElement | null;
     if (active && TYPING.has(active.tagName) && stageRef.current?.contains(active)) return;
     const primary = document.querySelector<HTMLElement>("[data-coach-panel] [data-coach-primary]");
-    const target = primary ?? (state.spotlight ? document.querySelector<HTMLElement>(`[data-coach-id="${state.spotlight}"]`) : null) ?? (state.waiting === "until" ? document.querySelector<HTMLElement>('[data-coach-id="button:step"]') : null);
+    let spot = state.spotlight ? document.querySelector<HTMLElement>(`[data-coach-id="${state.spotlight}"]`) : null;
+    // Lamps, bands and the flip are widgets made of buttons: a keyboard student lands on the first one.
+    if (spot && /^(lamp:|band:|flip$|tab:lamps$|diagram:D[458]$)/.test(state.spotlight ?? "")) spot = spot.querySelector<HTMLElement>("button") ?? spot;
+    const target = primary ?? spot ?? (state.waiting === "until" ? document.querySelector<HTMLElement>('[data-coach-id="button:step"]') : null);
     if (target && (target.tagName === "BUTTON" || target.tagName === "INPUT")) target.focus({ preventScroll: true });
     // Only when the scene or phase changes (or the ghost hands control back), never on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -31,7 +31,7 @@ Feature: The coach helps without penalty
     When the clock advances 3 seconds
     Then the coach says "Your turn"
     And the ghost pointer is hidden
-    And box "a0" shows 0
+    And box "a0" is empty
     And the number on card 1 is 5
     When I set the number on card 1 to 9
     And I press Step

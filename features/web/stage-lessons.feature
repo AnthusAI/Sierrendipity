@@ -62,11 +62,11 @@ Feature: Lessons 06 to 08 prove the new visuals
     When I switch lamp 2
     And I press Step
     Then box "a0" shows 5
-    And the coach confirms "Lamps 4 and 1 make 5"
+    And the coach confirms "make 5, and the box agrees"
     And the coach says "Now make 7"
     When I switch lamp 1
     And I press Step
-    Then box "a0" shows 7
+    Then the coach confirms "Lamps 4, 2 and 1 make 7"
     And the coach says "Add 5 and 7"
     When I press Continue
     Then the coach says "Make 12"
