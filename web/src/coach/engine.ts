@@ -15,7 +15,7 @@ import {
   type PublishedLesson,
   type Scene,
 } from "@sierrendipity/lesson-core";
-import { describe } from "@sierrendipity/explorer";
+import { cardsUsed, describe } from "@sierrendipity/explorer";
 import { markStopShown, sessionInfo, type Clock } from "./clock";
 import { STUCK, StuckDetector, type StuckReason } from "./stuck";
 import type { LiveView, StageControl } from "./types";
@@ -425,7 +425,7 @@ export class LessonEngine {
     if (this.sceneIndex !== this.goalScene() && !newBonus) return;
     this.recorded.add(key);
     for (const s of stars) this.bonusSeen.add(s);
-    this.safe(() => this.store?.recordAttempt(this.userId, this.lesson.id, { passed: stars.includes("pass"), stars, cards: run.cards, steps: run.steps, concepts: this.lesson.concepts.introduces }));
+    this.safe(() => this.store?.recordAttempt(this.userId, this.lesson.id, { passed: stars.includes("pass"), stars, cards: run.cards, steps: run.steps, concepts: this.lesson.concepts.introduces, cardsUsed: stars.includes("pass") ? cardsUsed(this.cards) : [] }));
   }
 
   /** After a student action (or on entering a scene): record a finished run, then see whether the goal holds. */
