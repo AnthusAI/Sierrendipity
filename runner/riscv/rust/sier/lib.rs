@@ -244,7 +244,9 @@ pub mod process {
 
 #[lang = "start"]
 fn lang_start<T: process::Termination + 'static>(main: fn() -> T, _argc: isize, _argv: *const *const u8, _sigpipe: u8) -> isize {
-    process::code(main().report()) as isize
+    // black_box keeps the optimizer from folding `main` into this function: the student's code stays
+    // its own function (`main::main`) at every optimization level.
+    process::code(core::hint::black_box(main)().report()) as isize
 }
 
 // ---- std::io ----

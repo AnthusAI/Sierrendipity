@@ -39,6 +39,8 @@ module.exports = {
       "features/steps/explain-rust.steps.ts",
     ],
   },
+  // Quick loop for the Explore UI: `npx cucumber-js --profile web-explore`.
+  "web-explore": { ...base, paths: ["features/web/explore*.feature", "features/web/rust.feature"] },
   // `npm run test:web`: only the browser specs (builds web/ and launches Chromium).
   web: { ...base, paths: ["features/web/**/*.feature"] },
   // Quick loop for the explorer library: `npx cucumber-js --profile explorer`.

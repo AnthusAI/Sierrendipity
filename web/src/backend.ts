@@ -7,9 +7,11 @@ export type Language = "python" | "c" | "cpp" | "rust" | "asm" | "machine";
 export type BackendLanguage = "python" | "c" | "cpp" | "rust";
 
 export interface ExplainRequest {
-  language: "c";
+  language: "c" | "rust";
   files: { path: string; content: string }[];
   optLevel?: "O0" | "Og";
+  /** Rust only: keep the overflow and bounds checks (the runner's default is off). */
+  checks?: boolean;
 }
 
 export interface ExplainInstruction {
@@ -163,7 +165,7 @@ export class Backend {
     return runId;
   }
 
-  /** Compile C and describe the result instruction by instruction (POST /explain, same session as runs). */
+  /** Compile C or Rust and describe the result instruction by instruction (POST /explain, same session as runs). */
   async explain(request: ExplainRequest): Promise<ExplainResponse> {
     const response = await this.postJson("/explain", request);
     if (!response.ok) throw new Error(`could not explain the program: HTTP ${response.status}`);

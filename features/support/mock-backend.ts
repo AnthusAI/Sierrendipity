@@ -84,15 +84,43 @@ function bigProgram(): MockInstruction[] {
   return list;
 }
 
-function explain(files: { path: string; content: string }[]) {
+// The same program as Rust: demangled names (`main::main`, `std::io::_print`), the Rust lines of
+//   1 fn main() {  2 let mut sum = 0;  3 for i in 1..=3 {  4 sum += i;  6 println!("{}", sum);  7 }
+// and a few runtime rows (formatting machinery) after the code, as the real runner lists them.
+const RUST_NAMES: Record<string, string> = { putchar: "std::io::_print", main: "main::main" };
+const RUST_LINES: Record<number, number> = { 2: 1, 3: 2, 4: 3, 5: 4, 7: 6, 8: 7, 9: 7 };
+const RUST_RUNTIME: [number, string][] = [
+  [0x40b50533, "core::fmt::Formatter::pad"], // sub a0, a0, a1
+  [0x00008067, "core::fmt::Formatter::pad"], // jalr zero, 0(ra)
+  [0x40b50533, "<std::io::Stdout as core::fmt::Write>::write_str"],
+  [0x00008067, "<std::io::Stdout as core::fmt::Write>::write_str"],
+];
+
+function rustProgram(): MockInstruction[] {
+  const list: MockInstruction[] = PROGRAM.map(([word, fn, line]) => ({
+    word,
+    fn: RUST_NAMES[fn] ?? fn,
+    path: "main.rs",
+    line: line === 0 ? 0 : RUST_LINES[line],
+  }));
+  for (const [word, fn] of RUST_RUNTIME) list.push({ word, fn, path: "main.rs", line: 0 });
+  return list;
+}
+
+function explain(files: { path: string; content: string }[], language = "c") {
   const source = files.map((f) => f.content).join("\n");
-  const error = /#error (.*)/.exec(source);
-  if (error) return { status: "compile_error", compileOutput: `main.c:1:2: error: ${error[1]}\n` };
+  const rust = language === "rust";
+  const error = rust ? /compile_error!\("(.*?)"\)/.exec(source) : /#error (.*)/.exec(source);
+  if (error) {
+    return { status: "compile_error", compileOutput: rust ? `error: ${error[1]}\n --> main.rs:1:1\n` : `main.c:1:2: error: ${error[1]}\n` };
+  }
   if (source.includes("// noprogram")) return { status: "ok", compileOutput: "" };
   const big = source.includes("// big");
   const runtimeOnly = source.includes("// runtimeonly");
   const twoFiles = files.length > 1;
-  const list: MockInstruction[] = big
+  const list: MockInstruction[] = rust
+    ? rustProgram()
+    : big
     ? bigProgram()
     : PROGRAM.map(([word, fn, line]) => ({
         word,
@@ -132,6 +160,8 @@ export interface MockBackend {
   setSessionFailing(failing: boolean): void;
   /** Every POST /runs body so far, so specs can check the language and files the IDE sent. */
   runRequests: { language: string; files: { path: string; content: string }[] }[];
+  /** Every POST /explain body so far. */
+  explainRequests: { language: string; files: { path: string; content: string }[]; optLevel?: string; checks?: boolean }[];
   close(): Promise<void>;
 }
 
@@ -142,6 +172,7 @@ export async function startMockBackend(options: { startDelayMs?: number; port?: 
   let sessionFailing = false;
   const runs = new Map<string, Run>();
   const runRequests: MockBackend["runRequests"] = [];
+  const explainRequests: MockBackend["explainRequests"] = [];
   let nextRun = 1;
 
   const emit = (run: Run, type: string, data: unknown) => {
@@ -226,7 +257,8 @@ export async function startMockBackend(options: { startDelayMs?: number; port?: 
       const body = await readJson(request);
       // "// slow" in the source: answer after a delay (for the specs about stale results).
       if (body.files.some((f: { content: string }) => f.content.includes("// slow"))) await new Promise((r) => setTimeout(r, 1500));
-      return json(response, 200, explain(body.files));
+      explainRequests.push({ language: body.language, files: body.files, optLevel: body.optLevel, checks: body.checks });
+      return json(response, 200, explain(body.files, body.language));
     }
 
     const match = /^\/runs\/([^/]+)\/(events|stdin|stop)$/.exec(path);
@@ -264,6 +296,7 @@ export async function startMockBackend(options: { startDelayMs?: number; port?: 
   return {
     url: `http://127.0.0.1:${address.port}`,
     runRequests,
+    explainRequests,
     requireControlToken: (token) => {
       controlToken = token;
     },
