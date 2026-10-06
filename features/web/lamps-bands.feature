@@ -16,9 +16,9 @@ Feature: Field bands split the 32 lamps into labelled, coloured jobs
       | R      | exact job, second box, first box, exact job, answer goes in box, what kind of job |
       | I      | the number, first box, exact job, answer goes in box, what kind of job    |
       | S      | the number, second box, first box, exact job, the number, what kind of job |
-      | B      | the number, second box, first box, exact job, the number, what kind of job |
+      | B      | the number, the number, second box, first box, exact job, the number, the number, what kind of job |
       | U      | the number, answer goes in box, what kind of job                          |
-      | J      | the number, answer goes in box, what kind of job                          |
+      | J      | the number, the number, the number, the number, answer goes in box, what kind of job |
 
   Scenario Outline: The scattered pieces of a <format> immediate share one label and one colour
     Then the number in the <format> word is split into 4 or fewer pieces under one label

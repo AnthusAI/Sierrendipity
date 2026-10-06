@@ -102,7 +102,8 @@ Then("lamp {int} of {string} has the focus", async function (this: WebWorld, bit
 });
 
 When("I click lamp {int} of {string}", async function (this: WebWorld, bit: number, name: string) {
-  await lamp(this, name, bit).click();
+  // Locked lamps are aria-disabled but still receive the pointer, so force past the actionability wait.
+  await lamp(this, name, bit).click({ force: true });
 });
 
 Then("lamp {int} of {string} is lit", async function (this: WebWorld, bit: number, name: string) {
@@ -302,7 +303,7 @@ When("I tab to the band {string} in {string}", async function (this: WebWorld, l
   await band(this, name, label).focus();
 });
 
-When("I move away from the bands in {string}", async function (this: WebWorld) {
+When("I move away from the bands in {string}", async function (this: WebWorld, _name: string) {
   await this.page.mouse.move(0, 0);
 });
 
@@ -456,6 +457,7 @@ Then("every band of the R word is painted with a field token of {string} in {wor
 });
 
 Then("the bands of the R word have different colours for different labels", async function (this: WebWorld) {
+  await settled(this);
   const byLabel = new Map<string, Set<string>>();
   for (const b of await readBands(this, rWord(this, "R"))) byLabel.set(b.label, (byLabel.get(b.label) ?? new Set()).add(b.background));
   for (const [label, colours] of byLabel) assert.equal(colours.size, 1, `${label} has several colours`);
@@ -473,6 +475,10 @@ Then("the band {string} in the {string} word has a different colour from the one
   });
 });
 
+/** Wait for colour transitions to finish, so computed colours are the final ones. */
+const settled = (w: WebWorld) =>
+  w.page.evaluate(`Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined)))`);
+
 interface TextSample {
   text: string;
   color: string;
@@ -482,6 +488,7 @@ interface TextSample {
 }
 
 Then("every piece of text in the lamps section meets WCAG AA", async function (this: WebWorld) {
+  await settled(this);
   const samples = (await this.page.evaluate(`(() => {
     const section = document.querySelector('[data-lab-section*="lamps"]');
     const out = [];
