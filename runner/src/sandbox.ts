@@ -69,10 +69,12 @@ export async function killUid(uid: number | undefined): Promise<void> {
   await run(LAUNCHER, [`--kill-uid=${uid}`]);
 }
 
-/** Delete everything the run's uid left in the scratch areas. */
+/** Delete everything the run's uid left in the scratch areas and in System V IPC. */
 export async function wipeUid(uid: number | undefined): Promise<void> {
   if (!isLinux || uid === undefined) return;
   await run("find", [...SCRATCH, "-xdev", "-user", String(uid), "-delete"]);
+  // System V shm/sem/msg objects outlive their processes; the filter denies them, this is the safety net.
+  await run(LAUNCHER, [`--clean-ipc=${uid}`]);
 }
 
 async function diskUsage(uid: number): Promise<number> {

@@ -4,6 +4,7 @@
  *   sandbox-exec [--uid=N] [--no-seccomp] [--as=BYTES] [--cpu=SECONDS] [--nproc=N] [--fsize=BYTES]
  *                -- program [args...]
  *   sandbox-exec --kill-uid=N
+ *   sandbox-exec --clean-ipc=N
  *
  * The runner server is root; every run gets its own unprivileged uid (--uid), so student code cannot
  * read the server's /proc entries, signal it, or touch another run's files. --kill-uid kills every
@@ -22,6 +23,8 @@
  *   clone with any CLONE_NEW* flag - the same namespaces by another door.
  *   clone3 returns ENOSYS - its flags live behind a pointer a filter cannot read; glibc then falls
  *                     back to clone, which is filtered above.
+ *   System V shm/sem/msg and POSIX message queues - they outlive the process (and a recycled uid
+ *                     could attach them) and are a finite system-wide resource.
  *   keyctl, add_key, request_key, kexec_*, *_module, bpf, perf_event_open, userfaltfd,
  *   open_by_handle_at, name_to_handle_at, personality, swapon, swapoff, reboot, acct
  *                     - kernel attack surface or privileged operations with no teaching value.
@@ -41,8 +44,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
 #include <sys/prctl.h>
 #include <sys/resource.h>
+#include <sys/sem.h>
+#include <sys/shm.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -54,6 +61,8 @@ static const char *denied[] = {
     "keyctl", "add_key", "request_key", "kexec_load", "kexec_file_load", "init_module",
     "finit_module", "delete_module", "bpf", "perf_event_open", "userfaltfd", "open_by_handle_at",
     "name_to_handle_at", "personality", "swapon", "swapoff", "reboot", "acct",
+    "shmget", "shmat", "shmdt", "shmctl", "semget", "semop", "semtimedop", "semctl", "msgget",
+    "msgsnd", "msgrcv", "msgctl", "mq_open", "mq_unlink",
 };
 
 static const unsigned long namespace_flags[] = {
@@ -142,8 +151,34 @@ static int kill_uid(uid_t uid) {
   return 1;
 }
 
+/* Remove the System V objects owned by `uid`: the safety net for programs that ran unfiltered. */
+static void clean_ipc(uid_t uid) {
+  /* IPC_RMID needs to be the owner (or CAP_SYS_ADMIN, which the task lacks), so become the uid. */
+  drop_to(uid);
+  static const struct { const char *file; int uid_column; } kinds[] = {
+      {"/proc/sysvipc/shm", 7}, {"/proc/sysvipc/sem", 4}, {"/proc/sysvipc/msg", 7}};
+  for (int k = 0; k < 3; k++) {
+    FILE *f = fopen(kinds[k].file, "r");
+    if (!f) continue;
+    char line[1024];
+    int first = 1;
+    while (fgets(line, sizeof line, f)) {
+      if (first) { first = 0; continue; } /* header */
+      long fields[16] = {0};
+      char *save, *tok = strtok_r(line, " \t\n", &save);
+      for (int n = 0; tok && n < 16; n++, tok = strtok_r(NULL, " \t\n", &save)) fields[n] = atol(tok);
+      if ((uid_t)fields[kinds[k].uid_column] != uid) continue;
+      int id = (int)fields[1];
+      if (k == 0) shmctl(id, IPC_RMID, NULL);
+      else if (k == 1) semctl(id, 0, IPC_RMID);
+      else msgctl(id, IPC_RMID, NULL);
+    }
+    fclose(f);
+  }
+}
+
 int main(int argc, char **argv) {
-  long as_bytes = 0, cpu_s = 0, nproc = 128, fsize = 16L * 1024 * 1024, uid = -1, kill_target = -1;
+  long clean_target = -1, as_bytes = 0, cpu_s = 0, nproc = 128, fsize = 16L * 1024 * 1024, uid = -1, kill_target = -1;
   int seccomp = 1;
   int i = 1;
   for (; i < argc && strncmp(argv[i], "--", 2) == 0; i++) {
@@ -151,12 +186,17 @@ int main(int argc, char **argv) {
     if (strcmp(argv[i], "--no-seccomp") == 0) { seccomp = 0; continue; }
     if (sscanf(argv[i], "--uid=%ld", &uid) == 1) continue;
     if (sscanf(argv[i], "--kill-uid=%ld", &kill_target) == 1) continue;
+    if (sscanf(argv[i], "--clean-ipc=%ld", &clean_target) == 1) continue;
     if (sscanf(argv[i], "--as=%ld", &as_bytes) == 1) continue;
     if (sscanf(argv[i], "--cpu=%ld", &cpu_s) == 1) continue;
     if (sscanf(argv[i], "--nproc=%ld", &nproc) == 1) continue;
     if (sscanf(argv[i], "--fsize=%ld", &fsize) == 1) continue;
     fprintf(stderr, "sandbox-exec: unknown option %s\n", argv[i]);
     return 126;
+  }
+  if (clean_target >= 0) {
+    clean_ipc((uid_t)clean_target);
+    return 0;
   }
   if (kill_target >= 0) return kill_uid((uid_t)kill_target);
   if (i >= argc) {
