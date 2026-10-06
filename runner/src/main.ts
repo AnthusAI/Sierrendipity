@@ -1,5 +1,9 @@
 import type { AddressInfo } from "node:net";
+import { sandboxWarning } from "./sandbox.ts";
 import { startServer } from "./server.ts";
+
+const warning = sandboxWarning();
+if (warning) console.warn(warning);
 
 const port = Number(process.env.PORT ?? 8080);
 startServer(port, {

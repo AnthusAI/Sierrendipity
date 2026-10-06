@@ -3,7 +3,16 @@ import path from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 
 // Everything here is Linux-only: elsewhere student code runs unconfined (local development).
-export const isLinux = process.platform === "linux";
+// RUNNER_SANDBOX=off is an explicit opt-out (unprivileged CI); the default on Linux is sandbox ON.
+const sandboxOff = process.env.RUNNER_SANDBOX === "off";
+export const isLinux = process.platform === "linux" && !sandboxOff;
+
+/** A loud warning when the sandbox was explicitly disabled on Linux, otherwise undefined. */
+export function sandboxWarning(): string | undefined {
+  return process.platform === "linux" && sandboxOff
+    ? "WARNING: RUNNER_SANDBOX=off: the sandbox is DISABLED; student code runs unconfined. Never use in production."
+    : undefined;
+}
 const LAUNCHER = process.env.SANDBOX_EXEC ?? "/usr/local/bin/sandbox-exec";
 const PTY_RUN = path.join(__dirname, "..", "launcher", "pty-run.py");
 
