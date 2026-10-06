@@ -3,7 +3,7 @@
   "title": "Refuse unauthenticated and excess sessions",
   "description": "As the maintainer, I want only the student to start sessions.\n\nFeature: Access control\n  Scenario: Unauthenticated start is refused\n    When a session is requested without credentials\n    Then the response is 401\n  Scenario: Only one concurrent session\n    Given an active session for the student\n    When a second session is requested\n    Then the request is refused",
   "type": "story",
-  "status": "open",
+  "status": "in_progress",
   "priority": 2,
   "assignee": null,
   "creator": null,
@@ -12,14 +12,14 @@
   "dependencies": [],
   "comments": [],
   "created_at": "2026-10-06T11:37:13.422018Z",
-  "updated_at": "2026-10-06T11:37:13.422043Z",
+  "updated_at": "2026-10-06T12:30:55.115758Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity planning"
   },
-  "right_now_summary": "The system requires student authentication and allows only one session at a time.",
-  "right_now_updated_at": "2026-10-06T11:37:15.058428Z",
+  "right_now_summary": "The system must reject unauthenticated requests and extra student sessions.",
+  "right_now_updated_at": "2026-10-06T12:30:56.904494Z",
   "custom": {}
 }

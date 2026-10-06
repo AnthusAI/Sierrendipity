@@ -3,7 +3,7 @@
   "title": "Start a session on demand and run code in the cloud",
   "description": "As the student, I want to press Run and have the backend wake up, so that I never pay for idle servers.\n\nFeature: On-demand cloud session\n  Scenario: First run after idle\n    Given no Fargate task is running\n    When the student starts a session through the control endpoint\n    Then a task starts and the session becomes ready\n    And running a hello-world project through the proxy streams its output\n  Scenario: Backend scales to zero\n    Given a session with no activity past the idle timeout\n    Then no Fargate task is running",
   "type": "story",
-  "status": "open",
+  "status": "in_progress",
   "priority": 2,
   "assignee": null,
   "creator": null,
@@ -12,14 +12,14 @@
   "dependencies": [],
   "comments": [],
   "created_at": "2026-10-06T11:37:08.034843Z",
-  "updated_at": "2026-10-06T11:37:08.034876Z",
+  "updated_at": "2026-10-06T12:30:45.704056Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity planning"
   },
-  "right_now_summary": "No recent activity is recorded for the on-demand cloud session.",
-  "right_now_updated_at": "2026-10-06T11:37:09.772511Z",
+  "right_now_summary": "Students can start cloud sessions on demand, run code, and avoid paying for idle servers.",
+  "right_now_updated_at": "2026-10-06T12:30:46.760664Z",
   "custom": {}
 }

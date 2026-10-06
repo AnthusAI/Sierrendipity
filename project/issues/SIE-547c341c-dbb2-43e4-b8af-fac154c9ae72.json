@@ -3,7 +3,7 @@
   "title": "M6: Web IDE — editor, multi-file projects, terminal",
   "description": "Intent: As the student, I want a browser IDE with a file tree, tabs, syntax highlighting, a Run button and a terminal pane, so that I can write and run small multi-file projects from anywhere. Includes: Vite/React/Monaco, create/rename/delete files, language selection (Python/C/C++), project persistence, session start on open to hide cold start, terminal pane wired to M3. Excludes: collaborative editing, debugger. DoD: browser-driven Gherkin specs create a two-file C++ project, run it, interact with it, and reload to find it saved.",
   "type": "epic",
-  "status": "open",
+  "status": "in_progress",
   "priority": 1,
   "assignee": null,
   "creator": null,
@@ -25,14 +25,14 @@
     }
   ],
   "created_at": "2026-10-06T11:35:57.796020Z",
-  "updated_at": "2026-10-06T11:38:26.096234Z",
+  "updated_at": "2026-10-06T12:31:04.377664Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity planning"
   },
-  "right_now_summary": "The IDE is being defined, with terminal input and sign-in dependencies still to address.",
-  "right_now_updated_at": "2026-10-06T11:38:27.735080Z",
+  "right_now_summary": "The IDE work awaits M5 sign-in and token handling before cloud sessions can start.",
+  "right_now_updated_at": "2026-10-06T12:31:21.640906Z",
   "custom": {}
 }

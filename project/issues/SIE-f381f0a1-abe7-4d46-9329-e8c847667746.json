@@ -3,7 +3,7 @@
   "title": "Resume output after reconnect and stop idle sessions",
   "description": "As the student, I want a dropped connection not to lose output, and idle sessions to clean themselves up.\n\nFeature: Session resilience\n  Scenario: Reconnect resumes the stream\n    Given a running session that has produced 10 lines\n    When the event stream disconnects and reconnects with the last event id\n    Then only the lines after that id are delivered\n  Scenario: Idle session shuts down\n    Given a session with no activity for the idle timeout\n    Then the runner process exits",
   "type": "story",
-  "status": "open",
+  "status": "in_progress",
   "priority": 2,
   "assignee": null,
   "creator": null,
@@ -12,14 +12,14 @@
   "dependencies": [],
   "comments": [],
   "created_at": "2026-10-06T11:37:01.990094Z",
-  "updated_at": "2026-10-06T11:37:01.990125Z",
+  "updated_at": "2026-10-06T12:30:36.799154Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity planning"
   },
-  "right_now_summary": "The team is addressing lost output after reconnects and shutting down idle sessions.",
-  "right_now_updated_at": "2026-10-06T11:37:04.209068Z",
+  "right_now_summary": "The team is defining reconnection recovery and cleanup for idle sessions.",
+  "right_now_updated_at": "2026-10-06T12:30:38.760035Z",
   "custom": {}
 }

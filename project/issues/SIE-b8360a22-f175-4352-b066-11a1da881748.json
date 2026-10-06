@@ -3,23 +3,31 @@
   "title": "Run Python and C projects with supplied stdin",
   "description": "As the student, I want to supply input up front and run Python or C projects, so that I can test against sample data.\n\nFeature: Run Python and C projects\n  Scenario: Python reads stdin\n    Given a Python project that doubles an integer read from stdin\n    And the stdin is 21\n    When the project is run\n    Then the output is 42\n\n  Scenario: C reads stdin\n    Given a C project that sums two integers from stdin\n    And the stdin is 3 4\n    When the project is run\n    Then the output is 7",
   "type": "story",
-  "status": "in_progress",
+  "status": "closed",
   "priority": 2,
   "assignee": null,
   "creator": null,
   "parent": "SIE-bda355ce-2fa1-4244-9f54-d69cf052ebb8",
   "labels": [],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "bba55850-7be3-4e7b-9f17-9c4b7d754735",
+      "author": "home",
+      "text": "Merged to develop in PR #1; Gherkin specs pass (26 macOS, 27 Linux in the image).",
+      "created_at": "2026-10-06T12:29:44.128122Z",
+      "comment_type": "default"
+    }
+  ],
   "created_at": "2026-10-06T11:36:34.864522Z",
-  "updated_at": "2026-10-06T11:47:04.052693Z",
-  "closed_at": null,
+  "updated_at": "2026-10-06T12:29:48.387233Z",
+  "closed_at": "2026-10-06T12:29:48.387184Z",
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity planning"
   },
-  "right_now_summary": "Support is being added to run Python and C projects with supplied stdin and verify their output.",
-  "right_now_updated_at": "2026-10-06T11:47:05.134112Z",
+  "right_now_summary": "Python and C projects now accept supplied stdin and produce the expected outputs.",
+  "right_now_updated_at": "2026-10-06T12:29:49.382227Z",
   "custom": {}
 }

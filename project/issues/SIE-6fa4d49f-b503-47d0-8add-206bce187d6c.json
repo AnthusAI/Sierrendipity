@@ -3,7 +3,7 @@
   "title": "M5: Google sign-in (Cognito) and abuse protection",
   "description": "Intent: As a student, I want to sign in with my Google account, so that I can use the IDE from anywhere without a new password; as the maintainer, I want only approved students able to start sessions, so that strangers cannot run code or run up the bill. Includes: Google Cloud project and OAuth client (set up together with the maintainer), Cognito user pool with Google as federated identity provider and hosted UI, allowlist of approved Google accounts enforced by a pre-sign-up Lambda trigger, JWT verification on the control and proxy endpoints, per-session token, limits on concurrent sessions and session length, AWS Budget alarm. Excludes: password or other social logins, self-service signup by unapproved accounts. DoD: an approved Google account signs in and starts a session; an unapproved account is refused; unauthenticated requests get 401; a second concurrent session per student is refused; budget alarm exists.",
   "type": "epic",
-  "status": "open",
+  "status": "in_progress",
   "priority": 2,
   "assignee": null,
   "creator": null,
@@ -37,14 +37,14 @@
     }
   ],
   "created_at": "2026-10-06T11:35:54.272082Z",
-  "updated_at": "2026-10-06T12:27:33.255353Z",
+  "updated_at": "2026-10-06T12:30:50.137779Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity planning"
   },
-  "right_now_summary": "Google OAuth setup is complete, but implementation awaits the M4 stack and maintainer allowlist setup.",
-  "right_now_updated_at": "2026-10-06T12:27:34.518557Z",
+  "right_now_summary": "Google OAuth is set up, but Cognito sign-in and abuse protection await the M4 stack and maintainer setup.",
+  "right_now_updated_at": "2026-10-06T12:31:02.726154Z",
   "custom": {}
 }

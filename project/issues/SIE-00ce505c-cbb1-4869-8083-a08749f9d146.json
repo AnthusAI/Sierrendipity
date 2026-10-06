@@ -3,7 +3,7 @@
   "title": "M2: Sandbox — block network and credentials for student code",
   "description": "Intent: As the maintainer, I want student programs to run without network access or cloud credentials, so that untrusted code cannot reach the internet or the AWS account. Includes: small C launcher using libseccomp (denies socket for AF_INET/AF_INET6, no_new_privs), scrubbed environment, no task-role permissions, ulimits/process caps against fork bombs, proof on real Fargate. Excludes: private-subnet/VPC-endpoint egress blocking (revisit if more students join). DoD: Python socket.connect and C connect() fail with EPERM; credential/metadata reads fail; specs pass locally and on Fargate.",
   "type": "epic",
-  "status": "open",
+  "status": "in_progress",
   "priority": 1,
   "assignee": null,
   "creator": null,
@@ -12,14 +12,14 @@
   "dependencies": [],
   "comments": [],
   "created_at": "2026-10-06T11:35:44.291204Z",
-  "updated_at": "2026-10-06T11:35:44.291227Z",
+  "updated_at": "2026-10-06T12:30:12.439166Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity planning"
   },
-  "right_now_summary": "Network access is blocked, but process limits and credential protection still need work.",
-  "right_now_updated_at": "2026-10-06T12:05:12.030683Z",
+  "right_now_summary": "Network blocking is planned, but run caps and compiler resource limits are still missing.",
+  "right_now_updated_at": "2026-10-06T12:30:25.426506Z",
   "custom": {}
 }

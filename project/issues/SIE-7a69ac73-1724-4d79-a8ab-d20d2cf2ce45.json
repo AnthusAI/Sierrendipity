@@ -3,7 +3,7 @@
   "title": "M3: Interactive sessions — SSE output and POST input",
   "description": "Intent: As the student, I want to type into a running program and see output as it appears, so that interactive programs behave like a terminal. Includes: pty-backed process in the runner, GET /events (Server-Sent Events) with resumable output buffer, POST /stdin, run/stop controls, idle self-shutdown. Excludes: WebSockets, AppSync, ALB. DoD: Gherkin specs show prompt/response programs working end to end, reconnect resumes without losing output, idle session exits.",
   "type": "epic",
-  "status": "open",
+  "status": "in_progress",
   "priority": 1,
   "assignee": null,
   "creator": null,
@@ -12,14 +12,14 @@
   "dependencies": [],
   "comments": [],
   "created_at": "2026-10-06T11:35:48.045350Z",
-  "updated_at": "2026-10-06T11:35:48.045374Z",
+  "updated_at": "2026-10-06T12:30:27.470790Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity planning"
   },
-  "right_now_summary": "The team is adding interactive input, live output, reconnect recovery, and idle session shutdown.",
-  "right_now_updated_at": "2026-10-06T11:37:05.900893Z",
+  "right_now_summary": "The team is defining input, live output, reconnection recovery, and idle session cleanup.",
+  "right_now_updated_at": "2026-10-06T12:30:40.326063Z",
   "custom": {}
 }

@@ -3,7 +3,7 @@
   "title": "Edit and run a multi-file project in the browser",
   "description": "As the student, I want to create files, edit them, and run the project.\n\nFeature: Web IDE\n  Scenario: Create and run a two-file C++ project\n    Given the student opens the IDE\n    When they create main.cpp and util.cpp and press Run\n    Then the terminal pane shows the program output\n  Scenario: Projects persist\n    Given a saved project\n    When the page is reloaded\n    Then the files are still there",
   "type": "story",
-  "status": "open",
+  "status": "in_progress",
   "priority": 2,
   "assignee": null,
   "creator": null,
@@ -12,14 +12,14 @@
   "dependencies": [],
   "comments": [],
   "created_at": "2026-10-06T11:37:17.871945Z",
-  "updated_at": "2026-10-06T11:37:17.871967Z",
+  "updated_at": "2026-10-06T12:31:11.421105Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity planning"
   },
-  "right_now_summary": "The web IDE feature is being defined for editing, running, and saving multi-file projects.",
-  "right_now_updated_at": "2026-10-06T11:37:19.311311Z",
+  "right_now_summary": "The web IDE should let students edit, run, and save multi-file projects.",
+  "right_now_updated_at": "2026-10-06T12:31:12.945421Z",
   "custom": {}
 }

@@ -3,7 +3,7 @@
   "title": "M1: Batch runner — compile and run Python, C, and C++ projects",
   "description": "Intent: As the student, I want to submit a small multi-file project and get compiler output, program output, exit status, and timing back, so that I can run real code. Includes: runner container image (gcc, g++, python3), Node runner server, multi-file projects, stdin supplied up front, wall-clock and memory limits, output-size caps. Excludes: live interactive stdin, cloud deployment, UI. Definition of Done: all M1 stories' Gherkin specs pass against the runner in a local container.",
   "type": "epic",
-  "status": "in_progress",
+  "status": "closed",
   "priority": 1,
   "assignee": null,
   "creator": null,
@@ -34,17 +34,24 @@
         "model": "claude-sonnet-5-5",
         "name": "Sierrendipity orchestrator"
       }
+    },
+    {
+      "id": "a7db2763-48b8-4ab5-9970-9cec4518d478",
+      "author": "home",
+      "text": "Merged to develop in PR #1; Gherkin specs pass (26 macOS, 27 Linux in the image).",
+      "created_at": "2026-10-06T12:30:05.565700Z",
+      "comment_type": "default"
     }
   ],
   "created_at": "2026-10-06T11:35:25.310052Z",
-  "updated_at": "2026-10-06T12:05:15.023706Z",
-  "closed_at": null,
+  "updated_at": "2026-10-06T12:30:09.552639Z",
+  "closed_at": "2026-10-06T12:30:09.552581Z",
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity planning"
   },
-  "right_now_summary": "The runner is complete and tested, awaiting merge into develop.",
-  "right_now_updated_at": "2026-10-06T12:05:16.116927Z",
+  "right_now_summary": "M1 is merged into develop, with all Gherkin specs passing locally and in the Docker image.",
+  "right_now_updated_at": "2026-10-06T12:30:10.841264Z",
   "custom": {}
 }

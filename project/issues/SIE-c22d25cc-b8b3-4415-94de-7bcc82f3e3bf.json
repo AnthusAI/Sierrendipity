@@ -3,23 +3,31 @@
   "title": "Enforce time, memory, and output limits",
   "description": "As the maintainer, I want runaway programs stopped, so that they cannot hang or exhaust a session.\n\nFeature: Resource limits\n  Scenario: An infinite loop is stopped\n    Given a program that loops forever\n    When the project is run with a 2 second limit\n    Then the result reports a time limit exceeded\n  Scenario: Huge output is truncated\n    Given a program that prints 100 MB\n    When the project is run\n    Then the captured output is truncated and flagged",
   "type": "story",
-  "status": "in_progress",
+  "status": "closed",
   "priority": 2,
   "assignee": null,
   "creator": null,
   "parent": "SIE-bda355ce-2fa1-4244-9f54-d69cf052ebb8",
   "labels": [],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "fdc33d5d-ae72-48f6-825e-8df22f58e040",
+      "author": "home",
+      "text": "Merged to develop in PR #1; Gherkin specs pass (26 macOS, 27 Linux in the image).",
+      "created_at": "2026-10-06T12:29:52.786200Z",
+      "comment_type": "default"
+    }
+  ],
   "created_at": "2026-10-06T11:36:38.619900Z",
-  "updated_at": "2026-10-06T11:47:09.828137Z",
-  "closed_at": null,
+  "updated_at": "2026-10-06T12:29:58.810852Z",
+  "closed_at": "2026-10-06T12:29:58.810794Z",
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity planning"
   },
-  "right_now_summary": "The project needs time, memory, and output limits to stop runaway programs.",
-  "right_now_updated_at": "2026-10-06T11:47:11.851082Z",
+  "right_now_summary": "Resource limits are merged into develop, and all Gherkin specs pass on macOS and Linux.",
+  "right_now_updated_at": "2026-10-06T12:30:00.425828Z",
   "custom": {}
 }
