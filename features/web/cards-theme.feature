@@ -8,6 +8,7 @@ Feature: Cards use the theme tokens
     And I open the cards lab
     Then every coloured part of the gallery card "Add box a0 and box a1, put the answer in box a2" has contrast of at least 4.5 on its card
     And the assembly chip of the gallery card "Put 5 in box a0" has contrast of at least 4.5 on its card
+    And the input slot of the custom gallery card has contrast of at least 4.5 on its card
 
     Examples:
       | theme   | mode  |

@@ -63,12 +63,12 @@ Feature: Instruction cards are plain-English faces over real machine words
     Then program card 1 reads "Put 6 in box a0"
     When I press ArrowDown in the number of program card 1 3 times
     Then program card 1 reads "Put 3 in box a0"
-    When I press Home in the number of program card 1
-    Then program card 1 reads "Put 0 in box a0"
-    When I press ArrowDown in the number of program card 1
-    Then program card 1 reads "Put 0 in box a0"
     When I press End in the number of program card 1
     Then program card 1 reads "Put 2047 in box a0"
+    When I press ArrowUp in the number of program card 1
+    Then program card 1 reads "Put 2047 in box a0"
+    When I press Home in the number of program card 1
+    Then program card 1 reads "Put -2048 in box a0"
 
   Scenario: A number outside the limits is not accepted
     When I add the tray card "Put 5 in box a0"
