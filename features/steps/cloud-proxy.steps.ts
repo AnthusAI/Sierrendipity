@@ -103,8 +103,8 @@ When(/^the client calls (\w+) (\S+)$/, async (method: string, path: string) => {
   await request(method, path);
 });
 
-When(/^the client posts '(.*)' to \/runs$/, async (body: string) => {
-  await request("POST", "/runs", body);
+When(/^the client posts '(.*)' to (\/runs|\/explain)$/, async (body: string, path: string) => {
+  await request("POST", path, body);
 });
 
 Then("the proxy answers {int}", (status: number) => assert.equal(result.statusCode, status));
@@ -116,9 +116,9 @@ Then("the proxy answers {int} with content type {string}", (status: number, type
 
 Then("the runner received no request", () => assert.deepEqual(seen, []));
 
-Then(/^the runner received POST \/runs with body '(.*)'$/, (body: string) => {
+Then(/^the runner received POST (\/runs|\/explain) with body '(.*)'$/, (path: string, body: string) => {
   assert.equal(seen.length, 1);
-  assert.equal(seen[0].url, "http://10.0.0.7:8080/runs");
+  assert.equal(seen[0].url, `http://10.0.0.7:8080${path}`);
   assert.equal(seen[0].method, "POST");
   assert.equal(seen[0].body, body);
 });
