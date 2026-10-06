@@ -58,7 +58,7 @@ Then("the exit code is {int}", (code: number) => {
 });
 
 Then("the program output is {string}", (output: string) => {
-  assert.equal(response.body.run?.stdout, output);
+  assert.equal(response.body.run?.stdout, output.replace(/\\n/g, "\n"));
 });
 
 Then("the compiler output mentions {string}", (text: string) => {

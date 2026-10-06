@@ -1,4 +1,4 @@
-import { AfterAll, BeforeAll } from "@cucumber/cucumber";
+import { AfterAll, BeforeAll, setDefaultTimeout } from "@cucumber/cucumber";
 import type { Server } from "node:http";
 import { startServer } from "../../runner/src/server.ts";
 
@@ -14,3 +14,6 @@ BeforeAll(async () => {
 AfterAll(async () => {
   await new Promise((resolve) => server.close(resolve));
 });
+
+// Compiling and running real programs takes longer than Cucumber's 5 s default.
+setDefaultTimeout(60_000);

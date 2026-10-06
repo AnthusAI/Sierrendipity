@@ -28,8 +28,11 @@ Feature: Enforce time, memory, and output limits
     And the file "main.c" containing:
       """
       #include <stdlib.h>
-      #include <string.h>
-      int main() { char *p = malloc(1024L * 1024 * 1024); memset(p, 1, 1024L * 1024 * 1024); return 0; }
+      int main() {
+        volatile char *p = malloc(1024L * 1024 * 1024);
+        for (long i = 0; i < 1024L * 1024 * 1024; i += 4096) p[i] = 1;
+        return 0;
+      }
       """
     And a memory limit of 64 MB
     When the project is run
