@@ -29,6 +29,23 @@ Course 1 cards: put N in box, add N to box, add boxes, subtract boxes, paint a p
 
 Pixel display (proposal): 16x16 screen at addresses 1024 to 1279, one byte per pixel, values 0 to 15 pick a palette colour; a view over `readMem(1024, 256)` with no emulator change.
 
+## Revision (2026-10-06): the first lessons are much simpler
+
+Owner feedback: the early assignments must be much, much simpler. Rule for the early lessons: ONE new idea, ONE student action, at most THREE cards, about THREE minutes. The machine starts small (one box visible, no pointing arrow, no hex, no jargon) and parts appear only when a lesson needs them. The program's final `ebreak` is hidden and shown only as "the end of the list" until a later lesson introduces the Stop card.
+
+New opening ladder, replacing the old lessons 1 to 3:
+
+1. Press the button: one card, "Put 5 into the box"; press Step; a 5 appears. Cannot fail.
+2. Change the number: the same card with a spinner; make the box show 9.
+3. Last one wins: put 3, then put 8 in the same box; predict 8 (a box holds one number; a new one replaces it).
+4. Two boxes: a second box appears; put 4 in A and 6 in B; make B hold 9 by changing one card.
+5. Add: put 5, put 7, add them into a third box; predict (the 57 misconception), then 12. This is the old lesson 1.
+6. In order: the pointing hand appears; drag two cards into the right order so the add works.
+7. Add one: the card "add 1 to the box"; make the box show 3 with three cards.
+8. Make it count to 7: seven copies is tedious, which motivates loops later.
+
+The first ten-minute session is lessons 1 to 4. After this ladder the earlier plan resumes at a similarly slow pace: flip a card to see its number, lamps and binary, fields, the pixel, then decisions and loops. The table below is the earlier plan and should be renumbered after the ladder.
+
 ## Course 1: The Machine Follows a List (13 micro-lessons)
 
 1. Wake the Machine (step a four-card program; a2 = 12; cannot fail)
