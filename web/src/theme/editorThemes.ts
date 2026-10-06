@@ -59,6 +59,13 @@ export function defineMonacoThemes() {
           "scrollbarSlider.hoverBackground": c.input + "88",
           "scrollbarSlider.activeBackground": c.input + "aa",
           focusBorder: c.ring,
+          "editorBracketHighlight.foreground1": c["bracket-1"],
+          "editorBracketHighlight.foreground2": c["bracket-2"],
+          "editorBracketHighlight.foreground3": c["bracket-3"],
+          "editorBracketHighlight.foreground4": c["bracket-4"],
+          "editorBracketHighlight.foreground5": c["bracket-5"],
+          "editorBracketHighlight.foreground6": c["bracket-6"],
+          "editorBracketHighlight.unexpectedBracket.foreground": c["bracket-unexpected"],
         },
       });
     }

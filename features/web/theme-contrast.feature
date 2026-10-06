@@ -21,5 +21,8 @@ Feature: Every color theme is readable
   Scenario: The stylesheet is generated from the token table
     Then the committed theme stylesheet matches the token table
 
+  Scenario: The inline first-paint script is generated from the same table
+    Then the inline theme script of index.html matches the token table
+
   Scenario: The bit-field palette colors are distinct in every theme and mode
     Then the 7 bit-field colors differ from each other in every theme and mode

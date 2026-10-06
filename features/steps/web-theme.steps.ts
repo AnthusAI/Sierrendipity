@@ -13,6 +13,7 @@ import {
   type ThemeName,
 } from "../../web/src/theme/palette";
 import { contrastRatio } from "../../web/src/theme/contrast";
+import { withThemeInit } from "../../web/src/theme/initScript";
 import {
   createLocalStorageSettingsStore,
   DEFAULT_SETTINGS,
@@ -52,6 +53,15 @@ Then("each of the {int} themes defines the same tokens in light and dark mode", 
       }
     }
   }
+});
+
+Then("the inline theme script of index.html matches the token table", function () {
+  const file = path.resolve(__dirname, "../../web/index.html");
+  assert.equal(
+    readFileSync(file, "utf8"),
+    withThemeInit(readFileSync(file, "utf8")),
+    "web/index.html has a stale theme script: run `npm run theme:css -w web`",
+  );
 });
 
 Then("the committed theme stylesheet matches the token table", function () {

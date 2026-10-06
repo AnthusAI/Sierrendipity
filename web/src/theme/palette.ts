@@ -62,7 +62,7 @@ const CONFIG: Record<ThemeName, ThemeConfig> = {
     neutral: "slate",
     accent: "indigo",
     primary: { light: ["a.9", "white", "a.10"], dark: ["a.9", "white", "a.8"] },
-    ring: { light: "a.9", dark: "a.9" },
+    ring: { light: "a.9", dark: "a.10" },
     link: { light: "a.11", dark: "a.11" },
   },
   warm: {
@@ -124,18 +124,18 @@ function refsFor(config: ThemeConfig, mode: Mode) {
     "editor-bg": "n.1",
     "editor-fg": "n.12",
     "editor-line-number": "n.11",
-    "editor-selection": "a.a5",
+    "editor-selection": "a.a4",
     "editor-line-highlight": "n.a3",
     "terminal-bg": "n.2",
     "terminal-fg": "n.12",
     "terminal-selection": "a.a5",
     // debugging marks
-    "pc-highlight": "amber.a4",
+    "pc-highlight": "amber.a3",
     "pc-mark": "amber.9",
     "pc-mark-foreground": "black",
     bp: "red.9",
     "bp-text": "red.11",
-    linked: "blue.a4",
+    linked: "blue.a3",
     changed: "amber.a4",
     "changed-fg": "amber.12",
     // status and banners
@@ -154,13 +154,21 @@ function refsFor(config: ThemeConfig, mode: Mode) {
     "ansi-cyan": "cyan.11",
     "ansi-muted": "n.11",
     "syntax-comment": "n.11",
-    "syntax-keyword": "violet.11",
-    "syntax-string": "green.11",
+    "syntax-keyword": mode === "light" ? "violet.12" : "violet.11",
+    "syntax-string": mode === "light" ? "green.12" : "green.11",
     "syntax-number": mode === "light" ? "amber.12" : "amber.11",
-    "syntax-type": "blue.11",
-    "syntax-register": "cyan.11",
-    "syntax-directive": "plum.11",
-    "syntax-invalid": "red.11",
+    "syntax-type": mode === "light" ? "blue.12" : "blue.11",
+    "syntax-register": mode === "light" ? "cyan.12" : "cyan.11",
+    "syntax-directive": mode === "light" ? "plum.12" : "plum.11",
+    "syntax-invalid": mode === "light" ? "red.12" : "red.11",
+    // bracket pair colorization (Monaco levels 1-6) and unexpected brackets
+    "bracket-1": mode === "light" ? "blue.12" : "blue.11",
+    "bracket-2": mode === "light" ? "green.12" : "green.11",
+    "bracket-3": mode === "light" ? "purple.12" : "purple.11",
+    "bracket-4": mode === "light" ? "amber.12" : "amber.11",
+    "bracket-5": mode === "light" ? "cyan.12" : "cyan.11",
+    "bracket-6": mode === "light" ? "red.12" : "red.11",
+    "bracket-unexpected": mode === "light" ? "red.12" : "red.11",
     // instruction fields of the Bits card
     ...Object.fromEntries(FIELD_SCALES.map((scale, i) => [`field-${i + 1}`, `${scale}.5`])),
     "field-foreground": "n.12",
@@ -204,6 +212,11 @@ export interface ContrastPair {
 
 const text = (fg: TokenName, bg: TokenName, label: string, on?: TokenName): ContrastPair => ({ fg, bg, min: 4.5, label, on });
 const ui = (fg: TokenName, bg: TokenName, label: string, on?: TokenName): ContrastPair => ({ fg, bg, min: 3, label, on });
+
+const SYNTAX = ["comment", "keyword", "string", "number", "type", "register", "directive", "invalid"].map((n) => `syntax-${n}`);
+const BRACKETS = [1, 2, 3, 4, 5, 6].map((n) => `bracket-${n}`).concat("bracket-unexpected");
+/** Translucent editor highlights that code is drawn over. */
+const OVERLAYS = ["pc-highlight", "linked", "editor-selection"];
 
 /** Every foreground/background pair the interface actually uses. */
 export const CONTRAST_PAIRS: ContrastPair[] = [
@@ -249,6 +262,11 @@ export const CONTRAST_PAIRS: ContrastPair[] = [
   ...(["comment", "keyword", "string", "number", "type", "register", "directive", "invalid"] as const).map((name) =>
     text(`syntax-${name}` as TokenName, "editor-bg", `${name} in code`),
   ),
+  ...OVERLAYS.flatMap((overlay) => [
+    ...SYNTAX.map((fg) => text(fg, overlay, `${fg} on ${overlay}`, "editor-bg")),
+    ...BRACKETS.map((fg) => text(fg, overlay, `${fg} on ${overlay}`, "editor-bg")),
+  ]),
+  ...BRACKETS.map((fg) => text(fg, "editor-bg", `${fg} on the editor`)),
   ...FIELD_TOKENS.map(({ bg, fg }) => text(fg, bg, `label on ${bg}`)),
   ui("input", "background", "input borders on the page"),
   ui("input", "card", "input borders on cards"),
@@ -257,6 +275,9 @@ export const CONTRAST_PAIRS: ContrastPair[] = [
   ui("ring", "chrome", "focus ring in the header"),
   ui("ring", "card", "focus ring on cards"),
   ui("ring", "popover", "focus ring in dialogs"),
+  ui("ring", "accent", "focus ring on hovered or active rows"),
+  ui("ring", "muted", "focus ring on tab strips"),
+  ui("ring", "secondary", "focus ring on secondary surfaces"),
   ui("bp", "editor-bg", "breakpoint markers"),
   ui("primary", "background", "primary buttons against the page"),
 ];

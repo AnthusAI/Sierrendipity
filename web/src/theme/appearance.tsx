@@ -2,7 +2,7 @@
 // with components. "System" follows prefers-color-scheme live; there is deliberately no light/dark
 // control anywhere except Settings.
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from "react";
-import { createLocalStorageSettingsStore, type Appearance, type ModePreference, type SettingsStore } from "@/settings";
+import { USER_KEY, createLocalStorageSettingsStore, type Appearance, type ModePreference, type SettingsStore } from "@/settings";
 import type { Mode, ThemeName } from "./palette";
 
 const DARK_QUERY = "(prefers-color-scheme: dark)";
@@ -41,6 +41,13 @@ export function AppearanceProvider({ userId, children }: { userId?: string; chil
   const [systemDark, setSystemDark] = useState(() => matchMedia(DARK_QUERY).matches);
 
   useEffect(() => {
+    if (userId) {
+      try {
+        sessionStorage.setItem(USER_KEY, userId);
+      } catch {
+        /* storage unavailable */
+      }
+    }
     setAppearanceState(read(userId));
     return userId ? settingsStore.subscribe(userId, (settings) => setAppearanceState(settings.appearance)) : undefined;
   }, [userId, read]);

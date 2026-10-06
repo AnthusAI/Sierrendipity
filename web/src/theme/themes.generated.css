@@ -29,17 +29,17 @@
   --editor-bg: #fcfcfd; /* slate-1 */
   --editor-fg: #1c2024; /* slate-12 */
   --editor-line-number: #60646c; /* slate-11 */
-  --editor-selection: #0044ff2d; /* indigo-a5 */
+  --editor-selection: #0044ff1e; /* indigo-a4 */
   --editor-line-highlight: #0000330f; /* slate-a3 */
   --terminal-bg: #f9f9fb; /* slate-2 */
   --terminal-fg: #1c2024; /* slate-12 */
   --terminal-selection: #0044ff2d; /* indigo-a5 */
-  --pc-highlight: #ffd40063; /* amber-a4 */
+  --pc-highlight: #ffde003d; /* amber-a3 */
   --pc-mark: #ffc53d; /* amber-9 */
   --pc-mark-foreground: #000000; /* black */
   --bp: #e5484d; /* red-9 */
   --bp-text: #ce2c31; /* red-11 */
-  --linked: #009eff2a; /* blue-a4 */
+  --linked: #008ff519; /* blue-a3 */
   --changed: #ffd40063; /* amber-a4 */
   --changed-fg: #4f3422; /* amber-12 */
   --success-bg: #e6f6eb; /* green-3 */
@@ -56,13 +56,20 @@
   --ansi-cyan: #107d98; /* cyan-11 */
   --ansi-muted: #60646c; /* slate-11 */
   --syntax-comment: #60646c; /* slate-11 */
-  --syntax-keyword: #6550b9; /* violet-11 */
-  --syntax-string: #218358; /* green-11 */
+  --syntax-keyword: #2f265f; /* violet-12 */
+  --syntax-string: #193b2d; /* green-12 */
   --syntax-number: #4f3422; /* amber-12 */
-  --syntax-type: #0d74ce; /* blue-11 */
-  --syntax-register: #107d98; /* cyan-11 */
-  --syntax-directive: #953ea3; /* plum-11 */
-  --syntax-invalid: #ce2c31; /* red-11 */
+  --syntax-type: #113264; /* blue-12 */
+  --syntax-register: #0d3c48; /* cyan-12 */
+  --syntax-directive: #53195d; /* plum-12 */
+  --syntax-invalid: #641723; /* red-12 */
+  --bracket-1: #113264; /* blue-12 */
+  --bracket-2: #193b2d; /* green-12 */
+  --bracket-3: #402060; /* purple-12 */
+  --bracket-4: #4f3422; /* amber-12 */
+  --bracket-5: #0d3c48; /* cyan-12 */
+  --bracket-6: #641723; /* red-12 */
+  --bracket-unexpected: #641723; /* red-12 */
   --field-1: #c2e5ff; /* blue-5 */
   --field-2: #ffd19a; /* orange-5 */
   --field-3: #c4e8d1; /* green-5 */
@@ -93,24 +100,24 @@
   --destructive-foreground: #111113; /* slate-1 */
   --border: #363a3f; /* slate-6 */
   --input: #696e77; /* slate-9 */
-  --ring: #3e63dd; /* indigo-9 */
+  --ring: #5472e4; /* indigo-10 */
   --link: #9eb1ff; /* indigo-11 */
   --chrome: #18191b; /* slate-2 */
   --chrome-foreground: #edeef0; /* slate-12 */
   --editor-bg: #111113; /* slate-1 */
   --editor-fg: #edeef0; /* slate-12 */
   --editor-line-number: #b0b4ba; /* slate-11 */
-  --editor-selection: #4171fd6b; /* indigo-a5 */
+  --editor-selection: #3566ff57; /* indigo-a4 */
   --editor-line-highlight: #ddeaf814; /* slate-a3 */
   --terminal-bg: #18191b; /* slate-2 */
   --terminal-fg: #edeef0; /* slate-12 */
   --terminal-selection: #4171fd6b; /* indigo-a5 */
-  --pc-highlight: #fc820032; /* amber-a4 */
+  --pc-highlight: #fa820022; /* amber-a3 */
   --pc-mark: #ffc53d; /* amber-9 */
   --pc-mark-foreground: #000000; /* black */
   --bp: #e5484d; /* red-9 */
   --bp-text: #ff9592; /* red-11 */
-  --linked: #0075ff57; /* blue-a4 */
+  --linked: #0077ff3a; /* blue-a3 */
   --changed: #fc820032; /* amber-a4 */
   --changed-fg: #ffe7b3; /* amber-12 */
   --success-bg: #132d21; /* green-3 */
@@ -134,6 +141,13 @@
   --syntax-register: #4ccce6; /* cyan-11 */
   --syntax-directive: #e796f3; /* plum-11 */
   --syntax-invalid: #ff9592; /* red-11 */
+  --bracket-1: #70b8ff; /* blue-11 */
+  --bracket-2: #3dd68c; /* green-11 */
+  --bracket-3: #d19dff; /* purple-11 */
+  --bracket-4: #ffca16; /* amber-11 */
+  --bracket-5: #4ccce6; /* cyan-11 */
+  --bracket-6: #ff9592; /* red-11 */
+  --bracket-unexpected: #ff9592; /* red-11 */
   --field-1: #004074; /* blue-5 */
   --field-2: #562800; /* orange-5 */
   --field-3: #174933; /* green-5 */
@@ -173,17 +187,17 @@
   --editor-bg: #fdfdfc; /* sand-1 */
   --editor-fg: #21201c; /* sand-12 */
   --editor-line-number: #63635e; /* sand-11 */
-  --editor-selection: #ff8b0065; /* orange-a5 */
+  --editor-selection: #ff91014a; /* orange-a4 */
   --editor-line-highlight: #20100010; /* sand-a3 */
   --terminal-bg: #f9f9f8; /* sand-2 */
   --terminal-fg: #21201c; /* sand-12 */
   --terminal-selection: #ff8b0065; /* orange-a5 */
-  --pc-highlight: #ffd40063; /* amber-a4 */
+  --pc-highlight: #ffde003d; /* amber-a3 */
   --pc-mark: #ffc53d; /* amber-9 */
   --pc-mark-foreground: #000000; /* black */
   --bp: #e5484d; /* red-9 */
   --bp-text: #ce2c31; /* red-11 */
-  --linked: #009eff2a; /* blue-a4 */
+  --linked: #008ff519; /* blue-a3 */
   --changed: #ffd40063; /* amber-a4 */
   --changed-fg: #4f3422; /* amber-12 */
   --success-bg: #e6f6eb; /* green-3 */
@@ -200,13 +214,20 @@
   --ansi-cyan: #107d98; /* cyan-11 */
   --ansi-muted: #63635e; /* sand-11 */
   --syntax-comment: #63635e; /* sand-11 */
-  --syntax-keyword: #6550b9; /* violet-11 */
-  --syntax-string: #218358; /* green-11 */
+  --syntax-keyword: #2f265f; /* violet-12 */
+  --syntax-string: #193b2d; /* green-12 */
   --syntax-number: #4f3422; /* amber-12 */
-  --syntax-type: #0d74ce; /* blue-11 */
-  --syntax-register: #107d98; /* cyan-11 */
-  --syntax-directive: #953ea3; /* plum-11 */
-  --syntax-invalid: #ce2c31; /* red-11 */
+  --syntax-type: #113264; /* blue-12 */
+  --syntax-register: #0d3c48; /* cyan-12 */
+  --syntax-directive: #53195d; /* plum-12 */
+  --syntax-invalid: #641723; /* red-12 */
+  --bracket-1: #113264; /* blue-12 */
+  --bracket-2: #193b2d; /* green-12 */
+  --bracket-3: #402060; /* purple-12 */
+  --bracket-4: #4f3422; /* amber-12 */
+  --bracket-5: #0d3c48; /* cyan-12 */
+  --bracket-6: #641723; /* red-12 */
+  --bracket-unexpected: #641723; /* red-12 */
   --field-1: #c2e5ff; /* blue-5 */
   --field-2: #ffd19a; /* orange-5 */
   --field-3: #c4e8d1; /* green-5 */
@@ -244,17 +265,17 @@
   --editor-bg: #111110; /* sand-1 */
   --editor-fg: #eeeeec; /* sand-12 */
   --editor-line-number: #b5b3ad; /* sand-11 */
-  --editor-selection: #ff61004a; /* orange-a5 */
+  --editor-selection: #ff590039; /* orange-a4 */
   --editor-line-highlight: #f6f6f513; /* sand-a3 */
   --terminal-bg: #191918; /* sand-2 */
   --terminal-fg: #eeeeec; /* sand-12 */
   --terminal-selection: #ff61004a; /* orange-a5 */
-  --pc-highlight: #fc820032; /* amber-a4 */
+  --pc-highlight: #fa820022; /* amber-a3 */
   --pc-mark: #ffc53d; /* amber-9 */
   --pc-mark-foreground: #000000; /* black */
   --bp: #e5484d; /* red-9 */
   --bp-text: #ff9592; /* red-11 */
-  --linked: #0075ff57; /* blue-a4 */
+  --linked: #0077ff3a; /* blue-a3 */
   --changed: #fc820032; /* amber-a4 */
   --changed-fg: #ffe7b3; /* amber-12 */
   --success-bg: #132d21; /* green-3 */
@@ -278,6 +299,13 @@
   --syntax-register: #4ccce6; /* cyan-11 */
   --syntax-directive: #e796f3; /* plum-11 */
   --syntax-invalid: #ff9592; /* red-11 */
+  --bracket-1: #70b8ff; /* blue-11 */
+  --bracket-2: #3dd68c; /* green-11 */
+  --bracket-3: #d19dff; /* purple-11 */
+  --bracket-4: #ffca16; /* amber-11 */
+  --bracket-5: #4ccce6; /* cyan-11 */
+  --bracket-6: #ff9592; /* red-11 */
+  --bracket-unexpected: #ff9592; /* red-11 */
   --field-1: #004074; /* blue-5 */
   --field-2: #562800; /* orange-5 */
   --field-3: #174933; /* green-5 */
@@ -317,17 +345,17 @@
   --editor-bg: #fcfcfc; /* gray-1 */
   --editor-fg: #202020; /* gray-12 */
   --editor-line-number: #646464; /* gray-11 */
-  --editor-selection: #0000001f; /* gray-a5 */
+  --editor-selection: #00000017; /* gray-a4 */
   --editor-line-highlight: #0000000f; /* gray-a3 */
   --terminal-bg: #f9f9f9; /* gray-2 */
   --terminal-fg: #202020; /* gray-12 */
   --terminal-selection: #0000001f; /* gray-a5 */
-  --pc-highlight: #ffd40063; /* amber-a4 */
+  --pc-highlight: #ffde003d; /* amber-a3 */
   --pc-mark: #ffc53d; /* amber-9 */
   --pc-mark-foreground: #000000; /* black */
   --bp: #e5484d; /* red-9 */
   --bp-text: #ce2c31; /* red-11 */
-  --linked: #009eff2a; /* blue-a4 */
+  --linked: #008ff519; /* blue-a3 */
   --changed: #ffd40063; /* amber-a4 */
   --changed-fg: #4f3422; /* amber-12 */
   --success-bg: #e6f6eb; /* green-3 */
@@ -344,13 +372,20 @@
   --ansi-cyan: #107d98; /* cyan-11 */
   --ansi-muted: #646464; /* gray-11 */
   --syntax-comment: #646464; /* gray-11 */
-  --syntax-keyword: #6550b9; /* violet-11 */
-  --syntax-string: #218358; /* green-11 */
+  --syntax-keyword: #2f265f; /* violet-12 */
+  --syntax-string: #193b2d; /* green-12 */
   --syntax-number: #4f3422; /* amber-12 */
-  --syntax-type: #0d74ce; /* blue-11 */
-  --syntax-register: #107d98; /* cyan-11 */
-  --syntax-directive: #953ea3; /* plum-11 */
-  --syntax-invalid: #ce2c31; /* red-11 */
+  --syntax-type: #113264; /* blue-12 */
+  --syntax-register: #0d3c48; /* cyan-12 */
+  --syntax-directive: #53195d; /* plum-12 */
+  --syntax-invalid: #641723; /* red-12 */
+  --bracket-1: #113264; /* blue-12 */
+  --bracket-2: #193b2d; /* green-12 */
+  --bracket-3: #402060; /* purple-12 */
+  --bracket-4: #4f3422; /* amber-12 */
+  --bracket-5: #0d3c48; /* cyan-12 */
+  --bracket-6: #641723; /* red-12 */
+  --bracket-unexpected: #641723; /* red-12 */
   --field-1: #c2e5ff; /* blue-5 */
   --field-2: #ffd19a; /* orange-5 */
   --field-3: #c4e8d1; /* green-5 */
@@ -388,17 +423,17 @@
   --editor-bg: #111111; /* gray-1 */
   --editor-fg: #eeeeee; /* gray-12 */
   --editor-line-number: #b4b4b4; /* gray-11 */
-  --editor-selection: #ffffff22; /* gray-a5 */
+  --editor-selection: #ffffff1b; /* gray-a4 */
   --editor-line-highlight: #ffffff12; /* gray-a3 */
   --terminal-bg: #191919; /* gray-2 */
   --terminal-fg: #eeeeee; /* gray-12 */
   --terminal-selection: #ffffff22; /* gray-a5 */
-  --pc-highlight: #fc820032; /* amber-a4 */
+  --pc-highlight: #fa820022; /* amber-a3 */
   --pc-mark: #ffc53d; /* amber-9 */
   --pc-mark-foreground: #000000; /* black */
   --bp: #e5484d; /* red-9 */
   --bp-text: #ff9592; /* red-11 */
-  --linked: #0075ff57; /* blue-a4 */
+  --linked: #0077ff3a; /* blue-a3 */
   --changed: #fc820032; /* amber-a4 */
   --changed-fg: #ffe7b3; /* amber-12 */
   --success-bg: #132d21; /* green-3 */
@@ -422,6 +457,13 @@
   --syntax-register: #4ccce6; /* cyan-11 */
   --syntax-directive: #e796f3; /* plum-11 */
   --syntax-invalid: #ff9592; /* red-11 */
+  --bracket-1: #70b8ff; /* blue-11 */
+  --bracket-2: #3dd68c; /* green-11 */
+  --bracket-3: #d19dff; /* purple-11 */
+  --bracket-4: #ffca16; /* amber-11 */
+  --bracket-5: #4ccce6; /* cyan-11 */
+  --bracket-6: #ff9592; /* red-11 */
+  --bracket-unexpected: #ff9592; /* red-11 */
   --field-1: #004074; /* blue-5 */
   --field-2: #562800; /* orange-5 */
   --field-3: #174933; /* green-5 */
