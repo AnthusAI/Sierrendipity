@@ -21,6 +21,8 @@ export interface LessonPlayerProps {
   next?: LessonInfo | null;
   onNext?: (lessonId: string) => void;
   onStop?: () => void;
+  /** Move focus to the primary action when the lesson opens. Off by default: the page decides where focus starts. */
+  focusOnStart?: boolean;
 }
 
 const defaultStage: Stage = (props: StageProps) => <DefaultStage {...props} />;
@@ -42,7 +44,7 @@ const TYPING = new Set(["INPUT", "TEXTAREA", "SELECT"]);
  * The coach and lesson player: a stage (the machine) beside the coach panel, with the spotlight and the
  * ghost pointer drawn on top. The tool is the tutor.
  */
-export function LessonPlayer({ lesson, store = null, userId = "local", clock = realClock, stage = defaultStage, next = null, onNext, onStop }: LessonPlayerProps) {
+export function LessonPlayer({ lesson, store = null, userId = "local", clock = realClock, stage = defaultStage, next = null, onNext, onStop, focusOnStart = false }: LessonPlayerProps) {
   const { state, engine } = useLessonPlayer(lesson, { store, userId, clock });
   const reduced = useReducedMotion();
   const stageRef = useRef<HTMLElement>(null);
@@ -83,7 +85,12 @@ export function LessonPlayer({ lesson, store = null, userId = "local", clock = r
   }, [engine, state.ask]);
 
   // Focus goes to the primary action when the scene changes, unless the student is typing in the stage.
+  const first = useRef(true);
   useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      if (!focusOnStart) return;
+    }
     const active = document.activeElement as HTMLElement | null;
     if (active && TYPING.has(active.tagName) && stageRef.current?.contains(active)) return;
     const primary = document.querySelector<HTMLElement>("[data-coach-panel] [data-coach-primary]");

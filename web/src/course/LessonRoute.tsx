@@ -2,11 +2,14 @@ import type { GalleryStore } from "./gallery";
 import type { ProgressStore } from "@sierrendipity/lesson-core";
 import type { CatalogLesson } from "./catalog";
 import { Button } from "@/components/ui/button";
-import { LessonPlayer } from "../coach";
+import { lazy, Suspense } from "react";
 import { LessonLoadError } from "../lessons/LessonLoadError";
 import { useLesson } from "../lessons";
 import { Link } from "./router";
 import { about } from "./parts";
+
+// The player (and the machine, the coach and the lesson core) loads only when a lesson is opened.
+const LessonPlayer = lazy(() => import("../coach").then((m) => ({ default: m.LessonPlayer })));
 
 /**
  * `/learn/<lessonId>` renders the real lesson player (`web/src/coach/`) on the published lesson JSON. The
@@ -47,7 +50,11 @@ export function LessonRoute(props: LessonRouteProps) {
       {room && <p className="rounded-lg border bg-card p-3 text-card-foreground">Side room: {room.title}</p>}
       {loaded.status === "loading" && <p>Loading the lesson.</p>}
       {loaded.status === "error" && <LessonLoadError onRetry={() => location.reload()} onBack={onExit} />}
-      {loaded.status === "ready" && <LessonPlayer key={loaded.lesson.id} lesson={loaded.lesson} store={progress} userId={userId} next={next} onNext={() => onNext()} onStop={onExit} />}
+      {loaded.status === "ready" && (
+        <Suspense fallback={<p>Loading the lesson.</p>}>
+          <LessonPlayer key={loaded.lesson.id} lesson={loaded.lesson} store={progress} userId={userId} next={next} onNext={() => onNext()} onStop={onExit} />
+        </Suspense>
+      )}
       <LessonDevTools {...props} />
     </section>
   );

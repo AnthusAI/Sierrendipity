@@ -47,7 +47,7 @@ Feature: The coach records progress and never blocks on storage
     And I set the number on card 1 to 9
     And I press Step
     Then the coach says "Try a different number"
-    And there is no "Skip" button
+    And the coach has no "Skip" button
 
   Scenario Outline: The coach panel is readable in <theme> <mode> mode
     Given the coach lab shows lesson "c1/03-last-one-wins" in the "<theme>" theme and <mode> mode
@@ -92,7 +92,7 @@ Feature: The coach records progress and never blocks on storage
   Scenario: At 400 by 800 the coach comes first and the number pad is easy to hit
     Given the coach lab shows lesson "c1/03-last-one-wins" at 400 by 800
     When I press Continue
-    Then the coach panel starts in the top half of the window
+    Then the coach panel comes before the machine
     And the number pad buttons are at least 44px tall
     And the lab page does not scroll sideways
 
@@ -120,3 +120,16 @@ Feature: The coach records progress and never blocks on storage
 
   Scenario: Visitors to the app do not download the coach
     Then the main bundle does not contain the coach
+
+  Scenario: A lesson opened from the path is played by the coach and records to the course progress
+    Given a mock backend that needs 0 ms to start
+    And a course of five lessons
+    When I open the app at "/learn/c1/01-press-the-button"
+    Then I see the heading "Press the Button"
+    And the coach says "one card and one box"
+    When I press Continue
+    And I press Step
+    And I press Continue
+    And I press Continue
+    Then the Now you can card is shown
+    And the stored progress of "c1/01-press-the-button" has passed

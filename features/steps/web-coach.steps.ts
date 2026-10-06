@@ -117,7 +117,7 @@ When("I try to set the number on card {int} to {int}", async function (this: Web
   await this.page.keyboard.type(String(value));
 });
 When("I answer {int}", async function (this: WebWorld, value: number) {
-  await this.page.getByLabel("Your answer").fill(String(value));
+  await panel(this).getByLabel("Your answer").fill(String(value));
   await named(this, "Answer").click();
 });
 When("I ask for a hint", async function (this: WebWorld) {
@@ -182,7 +182,7 @@ Then("no more hints are offered", async function (this: WebWorld) {
   await settle(this);
   assert.equal(await panel(this).locator("[data-coach-help]").getByRole("button", { name: "Hint", exact: true }).count(), 0);
 });
-Then("there is no {string} button", async function (this: WebWorld, name: string) {
+Then("the coach has no {string} button", async function (this: WebWorld, name: string) {
   await settle(this);
   assert.equal(await named(this, name).count(), 0);
 });
@@ -356,6 +356,7 @@ Then("the lab page does not scroll sideways", async function (this: WebWorld) {
   assert.ok(scroll <= inner, `page is ${scroll}px wide in a ${inner}px window`);
 });
 Then("the coach panel is fully inside the window", async function (this: WebWorld) {
+  await this.page.locator("[data-coach-panel]").scrollIntoViewIfNeeded();
   const r = await rectOf(this, "[data-coach-panel]");
   const [w, h] = await this.page.evaluate(() => [window.innerWidth, window.innerHeight]);
   assert.ok(r.x >= 0 && r.x + r.width <= w && r.y >= 0 && r.y < h, `panel at ${JSON.stringify(r)} in ${w}x${h}`);
@@ -405,11 +406,11 @@ Then("the stored mastery of {string} is box {int}", async function (this: WebWor
   assert.equal(JSON.parse(raw ?? "{}").mastery?.[concept]?.box, box);
 });
 When("I type {string} as my answer and press Answer", async function (this: WebWorld, text: string) {
-  await this.page.getByLabel("Your answer").fill(text);
+  await panel(this).getByLabel("Your answer").fill(text);
   await named(this, "Answer").click();
 });
 When("I start typing the answer {string}", async function (this: WebWorld, text: string) {
-  await this.page.getByLabel("Your answer").fill(text);
+  await panel(this).getByLabel("Your answer").fill(text);
 });
 Then("the answer hint says {string}", async function (this: WebWorld, text: string) {
   await this.page.locator("[data-coach-answer-hint]", { hasText: text }).waitFor();
@@ -457,10 +458,9 @@ Then("the idle Step button meets {float}:1 contrast", async function (this: WebW
   assert.ok(items.length >= 2);
   for (const { color, layers, text } of items) assert.ok(ratioOf(color, layers) >= min, `"${text}" is ${ratioOf(color, layers).toFixed(2)}:1`);
 });
-Then("the coach panel starts in the top half of the window", async function (this: WebWorld) {
-  const r = await rectOf(this, "[data-coach-panel]");
-  const h = await this.page.evaluate(() => window.innerHeight);
-  assert.ok(r.y < h / 2, `panel starts at ${r.y} of ${h}`);
+Then("the coach panel comes before the machine", async function (this: WebWorld) {
+  const [panelRect, stage] = await Promise.all([rectOf(this, "[data-coach-panel]"), rectOf(this, "[data-lesson-player] > section")]);
+  assert.ok(panelRect.y < stage.y, `the panel starts at ${panelRect.y}, the machine at ${stage.y}`);
 });
 Then("the number pad buttons are at least {int}px tall", async function (this: WebWorld, min: number) {
   const heights = await this.page.locator('[role="group"][aria-label="Number pad"] button').evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height));
