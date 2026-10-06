@@ -79,3 +79,42 @@ An 8px rhythm (controls are 32px high, rows 24px, panel padding 12-16px), subtle
 transitions of 150 ms. `prefers-reduced-motion` turns every animation and transition off. Focus rings
 use `outline` with the `--ring` color (3:1 against the page, header, cards and dialogs). The layout works down to about
 1024px: the toolbar wraps and the right pane is resizable (260-900px).
+
+## Cards, the program builder and custom cards (`web/src/cards/`)
+
+The self-guided tutor's cards are plain-English faces over real RISC-V words
+(`docs/course-1-design.md`). Everything below is shown in the developer gallery at `/lab`
+("Cards and builder"), which holds no user data; `features/web/cards-*.feature` drive it.
+
+- **Model** (`model.ts`). `Card = { kind, word, params }` is plain JSON. The word is always rebuilt from kind
+  and params by assembling text with the explorer `assemble` (never hand-encoded); `wordToCard` reads a word
+  back with `decode`. Kinds: put, add-number, add-boxes, subtract-boxes, multiply, save-byte, save, fetch,
+  jump-if-different, jump-if-smaller, stop, custom. Jump offsets are counted in cards (negative goes back).
+- **Face** (`CardFace`). Shows `describe(word, { vocabulary: "boxes" })` with its parts coloured by the
+  `--syntax-*` tokens (verb: keyword, box: register, number: number, shelf: string, label: type) on
+  `bg-editor`, so the editor's contrast checks cover them. The assembly chip is hidden unless `showAssembly`.
+  The number is a `role="spinbutton"` text box (typing, arrows, PageUp/Down, Home/End, limits; announced as
+  "number, 5"); boxes become native selects with `editableBoxes`. Faces are focusable and named by their text.
+- **Builder** (`ProgramBuilder`). Tray, list, undo/redo (Ctrl/Cmd+Z, Shift+Z or Y), remove, duplicate, move
+  up/down buttons, Enter on a tray card to add. `hideEnd` (default) hides the final Stop and shows "the end
+  of the list" (the built program always ends in a hidden `ebreak`, so it halts); with `hideEnd` off a missing
+  Stop is flagged in plain language. `maxCards` is enforced with a friendly message.
+- **Why `@dnd-kit`.** `@dnd-kit/core` + `sortable` + `utilities` give pointer, touch and keyboard drag with
+  live-region announcements, and sortable lists, with no HTML5 drag-and-drop quirks (which have no keyboard
+  or touch story). The tray's cards start a drag only from the pointer; the keyboard adds with Enter and the
+  list's drag handles lift with Space and move with the arrows, as well as buttons. Size: see the PR (about
+  17 kB gzip, 49 kB minified, for the three packages).
+- **Custom cards (functions).** Select two or more neighbouring cards (Select mode, checkboxes) and
+  "Save as card"; a dialog asks for a name (1 to 24 characters, unique ignoring case). The cards are replaced
+  by one custom card that also appears in the tray labelled with its input slot. **Convention: the input is
+  box a0 and the answer comes back in box a0** ("uses box a0, answer in box a0"). A custom card has a "Peek
+  inside" control listing its cards read-only with the same faces.
+- **`buildProgram(cards, customCards?)`** assembles one text program (with labels, never hand-computed
+  offsets): the main cards, the hidden end marker `ebreak`, then each used custom card's body once, ending in
+  `jalr zero, 0(ra)` (`ret`); a use is `jal ra, <body>`, so calls and returns are real instructions. It
+  returns `{ words, source, map, endAddress, bodies, errors }`.
+- **v1 restrictions.** A custom card body may not contain jumps or branches, another custom card, or Stop
+  (so `ra` never needs saving); at most 6 custom cards. The builder explains each in plain language.
+- **Saving.** `programToJson(cards, customCards)` / `programFromJson(text)`:
+  `{ "version": 1, "cards": [Card], "customCards": [{ "name": string, "cards": [Card] }] }`. Loading rebuilds
+  every card through the model, so a stored word can never disagree with its parameters.

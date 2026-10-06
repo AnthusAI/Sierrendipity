@@ -30,6 +30,8 @@ async function eventually(check: () => Promise<void>, timeout = 8_000) {
 
 /** Drag with real pointer events, in small steps so dnd-kit's sensors see a drag and not a click. */
 async function dragTo(w: WebWorld, source: Locator, target: Locator) {
+  // The pointer can only reach what is on screen: centre the builder (dnd-kit auto-scrolls near the edges).
+  await w.page.getByRole("region", { name: "Card tray" }).evaluate((el) => el.scrollIntoView({ block: "center" }));
   const from = await source.boundingBox();
   const to = await target.boundingBox();
   assert.ok(from && to, "drag source and target must be visible");
@@ -193,7 +195,7 @@ Then("I see no end of the list marker", async function (this: WebWorld) {
 });
 
 Then("the end of the list marker is the last row", async function (this: WebWorld) {
-  const rows = this.page.getByRole("list", { name: "Program" }).locator("> li");
+  const rows = this.page.getByRole("list", { name: "Program", exact: true }).locator("> li");
   const last = rows.last();
   assert.equal(await last.getAttribute("data-testid"), "end-marker");
 });
@@ -243,7 +245,9 @@ When("I choose box {string} in picker {int} of program card {int}", async functi
 
 When("I press Tab until the tray card {string} is focused", async function (this: WebWorld, name: string) {
   for (let i = 0; i < 80; i++) {
-    const label = await this.page.evaluate(`document.activeElement?.getAttribute("aria-label") ?? ""`);
+    const label = await this.page.evaluate(
+      `document.activeElement?.hasAttribute("data-tray-index") ? document.activeElement.getAttribute("aria-label") : ""`,
+    );
     if (label === name) return;
     await this.page.keyboard.press("Tab");
   }
@@ -298,7 +302,7 @@ Then("the builder machine trace shows box a0 becoming {int}, {int} and {int} in 
 
 // Building programs for the custom card specs
 
-Given("I build the program {string}, {string} and {string}", async function (this: WebWorld) {
+Given("I build the program {string}, {string} and {string}", async function (this: WebWorld, _a: string, _b: string, _c: string) {
   await this.page.getByRole("button", { name: "Put 5 in box a0", exact: true }).focus();
   await this.page.keyboard.press("Enter");
   await spinner(this, 1).fill("7");
