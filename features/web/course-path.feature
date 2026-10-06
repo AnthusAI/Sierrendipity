@@ -109,7 +109,8 @@ Feature: The course path
   Scenario: Fog never reaches a lesson that is not current, even through the address bar
     Given the student has passed "Press the Button"
     When I open the app at "/learn/c1/04-two-boxes"
-    Then I am on "/learn"
+    Then I see the heading "Not open yet"
+    And there is no "Mark as passed (dev)" button
 
   # Side rooms
 
