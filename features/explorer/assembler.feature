@@ -210,6 +210,17 @@ Feature: Assembling the lesson subset of RV32IM in the browser
       """
     Then the parsed words are "0x00500513 0x00700593 0x00b50633"
 
+  Scenario: Each parsed machine code word records its source line
+    When I parse the machine code
+      """
+      // a comment with words: 00000013 00000013
+      00500513 # one
+      0b0000_0000 0101_0000 0000_0101 0001_0011
+      00b50633
+      """
+    Then the parsed words are "0x00500513 0x00500513 0x00b50633"
+    And the parsed word lines are "2 3 4"
+
   Scenario Outline: Bad machine code is reported with its position
     When I parse the machine code "<text>"
     Then the only parse error is at line 1 column <column>: "<message>"

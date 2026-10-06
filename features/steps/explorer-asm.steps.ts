@@ -76,6 +76,10 @@ Then("the parsed words are {string}", (words: string) => {
   assert.equal(hexList(parsed.words), words);
 });
 
+Then("the parsed word lines are {string}", (lines: string) => {
+  assert.equal(parsed.lines.join(" "), lines);
+});
+
 Then("the only parse error is at line {int} column {int}: {string}", (line: number, column: number, message: string) => {
   assert.deepEqual(parsed.errors, [{ line, column, message }]);
 });

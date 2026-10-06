@@ -18,7 +18,7 @@ export function registerName(n: number): string; // ABI name
 export interface AsmError { line: number; column: number; message: string }
 export interface AsmResult { words: number[]; listing: { line: number; addr: number; word: number }[]; labels: Record<string, number>; errors: AsmError[] }
 export function assemble(source: string, opts?: { base?: number }): AsmResult; // supports the full RV32IM base+M integer instructions, labels, comments (# and //), numeric literals (decimal, 0x, 0b, negative), pseudo-ops li, mv, nop, j, jr, ret, call (as jal ra), `.word N`, `.text` ignored. li of large constants expands to lui+addi with the bit-11 carry fix. Errors carry line/column and clear messages (unknown mnemonic, bad register, immediate out of range, undefined label). Refuse file-reading directives (.incbin, .include) with a clear error.
-export function parseMachineCode(text: string): { words: number[]; errors: AsmError[] }; // one or more 32-bit words per line, hex (0x... or bare 8 hex digits) or binary (0b..., underscores/spaces allowed), '#' and '//' comments
+export function parseMachineCode(text: string): { words: number[]; lines: number[]; errors: AsmError[] }; // lines[i] is the 1-based source line of words[i]; // one or more 32-bit words per line, hex (0x... or bare 8 hex digits) or binary (0b..., underscores/spaces allowed), '#' and '//' comments
 // ---- machine (emulator)
 export type MachineState = "ready" | "running" | "waiting-input" | "halted" | "faulted";
 export interface StepResult { pc: number; word: number; decoded: Decoded | null; changedRegs: number[]; memWrite?: { addr: number; length: number }; state: MachineState }
