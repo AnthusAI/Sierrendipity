@@ -24,6 +24,8 @@ export interface OnWrong {
 export interface Scene {
   id: string;
   say: string;
+  /** Said when the scene's goal is met (same limits as `say`); without it the player only announces quietly. */
+  doneSay?: string;
   show: string[];
   spotlight?: string;
   ask?: Ask;
@@ -89,6 +91,8 @@ export interface Lesson {
   hideEnd: boolean;
   /** The reply to any wrong answer not covered by a scene's onWrong; required when any scene asks. */
   onWrongDefault?: string;
+  /** Where any other wrong answer goes: the scene that reveals the answer. Required unless the next scene waits on the machine. */
+  onWrongDefaultGoto?: string;
   /** False opts a hidden-end, pointer-less lesson out of the early-lesson caps. */
   earlyLesson: boolean;
   starter: Program;
@@ -143,4 +147,31 @@ export function knownTarget(target: string, ctx: { boxes: string[]; tabs: string
     default:
       return false;
   }
+}
+
+const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
+const strings = (v: unknown): boolean => Array.isArray(v) && v.every((x) => typeof x === "string");
+
+/**
+ * Is this parsed JSON a lesson the player can run? Returns null when it is, or a short technical reason
+ * (for the console, never for students). Checks the shape the player relies on, not every loader rule.
+ */
+export function isPublishedLesson(value: unknown): string | null {
+  if (!isObject(value)) return "not an object";
+  if (value.format !== 1) return `format is ${String(value.format)}, expected 1`;
+  for (const key of ["id", "title"]) if (typeof value[key] !== "string") return `${key} must be text`;
+  if (typeof value.minutes !== "number") return "minutes must be a number";
+  if (!strings(value.boxes) || (value.boxes as string[]).length === 0) return "boxes must be a list of names";
+  if (typeof value.hideEnd !== "boolean" || typeof value.pointer !== "boolean") return "hideEnd and pointer must be true or false";
+  if (!isObject(value.starter) || !Array.isArray(value.starter.words) || !value.starter.words.every((w) => typeof w === "number")) return "starter.words must be a list of numbers";
+  if (!isObject(value.concepts) || !strings(value.concepts.introduces)) return "concepts.introduces must be a list";
+  if (!strings(value.nowYouCan)) return "nowYouCan must be a list of lines";
+  if (!isObject(value.ghosts)) return "ghosts must be an object";
+  if (!isObject(value.checks) || !Array.isArray(value.checks.scenarios)) return "checks.scenarios must be a list";
+  if (!Array.isArray(value.scenes) || value.scenes.length === 0) return "scenes must be a non-empty list";
+  for (const [i, scene] of (value.scenes as unknown[]).entries()) {
+    if (!isObject(scene) || typeof scene.id !== "string" || typeof scene.say !== "string") return `scenes[${i}] needs an id and say`;
+    if (!strings(scene.until) || !strings(scene.hints) || !strings(scene.lock) || !Array.isArray(scene.onWrong)) return `scenes[${i}] is missing until, hints, lock or onWrong`;
+  }
+  return null;
 }

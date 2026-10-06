@@ -65,12 +65,25 @@ Feature: The five sample lessons of Course 1
     And the scene "predict" asks for the number <answer> for "<box>"
     And the scene "predict" has a reply for each wrong guess "<guesses>"
     And no reply says "Close"
-    And the lesson has the fallback reply "Not quite yet. Watch what the machine does, then try again."
+    And the lesson has the fallback reply "Let's watch what happens."
 
     Examples:
       | id                  | answer | box | guesses          |
       | c1/03-last-one-wins | 8      | a0  | 3, 11, 38, 5, 0  |
       | c1/05-add           | 12     | a2  | 57, 5, 7, 0, 35  |
+
+  Scenario Outline: Goal scenes confirm in friendly words, not in test-log words
+    Given the lesson "<id>"
+    Then the lesson loads from disk
+    And every scene that waits on the machine says something when it is done
+
+    Examples:
+      | id                      |
+      | c1/01-press-the-button  |
+      | c1/02-change-the-number |
+      | c1/03-last-one-wins     |
+      | c1/04-two-boxes         |
+      | c1/05-add               |
 
   Scenario: Lesson 3 replies to adding and to digits side by side
     Given the lesson "c1/03-last-one-wins"

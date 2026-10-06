@@ -30,6 +30,7 @@ scenes:
       - Each press follows one card, and each card fills its own box.
       - Press Step twice. Box a0 gets 4 and box a1 gets 6.
     showMe: demo-step-twice
+    doneSay: Each card filled its own box.
     lock: [edit, drag, toggle]
 
   - id: change
@@ -46,6 +47,7 @@ scenes:
       - Each card fills the box it names, so look at the second card.
       - Spin the second card up to 9, then press Step twice.
     showMe: demo-spin-second
+    doneSay: You changed one card, and only one box changed.
     lock: [drag, toggle]
 
   - id: done

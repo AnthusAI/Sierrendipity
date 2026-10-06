@@ -16,6 +16,14 @@ Feature: Loading and validating a lesson
     And the lesson declares the solution "good.s" earning "pass, called-it"
     And the checks have 2 scenarios
 
+  Scenario: A scene may say something when it is done, and the default wrong reply may name a scene
+    When I replace "showMe: demo" with "showMe: demo\n    doneSay: \"There it is: the box holds 5.\"" in "lesson.yaml"
+    And I replace "onWrongDefault: Not quite yet. Watch what the machine does, then try again.\n" with "onWrongDefault:\n  say: Let's watch what happens.\n  goto: intro\n" in "lesson.yaml"
+    And I load the lesson
+    Then the lesson loads
+    And the scene "step" says when done "There it is: the box holds 5."
+    And the lesson sends other wrong answers to "intro" saying "Let's watch what happens."
+
   Scenario: With hideEnd the programs list only the student's cards
     When I make the test lesson hide its end marker
     And I load the lesson
@@ -63,6 +71,9 @@ Feature: Loading and validating a lesson
       | lesson.yaml | lock: [edit]                             | lock: [step]                             | locks Step but waits for steps            |
       | lesson.yaml | - match: 57                              | - match: 5                               | is the correct answer                     |
       | lesson.yaml | - match: 57                              | - match: fifty                           | number ask needs a number match           |
+      | lesson.yaml | showMe: demo                             | showMe: demo\n    doneSay: One. Two. Three.               | doneSay has 3 sentences                   |
+      | lesson.yaml | showMe: demo                             | showMe: demo\n    doneSay: ""                            | doneSay must be non-empty text            |
+      | lesson.yaml | onWrongDefault: Not quite yet. Watch what the machine does, then try again.\n | onWrongDefault:\n  say: Look again.\n  goto: nowhere\n | onWrongDefault goto unknown scene "nowhere" |
       | lesson.yaml | - match: 57\n        say: Close.\n        goto: intro | - match: 57\n        say: A.\n      - match: 57\n        say: B. | duplicate onWrong match 57 |
       | lesson.yaml | onWrongDefault: Not quite yet. Watch what the machine does, then try again.\n | \n                    | needs an onWrongDefault                   |
       | lesson.yaml | - Look at the Step button.               | - Look at the Step button and the word on it and the arrow that points at the card and all of the other things on the screen around it please | too long |

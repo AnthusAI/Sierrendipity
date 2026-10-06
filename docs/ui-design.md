@@ -80,6 +80,37 @@ transitions of 150 ms. `prefers-reduced-motion` turns every animation and transi
 use `outline` with the `--ring` color (3:1 against the page, header, cards and dialogs). The layout works down to about
 1024px: the toolbar wraps and the right pane is resizable (260-900px).
 
+## Lessons, the coach and the component lab
+
+- **Loading lessons.** The browser consumes the precompiled lesson JSON, never YAML or Gherkin.
+  `npm run lessons:build` writes `lessons/dist/*.json` (gitignored); `npm run build -w web` runs it first
+  (the `prebuild` hook), and the spec harness builds the web app, so the app always has lessons.
+  `web/src/lessons/` globs `lessons/dist/*.json` lazily and exposes `loadLesson(id)`, `listLessons()`,
+  `useLesson(id)` and `nextLessonAfter(id)`. In `vite dev`, run `npm run lessons:build` once first.
+- **Component lab.** `/lab` renders `web/src/lab/` (every file in `lab/sections/*.tsx` is one section). It
+  holds no user data; `?lesson=<id>` picks the lesson of the coach section, and `?testclock` swaps the coach
+  clock for a fake one (`window.__testclock.advance(ms)`) so specs can drive the idle, stuck, session and
+  Show me timers.
+- **Coach and lesson player** (`web/src/coach/`). `LessonEngine` (no DOM) is the scene state machine:
+  scenes with `goto`, `until` evaluated by lesson-core on the live machine after every action, predictions
+  (`ask`) with `onWrong` / `onWrongDefault` replies framed as "Let's watch" (never red), `lock`, `skippable`
+  with a store-based "Quick version?" offer after two clean lessons, the hint ladder (three free rungs),
+  Show me (the ghost replays `ghosts/<id>.json` on a copy of the machine, then "Your turn"), the four stuck
+  rules (2 failed checks, 75 s idle while the tab is visible, 3 resets or undos in 2 minutes, one edit
+  toggled back and forth 3 times) offering [Nudge] [Show me] [I'm fine] (silence for 2 minutes), a
+  suggestion to stop after 12 minutes, and progress recording (every storage call is wrapped, so play never
+  blocks on storage). `useLessonPlayer` connects it to React; `LessonPlayer` draws the stage, the coach
+  panel (`aria-live="polite"`), the spotlight (a transparent frame with a huge box-shadow: it never
+  intercepts the pointer or traps the keyboard; Escape asks "Skip the tour?") and the ghost pointer.
+  Reduced motion makes the spotlight and the ghost pointer instant (`data-motion="reduced"`).
+- **Stage slot.** The machine is drawn by a `stage` render prop receiving `StageProps`
+  (`web/src/coach/types.ts`: `lesson`, `live`, `scene`, `onEditStarter(card, word)`,
+  `controls { step, back, reset, isLocked }`). The default stage is a plain accessible list of cards (number
+  spinners are native inputs), labelled boxes and Step, Back and Reset buttons. Every element a scene may
+  spotlight carries a `data-coach-id` from the set lesson-core defines (`knownTarget`): `button:step|back|run|pause|reset`,
+  `card:<n>`, `box:<register>`, `tab:<name>`, `diagram:D1`..`D14` (`coach/ids.ts`). A locked control is
+  `aria-disabled` with the explanation "Not yet".
+
 ## Learn and Workspace
 
 The signed-in app has two areas, switched by path from a small segmented control in the header (links, so
@@ -185,3 +216,7 @@ that state; `TimelineControls` is the shared playback bar (native range and sele
   that never halts is cut at `maxSteps` (default 2000) with "This program keeps going"; the log keeps
   the newest 50 entries. Prose numbers cards from 1 and says "address" only for byte addresses.
 - Controls use `aria-disabled` so focus stays on Step or Back when it reaches the end or start.
+  Stuck rule details: "toggled back and forth" is 3 direction reversals of the same card (5, 6, 5, 6, 5). The
+  12-minute suggestion is once per session (`sessionStorage`, so a lesson change or reload does not repeat it).
+  Attempts are recorded once per scene and cards, only in the lesson's goal scene (or for a new bonus), so Back and
+  Reset never inflate attempts. `/lab` is loaded with `React.lazy`, so the coach is not in the main bundle.

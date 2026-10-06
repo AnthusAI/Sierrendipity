@@ -102,13 +102,22 @@ function parseScene(raw: unknown, i: number, ctx: SceneCtx, errors: string[]): S
   if (typeof id !== "string" || !/^[a-z0-9-]+$/.test(id)) return void errors.push(`scenes[${i}]: id must be a lowercase slug`);
   const w = `scene "${id}"`;
   const n = errors.length;
-  unknownKeys(raw, ["id", "say", "show", "spotlight", "ask", "until", "onWrong", "hints", "showMe", "lock", "skippable"], w, errors);
+  unknownKeys(raw, ["id", "say", "doneSay", "show", "spotlight", "ask", "until", "onWrong", "hints", "showMe", "lock", "skippable"], w, errors);
 
   const say = raw.say;
   if (!isStr(say)) errors.push(`${w}: say must be non-empty text`);
   else {
     if (countSentences(say) > MAX_SENTENCES_PER_SCENE) errors.push(`${w}: say has ${countSentences(say)} sentences (at most ${MAX_SENTENCES_PER_SCENE} sentences)`);
     if (countWords(say) > MAX_WORDS_PER_SCENE) errors.push(`${w}: say has ${countWords(say)} words (at most ${MAX_WORDS_PER_SCENE} words)`);
+  }
+  let doneSay: string | undefined;
+  if (raw.doneSay !== undefined) {
+    if (!isStr(raw.doneSay)) errors.push(`${w}: doneSay must be non-empty text`);
+    else {
+      doneSay = raw.doneSay;
+      if (countSentences(doneSay) > MAX_SENTENCES_PER_SCENE) errors.push(`${w}: doneSay has ${countSentences(doneSay)} sentences (at most ${MAX_SENTENCES_PER_SCENE} sentences)`);
+      if (countWords(doneSay) > MAX_WORDS_PER_SCENE) errors.push(`${w}: doneSay has ${countWords(doneSay)} words (at most ${MAX_WORDS_PER_SCENE} words)`);
+    }
   }
   const show = raw.show === undefined ? [] : raw.show;
   if (!isStrList(show)) errors.push(`${w}: show must be a list of names`);
@@ -191,6 +200,7 @@ function parseScene(raw: unknown, i: number, ctx: SceneCtx, errors: string[]): S
   return {
     id,
     say: say as string,
+    ...(doneSay ? { doneSay } : {}),
     show: show as string[],
     ...(raw.spotlight ? { spotlight: raw.spotlight as string } : {}),
     ...(ask ? { ask } : {}),
@@ -371,9 +381,19 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
   else for (const line of nowYouCan) if (line.length > MAX_NOW_YOU_CAN_CHARS) errors.push(`lesson.yaml: nowYouCan line is too long (at most ${MAX_NOW_YOU_CAN_CHARS} characters): "${line}"`);
 
   let onWrongDefault: string | undefined;
+  let onWrongDefaultGoto: string | undefined;
   if (raw.onWrongDefault !== undefined) {
-    if (!isStr(raw.onWrongDefault) || countSentences(raw.onWrongDefault) > MAX_SENTENCES_PER_SCENE || countWords(raw.onWrongDefault) > MAX_WORDS_PER_SCENE) errors.push(`lesson.yaml: onWrongDefault must be text of at most ${MAX_SENTENCES_PER_SCENE} sentences and ${MAX_WORDS_PER_SCENE} words`);
-    else onWrongDefault = raw.onWrongDefault;
+    // Plain text, or { say, goto } to name the scene that reveals the answer.
+    const od = raw.onWrongDefault;
+    const say = isObj(od) ? od.say : od;
+    if (isObj(od)) unknownKeys(od, ["say", "goto"], "lesson.yaml: onWrongDefault", errors);
+    if (isObj(od) && od.goto !== undefined) {
+      if (!isStr(od.goto)) errors.push("lesson.yaml: onWrongDefault goto must be a scene id");
+      else if (!scenes.some((sc) => sc.id === od.goto)) errors.push(`lesson.yaml: onWrongDefault goto unknown scene "${od.goto}"`);
+      else onWrongDefaultGoto = od.goto;
+    }
+    if (!isStr(say) || countSentences(say) > MAX_SENTENCES_PER_SCENE || countWords(say) > MAX_WORDS_PER_SCENE) errors.push(`lesson.yaml: onWrongDefault must be text of at most ${MAX_SENTENCES_PER_SCENE} sentences and ${MAX_WORDS_PER_SCENE} words`);
+    else onWrongDefault = say;
   }
   if (scenes.some((sc) => sc.ask) && onWrongDefault === undefined && raw.onWrongDefault === undefined) errors.push("lesson.yaml: this lesson asks questions, so it needs an onWrongDefault reply for any other wrong answer");
 
@@ -430,6 +450,7 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
     hideEnd,
     earlyLesson: raw.earlyLesson !== false,
     ...(onWrongDefault ? { onWrongDefault } : {}),
+    ...(onWrongDefaultGoto ? { onWrongDefaultGoto } : {}),
     starter,
     tabs: tabs as string[],
     scenes,

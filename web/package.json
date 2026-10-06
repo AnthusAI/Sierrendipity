@@ -6,7 +6,7 @@
   "scripts": {
     "predev": "tsx ../scripts/build-catalog.ts",
     "dev": "vite",
-    "prebuild": "tsx scripts/generate-theme-css.ts --check && tsx ../scripts/build-catalog.ts",
+    "prebuild": "npm --prefix .. run lessons:build && tsx scripts/generate-theme-css.ts --check && tsx ../scripts/build-catalog.ts",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "theme:css": "tsx scripts/generate-theme-css.ts"
