@@ -1,0 +1,9 @@
+{
+  "id": "demo-step-three",
+  "events": [
+    { "at": 0, "type": "point", "target": "button:step" },
+    { "at": 900, "type": "press", "control": "step" },
+    { "at": 1800, "type": "press", "control": "step" },
+    { "at": 2700, "type": "press", "control": "step" }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "id": "demo-flip-bit",
+  "events": [
+    { "at": 0, "type": "point", "target": "lamp:30" },
+    { "at": 900, "type": "toggle", "card": 2, "bit": 30 },
+    { "at": 1800, "type": "press", "control": "step" },
+    { "at": 2700, "type": "press", "control": "step" },
+    { "at": 3600, "type": "press", "control": "step" }
+  ]
+}

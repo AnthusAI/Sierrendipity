@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { main } from "@sierrendipity/lesson-core/node";
+import { buildCatalog, main } from "@sierrendipity/lesson-core/node";
 import { validTestLesson } from "./lesson-fixtures";
 
 let scratch: string | undefined;
@@ -28,7 +28,7 @@ Given("in the scratch lesson {string} is replaced {string} with {string}", (name
   const file = join(scratch!, "c1/99-test", name);
   const text = readFileSync(file, "utf8");
   assert.ok(text.includes(find), `${name} does not contain ${find}`);
-  writeFileSync(file, text.replace(find, () => replace));
+  writeFileSync(file, text.replace(find, () => replace.replace(/\\n/g, "\n")));
 });
 
 When("I run the lesson CLI with {string}", (args: string) => {
@@ -44,6 +44,23 @@ When("I build the scratch lessons", () => {
   exitCode = main(["build", "--all"], (l) => output.push(l), scratch);
   assert.equal(exitCode, 0, output.join("\n"));
 });
+
+// Drafts and the catalog
+
+let catalog: { lessons: { id: string }[]; errors: string[] };
+When("I build the catalog of the scratch lessons", () => {
+  catalog = buildCatalog(scratch!);
+});
+When("I build the catalog of the real lessons", () => {
+  catalog = buildCatalog();
+});
+Then("that file is a published lesson that is a draft", () => {
+  assert.equal(JSON.parse(readFileSync(join(scratch!, "dist/c1-99-test.json"), "utf8")).draft, true);
+});
+Then("the catalog lists no lessons", () => assert.deepEqual(catalog.lessons, []));
+Then("the catalog build reports no errors", () => assert.deepEqual(catalog.errors, []));
+Then("the catalog lists the lesson {string}", (id: string) => assert.ok(catalog.lessons.some((l) => l.id === id), JSON.stringify(catalog.lessons.map((l) => l.id))));
+Then("the catalog does not list the lesson {string}", (id: string) => assert.ok(!catalog.lessons.some((l) => l.id === id)));
 
 Then("the CLI exits with {int}", (code: number) => assert.equal(exitCode, code, output.join("\n")));
 Then("the CLI output mentions {string}", (text: string) => assert.ok(output.join("\n").includes(text), output.join("\n")));

@@ -1,0 +1,132 @@
+id: c1/06-flip-the-card
+title: Flip the Card
+minutes: 4
+draft: true
+concepts:
+  introduces: [card-flip]
+  requires: [cards, numbers-on-cards]
+# One new idea (a card is one big number, and its lamps spell that number), one action (flip it, then match lamps to cards).
+boxes: [a0]
+pointer: false
+hideEnd: true
+starter:
+  hex: ["0x00100513", "0x00200513", "0x00300513"]   # put 1, put 2, put 3 in box a0
+tabs: [cards, lamps]
+onWrongDefault:
+  say: Let's flip a card and look at its lamps again.
+  goto: flip
+scenes:
+  - id: look
+    say: Every card is really one big number. Press Continue to flip one over.
+    show: [D1]
+    spotlight: "card:0"
+    lock: [edit, drag, toggle]
+
+  - id: flip
+    say: Flip the card to see its lamps. A lit lamp is a 1 and a dark lamp is a 0.
+    show: [D5]
+    flip: { card: 0, lenses: [card, lamps] }
+    spotlight: flip
+    showMe: demo-flip
+    lock: [edit, drag, toggle]
+
+  - id: match-one
+    say: These lamps spell the number on one of the cards. Which card is it?
+    show: [D1, D4]
+    lamps: { card: 2, of: number, width: 4 }
+    ask:
+      kind: click-target
+      question: Click the card that these lamps spell.
+      target: "card:2"
+    hints:
+      - Read the total under the lamps, then look at the numbers on the cards.
+      - The lit lamps add up to a number. Which card puts that number in the box?
+      - The lamps add up to 3, so click the card that puts 3 in the box.
+    onWrong:
+      - match: "card:0"
+        say: That card puts 1, but these lamps add up to 3. Find the card that puts 3.
+        goto: match-one
+      - match: "card:1"
+        say: That card puts 2, but these lamps add up to 3. Find the card that puts 3.
+        goto: match-one
+    showMe: demo-match-one
+    lock: [edit, drag, toggle]
+
+  - id: match-two
+    say: Here are different lamps. Which card do they spell?
+    show: [D1, D4]
+    lamps: { card: 0, of: number, width: 4 }
+    ask:
+      kind: click-target
+      question: Click the card that these lamps spell.
+      target: "card:0"
+    hints:
+      - Read the total under the lamps, then look at the numbers on the cards.
+      - Only one lamp is lit. Which card puts a small number in the box?
+      - The lamps add up to 1, so click the card that puts 1 in the box.
+    onWrong:
+      - match: "card:1"
+        say: That card puts 2, but these lamps add up to 1. Find the card that puts 1.
+        goto: match-two
+      - match: "card:2"
+        say: That card puts 3, but these lamps add up to 1. Find the card that puts 1.
+        goto: match-two
+    showMe: demo-match-two
+    lock: [edit, drag, toggle]
+
+  - id: match-three
+    say: One more pattern. Which card do these lamps spell?
+    show: [D1, D4]
+    lamps: { card: 1, of: number, width: 4 }
+    ask:
+      kind: click-target
+      question: Click the card that these lamps spell.
+      target: "card:1"
+    hints:
+      - Read the total under the lamps, then look at the numbers on the cards.
+      - The lit lamp is not the one worth 1. Which card puts a different number in the box?
+      - The lamps add up to 2, so click the card that puts 2 in the box.
+    onWrong:
+      - match: "card:0"
+        say: That card puts 1, but these lamps add up to 2. Find the card that puts 2.
+        goto: match-three
+      - match: "card:2"
+        say: That card puts 3, but these lamps add up to 2. Find the card that puts 2.
+        goto: match-three
+    showMe: demo-match-three
+    lock: [edit, drag, toggle]
+
+  - id: run
+    say: Press Step three times. Each card puts its number in the box.
+    show: [D1]
+    spotlight: "button:step"
+    until:
+      - the machine has taken at least 3 steps
+      - the box shows 3
+    hints:
+      - Which button follows the next card?
+      - Each press follows one card, and the third card comes last.
+      - After three presses the box shows 3.
+    showMe: demo-step-three
+    doneSay: All three cards ran, and the box ended on 3.
+    lock: [edit, drag, toggle]
+nowYouCan:
+  - See a card as a pattern of lamps.
+  - Match lamps to the card they spell.
+warmups:
+  - id: lamps-six
+    concept: card-flip
+    question: A card's lamps add up to 6. After that card runs, what does the box hold?
+    program:
+      asm: |
+        addi a0, zero, 6
+    target: a0
+    expected: 6
+  - id: lamps-five
+    concept: card-flip
+    question: A card's lamps add up to 5. After that card runs, what does the box hold?
+    program:
+      asm: |
+        addi a0, zero, 5
+    target: a0
+    expected: 5

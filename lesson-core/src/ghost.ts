@@ -10,7 +10,9 @@ export type GhostEvent =
   | { at: number; type: "press"; control: GhostControl }
   | { at: number; type: "spin"; card: number; to: number }
   | { at: number; type: "toggle"; card: number; bit: number }
+  /** Move a card within the list (`from`), or drag tray card `tray` into the list at `to`. */
   | { at: number; type: "drag"; from: number; to: number }
+  | { at: number; type: "drag"; tray: number; to: number }
   | { at: number; type: "type"; text: string };
 
 export interface Ghost {
@@ -21,7 +23,7 @@ export interface Ghost {
 export const GHOST_EVENT_TYPES = ["point", "press", "spin", "toggle", "drag", "type"] as const;
 export const MAX_GHOST_EVENTS = 200;
 export const MAX_GHOST_MS = 60_000;
-/** A UI target such as "button:step", "card:2" or "box:a2". */
+/** A UI target such as "button:step", "card:2", "box:a2", "band:rd", "lamp:3", "flip" or "tray". */
 export const TARGET_PATTERN = /^[a-z][a-z-]*(?::[A-Za-z0-9_-]+)?$/;
 
 const isInt = (v: unknown, min: number, max: number): v is number => typeof v === "number" && Number.isInteger(v) && v >= min && v <= max;
@@ -71,8 +73,12 @@ export function validateGhost(value: unknown, expectedId?: string): { ghost: Gho
           if (!isInt(e.bit, 0, 31)) errors.push(`${at}.bit must be 0 to 31`);
           break;
         case "drag":
-          need(["from", "to"]);
-          if (!isInt(e.from, 0, 255) || !isInt(e.to, 0, 255)) errors.push(`${at}.from and .to must be card indexes from 0 to 255`);
+          need(["from", "tray", "to"]);
+          if (e.from !== undefined && e.tray !== undefined) errors.push(`${at}: a drag moves a card (from) or a tray card (tray), not both`);
+          else if (e.tray !== undefined) {
+            if (!isInt(e.tray, 0, 255)) errors.push(`${at}.tray must be a tray position from 0 to 255`);
+          } else if (!isInt(e.from, 0, 255)) errors.push(`${at}.from must be a card index from 0 to 255`);
+          if (!isInt(e.to, 0, 255)) errors.push(`${at}.to must be a card index from 0 to 255`);
           break;
         case "type":
           need(["text"]);

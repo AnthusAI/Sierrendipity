@@ -1,0 +1,6 @@
+{
+  "id": "demo-match-three",
+  "events": [
+    { "at": 0, "type": "point", "target": "card:1" }
+  ]
+}
