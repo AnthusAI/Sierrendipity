@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "9128e9a6-c780-48d6-acdf-aa88194c655f",
+  "issue_id": "SIE-ed7152d4-77b5-4d47-aa97-345865e07860",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T12:05:06.728Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Cap concurrent runs and bound compile memory",
+    "description": "From the M1 review: the server has no concurrency cap, and prlimit is applied to the program but not to the compiler, so a heavy template compile can use unbounded memory. Add a per-session concurrency limit and apply memory/CPU limits to the compile step. Specify with Gherkin first.",
+    "issue_type": "task",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-00ce505c-cbb1-4869-8083-a08749f9d146",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity orchestrator"
+    }
+  }
+}
