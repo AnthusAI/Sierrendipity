@@ -513,8 +513,7 @@ export function ProgramBuilder({
     );
     setNaming(false);
     setSelecting(false);
-    // The dialog's own focus restore runs after this; this makes sure the new card ends up focused.
-    setTimeout(() => applyFocus({ row: replacement }), 60);
+    focusNext.current = { row: replacement };
   };
 
   const missingStop = !hideEnd && cards.length > 0 && !cards.some((c) => c.kind === "stop");

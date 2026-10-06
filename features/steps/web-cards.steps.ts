@@ -98,7 +98,11 @@ When("I lift program card {int} with the keyboard, move it up and drop it", asyn
   await handle.focus();
   await this.page.keyboard.press("Space");
   await this.page.keyboard.press("ArrowUp");
-  await this.page.waitForTimeout(250);
+  // dnd-kit announces where the card is now; drop only once it has moved.
+  await eventually(async () => {
+    const said = await this.page.locator("[role=status]").allInnerTexts();
+    assert.ok(said.some((t) => t.includes(`Over card ${n - 1}.`)), JSON.stringify(said));
+  });
   await this.page.keyboard.press("Space");
 });
 
@@ -228,7 +232,6 @@ Then("the number of program card {int} is announced as {string}", async function
 
 When("I type {string} into the number of program card {int}", async function (this: WebWorld, text: string, n: number) {
   await spinner(this, n).fill(text);
-  await this.page.waitForTimeout(60);
 });
 
 When("I press {word} in the number of program card {int}", async function (this: WebWorld, key: string, n: number) {
