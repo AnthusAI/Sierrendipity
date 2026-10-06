@@ -93,6 +93,36 @@ Feature: Explain a Rust program as RISC-V machine code
     Then the explorer output is "w0-w2-w4 8 [1, 2, 3]\n"
 
   @linux-only
+  Scenario: Float methods that core lacks work: sqrt, floor, ceil, round, trunc and powi
+    Given a Rust project
+    And the file "main.rs" containing:
+      """
+      fn main() {
+          println!("{} {} {} {} {}", 2.25f64.sqrt(), 2.5f64.floor(), 2.5f64.ceil(), 2.5f64.round(), 3f64.powi(3));
+          println!("{} {} {} {}", (-2.5f64).floor(), (-2.5f64).ceil(), (-2.5f64).round(), (-2.5f64).trunc());
+          println!("{} {}", 16f32.sqrt(), 2f64.powi(-2));
+      }
+      """
+    When the project is explained and run in the explorer
+    Then the explorer output is "1.5 2 3 3 27\n-3 -2 -3 -2\n4 0.25\n"
+
+  @linux-only
+  Scenario: All of standard input is read with io::read_to_string
+    Given a Rust project
+    And the file "main.rs" containing:
+      """
+      use std::io;
+
+      fn main() {
+          let text = io::read_to_string(io::stdin()).unwrap();
+          println!("{} lines, {} bytes", text.lines().count(), text.len());
+      }
+      """
+    And the stdin "a\nbb\nccc\n"
+    When the project is explained and run in the explorer
+    Then the explorer output is "3 lines, 9 bytes\n"
+
+  @linux-only
   Scenario: A BTreeMap program works
     Given a Rust project
     And the file "main.rs" containing:
@@ -294,6 +324,37 @@ Feature: Explain a Rust program as RISC-V machine code
     And some instructions of a function in "core" have origin "runtime"
     And the instructions of those functions have no line map entries
     And the line map has entries for "main.rs" lines "1,3,4,6"
+
+  @linux-only
+  Scenario: The line table from rustc (DWARF 4, several units) gives separate groups and columns
+    Given a Rust project
+    And the file "main.rs" containing:
+      """
+      fn main() {
+          let mut total = 0;
+          for i in 0..10 {
+              total += i;
+          }
+          println!("{}", total);
+      }
+      """
+    When the project is explained
+    Then the status is "ok"
+    And the line "main.rs:3" maps to more than one group of consecutive instructions
+    And the instructions of the line "main.rs:3" do not all have the same column
+    And every instruction address is unique, ascending and 4-aligned
+
+  @linux-only
+  Scenario: Unstable features are refused by the compiler
+    Given a Rust project
+    And the file "main.rs" containing:
+      """
+      #![feature(lang_items)]
+      fn main() {}
+      """
+    When the project is explained
+    Then the status is "compile_error"
+    And there is no program and no instruction list
 
   @linux-only
   Scenario: Function names are demangled and carry no hash

@@ -52,6 +52,7 @@ pub mod prelude {
         pub use alloc::string::{String, ToString};
         pub use alloc::vec::Vec;
         pub use core::prelude::rust_2021::*;
+        pub use crate::FloatMath;
         // The compiler no longer injects `#[macro_use] extern crate std`, so the macros ride in the prelude.
         pub use crate::{
             assert_eq, assert_ne, debug_assert, debug_assert_eq, debug_assert_ne, dbg, eprint, eprintln, format, matches,
@@ -60,6 +61,96 @@ pub mod prelude {
     }
     pub mod rust_2024 {
         pub use super::rust_2021::*;
+    }
+}
+
+// ---- float methods that std has but core does not (no libm on the emulator) ----
+/// `sqrt`, `floor`, `ceil`, `round`, `trunc` and `powi`, written out in plain Rust. In the prelude, so
+/// `x.sqrt()` works as it does with the real std. Not here: `powf`, `sin`, `cos`, `ln`, `exp` and friends.
+pub trait FloatMath: Sized {
+    fn sqrt(self) -> Self;
+    fn floor(self) -> Self;
+    fn ceil(self) -> Self;
+    fn round(self) -> Self;
+    fn trunc(self) -> Self;
+    fn powi(self, n: i32) -> Self;
+}
+
+fn trunc64(x: f64) -> f64 {
+    let bits = x.to_bits();
+    let exp = ((bits >> 52) & 0x7ff) as i32 - 1023;
+    if exp < 0 {
+        f64::from_bits(bits & (1 << 63)) // a fraction only: zero with the sign
+    } else if exp >= 52 {
+        x // already whole (or infinite or not a number)
+    } else {
+        f64::from_bits(bits & !((1u64 << (52 - exp)) - 1))
+    }
+}
+
+impl FloatMath for f64 {
+    fn trunc(self) -> f64 {
+        trunc64(self)
+    }
+    fn floor(self) -> f64 {
+        let t = trunc64(self);
+        if self < 0.0 && t != self { t - 1.0 } else { t }
+    }
+    fn ceil(self) -> f64 {
+        let t = trunc64(self);
+        if self > 0.0 && t != self { t + 1.0 } else { t }
+    }
+    fn round(self) -> f64 {
+        let t = trunc64(self);
+        if (self - t).abs() >= 0.5 { t + self.signum() } else { t }
+    }
+    fn sqrt(self) -> f64 {
+        if self.is_nan() || self < 0.0 {
+            return f64::NAN;
+        }
+        if self == 0.0 || self.is_infinite() {
+            return self;
+        }
+        // A bit-level first guess, then Newton's method.
+        let mut y = f64::from_bits((self.to_bits() >> 1) + (1023u64 << 51));
+        for _ in 0..6 {
+            y = 0.5 * (y + self / y);
+        }
+        y
+    }
+    fn powi(self, n: i32) -> f64 {
+        let mut result = 1.0;
+        let mut base = self;
+        let mut e = n.unsigned_abs();
+        while e > 0 {
+            if e & 1 == 1 {
+                result *= base;
+            }
+            base *= base;
+            e >>= 1;
+        }
+        if n < 0 { 1.0 / result } else { result }
+    }
+}
+
+impl FloatMath for f32 {
+    fn trunc(self) -> f32 {
+        trunc64(self as f64) as f32
+    }
+    fn floor(self) -> f32 {
+        FloatMath::floor(self as f64) as f32
+    }
+    fn ceil(self) -> f32 {
+        FloatMath::ceil(self as f64) as f32
+    }
+    fn round(self) -> f32 {
+        FloatMath::round(self as f64) as f32
+    }
+    fn sqrt(self) -> f32 {
+        FloatMath::sqrt(self as f64) as f32
+    }
+    fn powi(self, n: i32) -> f32 {
+        FloatMath::powi(self as f64, n) as f32
     }
 }
 
@@ -315,6 +406,13 @@ pub mod io {
             buf.push_str(&String::from_utf8_lossy(&bytes));
             Ok(n)
         }
+    }
+
+    /// `io::read_to_string(io::stdin())`
+    pub fn read_to_string<R: Read>(mut reader: R) -> Result<String> {
+        let mut s = String::new();
+        reader.read_to_string(&mut s)?;
+        Ok(s)
     }
 
     pub struct Stdout;
