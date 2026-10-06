@@ -160,8 +160,8 @@ Feature: Assembling the lesson subset of RV32IM in the browser
       | beq a0, a1, 4096      | 13     | branch offset 4096 out of range (-4096 to 4094)             |
       | beq a0, a1, 3         | 13     | branch offset 3 must be even                                |
       | jal ra, 1048576       | 9     | jump offset 1048576 out of range (-1048576 to 1048574)      |
-      | .incbin "secret.bin"  | 1      | directive '.incbin' is not supported: the assembler never reads files |
-      | .include "other.s"    | 1      | directive '.include' is not supported: the assembler never reads files |
+      | .incbin 'secret.bin'  | 1      | directive '.incbin' is not supported: the assembler never reads files |
+      | .include 'other.s'    | 1      | directive '.include' is not supported: the assembler never reads files |
       | .banana               | 1      | unknown directive '.banana'                                 |
       | .word                 | 1      | .word expects a number                                      |
       | x: x2                 | 4      | unknown mnemonic 'x2'                                       |
