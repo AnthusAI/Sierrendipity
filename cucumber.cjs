@@ -1,8 +1,13 @@
+const base = {
+  paths: ["features/**/*.feature"],
+  requireModule: ["tsx/cjs"],
+  require: ["features/support/**/*.ts", "features/steps/**/*.ts"],
+  format: ["progress-bar"],
+};
+
 module.exports = {
-  default: {
-    paths: ["features/**/*.feature"],
-    requireModule: ["tsx/cjs"],
-    require: ["features/support/**/*.ts", "features/steps/**/*.ts"],
-    format: ["progress-bar"],
-  },
+  // @linux-only scenarios need prlimit; they are skipped on other platforms.
+  default: { ...base, tags: "not @linux-only" },
+  // `npm run test:linux` (run inside the runner container) includes them.
+  linux: base,
 };
