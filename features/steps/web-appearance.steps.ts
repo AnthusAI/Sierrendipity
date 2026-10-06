@@ -261,6 +261,7 @@ When(
     this.mock.requireControlToken(this.idToken);
     const state = this.authorizeUrl!.searchParams.get("state");
     await this.page.goto(`${this.appUrl}/callback?code=code-1&state=${state}`);
+    await this.toWorkspace();
     await this.page.getByRole("button", { name: "Run", exact: true }).waitFor();
   },
 );

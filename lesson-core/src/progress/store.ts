@@ -1,6 +1,7 @@
 import {
   DEFAULT_MAX_EVENTS,
   MAX_BONUSES,
+  MAX_CARD_KINDS,
   MAX_CONCEPTS,
   MAX_LESSONS,
   emptyLesson,
@@ -97,6 +98,7 @@ export class MemoryProgressStore implements ProgressStore {
       }
       lp.bestCards = lp.bestCards === null ? attempt.cards : Math.min(lp.bestCards, attempt.cards);
       lp.bestSteps = lp.bestSteps === null ? attempt.steps : Math.min(lp.bestSteps, attempt.steps);
+      for (const kind of attempt.cardsUsed ?? []) if (!d.cardsUsed.includes(kind) && d.cardsUsed.length < MAX_CARD_KINDS) d.cardsUsed.push(kind);
       for (const concept of attempt.concepts ?? []) {
         const m = d.mastery[concept];
         if (m) {

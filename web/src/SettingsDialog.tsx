@@ -2,6 +2,7 @@ import { Monitor, Moon, Sun } from "lucide-react";
 import type { ReactNode } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { LearningSection } from "./course/LearningSection";
 import { MODE_PREFERENCES, type ModePreference } from "./settings";
 import { useAppearance } from "./theme/appearance";
 import { THEMES, THEME_LABELS, resolveTheme, type Mode, type ThemeName } from "./theme/palette";
@@ -96,6 +97,7 @@ export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
             ))}
           </RadioGroup>
         </Section>
+        <LearningSection />
       </DialogContent>
     </Dialog>
   );

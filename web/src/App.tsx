@@ -3,7 +3,8 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { claims, getIdToken, handleCallback, isSignedIn, signOut, startLogin } from "./auth";
 import { devBackend, loadConfig, type Config } from "./config";
-import { Ide } from "./Ide";
+import { CourseProvider } from "./course/CourseProvider";
+import { Shell } from "./course/Shell";
 import { LOCAL_USER } from "./settings";
 import { AppearanceProvider } from "./theme/appearance";
 
@@ -75,7 +76,11 @@ export function App() {
       </Screen>
     );
   } else {
-    screen = <Ide config={boot.config} user={claims()?.email} getIdToken={idToken} onSignOut={() => signOut(boot.config)} />;
+    screen = (
+      <CourseProvider userId={userId ?? LOCAL_USER}>
+        <Shell config={boot.config} user={claims()?.email} getIdToken={idToken} onSignOut={() => signOut(boot.config)} />
+      </CourseProvider>
+    );
   }
 
   return <AppearanceProvider userId={userId}>{screen}</AppearanceProvider>;

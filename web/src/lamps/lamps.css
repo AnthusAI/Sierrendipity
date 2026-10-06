@@ -1,0 +1,14 @@
+/* Motion for the lamp widgets. Components also check prefers-reduced-motion and skip these classes. */
+@keyframes lens-flip {
+  from { transform: perspective(900px) rotateY(90deg); }
+  to { transform: perspective(900px) rotateY(0deg); }
+}
+@keyframes carry-hop {
+  from { transform: translateX(0.9rem); }
+  to { transform: translateX(0); }
+}
+.lens-flip { animation: lens-flip 320ms ease-out; }
+.carry-hop { animation: carry-hop 420ms ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .lens-flip, .carry-hop { animation: none; }
+}
