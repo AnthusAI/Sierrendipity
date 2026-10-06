@@ -18,7 +18,7 @@ Feature: The five sample lessons of Course 1
 
     Examples:
       | id                       | scenes | cards | boxes      |
-      | c1/01-press-the-button   | 3      | 1     | a0         |
+      | c1/01-press-the-button   | 4      | 1     | a0         |
       | c1/02-change-the-number  | 3      | 1     | a0         |
       | c1/03-last-one-wins      | 4      | 2     | a0         |
       | c1/04-two-boxes          | 4      | 2     | a0, a1     |
@@ -36,33 +36,45 @@ Feature: The five sample lessons of Course 1
     When the starter program runs
     Then the phrase "the box shows 5" passes
     And the phrase "the machine reached the end" passes
-    And the phrase "the machine has taken 2 steps" passes
+    And the phrase "the machine has taken 1 step" passes
     And every scene condition holds at the end
 
   Scenario: Lesson 1 checks and solutions
     Given the lesson "c1/01-press-the-button"
     When I check the lesson
     Then the check passes
-    And the solution "good.hex" earned "pass" in 2 steps with 1 cards
-    And the solution "wrong-six.hex" earned "nothing" in 2 steps with 1 cards
-    And the solution "wrong-no-card.hex" earned "nothing" in 1 steps with 0 cards
+    And the solution "good.hex" earned "pass" in 1 steps with 1 cards
+    And the solution "wrong-six.hex" earned "nothing" in 1 steps with 1 cards
+    And the solution "wrong-no-card.hex" earned "nothing" in 0 steps with 0 cards
     And the solution "forever.s" was stopped by the step cap
 
   Scenario: Lesson 2 accepts any other number for the bonus, but the goal is 9
     Given the lesson "c1/02-change-the-number"
     When I check the lesson
     Then the check passes
-    And the solution "good.hex" earned "pass" in 2 steps with 1 cards
-    And the solution "another-way.hex" earned "another-way" in 2 steps with 1 cards
-    And the solution "unchanged.hex" earned "nothing" in 2 steps with 1 cards
-    And the solution "wrong-no-card.hex" earned "nothing" in 1 steps with 0 cards
-    And the solution "wrong-two-cards.hex" earned "nothing" in 3 steps with 2 cards
+    And the solution "good.hex" earned "pass" in 1 steps with 1 cards
+    And the solution "another-way.hex" earned "another-way" in 1 steps with 1 cards
+    And the solution "unchanged.hex" earned "nothing" in 1 steps with 1 cards
+    And the solution "wrong-no-card.hex" earned "nothing" in 0 steps with 0 cards
+    And the solution "wrong-two-cards.hex" earned "nothing" in 2 steps with 2 cards
     And the solution "forever.s" was stopped by the step cap
 
-  Scenario: Lesson 3 predicts 8 and answers the two anticipated wrong guesses
+  Scenario Outline: Anticipated wrong answers get a specific kind reply, and everything else a fallback
+    Given the lesson "<id>"
+    Then the lesson loads from disk
+    And the scene "predict" asks for the number <answer> for "<box>"
+    And the scene "predict" has a reply for each wrong guess "<guesses>"
+    And no reply says "Close"
+    And the lesson has the fallback reply "Not quite yet. Watch what the machine does, then try again."
+
+    Examples:
+      | id                  | answer | box | guesses          |
+      | c1/03-last-one-wins | 8      | a0  | 3, 11, 38, 5, 0  |
+      | c1/05-add           | 12     | a2  | 57, 5, 7, 0, 35  |
+
+  Scenario: Lesson 3 replies to adding and to digits side by side
     Given the lesson "c1/03-last-one-wins"
     Then the lesson loads from disk
-    And the scene "predict" asks for the number 8 for "a0"
     And the scene "predict" answers a guess of 11 with a "replaces" reply that goes to "watch"
     And the scene "predict" answers a guess of 3 with a "second card" reply that goes to "watch"
     When the starter program runs
@@ -73,21 +85,21 @@ Feature: The five sample lessons of Course 1
     Given the lesson "c1/03-last-one-wins"
     When I check the lesson
     Then the check passes
-    And the solution "good.hex" earned "pass, called-it" in 3 steps with 2 cards
-    And the solution "good-wrong-guess.hex" earned "pass" in 3 steps with 2 cards
-    And the solution "good-guessed-three.hex" earned "pass" in 3 steps with 2 cards
-    And the solution "wrong-swapped.hex" earned "nothing" in 3 steps with 2 cards
-    And the solution "wrong-adds.hex" earned "nothing" in 3 steps with 2 cards
+    And the solution "good.hex" earned "pass, called-it" in 2 steps with 2 cards
+    And the solution "good-wrong-guess.hex" earned "pass" in 2 steps with 2 cards
+    And the solution "good-guessed-three.hex" earned "pass" in 2 steps with 2 cards
+    And the solution "wrong-swapped.hex" earned "nothing" in 2 steps with 2 cards
+    And the solution "wrong-adds.hex" earned "nothing" in 2 steps with 2 cards
     And the solution "forever.s" was stopped by the step cap
 
   Scenario: Lesson 4 changes one card to fill the second box
     Given the lesson "c1/04-two-boxes"
     When I check the lesson
     Then the check passes
-    And the solution "good.hex" earned "pass" in 3 steps with 2 cards
-    And the solution "unchanged.hex" earned "nothing" in 3 steps with 2 cards
-    And the solution "wrong-first-card.hex" earned "nothing" in 3 steps with 2 cards
-    And the solution "wrong-both.hex" earned "nothing" in 3 steps with 2 cards
+    And the solution "good.hex" earned "pass" in 2 steps with 2 cards
+    And the solution "unchanged.hex" earned "nothing" in 2 steps with 2 cards
+    And the solution "wrong-first-card.hex" earned "nothing" in 2 steps with 2 cards
+    And the solution "wrong-both.hex" earned "nothing" in 2 steps with 2 cards
     And the solution "forever.s" was stopped by the step cap
 
   Scenario: Lesson 5 is the add lesson with the anticipated wrong answer 57
@@ -95,19 +107,53 @@ Feature: The five sample lessons of Course 1
     Then the lesson loads from disk
     And the starter is the cards "0x00500513 0x00700593 0x00b50633"
     And the scene "predict" asks for the number 12 for "a2"
-    And the scene "predict" answers a guess of 57 with a "watch" reply that goes to "watch-add"
+    And the scene "predict" answers a guess of 57 with a "adds them" reply that goes to "watch-add"
+    And the scene "predict" answers a guess of 35 with a "5 times 7" reply that goes to "watch-add"
     When the starter program runs
     Then the phrase "box a2 holds 12" passes
-    And the phrase "the machine has taken 4 steps" passes
+    And the phrase "the machine has taken 3 steps" passes
     And every scene condition holds at the end
 
   Scenario: Lesson 5 checks and solutions
     Given the lesson "c1/05-add"
     When I check the lesson
     Then the check passes
-    And the solution "good.hex" earned "pass, called-it" in 4 steps with 3 cards
-    And the solution "good-asm.s" earned "pass, called-it" in 4 steps with 3 cards
-    And the solution "good-wrong-guess.hex" earned "pass" in 4 steps with 3 cards
-    And the solution "wrong-sub.hex" earned "nothing" in 4 steps with 3 cards
-    And the solution "wrong-doubles.hex" earned "nothing" in 4 steps with 3 cards
+    And the solution "good.hex" earned "pass, called-it" in 3 steps with 3 cards
+    And the solution "good-asm.s" earned "pass, called-it" in 3 steps with 3 cards
+    And the solution "good-wrong-guess.hex" earned "pass" in 3 steps with 3 cards
+    And the solution "wrong-sub.hex" earned "nothing" in 3 steps with 3 cards
+    And the solution "wrong-doubles.hex" earned "nothing" in 3 steps with 3 cards
     And the solution "forever.s" was stopped by the step cap
+
+  Scenario Outline: The pass is reachable by pressing Step once per card
+    Given the lesson "<id>"
+    Then the lesson loads from disk
+    When the student presses Step once per card on the starter
+    Then the lesson's pass check holds
+    And every scene condition holds at the end
+
+    Examples:
+      | id                      |
+      | c1/01-press-the-button  |
+      | c1/03-last-one-wins     |
+      | c1/05-add               |
+
+  Scenario Outline: Every scene's until condition is met by a pass solution
+    Given the lesson "<id>"
+    When I check the lesson
+    Then the check passes
+
+    Examples:
+      | id                      |
+      | c1/01-press-the-button  |
+      | c1/02-change-the-number |
+      | c1/03-last-one-wins     |
+      | c1/04-two-boxes         |
+      | c1/05-add               |
+
+  Scenario: The lessons say Continue where a scene waits for it and name the boxes
+    Given the lesson "c1/01-press-the-button"
+    Then the lesson loads from disk
+    And the scene "meet" says "Continue"
+    And the scene "names" says "name"
+    And the lesson doc says that last one wins holds for put cards, not for add

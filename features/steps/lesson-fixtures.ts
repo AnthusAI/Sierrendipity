@@ -39,7 +39,7 @@ scenes:
       target: a0
       answer: 5
     until:
-      - the machine has taken 1 step
+      - the machine has taken at least 1 step
     hints:
       - Look at the Step button.
       - It is on the right.
@@ -51,6 +51,7 @@ scenes:
         goto: intro
     lock: [edit]
     skippable: true
+onWrongDefault: Not quite yet. Watch what the machine does, then try again.
 nowYouCan:
   - Step a program.
 warmups:

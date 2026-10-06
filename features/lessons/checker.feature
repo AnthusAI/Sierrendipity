@@ -32,6 +32,17 @@ Feature: The lesson checker runs every reference solution
       | solutions/solutions.yaml  | {file: wrong.s, earns: []}             | {file: wrong.s, earns: [pass]}         | need at least one wrong solution      |
       | solutions/solutions.yaml  | {file: forever.s, earns: [], capped: true} | {file: forever.s, earns: [pass], capped: true} | declared to earn pass         |
 
+  Scenario Outline: Scene content is checked against the machine
+    When I replace "<find>" with "<replace>" in "<file>"
+    And I check the lesson
+    Then the check fails with "<message>"
+
+    Examples:
+      | file        | find                                    | replace                                   | message                                    |
+      | lesson.yaml | answer: 5                               | answer: 6                                 | starter produces 5                         |
+      | lesson.yaml | - the machine has taken at least 1 step | - box a0 holds 99                         | no pass solution satisfies "box a0 holds 99" |
+      | lesson.yaml | - the machine has taken at least 1 step | - the machine has taken at least 50 steps | no pass solution satisfies                 |
+
   Scenario: The step cap is per solution
     When I replace "{file: forever.s, earns: [], capped: true}" with "{file: forever.s, earns: [], capped: true, maxSteps: 7}" in "solutions/solutions.yaml"
     And I check the lesson

@@ -1,7 +1,8 @@
 import { Given, Then, When } from "@cucumber/cucumber";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { earnedStars, parseStep, runChecks, runProgram, type Lesson, type PublishedLesson } from "@sierrendipity/lesson-core";
+import { earnedStars, liveRunOf, parseStep, pressStep, runChecks, runProgram, startLive, type Lesson, type PublishedLesson } from "@sierrendipity/lesson-core";
 import { checkLesson, type LessonReport } from "@sierrendipity/lesson-core/check";
 import { crossCheckGherkin, readConcepts, readLessonDir } from "@sierrendipity/lesson-core/node";
 import { countSentences, countWords, loadLesson, publishLesson, type LoadResult } from "@sierrendipity/lesson-core/loader";
@@ -24,8 +25,9 @@ Given("the known concepts are {string}", (list: string) => {
 When(/^I replace "([\s\S]*?)" with "([\s\S]*)" in "([^"]*)"$/, (find: string, replace: string, file: string) => {
   const text = files[file];
   assert.ok(text !== undefined, `no file ${file}`);
-  assert.ok(text.includes(find), `${file} does not contain ${find}`);
-  files[file] = text.replace(find, () => replace.replace(/\\n/g, "\n"));
+  const unescape = (t: string) => t.replace(/\\n/g, "\n");
+  assert.ok(text.includes(unescape(find)), `${file} does not contain ${find}`);
+  files[file] = text.replace(unescape(find), () => unescape(replace));
 });
 When("I replace the starter with the assembly {string}", (source: string) => {
   const indented = source.split(";").map((l) => `    ${l.trim()}`).join("\n");
@@ -144,6 +146,32 @@ Then(/^every scene condition holds at the end(?:, except "(.*)")?$/, (except?: s
     assert.ok(parsed.ok);
     assert.equal(parsed.fn(world.run!).ok, true, p);
   }
+});
+
+Then("the scene {string} has a reply for each wrong guess {string}", (id: string, guesses: string) => {
+  const scene = lesson().scenes.find((x) => x.id === id);
+  for (const g of list(guesses)) assert.ok(scene?.onWrong.some((o) => o.match === Number(g) && o.say.length > 0), `no reply for ${g}`);
+});
+Then("no reply says {string}", (word: string) => {
+  for (const sc of lesson().scenes) for (const o of sc.onWrong) assert.ok(!o.say.includes(word), o.say);
+});
+Then("the lesson has the fallback reply {string}", (text: string) => assert.equal(lesson().onWrongDefault, text));
+Then("the scene {string} says {string}", (id: string, word: string) => {
+  assert.ok(lesson().scenes.find((x) => x.id === id)?.say.includes(word));
+});
+Then("the lesson doc says that last one wins holds for put cards, not for add", () => {
+  const doc = readFileSync(join(process.cwd(), "docs/lesson-format.md"), "utf8");
+  assert.match(doc, /last one wins[^\n]*put cards[^\n]*not for add/i);
+});
+When("the student presses Step once per card on the starter", () => {
+  const l = lesson();
+  const live = startLive(l.starter.words, { hideEnd: l.hideEnd });
+  for (let i = 0; i < l.starter.words.length; i++) pressStep(live);
+  world.run = liveRunOf(live);
+});
+Then("the lesson's pass check holds", () => {
+  const report = runChecks(lesson().checks, world.run!);
+  assert.ok(report.scenarios.find((s) => s.star === "pass")?.passed, JSON.stringify(report.scenarios));
 });
 
 // ---- the checker

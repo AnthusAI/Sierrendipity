@@ -41,3 +41,9 @@ Feature: The lesson authoring CLI and the CI gate
     When I run the lesson CLI on the scratch folder with "check c1/99-test"
     Then the CLI exits with 1
     And the CLI output mentions "not supported in lesson checks"
+
+  Scenario: Building a lesson that does not exist fails cleanly
+    Given a scratch lessons folder holding the valid test lesson as "c1/99-test"
+    When I run the lesson CLI on the scratch folder with "build c1/98-missing"
+    Then the CLI exits with 1
+    And the CLI output mentions "cannot read lesson"

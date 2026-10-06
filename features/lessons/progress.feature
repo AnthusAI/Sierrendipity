@@ -162,3 +162,65 @@ Feature: Progress, mastery and persistence
     Given a localStorage progress store over a storage that refuses reads
     Then lesson "c1/01-press-the-button" for "ana" is not passed with 0 attempts
     And the load status for "ana" is "unavailable"
+
+  # ---- review fixes
+
+  Scenario Outline: Ids cannot reach the prototype or collide with storage keys
+    When I record <what> for "ana"
+    Then recording is refused with "<message>"
+
+    Examples:
+      | what                              | message   |
+      | an attempt for "__proto__"        | lesson id |
+      | an attempt for "Constructor"      | lesson id |
+      | a warm-up for the concept "__proto__" | concept id |
+      | an attempt for "a:b"              | lesson id |
+
+  Scenario: A lesson named constructor is just a lesson
+    Then lesson "constructor" for "ana" is not passed with 0 attempts
+    When "ana" attempts "constructor" and passes with stars "pass" using 1 cards and 1 steps
+    Then lesson "constructor" for "ana" is passed with 1 attempts
+    And Object.prototype is clean
+
+  Scenario: A student id cannot contain a colon
+    Then the store refuses the student id "a:backup"
+    And the store refuses the student id "__proto__"
+
+  Scenario: Loading stored data with a prototype key does not pollute anything
+    Given a localStorage progress store over a storage where "sierrendipity:progress:ana" holds '{"version":1,"userId":"ana","lessons":{"__proto__":{"passed":true},"c1/01-press-the-button":{"passed":true}},"mastery":{"__proto__":{"box":3,"lastSeen":1,"introducedAt":1}},"events":[]}'
+    Then lesson "c1/01-press-the-button" for "ana" is passed with 0 attempts
+    And Object.prototype is clean
+    And "ana" has no concept mastery
+
+  Scenario: The backup key cannot be another student's progress key
+    Given a localStorage progress store over a storage where "sierrendipity:progress:ana" holds '{not json'
+    Then lesson "c1/01-press-the-button" for "ana" is not passed with 0 attempts
+    And the backup of "ana" is not under any progress key
+
+  Scenario: A throwing subscriber does not break saving or the other subscribers
+    Given a localStorage progress store over an empty storage
+    And a subscriber that throws is listening
+    And a subscriber is listening
+    When "ana" attempts "c1/01-press-the-button" and fails
+    Then the subscriber heard 1 changes for "ana"
+    And the storage holds the key "sierrendipity:progress:ana" with version 1
+
+  Scenario: Passing raises a concept to at least box 1 even after Show me
+    When "ana" uses Show me on "c1/01-press-the-button" teaching "cards"
+    Then the mastery of "cards" for "ana" is box 0
+    When "ana" passes "c1/01-press-the-button" teaching "cards" using 1 cards and 2 steps
+    Then the mastery of "cards" for "ana" is box 1
+
+  Scenario: A clock that returns nonsense is refused
+    Given a store whose clock returns NaN
+    Then recording an attempt is refused with "clock"
+
+  Scenario: Runtime caps match the caps applied on load
+    When "ana" attempts 500 different lessons
+    Then recording an attempt for a 501st lesson is refused with "500 lessons"
+    And "ana" can still record another attempt for an existing lesson
+
+  Scenario: The warm-up rotation counter survives a truncated event log
+    Given a new in-memory progress store keeping at most 3 events
+    When "ana" answers 5 warm-ups for the concept "m"
+    Then the warm-up counter for "m" of "ana" is 5

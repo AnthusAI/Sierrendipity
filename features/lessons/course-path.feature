@@ -9,12 +9,13 @@ Feature: Warm-ups and the course path
     And a new in-memory progress store
 
   Scenario: A concept introduced less than a day ago gets no warm-up yet
-    Given "ana" passed "c1/01-press-the-button" teaching "last-wins, add" on day 1
+    Given "ana" passed "c1/03-last-one-wins" teaching "last-wins" on day 1
     And the clock is at day 1.5
     Then there is no warm-up for "ana"
 
   Scenario: The first warm-up is for the weakest concept introduced at least a day ago
-    Given "ana" passed "c1/01-press-the-button" teaching "last-wins, add" on day 1
+    Given "ana" passed "c1/03-last-one-wins" teaching "last-wins" on day 1
+    And "ana" passed "c1/05-add" teaching "add" on day 1
     And "ana" does the following about "add": a correct warm-up
     And the clock is at day 3
     Then the warm-up for "ana" is for the concept "last-wins"
@@ -22,13 +23,14 @@ Feature: Warm-ups and the course path
     And the warm-up expects 9
 
   Scenario: Ties go to the concept seen longest ago
-    Given "ana" passed "c1/01-press-the-button" teaching "last-wins" on day 1
-    And "ana" passed "c1/01-press-the-button" teaching "add" on day 2
+    Given "ana" passed "c1/03-last-one-wins" teaching "last-wins" on day 1
+    And "ana" passed "c1/05-add" teaching "add" on day 2
     And the clock is at day 4
     Then the warm-up for "ana" is for the concept "last-wins"
 
   Scenario: A missed concept comes back first
-    Given "ana" passed "c1/01-press-the-button" teaching "add, last-wins" on day 1
+    Given "ana" passed "c1/03-last-one-wins" teaching "last-wins" on day 1
+    And "ana" passed "c1/05-add" teaching "add" on day 1
     And "ana" does the following about "last-wins": 2 correct warm-ups
     And "ana" does the following about "add": a correct warm-up
     And the clock is at day 3
@@ -38,7 +40,7 @@ Feature: Warm-ups and the course path
     Then the warm-up for "ana" is for the concept "add"
 
   Scenario: Concepts without a warm-up are skipped
-    Given "ana" passed "c1/01-press-the-button" teaching "nothing-here" on day 1
+    Given "ana" passed "c1/03-last-one-wins" teaching "nothing-here" on day 1
     And the clock is at day 3
     Then there is no warm-up for "ana"
 
@@ -53,12 +55,20 @@ Feature: Warm-ups and the course path
     Then the warm-up for "ana" has the id "w1"
 
   Scenario: Answering a warm-up moves mastery
-    Given "ana" passed "c1/01-press-the-button" teaching "add" on day 1
+    Given "ana" passed "c1/05-add" teaching "add" on day 1
     And the clock is at day 3
     When "ana" answers the warm-up with 7
     Then the mastery of "add" for "ana" is box 2, last seen on day 3
     When "ana" answers the warm-up with 9
     Then the mastery of "add" for "ana" is box 1, last seen on day 3
+
+  Scenario: Warm-ups come only from lessons the student has passed
+    Given "ana" does the following about "add": a missed warm-up
+    And the clock is at day 3
+    Then there is no warm-up for "ana"
+    When "ana" passed "c1/05-add" teaching "add" on day 3
+    And the clock is at day 5
+    Then the warm-up for "ana" is for the concept "add"
 
   Scenario: A new student starts at lesson 1 with exactly one Continue
     Then the path for "ana" shows "c1/01-press-the-button" as current
@@ -86,6 +96,13 @@ Feature: Warm-ups and the course path
     Then lesson "c1/02-change-the-number" for "ana" has bonuses "another-way"
     And lesson "c1/02-change-the-number" for "ana" is not passed with 1 attempts
     And the path for "ana" shows "c1/01-press-the-button" as current
+
+  Scenario: A bonus from a lesson that was never passed does not open its side room
+    Given a three-lesson course
+    When "ana" attempts "x/01" and fails but earns the stars "another-way"
+    Then the side room "hex-secrets" is closed for "ana"
+    When "ana" attempts "x/01" and passes with stars "pass" using 4 cards and 4 steps
+    Then the side room "hex-secrets" is open for "ana"
 
   Scenario: Lessons further along are in fog with their titles only
     Given a three-lesson course

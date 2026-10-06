@@ -139,6 +139,10 @@ When(/^I record (.*) for "ana"$/, (what: string) => {
     if (what === "a hint of rung 4") store.recordEvent("ana", { type: "hint", lessonId: "c1/01-press-the-button", rung: 4 as 1 });
     else if (what === "an attempt with -3 cards") store.recordAttempt("ana", "c1/01-press-the-button", { passed: true, stars: ["pass"], cards: -3, steps: 1 });
     else if (what === 'an attempt for ""') store.recordAttempt("ana", "", { passed: true, stars: ["pass"], cards: 1, steps: 1 });
+    else if (what === 'an attempt for "__proto__"') store.recordAttempt("ana", "__proto__", { passed: true, stars: ["pass"], cards: 1, steps: 1 });
+    else if (what === 'an attempt for "Constructor"') store.recordAttempt("ana", "Constructor", { passed: true, stars: ["pass"], cards: 1, steps: 1 });
+    else if (what === 'an attempt for "a:b"') store.recordAttempt("ana", "a:b", { passed: true, stars: ["pass"], cards: 1, steps: 1 });
+    else if (what === 'a warm-up for the concept "__proto__"') store.recordEvent("ana", { type: "warmup", concept: "__proto__", correct: true });
     else assert.fail(`unknown input: ${what}`);
   } catch (e) {
     if (e instanceof assert.AssertionError) throw e;
@@ -308,4 +312,54 @@ Then(/^the side room "([^"]*)" is (open|closed) for "([^"]*)"$/, (id: string, ho
   const room = path(user).sideRooms.find((r) => r.id === id);
   assert.ok(room, `no side room ${id}`);
   assert.equal(room.open, how === "open");
+});
+
+// ---- review fixes
+
+Then("Object.prototype is clean", () => {
+  assert.equal(({} as Record<string, unknown>).passed, undefined);
+  assert.equal(({} as Record<string, unknown>).box, undefined);
+  assert.deepEqual(Object.keys(Object.prototype), []);
+});
+Then("the store refuses the student id {string}", (id: string) => {
+  assert.throws(() => store.getMastery(id), RangeError);
+});
+Then("the backup of {string} is not under any progress key", (user: string) => {
+  const keys = [...storage.items.keys()];
+  const backups = keys.filter((k) => storage.items.get(k) === "{not json");
+  assert.equal(backups.length, 1);
+  assert.ok(!backups[0]!.startsWith(`sierrendipity:progress:`), backups[0]);
+  assert.ok(!backups.some((k) => k === `sierrendipity:progress:${user}:backup`));
+});
+Given("a subscriber that throws is listening", () => {
+  store.subscribe(() => {
+    throw new Error("boom");
+  });
+});
+Given("a store whose clock returns NaN", () => {
+  store = new MemoryProgressStore({ now: () => Number.NaN });
+});
+Then("recording an attempt is refused with {string}", (message: string) => {
+  try {
+    store.recordAttempt("ana", "c1/01-press-the-button", { passed: false, stars: [], cards: 1, steps: 1 });
+    assert.fail("should be refused");
+  } catch (e) {
+    if (e instanceof assert.AssertionError) throw e;
+    assert.ok((e as Error).message.includes(message), (e as Error).message);
+  }
+});
+When("{string} attempts {int} different lessons", (user: string, n: number) => {
+  for (let i = 0; i < n; i++) store.recordAttempt(user, `l${i}`, { passed: false, stars: [], cards: 1, steps: 1 });
+});
+Then("recording an attempt for a 501st lesson is refused with {string}", (message: string) => {
+  assert.throws(() => store.recordAttempt("ana", "l500", { passed: false, stars: [], cards: 1, steps: 1 }), (e: Error) => e.message.includes(message));
+});
+Then("{string} can still record another attempt for an existing lesson", (user: string) => {
+  store.recordAttempt(user, "l0", { passed: false, stars: [], cards: 1, steps: 1 });
+});
+When("{string} answers {int} warm-ups for the concept {string}", (user: string, n: number, concept: string) => {
+  for (let i = 0; i < n; i++) store.recordEvent(user, { type: "warmup", concept, correct: true });
+});
+Then("the warm-up counter for {string} of {string} is {int}", (concept: string, user: string, n: number) => {
+  assert.equal(store.export(user).warmupCounts[concept], n);
 });

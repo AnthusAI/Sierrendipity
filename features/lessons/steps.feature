@@ -214,7 +214,9 @@ Feature: The lesson step vocabulary
     And the phrase "the program has 3 cards" fails
     And the phrase "the program has at most 2 cards" passes
     And the phrase "the program has at most 1 card" fails
-    And the phrase "the machine has taken 3 steps" passes
+    And the phrase "the machine has taken 2 steps" passes
+    And the phrase "the machine has taken 3 steps" fails
+    And the phrase "the program ran at most 2 steps" passes
 
   Scenario: The machine has not reached the end until it has run every card
     Given the lesson program "addi a0, zero, 9; addi a1, zero, 4"
@@ -237,3 +239,40 @@ Feature: The lesson step vocabulary
     And the starter program "addi a0, zero, 5"
     And the program has run hiding the end
     Then the phrase "the program differs from the starter" fails
+
+  Scenario: With a hidden end, the hidden Stop is not a student step
+    Given the lesson program "addi a0, zero, 9; addi a1, zero, 4; addi a2, zero, 1"
+    And the program has run hiding the end
+    Then the phrase "the machine has taken 3 steps" passes
+    And the phrase "the machine reached the end" passes
+    And the phrase "the program does not use: ebreak" passes
+
+  Scenario: A program with no cards reaches the end without a step
+    Given the lesson program ""
+    And the program has run hiding the end
+    Then the phrase "the machine has taken 0 steps" passes
+    And the phrase "the machine reached the end" passes
+
+  Scenario: The live machine runs the hidden Stop itself after the last card
+    Given a live machine with the cards "addi a0, zero, 5; addi a1, zero, 7" hiding the end
+    Then the live phrase "the machine has taken 0 steps" passes
+    When the student presses Step
+    Then the live phrase "the machine has taken 1 step" passes
+    And the live phrase "the machine reached the end" fails
+    When the student presses Step
+    Then the live phrase "the machine has taken 2 steps" passes
+    And the live phrase "the machine reached the end" passes
+    And the live phrase "box a1 holds 7" passes
+    When the student presses Back
+    Then the live phrase "the machine has taken 1 step" passes
+    And the live phrase "the machine reached the end" fails
+    And the live phrase "box a1 holds 0" passes
+
+  Scenario: A jump to itself counts a lap each time
+    Given the lesson program "loop: jal zero, loop"
+    And the program has run with a cap of 5 steps
+    Then the phrase "the loop ran 5 laps" passes
+
+  Scenario: Suggestions favour phrases that share words
+    When I parse the phrase: the program uses addi cards
+    Then the parse error suggests "the program uses only the cards: addi, add, ebreak"

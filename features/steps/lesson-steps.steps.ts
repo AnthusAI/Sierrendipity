@@ -9,6 +9,11 @@ import {
   type LessonEvent,
   type ParsedStep,
   type RunOptions,
+  type Live,
+  liveRunOf,
+  pressBack,
+  pressStep,
+  startLive,
 } from "@sierrendipity/lesson-core";
 import { assembleOrThrow, world } from "./lesson-fixtures";
 
@@ -19,6 +24,7 @@ let predictions: Record<string, number[]>;
 let lastCheck: { ok: boolean; message: string };
 let lastParse: ParsedStep;
 let report: CheckReport;
+let live: Live;
 
 Before(() => {
   words = [];
@@ -59,6 +65,21 @@ Given("the starting memory at {int} is {int}", (addr: number, value: number) => 
 });
 Given("the program has run", () => {
   world.run = runProgram(words, { ...options, events, predictions });
+});
+Given("a live machine with the cards {string} hiding the end", (source: string) => {
+  live = startLive(assembleOrThrow(source), { hideEnd: true });
+});
+When("the student presses Step", () => {
+  pressStep(live);
+});
+When("the student presses Back", () => {
+  assert.equal(pressBack(live), true);
+});
+Then(/^the live phrase "(.*)" (passes|fails)$/, (phrase: string, verdict: string) => {
+  const parsed = parseStep(phrase);
+  assert.ok(parsed.ok, parsed.ok ? "" : parsed.error);
+  const r = parsed.fn(liveRunOf(live));
+  assert.equal(r.ok, verdict === "passes", `${phrase}: ${r.message}`);
 });
 Given("the program has run hiding the end", () => {
   world.run = runProgram(words, { ...options, events, predictions, hideEnd: true });

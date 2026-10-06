@@ -50,6 +50,26 @@ Feature: Loading and validating a lesson
       | lesson.yaml | minutes: 5           | minutes: 5\nhideEnd: true                        | remove the final Stop card           |
       | lesson.yaml | minutes: 5           | minutes: 5\nhideEnd: sometimes                   | hideEnd must be true or false        |
 
+    Examples: boxes, tabs and the new content rules
+      | file        | find                                     | replace                                  | message                                   |
+      | lesson.yaml | boxes: [a0]                              | boxes: [a1]                              | uses box a0 but boxes lists only a1       |
+      | lesson.yaml | boxes: [a0]                              | boxes: [a0, a0]                          | duplicate box "a0"                        |
+      | lesson.yaml | show: [cards]                            | show: [screen]                           | shows "screen" but tabs does not include it |
+      | lesson.yaml | tabs: [cards, boxes]                     | tabs: []                                 | shows "cards" but tabs does not include it |
+      | lesson.yaml | spotlight: "button:step"                 | spotlight: "button:explode"              | not a known UI target                     |
+      | lesson.yaml | spotlight: "button:step"                 | spotlight: "card:9"                      | not a known UI target                     |
+      | lesson.yaml | spotlight: "button:step"                 | spotlight: "box:a3"                      | not a known UI target                     |
+      | lesson.yaml | - the machine has taken at least 1 step  | - the machine has taken 1 step           | exact step counts                         |
+      | lesson.yaml | lock: [edit]                             | lock: [step]                             | locks Step but waits for steps            |
+      | lesson.yaml | - match: 57                              | - match: 5                               | is the correct answer                     |
+      | lesson.yaml | - match: 57                              | - match: fifty                           | number ask needs a number match           |
+      | lesson.yaml | - match: 57\n        say: Close.\n        goto: intro | - match: 57\n        say: A.\n      - match: 57\n        say: B. | duplicate onWrong match 57 |
+      | lesson.yaml | onWrongDefault: Not quite yet. Watch what the machine does, then try again.\n | \n                    | needs an onWrongDefault                   |
+      | lesson.yaml | - Look at the Step button.               | - Look at the Step button and the word on it and the arrow that points at the card and all of the other things on the screen around it please | too long |
+      | lesson.yaml | question: What will a0 hold?             | question: What will a0 hold?\n      extra: 1               | unknown key "extra"                       |
+      | checks.feature | Feature: Test lesson                  | # language: fr\nFeature: Test lesson     | language header                           |
+      | checks.feature | @pass                                 | @pass,@x                                 | not a valid tag                           |
+
     Examples: scenes
       | file        | find                              | replace                                  | message                                |
       | lesson.yaml | - id: step                        | - id: intro                              | duplicate scene id "intro"             |
@@ -58,7 +78,7 @@ Feature: Loading and validating a lesson
       | lesson.yaml | - It is on the right.             | - ""                                     | exactly 3 hints                        |
       | lesson.yaml | showMe: demo                      | showMe: nothing                          | no ghost "nothing"                     |
       | lesson.yaml | goto: intro                       | goto: nowhere                            | goto unknown scene "nowhere"           |
-      | lesson.yaml | - the machine has taken 1 step    | - the machine has gone for a walk        | unknown step                           |
+      | lesson.yaml | - the machine has taken at least 1 step | - the machine has gone for a walk   | unknown step                           |
       | lesson.yaml | spotlight: "button:step"          | spotlight: "!!"                          | spotlight                              |
       | lesson.yaml | show: [cards]                     | show: [teapot]                           | unknown thing to show "teapot"         |
 
@@ -106,3 +126,32 @@ Feature: Loading and validating a lesson
     Then the published lesson survives a JSON round trip
     And the published lesson has no solutions
     And the published checks run without parsing Gherkin
+
+  Scenario: Early lessons (hidden end, no pointer) are capped at 3 cards and 5 minutes
+    When I make the test lesson hide its end marker
+    And I replace "[\"0x00500513\"]" with "[\"0x00500513\", \"0x00500513\", \"0x00500513\", \"0x00500513\"]" in "lesson.yaml"
+    And I load the lesson
+    Then the lesson fails to load with "at most 3 cards"
+
+  Scenario: Early lessons are capped at 5 minutes
+    When I make the test lesson hide its end marker
+    And I replace "minutes: 5" with "minutes: 6" in "lesson.yaml"
+    And I load the lesson
+    Then the lesson fails to load with "at most 5 minutes"
+
+  Scenario: A lesson can opt out of the early-lesson caps explicitly
+    When I make the test lesson hide its end marker
+    And I replace "minutes: 5" with "minutes: 20\nearlyLesson: false" in "lesson.yaml"
+    And I load the lesson
+    Then the lesson loads
+
+  Scenario: Every register a lesson names must be one of its boxes
+    When I replace "target: a0\n      answer" with "target: a1\n      answer" in "lesson.yaml"
+    And I load the lesson
+    Then the lesson fails to load with "box a1"
+
+  Scenario: Warm-ups and solutions are held to the boxes too
+    When I replace "addi a0, zero, 6" with "addi a2, zero, 6" in "solutions/wrong.s"
+    And I load the lesson
+    Then the lesson fails to load with "wrong.s"
+    And the lesson fails to load with "box a2"
