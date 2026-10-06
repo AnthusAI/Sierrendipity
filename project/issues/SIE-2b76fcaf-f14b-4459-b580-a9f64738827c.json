@@ -32,7 +32,7 @@
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity planning"
   },
-  "right_now_summary": "CI, automated releases, and deployments are still being built; hosting and manual deployment are complete.",
-  "right_now_updated_at": "2026-10-06T14:14:37.468134Z",
+  "right_now_summary": "Hosting and manual deployment are complete; CI, automated releases, and deployment workflows still need work.",
+  "right_now_updated_at": "2026-10-06T15:46:44.249471Z",
   "custom": {}
 }
