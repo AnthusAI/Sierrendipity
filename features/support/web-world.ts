@@ -54,6 +54,9 @@ export class WebWorld extends World {
   authorizeUrl?: URL;
   tokenBody?: URLSearchParams;
   idToken?: string;
+  /** Computed colors noted earlier in a scenario, to compare against later. */
+  noted: Record<string, string> = {};
+  pageErrors: string[] = [];
 
   async open(config: Record<string, unknown>) {
     await this.page.route("**/config.json", (route) => route.fulfill({ json: config }));
@@ -69,6 +72,7 @@ Before({ tags: "@web", timeout: 180_000 }, async function (this: WebWorld) {
   this.context = await browser.newContext();
   this.page = await this.context.newPage();
   this.page.setDefaultTimeout(15_000);
+  this.page.on("pageerror", (error) => this.pageErrors.push(error.message));
 });
 
 After({ tags: "@web" }, async function (this: WebWorld) {
