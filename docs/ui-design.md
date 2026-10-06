@@ -80,6 +80,24 @@ transitions of 150 ms. `prefers-reduced-motion` turns every animation and transi
 use `outline` with the `--ring` color (3:1 against the page, header, cards and dialogs). The layout works down to about
 1024px: the toolbar wraps and the right pane is resizable (260-900px).
 
+## Learn and Workspace
+
+The signed-in app has two areas, switched by path from a small segmented control in the header (links, so
+back and forward work): **Learn** (`/learn`, the course) and **Workspace** (`/workspace`, the IDE). `/`
+lands on Learn until the student has passed all of Course 1, then on the Workspace. The IDE mounts the first
+time the Workspace opens and stays mounted (hidden) while the student is in Learn.
+
+Learn pages: `/learn` (the path: one primary Continue button, the current lesson large, the next one dim,
+later lessons in fog with titles only, passed lessons as small stars with text labels, side rooms as doors,
+a "Pick what's next" chooser at a branch point, and "What you can do now"), `/learn/gallery` (things made),
+`/learn/deck` (the Instruction Deck) and `/learn/<lessonId>` (the lesson player seam, `LessonRoute`).
+Lesson metadata comes from `/catalog.json`, written by `scripts/build-catalog.ts` (part of `npm run
+lessons:build` and of the web build). A session (first visit of the day, or after 30 idle minutes) opens
+with at most one warm-up. Settings has a Learning section: "Unlock all lessons" (tutor override, off by
+default) and "Reset my progress" (progress, stars and Deck; the Gallery stays). Per-user keys:
+`sierrendipity:progress:<user>`, `sierrendipity:gallery:<user>`, `sierrendipity:learning:<user>`,
+`sierrendipity:session:<user>`. Developer components are shown at `/lab`.
+
 ## Cards, the program builder and custom cards (`web/src/cards/`)
 
 The self-guided tutor's cards are plain-English faces over real RISC-V words

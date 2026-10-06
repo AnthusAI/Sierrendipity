@@ -1,10 +1,9 @@
 import "@xterm/xterm/css/xterm.css";
 import "./monaco";
 import "./styles.css";
-import { Component, type ReactNode } from "react";
+import { Component, lazy, Suspense, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
-import { Lab } from "./lab";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 // The app must never blank: show what happened and offer a reload.
@@ -30,10 +29,19 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error?: Error }
   }
 }
 
+// The developer lab is its own chunk: visitors to the app never download it.
+const Lab = lazy(() => import("./lab").then((m) => ({ default: m.Lab })));
+
 createRoot(document.getElementById("root")!).render(
   <ErrorBoundary>
     <TooltipProvider>
-      {location.pathname === "/lab" ? <Lab /> : <App />}
+      {/^\/lab\/?$/.test(location.pathname) ? (
+        <Suspense fallback={null}>
+          <Lab />
+        </Suspense>
+      ) : (
+        <App />
+      )}
     </TooltipProvider>
   </ErrorBoundary>,
 );

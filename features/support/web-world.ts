@@ -22,7 +22,7 @@ let shared: Promise<{ browser: Browser; app: Server; appUrl: string }> | undefin
 function sharedWeb() {
   shared ??= (async () => {
     await new Promise<void>((resolve, reject) =>
-      execFile("npm", ["run", "build", "-w", "web"], { cwd: root }, (error, _out, err) =>
+      execFile("npm", ["run", "build", "-w", "web"], { cwd: root, env: { ...process.env, VITE_DEV_TOOLS: "1" } }, (error, _out, err) =>
         error ? reject(new Error(`web build failed:\n${err}`)) : resolve(),
       ),
     );
@@ -71,9 +71,19 @@ export class WebWorld extends World {
     await dialog.waitFor({ state: "detached" });
   }
 
-  async open(config: Record<string, unknown>) {
+  /** Open the app; `path` defaults to the Workspace, where the IDE specs live (the landing page is Learn). */
+  async open(config: Record<string, unknown>, path = "/workspace") {
     await this.page.route("**/config.json", (route) => route.fulfill({ json: config }));
-    await this.page.goto(this.appUrl);
+    await this.page.goto(`${this.appUrl}${path}`);
+  }
+
+  /** After sign-in a student lands on Learn: step into the Workspace, where the IDE specs continue. */
+  async toWorkspace() {
+    const nav = this.page.getByRole("navigation", { name: "Areas" });
+    const signIn = this.page.getByRole("heading", { name: "Sign in to Sierrendipity" });
+    await nav.or(signIn).waitFor();
+    const run = this.page.getByRole("button", { name: "Run", exact: true });
+    if ((await nav.isVisible()) && !(await run.isVisible())) await nav.getByRole("link", { name: "Workspace", exact: true }).click();
   }
 
   /** Open the developer component lab (/lab); `query` is e.g. "?testclock". */

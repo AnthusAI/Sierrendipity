@@ -2,6 +2,7 @@ import {
   DEFAULT_MAX_EVENTS,
   MAX_CONCEPTS,
   MAX_BONUSES,
+  MAX_CARD_KINDS,
   MAX_ID_LENGTH,
   MAX_LESSONS,
   bareRecord,
@@ -41,6 +42,7 @@ export function attemptProblem(a: unknown): string | null {
   if (!isCount(a.cards)) return "attempt.cards must be a whole number of 0 or more";
   if (!isCount(a.steps)) return "attempt.steps must be a whole number of 0 or more";
   if (a.concepts !== undefined && !(Array.isArray(a.concepts) && a.concepts.length <= 20 && a.concepts.every(isId))) return "attempt.concepts must be a short list of concept ids";
+  if (a.cardsUsed !== undefined && !(Array.isArray(a.cardsUsed) && a.cardsUsed.length <= MAX_CARD_KINDS && a.cardsUsed.every(isId))) return "attempt.cardsUsed must be a short list of card kinds";
   return null;
 }
 
@@ -144,6 +146,7 @@ export function parseProgress(raw: string, userId: string, maxEvents: number = D
   if (isObj(value.warmupCounts)) {
     for (const [id, n] of Object.entries(value.warmupCounts).slice(0, MAX_CONCEPTS)) if (isId(id) && isCount(n)) data.warmupCounts[id] = n;
   }
+  if (Array.isArray(value.cardsUsed)) data.cardsUsed = [...new Set(value.cardsUsed.filter(isId))].slice(0, MAX_CARD_KINDS);
   for (const [id, l] of Object.entries(value.lessons).slice(0, MAX_LESSONS)) {
     const lp = isId(id) ? sanitizeLesson(l) : null;
     if (lp) data.lessons[id] = lp;
