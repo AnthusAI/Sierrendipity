@@ -1,7 +1,8 @@
-import { spawn } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
 import { chmod, mkdtemp, mkdir, readdir, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { compilerCommand, isLinux, killUid, settlePipes, studentCommand, watchDisk, wipeUid } from "./sandbox.ts";
 
 export type Language = "python" | "c" | "cpp";
 
@@ -42,7 +43,7 @@ export interface RunResult {
 /** The request itself is invalid (as opposed to the student's program being wrong). */
 export class RequestError extends Error {}
 
-interface Exec {
+export interface Exec {
   exitCode: number | null;
   signal: string | null;
   stdout: string;
@@ -57,22 +58,30 @@ const compilers = {
   cpp: { cmd: "g++", ext: ".cpp", flags: ["-O2", "-std=c++20"], libs: [] as string[] },
 };
 
-export async function runProject(request: RunRequest): Promise<RunResult> {
+/** Run to completion. `uid` is this run's own sandbox user (see UidPool). */
+export async function runProject(request: RunRequest, uid?: number): Promise<RunResult> {
   validate(request);
   const dir = await realpath(await mkdtemp(path.join(tmpdir(), "sierrendipity-")));
   try {
-    return await execute(request, dir);
+    return await execute(request, dir, uid);
   } catch (error) {
     if (error instanceof RequestError) throw error;
     console.error(error);
     return { status: "internal_error" };
   } finally {
-    await cleanup(dir);
+    await cleanUpRun(dir, uid);
   }
 }
 
+/** Nothing of the run may outlive it: processes, its directory, or files elsewhere in /tmp. */
+export async function cleanUpRun(dir: string, uid: number | undefined): Promise<void> {
+  await killUid(uid);
+  await cleanup(dir);
+  await wipeUid(uid);
+}
+
 // The program may have made directories it cannot read back; never let that fail the response.
-async function cleanup(dir: string): Promise<void> {
+export async function cleanup(dir: string): Promise<void> {
   try {
     await makeWritable(dir);
     await rm(dir, { recursive: true, force: true });
@@ -91,7 +100,7 @@ async function makeWritable(dir: string): Promise<void> {
 const MAX_LIMITS = { timeLimitMs: 30_000, compileTimeLimitMs: 60_000, maxOutputBytes: 10_000_000, memoryLimitMb: 1024 };
 const DEFAULT_LIMITS = { timeLimitMs: 5000, compileTimeLimitMs: 15000, maxOutputBytes: 1_000_000, memoryLimitMb: 256 };
 
-function resolveLimits(given: unknown) {
+export function resolveLimits(given: unknown) {
   if (given !== undefined && (typeof given !== "object" || given === null)) throw new RequestError("limits must be an object");
   const input = (given ?? {}) as Record<string, unknown>;
   const limits = { ...DEFAULT_LIMITS };
@@ -106,7 +115,7 @@ function resolveLimits(given: unknown) {
   return limits;
 }
 
-function validate(request: RunRequest): void {
+export function validate(request: RunRequest): void {
   if (!["python", "c", "cpp"].includes(request?.language)) throw new RequestError("unsupported language");
   if (!Array.isArray(request.files) || request.files.length === 0) throw new RequestError("files are required");
   for (const file of request.files) {
@@ -134,73 +143,89 @@ function checkRelative(p: string): void {
   }
 }
 
-async function execute(request: RunRequest, dir: string): Promise<RunResult> {
-  const limits = resolveLimits(request.limits);
+export type Limits = ReturnType<typeof resolveLimits>;
 
+/** Write the project's files and compile it; returns the command that runs it. */
+export async function prepare(
+  request: RunRequest,
+  dir: string,
+  limits: Limits,
+  uid?: number,
+): Promise<{ compile?: NonNullable<RunResult["compile"]>; command?: string[] }> {
   for (const file of request.files) {
     const target = path.resolve(dir, file.path);
     if (!target.startsWith(dir + path.sep)) throw new RequestError(`unsafe path: ${file.path}`);
     await mkdir(path.dirname(target), { recursive: true });
     await writeFile(target, file.content);
   }
-
-  const result: RunResult = { status: "ok" };
-  let command: string[];
-
-  if (request.language === "python") {
-    command = ["python3", "./" + path.normalize(request.entry ?? "main.py")];
-  } else {
-    const { cmd, ext, flags, libs } = compilers[request.language];
-    const sources = request.files.map((f) => "./" + path.normalize(f.path)).filter((p) => p.endsWith(ext));
-    if (sources.length === 0) throw new RequestError(`no ${ext} files`);
-    const compiled = await exec([cmd, ...flags, "-o", "prog", ...sources, ...libs], dir, {
-      timeoutMs: limits.compileTimeLimitMs,
-      maxOutputBytes: limits.maxOutputBytes,
-    });
-    const ok = compiled.exitCode === 0 && !compiled.timedOut;
-    result.compile = {
-      ok,
-      output: scrub(compiled.stdout + compiled.stderr, dir),
-      timedOut: compiled.timedOut,
-    };
-    if (!ok) return { ...result, status: "compile_error" };
-    command = ["./prog"];
+  if (isLinux && uid !== undefined) {
+    // The run's user must own its directory; nobody else can enter it.
+    await new Promise<void>((resolve, reject) =>
+      execFile("chown", ["-R", `${uid}:${uid}`, dir], (error) => (error ? reject(error) : resolve())),
+    );
   }
 
-  // prlimit is Linux-only (util-linux); elsewhere the memory limit is not enforced.
-  const limited = process.platform === "linux";
-  if (limited) command = ["prlimit", `--as=${limits.memoryLimitMb * 1024 * 1024}`, "--", ...command];
+  if (request.language === "python") {
+    return { command: ["python3", "./" + path.normalize(request.entry ?? "main.py")] };
+  }
+  const { cmd, ext, flags, libs } = compilers[request.language];
+  const sources = request.files.map((f) => "./" + path.normalize(f.path)).filter((p) => p.endsWith(ext));
+  if (sources.length === 0) throw new RequestError(`no ${ext} files`);
+  const compiler = [cmd, ...flags, "-o", "prog", ...sources, ...libs];
+  const compiled = await exec(uid === undefined ? compiler : compilerCommand(compiler, uid), dir, {
+    timeoutMs: limits.compileTimeLimitMs,
+    maxOutputBytes: limits.maxOutputBytes,
+    uid,
+  });
+  const ok = compiled.exitCode === 0 && !compiled.timedOut;
+  const compile = { ok, output: scrub(compiled.stdout + compiled.stderr, dir), timedOut: compiled.timedOut };
+  return ok ? { compile, command: ["./prog"] } : { compile };
+}
 
-  const ran = await exec(command, dir, {
+async function execute(request: RunRequest, dir: string, uid?: number): Promise<RunResult> {
+  const limits = resolveLimits(request.limits);
+  const { compile, command } = await prepare(request, dir, limits, uid);
+  const result: RunResult = { status: "ok", ...(compile && { compile }) };
+  if (!command) return { ...result, status: "compile_error" };
+
+  const confined = uid === undefined ? command : studentCommand(command, limits.memoryLimitMb, limits.timeLimitMs, uid);
+  const ran = await exec(confined, dir, {
     stdin: request.stdin,
     timeoutMs: limits.timeLimitMs,
     maxOutputBytes: limits.maxOutputBytes,
+    uid,
   });
   ran.stderr = scrub(ran.stderr, dir);
   result.run = ran;
-  result.status = classify(ran, limited);
+  result.status = classify(ran);
   return result;
 }
 
-function classify(run: Exec, memoryLimited: boolean): RunResult["status"] {
-  if (run.timedOut) return "time_limit_exceeded";
+export function classify(run: Pick<Exec, "timedOut" | "outputTruncated" | "stderr" | "exitCode" | "signal">): RunResult["status"] {
+  // SIGXCPU: the sandbox's CPU limit fired before the wall-clock timer.
+  if (run.timedOut || run.signal === "SIGXCPU") return "time_limit_exceeded";
   if (run.outputTruncated) return "output_limit_exceeded";
   // Under an address-space limit a failed allocation is reported by the runtime, not by a signal.
-  if (memoryLimited && /bad_alloc|MemoryError|Cannot allocate memory/.test(run.stderr)) {
+  if (isLinux && /bad_alloc|MemoryError|Cannot allocate memory/.test(run.stderr)) {
     return "memory_limit_exceeded";
   }
   return run.exitCode === 0 ? "ok" : "runtime_error";
 }
 
 /** Remove the temp dir from messages so they read `main.cpp:3:5: error: ...`. */
-function scrub(text: string, dir: string): string {
+export function scrub(text: string, dir: string): string {
   return text.split(dir + path.sep).join("").split(dir).join(".");
 }
 
-function exec(
+/** The only environment student code sees: nothing from the task (AWS_*, ECS_*, ...) leaks through. */
+export function studentEnv(home: string): Record<string, string | undefined> {
+  return { PATH: process.env.PATH, HOME: home, LANG: "C.UTF-8", PYTHONUNBUFFERED: "1" };
+}
+
+export function exec(
   command: string[],
   cwd: string,
-  opts: { stdin?: string; timeoutMs: number; maxOutputBytes: number },
+  opts: { stdin?: string; timeoutMs: number; maxOutputBytes: number; uid?: number },
 ): Promise<Exec> {
   return new Promise((resolve, reject) => {
     const started = Date.now();
@@ -208,7 +233,7 @@ function exec(
     const child = spawn(command[0], command.slice(1), {
       cwd,
       detached: true,
-      env: { PATH: process.env.PATH, HOME: cwd, LANG: "C.UTF-8", PYTHONUNBUFFERED: "1" },
+      env: studentEnv(cwd),
       stdio: ["pipe", "pipe", "pipe"],
     });
     const out: Buffer[] = [];
@@ -217,17 +242,24 @@ function exec(
     let timedOut = false;
     let outputTruncated = false;
 
-    const killGroup = () => {
+    // Also by uid: a program can leave its process group (setsid) but not its user.
+    const killAll = () => {
       try {
         process.kill(-child.pid!, "SIGKILL");
       } catch {
         // already gone
       }
+      void killUid(opts.uid);
     };
     const timer = setTimeout(() => {
       timedOut = true;
-      killGroup();
+      killAll();
     }, opts.timeoutMs);
+    // Files count against the output limit: a run that fills the disk is stopped like one that floods stdout.
+    const stopWatching = watchDisk(opts.uid, () => {
+      outputTruncated = true;
+      killAll();
+    });
 
     const collect = (into: Buffer[]) => (chunk: Buffer) => {
       if (outputTruncated) return;
@@ -235,7 +267,7 @@ function exec(
       if (chunk.length > room) {
         outputTruncated = true;
         chunk = chunk.subarray(0, room);
-        killGroup();
+        killAll();
       }
       total += chunk.length;
       into.push(chunk);
@@ -248,11 +280,16 @@ function exec(
 
     child.on("error", (e) => {
       clearTimeout(timer);
+      stopWatching();
       reject(e);
     });
-    child.on("close", (exitCode, signal) => {
+    // 'exit', not 'close': a straggler holding the pipes open must not keep the run alive.
+    child.on("exit", async (exitCode, signal) => {
       clearTimeout(timer);
-      killGroup(); // reap stragglers that outlived the main process
+      stopWatching();
+      killAll(); // reap stragglers that outlived the main process
+      await killUid(opts.uid);
+      await settlePipes(child);
       resolve({
         exitCode,
         signal,

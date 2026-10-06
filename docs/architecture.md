@@ -14,16 +14,18 @@ Everything scales to zero: no ALB, NAT, or always-on compute.
 | Runner | `runner/`, Fargate task (Spot, default VPC, public subnet, public IP, no NAT) | Compiles and runs student code. Exits itself when idle. |
 
 The task security group allows port 8080 only from the proxy Lambda's security group.
-Student code runs under a seccomp filter that denies network sockets, with a scrubbed environment.
+The runner server runs as root in the container (needs CAP_SETUID, CAP_SETGID, CAP_KILL, CAP_CHOWN, CAP_DAC_OVERRIDE). Each run gets its own unprivileged uid; student code runs under a seccomp filter that denies network sockets, namespaces and mounts, with a scrubbed environment and resource limits. Everything a run left behind (processes, files) is removed by uid when it ends.
 
 ## Runner API (port 8080)
 
 - `POST /run` - batch run, returns the full result (exists).
 - `POST /runs` `{language, files, entry?, stdin?, limits?}` -> `202 {runId}`; one active run at a time (409 otherwise).
-- `GET /runs/{runId}/events` - Server-Sent Events, each with a numeric `id`; honors `Last-Event-ID` and `?after=`. Event types: `compile` `{output, ok}`, `output` `{data}`, `exit` `{status, exitCode, signal, wallMs}`.
+- `GET /runs/{runId}/events` - Server-Sent Events, each with a numeric `id`; honors `Last-Event-ID` and `?after=`. Event types: `compile` `{output, ok}` (C/C++ only), `output` `{data}`, `exit` `{status, exitCode, signal, wallMs}`; the stream ends after `exit`. Programs run on a pty with echo disabled, so `output` is program output only (lines end `\r\n`). The replay buffer is bounded; if the resume point was dropped the server first sends an id-less `gap` event `{firstId}`.
 - `POST /runs/{runId}/stdin` `{data, eof?}`.
 - `POST /runs/{runId}/stop`.
 - `GET /healthz`.
+- If `RUNNER_SECRET` is set, every request except `/healthz` needs header `x-runner-secret` (else 401). More than `MAX_CONCURRENT_RUNS` (default 4) simultaneous runs get 429.
+- Interactive runs are stopped after `INTERACTIVE_MAX_WALL_S` (default 1800) of wall time. A run that writes more than 200 MB of files is stopped as `output_limit_exceeded`.
 - The process exits (status 0) after `IDLE_TIMEOUT_S` (default 1200) with no requests and no active run.
 
 ## Control API (Function URL, `Authorization: Bearer <Cognito token>`)

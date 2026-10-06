@@ -126,6 +126,7 @@ export class SierrendipityStack extends Stack {
       // Built from the repo root so the Dockerfile can see the workspace manifests. Only built on deploy.
       image: ecs.ContainerImage.fromAsset(ROOT, {
         file: "runner/Dockerfile",
+        target: "runtime",
         platform: ecrAssets.Platform.LINUX_ARM64,
         exclude: ["**/node_modules", "**/dist", "**/cdk.out", ".git", "project", ".claude"],
       }),
