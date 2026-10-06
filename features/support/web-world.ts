@@ -71,6 +71,10 @@ export class WebWorld extends World {
     await dialog.waitFor({ state: "detached" });
   }
 
+  async openLab() {
+    await this.page.goto(`${this.appUrl}/lab`);
+  }
+
   async open(config: Record<string, unknown>) {
     await this.page.route("**/config.json", (route) => route.fulfill({ json: config }));
     await this.page.goto(this.appUrl);
