@@ -31,7 +31,7 @@
     "platform": "claude_code",
     "model": "claude-sonnet-5-5"
   },
-  "right_now_summary": "The IDE, sign-in, lessons, and backend are deployed, but testing, automation, and emulator work remain.",
-  "right_now_updated_at": "2026-10-06T19:32:58.434972Z",
+  "right_now_summary": "The team is building lessons and emulator support while verifying sign-in, code runs, and deployment.",
+  "right_now_updated_at": "2026-10-06T19:50:35.061659Z",
   "custom": {}
 }
