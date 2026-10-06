@@ -213,7 +213,7 @@ Feature: Stepping RV32IM programs in the emulator
       """
     When I run the machine
     Then the machine is halted
-    And the exit code is 42
+    And the machine exit code is 42
     And the step count is 3
 
   Scenario: ebreak halts without an exit code
@@ -242,7 +242,7 @@ Feature: Stepping RV32IM programs in the emulator
     When I run the machine
     Then the output on file descriptor 1 is "hello\n"
     And register s1 holds 6
-    And the exit code is 0
+    And the machine exit code is 0
 
   Scenario: read waits for input, then retries the same ecall once input is provided
     Given a machine running the program
@@ -551,7 +551,7 @@ Feature: Stepping RV32IM programs in the emulator
     And there is no exit code
     And stepping back once more fails
     When I run the machine
-    Then the exit code is 8192
+    Then the machine exit code is 8192
 
   Scenario: Summing 1 to 10 and printing the result with ecall write
     Given a machine running the program
@@ -583,4 +583,4 @@ Feature: Stepping RV32IM programs in the emulator
     When I run the machine
     Then the output on file descriptor 1 is "55\n"
     And the machine is halted
-    And the exit code is 0
+    And the machine exit code is 0

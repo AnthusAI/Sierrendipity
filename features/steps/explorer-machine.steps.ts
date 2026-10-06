@@ -176,7 +176,7 @@ Then("there is no exit code", () => {
   assert.equal(machine.exitCode, null);
 });
 
-Then("the exit code is {int}", (code: number) => {
+Then("the machine exit code is {int}", (code: number) => {
   assert.equal(machine.exitCode, code);
 });
 
