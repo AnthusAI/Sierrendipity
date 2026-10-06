@@ -129,7 +129,7 @@ When("I ask to be shown", async function (this: WebWorld) {
 When("I choose {string}", async function (this: WebWorld, name: string) {
   const offer = panel(this).locator("[data-coach-nudge], [data-coach-question]").getByRole("button", { name, exact: true });
   if ((await offer.count()) > 0) await offer.click();
-  else await panel(this).getByRole("button", { name, exact: true }).click();
+  else await this.page.getByRole("button", { name, exact: true }).click();
 });
 When("I tab until the focus is on {string}", async function (this: WebWorld, name: string) {
   for (let i = 0; i < 40; i++) {

@@ -223,7 +223,7 @@ Feature: The coach plays the lessons
     When I press Continue
     And I type "<typed>" as my answer and press Answer
     Then the answer hint says "<hint>"
-    And the coach says "last one wins"
+    And the coach says "What will the box hold"
 
     Examples:
       | typed | hint                       |
