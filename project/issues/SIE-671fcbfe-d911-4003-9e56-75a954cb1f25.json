@@ -3,7 +3,7 @@
   "title": "Run a multi-file C++ project",
   "description": "As the student, I want to compile and run a multi-file C++ project, so that I can practice real programs.\n\nFeature: Run a multi-file C++ project\n  Scenario: Compile and run two source files\n    Given a C++ project with main.cpp and util.cpp where main prints util's greeting\n    When the project is run\n    Then the exit status is 0\n    And the output is the greeting\n\n  Scenario: A compile error is reported\n    Given a C++ project with a syntax error in main.cpp\n    When the project is run\n    Then the compiler error mentions main.cpp and its line number\n    And the program is not executed",
   "type": "story",
-  "status": "open",
+  "status": "in_progress",
   "priority": 2,
   "assignee": null,
   "creator": null,
@@ -12,14 +12,14 @@
   "dependencies": [],
   "comments": [],
   "created_at": "2026-10-06T11:36:29.369465Z",
-  "updated_at": "2026-10-06T11:36:29.369499Z",
+  "updated_at": "2026-10-06T11:46:57.641248Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity planning"
   },
-  "right_now_summary": "No recent activity is recorded for this issue.",
-  "right_now_updated_at": "2026-10-06T11:36:30.248253Z",
+  "right_now_summary": "The multi-file C++ project feature has no recent activity.",
+  "right_now_updated_at": "2026-10-06T11:46:58.586526Z",
   "custom": {}
 }

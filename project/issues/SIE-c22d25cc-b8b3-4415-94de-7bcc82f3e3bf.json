@@ -3,7 +3,7 @@
   "title": "Enforce time, memory, and output limits",
   "description": "As the maintainer, I want runaway programs stopped, so that they cannot hang or exhaust a session.\n\nFeature: Resource limits\n  Scenario: An infinite loop is stopped\n    Given a program that loops forever\n    When the project is run with a 2 second limit\n    Then the result reports a time limit exceeded\n  Scenario: Huge output is truncated\n    Given a program that prints 100 MB\n    When the project is run\n    Then the captured output is truncated and flagged",
   "type": "story",
-  "status": "open",
+  "status": "in_progress",
   "priority": 2,
   "assignee": null,
   "creator": null,
@@ -12,14 +12,14 @@
   "dependencies": [],
   "comments": [],
   "created_at": "2026-10-06T11:36:38.619900Z",
-  "updated_at": "2026-10-06T11:36:38.619924Z",
+  "updated_at": "2026-10-06T11:47:09.828137Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity planning"
   },
-  "right_now_summary": "The project must stop runaway programs and limit execution time, memory use, and output size.",
-  "right_now_updated_at": "2026-10-06T11:36:40.128186Z",
+  "right_now_summary": "The project needs time, memory, and output limits to stop runaway programs.",
+  "right_now_updated_at": "2026-10-06T11:47:11.851082Z",
   "custom": {}
 }

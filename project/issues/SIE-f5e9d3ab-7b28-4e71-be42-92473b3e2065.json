@@ -3,7 +3,7 @@
   "title": "Sierrendipity: a browser-based coding tutor",
   "description": "As a high-school student learning to program, I want a browser IDE that compiles and runs Python, C, and C++ projects with interactive input, so that I can learn from lessons and practice from anywhere. Lessons are added one by one by the tutor, the student, and Claude. Out of scope for now: more than one student, languages beyond Python/C/C++, automatic grading against hidden test suites. Definition of Done: the student can sign in, open a lesson, edit a multi-file project, run it interactively, and see results; the platform scales to zero when idle and costs pennies per month; every behavior is covered by a passing Gherkin specification.",
   "type": "initiative",
-  "status": "open",
+  "status": "in_progress",
   "priority": 1,
   "assignee": null,
   "creator": null,
@@ -25,13 +25,13 @@
     }
   ],
   "created_at": "2026-10-06T11:35:12.922732Z",
-  "updated_at": "2026-10-06T11:42:01.589347Z",
+  "updated_at": "2026-10-06T11:46:51.239515Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5"
   },
-  "right_now_summary": "The browser tutor is taking shape, with the IDE and runner underway while sign-in and session work remain.",
-  "right_now_updated_at": "2026-10-06T11:42:03.521890Z",
+  "right_now_summary": "The team is building the IDE, runner, lessons, and interactive sessions; Google sign-in is next.",
+  "right_now_updated_at": "2026-10-06T11:47:21.275722Z",
   "custom": {}
 }
