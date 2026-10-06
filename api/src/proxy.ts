@@ -26,6 +26,7 @@ export type ProxyDeps = {
 const ALLOWED: [method: string, path: RegExp][] = [
   ["POST", /^\/run$/],
   ["POST", /^\/runs$/],
+  ["POST", /^\/explain$/],
   ["GET", /^\/runs\/[A-Za-z0-9_-]+\/events$/],
   ["POST", /^\/runs\/[A-Za-z0-9_-]+\/stdin$/],
   ["POST", /^\/runs\/[A-Za-z0-9_-]+\/stop$/],

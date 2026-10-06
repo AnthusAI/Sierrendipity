@@ -28,6 +28,13 @@ Feature: Proxy to the runner task
     And the runner did not receive the session token
     And the runner received the task secret in x-runner-secret
 
+  Scenario: A compile-and-explain request is forwarded
+    Given a valid session token for "user1" and "10.0.0.7"
+    When the client posts '{"language":"c"}' to /explain
+    Then the proxy answers 202
+    And the runner received POST /explain with body '{"language":"c"}'
+    And the runner received the task secret in x-runner-secret
+
   Scenario: Server-sent events stream chunk by chunk
     Given a valid session token for "user1" and "10.0.0.7"
     And the runner will stream the events "one", "two" and "three"
@@ -59,6 +66,10 @@ Feature: Proxy to the runner task
       | POST   | /runs/../stop       |
       | GET    | /runs/%2e%2e/events |
       | GET    | /runs/a.b/events    |
+      | GET    | /explain            |
+      | POST   | /explain/x          |
+      | POST   | /explain/           |
+      | POST   | /explainer          |
 
   Scenario: An unreachable task yields a clear 502
     Given a valid session token for "user1" and "10.0.0.7"

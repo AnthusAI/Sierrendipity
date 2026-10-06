@@ -145,6 +145,24 @@ function checkRelative(p: string): void {
 
 export type Limits = ReturnType<typeof resolveLimits>;
 
+/**
+ * Write the project's files under `dir`, then hand `owner` (default `dir`) to the run's uid: it must
+ * own its directory, and nobody else can enter it.
+ */
+export async function writeFiles(files: { path: string; content: string }[], dir: string, uid?: number, owner = dir): Promise<void> {
+  for (const file of files) {
+    const target = path.resolve(dir, file.path);
+    if (!target.startsWith(dir + path.sep)) throw new RequestError(`unsafe path: ${file.path}`);
+    await mkdir(path.dirname(target), { recursive: true });
+    await writeFile(target, file.content);
+  }
+  if (isLinux && uid !== undefined) {
+    await new Promise<void>((resolve, reject) =>
+      execFile("chown", ["-R", `${uid}:${uid}`, owner], (error) => (error ? reject(error) : resolve())),
+    );
+  }
+}
+
 /** Write the project's files and compile it; returns the command that runs it. */
 export async function prepare(
   request: RunRequest,
@@ -152,18 +170,7 @@ export async function prepare(
   limits: Limits,
   uid?: number,
 ): Promise<{ compile?: NonNullable<RunResult["compile"]>; command?: string[] }> {
-  for (const file of request.files) {
-    const target = path.resolve(dir, file.path);
-    if (!target.startsWith(dir + path.sep)) throw new RequestError(`unsafe path: ${file.path}`);
-    await mkdir(path.dirname(target), { recursive: true });
-    await writeFile(target, file.content);
-  }
-  if (isLinux && uid !== undefined) {
-    // The run's user must own its directory; nobody else can enter it.
-    await new Promise<void>((resolve, reject) =>
-      execFile("chown", ["-R", `${uid}:${uid}`, dir], (error) => (error ? reject(error) : resolve())),
-    );
-  }
+  await writeFiles(request.files, dir, uid);
 
   if (request.language === "python") {
     return { command: ["python3", "./" + path.normalize(request.entry ?? "main.py")] };

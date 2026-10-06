@@ -67,9 +67,10 @@ export function terminalCommand(command: string[], memoryLimitMb: number, timeLi
 }
 
 /** The compiler needs /tmp and processes, so no seccomp filter, but it keeps the uid and a memory bound. */
-export function compilerCommand(command: string[], uid: number): string[] {
+export function compilerCommand(command: string[], uid: number, opts: { seccomp?: boolean } = {}): string[] {
   if (!isLinux) return command;
-  return [LAUNCHER, `--uid=${uid}`, "--no-seccomp", `--as=${COMPILE_MEMORY_BYTES}`, "--", ...command];
+  const filter = opts.seccomp ? [] : ["--no-seccomp"];
+  return [LAUNCHER, `--uid=${uid}`, ...filter, `--as=${COMPILE_MEMORY_BYTES}`, "--", ...command];
 }
 
 /** Kill every process of the run's uid, including ones that escaped the process group. */

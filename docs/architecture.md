@@ -23,6 +23,7 @@ The runner server runs as root in the container (needs CAP_SETUID, CAP_SETGID, C
 - `GET /runs/{runId}/events` - Server-Sent Events, each with a numeric `id`; honors `Last-Event-ID` and `?after=`. Event types: `compile` `{output, ok}` (C/C++ only), `output` `{data}`, `exit` `{status, exitCode, signal, wallMs}`; the stream ends after `exit`. Programs run on a pty with echo disabled, so `output` is program output only (lines end `\r\n`). The replay buffer is bounded; if the resume point was dropped the server first sends an id-less `gap` event `{firstId}`.
 - `POST /runs/{runId}/stdin` `{data, eof?}`.
 - `POST /runs/{runId}/stop`.
+- `POST /explain` `{language: "c", files, optLevel?: "O0"|"Og"}` -> `200 {status, compileOutput, program?, instructions?, lineMap?}`: compiles C for bare-metal RV32IM and returns a flat program image plus the instruction list and source-line map (see [explorer-endpoint.md](explorer-endpoint.md)). Same auth, concurrency cap and 400/413 mapping as `POST /run`.
 - `GET /healthz`.
 - If `RUNNER_SECRET` is set, every request except `/healthz` needs header `x-runner-secret` (else 401). More than `MAX_CONCURRENT_RUNS` (default 4) simultaneous runs get 429.
 - Interactive runs are stopped after `INTERACTIVE_MAX_WALL_S` (default 1800) of wall time. A run that writes more than 200 MB of files is stopped as `output_limit_exceeded`.
@@ -37,7 +38,7 @@ The runner server runs as root in the container (needs CAP_SETUID, CAP_SETGID, C
 
 ## Proxy API (streaming Function URL, `Authorization: Bearer <sessionToken>`)
 
-Forwards any path to the task, e.g. `POST /runs`, `GET /runs/{id}/events`. The session token is an HMAC-signed `{sub, taskIp, exp}`; the key is shared with the control Lambda. `EventSource` cannot send headers, so the web client reads SSE with `fetch`.
+Forwards the runner API paths (a whitelist: `POST /run`, `POST /runs`, `POST /explain`, `GET /runs/{id}/events`, `POST /runs/{id}/stdin|stop`, `GET /healthz`), e.g. `POST /runs`, `GET /runs/{id}/events`. The session token is an HMAC-signed `{sub, taskIp, exp}`; the key is shared with the control Lambda. `EventSource` cannot send headers, so the web client reads SSE with `fetch`.
 
 ## Rules
 
