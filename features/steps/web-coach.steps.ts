@@ -87,7 +87,7 @@ When("I reload the lab", async function (this: WebWorld) {
 
 // Doing things
 
-const named = (w: WebWorld, name: string) => w.page.getByRole("button", { name, exact: true });
+const named = (w: WebWorld, name: string) => w.page.locator("[data-lesson-player]").getByRole("button", { name, exact: true });
 
 When("I press Continue", async function (this: WebWorld) {
   await named(this, "Continue").click();
@@ -129,7 +129,7 @@ When("I ask to be shown", async function (this: WebWorld) {
 When("I choose {string}", async function (this: WebWorld, name: string) {
   const offer = panel(this).locator("[data-coach-nudge], [data-coach-question]").getByRole("button", { name, exact: true });
   if ((await offer.count()) > 0) await offer.click();
-  else await this.page.getByRole("button", { name, exact: true }).click();
+  else await this.page.locator("[data-lesson-player], [data-lesson-load-error]").getByRole("button", { name, exact: true }).click();
 });
 When("I tab until the focus is on {string}", async function (this: WebWorld, name: string) {
   for (let i = 0; i < 40; i++) {

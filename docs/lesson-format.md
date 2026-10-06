@@ -105,6 +105,7 @@ most 80. Sentences are counted by terminators followed by a capital letter, digi
     - { match: 57, say: "Close! Adding is not gluing digits together, so let's watch.", goto: watch-add }
   hints: [ nudge, narrower question, near-answer ]   # exactly 3; required when the scene has until or ask
   showMe: demo-step                 # id of a file in ghosts/
+  doneSay: There it is: the box holds 5.   # optional, same limits as say; said when the goal is met
   lock: [edit, drag, toggle]        # UI controls disabled in this scene
   skippable: true
 ```
@@ -114,6 +115,14 @@ most 80. Sentences are counted by terminators followed by a capital letter, digi
 - `until` conditions are phrases of the shared step vocabulary. A scene with no `until` and no `ask`
   waits for [Continue]. Write `until` phrases that stay true once reached (`at least`), because they
   are evaluated against the live run.
+- `doneSay` is the only confirmation the player shows when a scene's goal is met (it clears on the student's next
+  action). Without it nothing is shown and screen readers hear a quiet "Scene complete."; the player never
+  builds a line from the `until` phrases.
+- `onWrongDefault` is text, or `{ say, goto }`. `goto` names the scene that reveals the answer; the checker
+  requires it when the scene after an `ask` does not wait on the machine (`until`).
+- The player locks Step, Back, Reset and Edit in `ask` scenes (the prediction comes before the reveal), restores the
+  starter cards on entering a scene that locks `edit`, and advances at once past a scene whose `until` already holds.
+  A prediction made after the machine has finished is not a prediction: it is not recorded and cannot earn `called-it`.
 - `onWrong.match` is the wrong answer to react to (a number, or text for choices); `goto` names a scene.
 - `showMe` must name an existing ghost; `goto` must name an existing scene.
 

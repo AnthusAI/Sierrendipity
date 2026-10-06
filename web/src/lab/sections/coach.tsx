@@ -56,7 +56,7 @@ export default function CoachSection() {
   };
 
   if (state.status === "loading") return <p>Loading the lesson.</p>;
-  if (state.status === "error") return <LessonLoadError onRetry={state.retry} onBack={() => go(DEFAULT_LESSON)} />;
+  if (state.status === "error") return <LessonLoadError onRetry={() => location.reload()} onBack={() => go(DEFAULT_LESSON)} />;
   return (
     <>
       <LessonPlayer key={state.lesson.id} lesson={state.lesson} store={store} userId={userId} clock={clock} next={next} onNext={go} />

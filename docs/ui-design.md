@@ -139,3 +139,7 @@ that state; `TimelineControls` is the shared playback bar (native range and sele
   that never halts is cut at `maxSteps` (default 2000) with "This program keeps going"; the log keeps
   the newest 50 entries. Prose numbers cards from 1 and says "address" only for byte addresses.
 - Controls use `aria-disabled` so focus stays on Step or Back when it reaches the end or start.
+  Stuck rule details: "toggled back and forth" is 3 direction reversals of the same card (5, 6, 5, 6, 5). The
+  12-minute suggestion is once per session (`sessionStorage`, so a lesson change or reload does not repeat it).
+  Attempts are recorded once per scene and cards, only in the lesson's goal scene (or for a new bonus), so Back and
+  Reset never inflate attempts. `/lab` is loaded with `React.lazy`, so the coach is not in the main bundle.
