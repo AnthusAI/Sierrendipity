@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "event_id": "95ed144e-663a-4011-a093-85410cc5ae3e",
+  "issue_id": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "event_type": "comment_added",
+  "occurred_at": "2026-10-06T11:38:29.438Z",
+  "actor_id": "home",
+  "payload": {
+    "comment_id": "7eea102a-15ee-42d6-9e46-6b12ad7c2a52",
+    "comment_author": "home",
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity planning"
+    }
+  }
+}
