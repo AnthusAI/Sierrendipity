@@ -3,7 +3,7 @@ import { Terminal } from "@xterm/xterm";
 import type * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 import type { AsmError } from "@sierrendipity/explorer";
 import { CircleAlert, Compass, Cpu, FastForward, FileCode2, Lightbulb, Loader2, LogOut, Play, Plus, RotateCcw, Settings as SettingsIcon, Square, StepBack, StepForward, X } from "lucide-react";
-import { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -61,9 +61,11 @@ interface Props {
   user?: string;
   getIdToken: () => Promise<string | null>;
   onSignOut: () => void;
+  /** The area switcher (Learn / Workspace), shown in the header. */
+  nav?: ReactNode;
 }
 
-export function Ide({ config, user, getIdToken, onSignOut }: Props) {
+export function Ide({ config, user, getIdToken, onSignOut, nav }: Props) {
   const [store, setStore] = useState(loadStore);
   const [status, setStatus] = useState<BackendStatus>("starting");
   const [statusMessage, setStatusMessage] = useState<string>();
@@ -464,6 +466,7 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
         <strong className="flex items-center gap-2 text-base font-semibold tracking-tight">
           <Lightbulb aria-hidden className="size-5 text-link" /> Sierrendipity
         </strong>
+        {nav}
         <Separator orientation="vertical" className="mx-1 h-5" />
         <NativeSelect aria-label="Project" className="max-w-64 truncate" value={store.current} onChange={(e) => setStore({ ...store, current: e.target.value })}>
           {Object.keys(store.projects).map((name) => (

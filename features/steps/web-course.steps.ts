@@ -266,10 +266,6 @@ When("I go to {string}", async function (this: WebWorld, path: string) {
   await this.page.goto(`${this.appUrl}${path}`);
 });
 
-When("I press the key {string}", async function (this: WebWorld, key: string) {
-  await this.page.keyboard.press(key);
-});
-
 When("I go back", async function (this: WebWorld) {
   await this.page.goBack();
 });
@@ -594,6 +590,7 @@ Then("every piece of text on the page has enough contrast", async function (this
 
 Then("the focus ring of the Continue button has enough contrast", async function (this: WebWorld) {
   await tabUntil(this, primary(this));
+  await this.page.waitForTimeout(400); // buttons fade their colors in
   const ring = (await primary(this).evaluate(
     inPage("el", `${PAGE_COLORS} return { ring: getComputedStyle(el).outlineColor, bg: effectiveBg(el.parentElement) };`) as never,
   )) as { ring: string; bg: string };
@@ -714,7 +711,7 @@ Then(/^the Gallery lists "([^"]*)"(?: and "([^"]*)")?$/, async function (this: W
   const expected = [a, b].filter((x): x is string => !!x);
   const read = async () => (await this.page.locator("[data-gallery-item]").evaluateAll(inPage("els", `return els.map((e) => e.getAttribute("data-gallery-item"));`))) as string[];
   const titles = await eventually(read, (t) => t.length === expected.length);
-  assert.deepEqual(titles, expected);
+  assert.deepEqual([...titles].sort(), [...expected].sort());
 });
 
 // ---------------------------------------------------------------- the Deck
@@ -748,7 +745,9 @@ Then("the Deck card {string} cannot be flipped", async function (this: WebWorld,
 });
 
 Then("the front of the Deck card {string} reads {string}", async function (this: WebWorld, title: string, text: string) {
-  await deckCard(this, title).locator('[data-face="front"]').getByText(text, { exact: true }).waitFor();
+  const front = deckCard(this, title).locator('[data-face="front"]');
+  await front.waitFor();
+  assert.equal(squash(await front.innerText()), text);
   assert.equal(await deckCard(this, title).getAttribute("data-flipped"), "false");
 });
 

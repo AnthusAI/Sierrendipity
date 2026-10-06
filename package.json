@@ -24,7 +24,7 @@
     "test:docker": "cucumber-js --profile docker",
     "release": "semantic-release",
     "lesson": "tsx lesson-core/src/node/cli.ts",
-    "lessons:build": "tsx lesson-core/src/node/cli.ts build --all"
+    "lessons:build": "tsx lesson-core/src/node/cli.ts build --all && tsx scripts/build-catalog.ts"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.0.0",
