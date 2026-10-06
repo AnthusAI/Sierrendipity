@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "1c0d5d4c-4219-49af-9b2f-0b362e157672",
+  "issue_id": "SIE-a323150c-f136-417d-a7c7-32c82949cf20",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T14:14:39.956Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Web: handle CRLF in SSE parser, concurrent token refresh, multi-tab project writes",
+    "description": "",
+    "issue_type": "chore",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-7a69ac73-1724-4d79-a8ab-d20d2cf2ce45",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-board"
+    }
+  }
+}

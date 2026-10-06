@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "74a350e3-6274-42c8-88fb-b6681f0a6702",
+  "issue_id": "SIE-1ddd356d-1e3d-4026-878a-9aa537a42777",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T14:14:33.774Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Add GitHub Actions CI (npm test, commitlint on PRs) and a TypeScript Semantic Release workflow adapted from Chatticus",
+    "description": "",
+    "issue_type": "task",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-2b76fcaf-f14b-4459-b580-a9f64738827c",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-board"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "event_id": "8d54e72f-faaa-497d-bf20-d9a7a975ad89",
+  "issue_id": "SIE-8a3baa86-42a7-43f4-9d82-b0bc5954de28",
+  "event_type": "comment_added",
+  "occurred_at": "2026-10-06T14:13:40.704Z",
+  "actor_id": "home",
+  "payload": {
+    "comment_id": "0c205b35-e989-4cc7-95d2-1020b1f5679c",
+    "comment_author": "home",
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-board"
+    }
+  }
+}
