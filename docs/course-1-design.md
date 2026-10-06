@@ -64,6 +64,23 @@ The student already knows functions as the heart of math (input, rule, output), 
 - Negatives can come early (the student knows them); what is new is fixed-size wraparound, where the machine disagrees with algebra, treated as a good surprise.
 - In the C course, `int f(int x) { return x*x + 1; }` compiles in the Explorer to the same multiply and add cards the student already made.
 
+## The Rosetta function: f(x) = x squared plus 1 at every level
+
+Verified with the real `riscv64-unknown-elf-gcc` 12.2 (`-march=rv32im -mabi=ilp32`) and run in our emulator: with x = 7 in a0, both versions leave 50 in a0.
+
+- Algebra: f(x) = x^2 + 1, so f(7) = 50.
+- C: `int f(int x) { return x * x + 1; }`
+- Assembly and machine code at `-Og` (light optimization, the clean one for teaching):
+
+| Address | Word | Assembly | Card |
+|---|---|---|---|
+| 0 | 0x02a50533 | mul a0, a0, a0 | Multiply the box by itself |
+| 4 | 0x00150513 | addi a0, a0, 1 | Add 1 to the box |
+| 8 | 0x00008067 | jalr zero, 0(ra) (ret) | Go back to where you were called from |
+
+- At `-O0` (no optimization) the same function is 11 instructions (6 steps become 14 with the caller): it saves the old frame pointer, copies the argument to the stack, reloads it, multiplies, adds, copies the result back and restores the stack. Words: fe010113 00812e23 02010413 fea42623 fec42783 02f787b3 00178793 00078513 01c12403 02010113 00008067. Showing -O0 next to -Og is the "same C, different effort" lesson.
+- The three-instruction `-Og` version is exactly the two cards the student saved in "Make your own card", plus the return.
+
 ## Course 1: The Machine Follows a List (13 micro-lessons)
 
 1. Wake the Machine (step a four-card program; a2 = 12; cannot fail)
