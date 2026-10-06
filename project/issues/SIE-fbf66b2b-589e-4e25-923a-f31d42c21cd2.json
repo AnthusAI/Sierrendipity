@@ -34,17 +34,29 @@
         "model": "claude-sonnet-5-5",
         "name": "Sierrendipity-orchestrator"
       }
+    },
+    {
+      "id": "a8c905e4-2be5-45a5-a9c4-3bc446a9ad54",
+      "author": "home",
+      "text": "Vertical slice merged and deployed (PRs #13-#16, 2026-10-06): explorer library (verified against GNU as/objdump and riscv-tests), POST /explain with a freestanding RV32 runtime, and the web explorer (assembly, machine code, stepping, registers/memory, Bits card, C Explore linked highlighting). Real end-to-end check on Fargate passed. Remaining for the slice: the maintainer's check of the UI in a real browser, then lessons and the pedagogy pilot. Plan: docs/m9-plan.md; curriculum: docs/curriculum-design.md.",
+      "created_at": "2026-10-06T18:40:42.528181Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-orchestrator"
+      }
     }
   ],
   "created_at": "2026-10-06T16:02:17.056164Z",
-  "updated_at": "2026-10-06T17:50:58.150136Z",
+  "updated_at": "2026-10-06T18:40:42.528250Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity-orchestrator"
   },
-  "right_now_summary": "The team is building a RISC-V learning slice with an emulator, compiler endpoint, and linked web explorer.",
-  "right_now_updated_at": "2026-10-06T17:50:59.508151Z",
+  "right_now_summary": "The RV32IM explorer is deployed; browser checks, lessons, and a student pilot remain.",
+  "right_now_updated_at": "2026-10-06T18:41:03.575391Z",
   "custom": {}
 }

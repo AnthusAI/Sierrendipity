@@ -1,0 +1,25 @@
+{
+  "id": "SIE-02cf3a13-ae09-41de-8847-e601c543c706",
+  "title": "M9.8: Rust on RV32 in the explorer (no_std) and native Rust practice language",
+  "description": "Rust via rustc --emit asm,obj and a no_std runtime crate for the emulator; native Rust as a fourth practice language later. See docs/m9-plan.md for costs (about 590 MB image growth) and noise caveats.",
+  "type": "epic",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "labels": [],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-06T18:41:05.578331Z",
+  "updated_at": "2026-10-06T18:41:05.578370Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity-orchestrator"
+  },
+  "right_now_summary": "The plan covers RV32 no_std Rust support and native Rust as a later practice language.",
+  "right_now_updated_at": "2026-10-06T18:41:07.162734Z",
+  "custom": {}
+}

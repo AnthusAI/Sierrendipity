@@ -3,23 +3,31 @@
   "title": "Runner compiles C for RISC-V and returns image plus line map (/explain)",
   "description": "As the explorer, I need a server endpoint that compiles untrusted C for RV32IM bare metal and returns a program image and instruction-to-line mapping.\n\nFeature: Explain endpoint\n  Scenario: Hello world\n    Given a C hello world\n    When it is sent to /explain\n    Then a program image and instruction list are returned with every executable line mapped\n  Scenario: Hostile compile-time input\n    Given source that includes an infinite file\n    Then the request ends with a limit status and the runner stays healthy",
   "type": "story",
-  "status": "in_progress",
+  "status": "closed",
   "priority": 2,
   "assignee": null,
   "creator": null,
   "parent": "SIE-fbf66b2b-589e-4e25-923a-f31d42c21cd2",
   "labels": [],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "ef94d8a2-81f1-4bd4-9440-384704285cdb",
+      "author": "home",
+      "text": "Verified on real AWS: POST /explain through the deployed proxy on a Fargate task returned a program image and instruction map for a C program with scanf/printf; the image runs correctly in the browser emulator (n=10 gives sum=55, exit 0); the for line maps to non-contiguous groups with distinct columns; no token gives 401. Adversarial review fixed a line-table DoS, aliased symbols and status mapping.",
+      "created_at": "2026-10-06T18:40:31.735857Z",
+      "comment_type": "default"
+    }
+  ],
   "created_at": "2026-10-06T16:25:25.699190Z",
-  "updated_at": "2026-10-06T16:25:55.529322Z",
-  "closed_at": null,
+  "updated_at": "2026-10-06T18:40:37.267008Z",
+  "closed_at": "2026-10-06T18:40:37.266931Z",
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity-orchestrator"
   },
-  "right_now_summary": "The team is building an endpoint that compiles untrusted C and returns code with source-line mappings.",
-  "right_now_updated_at": "2026-10-06T16:25:57.600896Z",
+  "right_now_summary": "The deployed `/explain` endpoint compiles C safely and returns working RISC-V images with precise line maps.",
+  "right_now_updated_at": "2026-10-06T18:40:38.399667Z",
   "custom": {}
 }

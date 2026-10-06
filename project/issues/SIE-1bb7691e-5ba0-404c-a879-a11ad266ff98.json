@@ -1,0 +1,25 @@
+{
+  "id": "SIE-1bb7691e-5ba0-404c-a879-a11ad266ff98",
+  "title": "Measure Fargate cold start with the larger runner image and add an ECR lifecycle rule",
+  "description": "The runner image grew from 688 MB to 898 MB with the RISC-V toolchain. Measure session cold start before and after, and add an ECR lifecycle rule (or cdk gc) so old CDK image assets do not accumulate; keep idle cost under 1 USD per month.",
+  "type": "chore",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-745728ee-aa3c-4dae-8b9c-09f47d9c18e4",
+  "labels": [],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-06T18:40:47.461552Z",
+  "updated_at": "2026-10-06T18:40:47.461579Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity-orchestrator"
+  },
+  "right_now_summary": "The team needs to measure cold-start impact and add ECR cleanup while keeping idle cost below $1 monthly.",
+  "right_now_updated_at": "2026-10-06T18:40:49.649107Z",
+  "custom": {}
+}
