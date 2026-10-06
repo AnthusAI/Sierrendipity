@@ -125,7 +125,7 @@ Feature: Run a multi-file Rust project
     When the project is run
     Then the status is "compile_error"
     And the compiler output mentions "error[E0308]"
-    And the compiler output mentions "main.rs:2:18"
+    And the compiler output mentions "--> main.rs:2:18"
     And the compiler output does not mention "sierrendipity-"
     And the compiler output does not mention "[0m"
     And the program was not executed
@@ -144,7 +144,7 @@ Feature: Run a multi-file Rust project
       """
     When the project is run
     Then the status is "compile_error"
-    And the compiler output mentions "util.rs:1"
+    And the compiler output mentions "--> util.rs:1"
     And the compiler output does not mention "sierrendipity-"
 
   @linux-only

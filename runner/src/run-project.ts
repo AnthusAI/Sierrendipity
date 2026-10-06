@@ -201,7 +201,9 @@ export async function prepare(
     const root = request.entry ?? "main.rs";
     if (!request.files.some((f) => f.path === root)) throw new RequestError(`no ${root}`);
     if (!root.endsWith(".rs")) throw new RequestError("entry must be a .rs file");
-    compiler = [RUSTC, ...RUSTC_FLAGS, "-o", "prog", "./" + path.normalize(root)];
+    // No "./" prefix (it would show in every message), except where a leading "-" would read as a flag.
+    const crateRoot = path.normalize(root);
+    compiler = [RUSTC, ...RUSTC_FLAGS, "-o", "prog", crateRoot.startsWith("-") ? "./" + crateRoot : crateRoot];
   } else {
     const { cmd, ext, flags, libs } = compilers[request.language];
     const sources = request.files.map((f) => "./" + path.normalize(f.path)).filter((p) => p.endsWith(ext));

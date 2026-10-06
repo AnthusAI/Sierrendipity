@@ -152,9 +152,9 @@ Feature: Contain Rust student code
       """
       use std::process::Command;
       fn main() {
-          let out = Command::new("sh")
+          let out = Command::new("bash")
               .arg("-c")
-              .arg("exec 3<>/dev/tcp/93.184.216.34/80 && echo open || echo closed")
+              .arg("exec 3<>/dev/tcp/93.184.216.34/80 2>/dev/null && echo open || echo closed")
               .output()
               .unwrap();
           print!("{}", String::from_utf8_lossy(&out.stdout));
