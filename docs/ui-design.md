@@ -98,6 +98,65 @@ default) and "Reset my progress" (progress, stars and Deck; the Gallery stays). 
 `sierrendipity:progress:<user>`, `sierrendipity:gallery:<user>`, `sierrendipity:learning:<user>`,
 `sierrendipity:session:<user>`. Developer components are shown at `/lab`.
 
+## Cards, the program builder and custom cards (`web/src/cards/`)
+
+The self-guided tutor's cards are plain-English faces over real RISC-V words
+(`docs/course-1-design.md`). Everything below is shown in the developer gallery at `/lab`
+("Cards and builder"), which holds no user data; `features/web/cards-*.feature` drive it.
+
+- **Model** (`model.ts`). `Card = { kind, word, params }` is plain JSON. The word is always rebuilt from kind
+  and params by assembling text with the explorer `assemble` (never hand-encoded); `wordToCard` reads a word
+  back with `decode`. Kinds: put, add-number, add-boxes, subtract-boxes, multiply, save-byte, save, fetch,
+  jump-if-different, jump-if-smaller, stop, custom. Jump offsets are counted in cards (negative goes back).
+- **Face** (`CardFace`). Shows `describe(word, { vocabulary: "boxes" })` with its parts coloured by the
+  `--syntax-*` tokens (verb: keyword, box: register, number: number, shelf: string, label: type) on
+  `bg-editor`, so the editor's contrast checks cover them. The assembly chip is hidden unless `showAssembly`.
+  The number is a `role="spinbutton"` text box (typing, arrows, PageUp/Down, Home/End, limits; announced as
+  "number, 5"); boxes become native selects with `editableBoxes`. Faces are focusable and named by their text.
+- **Builder** (`ProgramBuilder`). Tray, list, undo/redo (Ctrl/Cmd+Z, Shift+Z or Y), remove, duplicate, move
+  up/down buttons, Enter on a tray card to add. `hideEnd` (default) hides the final Stop and shows "the end
+  of the list" (the built program always ends in a hidden `ebreak`, so it halts); with `hideEnd` off a missing
+  Stop is flagged in plain language. `maxCards` is enforced with a friendly message.
+- **Why `@dnd-kit`.** `@dnd-kit/core` + `sortable` + `utilities` give pointer, touch and keyboard drag with
+  live-region announcements, and sortable lists, with no HTML5 drag-and-drop quirks (which have no keyboard
+  or touch story). The tray's cards start a drag only from the pointer; the keyboard adds with Enter and the
+  list's drag handles lift with Space and move with the arrows, as well as buttons. Size: see the PR (about
+  17 kB gzip, 49 kB minified, for the three packages).
+- **Custom cards (functions).** Select two or more neighbouring cards (Select mode, checkboxes) and
+  "Save as card"; a dialog asks for a name. The cards are replaced by one custom card that also appears in the
+  tray. **Convention: the input is box a0 and the answer comes back in box a0.** The input slot on the card is
+  computed from its cards, not a constant: "uses box a0, answer in box a0", "uses boxes a0 and a1, answer in
+  box a0", and scratch boxes are named ("(box t0 is scratch)"). A body may use t0 to t2 as scratch (the
+  caller's t0 to t2 are not preserved) and a1 to a3 (named as "also changes"). A "Peek inside" control lists
+  the cards it is made from, read-only, with the same faces. Names are normalised (NFC, invisible and control
+  characters removed, whitespace collapsed), 1 to 24 characters counted as characters, unique ignoring case,
+  and not the title of a built-in card ("Stop"). Save and undo/redo cover the program and its custom cards together.
+- **`buildProgram(cards, customCards?)`** assembles one text program (with labels, never hand-computed
+  offsets): the main cards, the hidden end marker `ebreak`, then each used custom card's body once, ending in
+  `jalr zero, 0(ra)` (`ret`); a use is `jal ra, <body>`, so calls and returns are real instructions. It
+  returns `{ words, source, map, endAddress, bodies, errors }`. A jump must land on a card or on the end of the
+  list (`Card 3 jumps to a card that is not in your list`), and programs over 200 cards (bodies over 12) are
+  "too big"; with any error `words` is empty.
+- **v1 restrictions.** A custom card body may not contain jumps or branches, another custom card, or Stop
+  (so `ra` never needs saving); it must put its answer in a0 and may change only a0 to a3 and t0 to t2 ("This
+  card changes box t5, which would surprise the program that uses it. Use box a0 for your answer."); at most 6
+  custom cards. The box pickers offer a0 to a7 and t0 to t6 only (no ra, sp, gp, tp); box names such as x10 are
+  normalised to a0 when loading.
+- **Numbers.** Spinners are signed where the word is (put and add a number: -2048 to 2047; the minus sign is
+  shown, arrows step through zero; "Add -3 to box a0" reads as arithmetic). Shelf numbers for save and fetch
+  step by 4 (0 to 2044); a save onto an address the program itself occupies is warned about; shelf 512 is the
+  default. A pixel (sb at 1024 and up) is 0 to 255 and never wraps into a shelf. A jump never moves by 0 cards
+  and its spinner stays inside the list. A rejected typed number shows its rule next to the box.
+- **Undo, focus and keys.** History holds the last 100 changes and starts fresh when a program is loaded.
+  Ctrl or Cmd+Z / Shift+Z / Y work anywhere on the page while a builder is mounted, except inside a text box
+  or an open dialog. Rows keep a stable identity, so focus follows a card that is moved; after removing a card
+  focus goes to its neighbour (or the tray), and after saving a custom card to the new card. Drops are
+  announced with their final position.
+- **Saving.** `programToJson(cards, customCards)` / `programFromJson(text)`:
+  `{ "version": 1, "cards": [Card], "customCards": [{ "name": string, "cards": [Card] }] }`. Loading rebuilds
+  every card through the model, so a stored word can never disagree with its parameters; bad input is refused
+  with "That is not a saved program." and huge input with "That program is too big."
+
 ## Machine diagrams (`web/src/diagrams/`)
 
 Live views of the real machine, shown at `/lab` (the developer component lab, `web/src/lab/`, which holds

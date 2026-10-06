@@ -94,13 +94,16 @@ Machine
 ```ts
 export const CARD_KINDS: readonly CardKind[]; // put, add-number, add-boxes, subtract-boxes, paint-pixel, save, fetch, jump-if-different, jump-if-smaller, stop (Course 1), then copy, do-nothing, jump-if-same, jump-if-not-smaller, jump, jump-to-box, compare, logic, shift, multiply, divide, big-number, ask-system, memory-order, unknown
 export type PartRole = "verb" | "box" | "number" | "shelf" | "label" | "text";
-export interface CardText { kind: CardKind; text: string; parts: { role: PartRole; text: string }[]; fallback: boolean }
+export type PartField = "rd" | "rs1" | "rs2";
+export interface CardPart { role: PartRole; text: string; field?: PartField } // field: set on box parts only
+export interface CardText { kind: CardKind; text: string; parts: CardPart[]; fallback: boolean }
 export function describe(word: number, opts?: { vocabulary?: "boxes" | "registers"; pc?: number }): CardText;
 export function cardsUsed(words: number[]): CardKind[]; // distinct kinds, in CARD_KINDS order (the Instruction Deck)
 ```
 
 - `text` is always the `parts` joined, so the UI can colour parts (a `box` part is "box a0", or
-  "box zero (always 0)"; `shelf` is the address number, `number` an immediate or a card count).
+  "box zero (always 0)", and carries `field` (`rd`, `rs1` or `rs2`) so a UI can tell which box is which
+  even when one register is used twice; `shelf` is the address number, `number` an immediate or a card count).
 - `addi` is read by shape: `addi X, zero, N` is "Put N in box X"; `addi X, X, N` is "Add N to box X"
   (negative: "Take N away from box X"); `addi X, Y, 0` and `add X, zero, Y` are "Copy box Y into box
   X"; `addi zero, zero, 0` is "Do nothing". `sb` with base `zero` and an address in 1024 to 1279 is
