@@ -58,6 +58,39 @@ the student's cards (the loader rejects a trailing `ebreak`), and the player app
 student's cards, `run.words` includes the marker, and `the machine reached the end` is true once the marker has
 run. A later lesson that introduces Stop sets `hideEnd: false` and puts the `ebreak` in the starter.
 
+**The step contract with a hidden end.** The hidden Stop is not a student step. When the last visible card has
+run, `runProgram` and `liveRun` execute the marker automatically, so Step count equals card count (3 cards =
+3 steps). `the machine has taken N steps` and `the program ran at most N steps` count student-visible steps only
+(the machine's own `steps` is one higher once the marker has run; `run.steps` subtracts it), and `maxSteps`
+is a cap on visible steps. `startLive(cards, { hideEnd })`, `pressStep(live)`, `pressBack(live)` (undoes the
+hidden Stop together with the last card) and `liveRunOf(live)` implement this for the player. **When
+conditions apply:** the player evaluates a scene's `until` on the live machine after every student action
+(Step, Back, an edit, an answer); it evaluates `@pass` and the bonus scenarios on the finished run. Because an
+exact count would be overshot by one extra press, scenes may not use exact step counts (`the machine has taken
+3 steps`); use `at least` or `the machine reached the end`.
+
+**Early lessons.** A lesson with `hideEnd: true` and no `pointer` is an early lesson: at most 3 cards
+(starter, solutions, warm-ups) and 5 minutes (`EARLY_MAX_CARDS`, `EARLY_MAX_MINUTES` in `lesson.ts`). Add
+`earlyLesson: false` to opt out explicitly.
+
+**Boxes are enforced.** Every register named by the starter, solutions, warm-ups, `until`, `ask.target` and
+`spotlight: box:` must be in `boxes`; duplicates are rejected; `show` entries that are tabs (`screen`, `hex`, ...)
+must be in `tabs`. Spotlight targets and ghost `point` targets must be real UI targets: `button:step|back|run|pause|reset`,
+`card:<n>` (an existing card), `box:<one of boxes>`, `tab:<one of tabs>`, `diagram:D1`..`D14`.
+
+**Wrong answers.** `onWrong.match` must not be the correct answer, must be a number for a number ask, and
+must not repeat. Any lesson with an `ask` needs a lesson-level `onWrongDefault` reply
+("Not quite yet. Watch what the machine does, then try again.") for every other wrong answer. Cover the
+likely misconceptions with specific, kind replies (lesson 5: 57 digits side by side, 35 the product, 5 and 7
+a box read back, 0 the starting value). The idea "last one wins" holds for put cards, not for add: an add card
+combines two boxes instead of replacing one, so lesson 3 teaches it for put cards only.
+
+**Locks.** A scene may not lock a control its own `until` needs (Step for step or box conditions, Edit for
+`the student edited`, Back for `the student rewound`).
+
+**Length limits.** Hints at most 120 characters, ask and warm-up questions at most 200, `nowYouCan` lines at
+most 80. Sentences are counted by terminators followed by a capital letter, digit or the end of the text.
+
 ### Scenes
 
 ```yaml
@@ -253,6 +286,9 @@ npm run lessons:build                          # write lessons/dist/*.json
 - a solution declared to pass fails `@pass`, or a wrong solution (`earns: []`) passes;
 - a never-terminating solution is not stopped by the step cap, or a solution hits the cap without
   being declared `capped`;
+- an `ask.answer` differs from the value the starter produces in `ask.target`;
+- a scene's `until` phrase is satisfied by neither a declared pass solution (with the student's edits as
+  events) nor the starter, so the scene could never finish (UI-only phrases like `the student rewound` are skipped);
 - the lesson has no `@pass`, no solution earns `pass`, a bonus star is never earned, or there is no
   wrong solution;
 - a warm-up's `target` does not hold `expected`;
@@ -274,6 +310,10 @@ interface ProgressStore {
 }
 ```
 
+- Ids are validated: lesson, concept and star ids match `/^[a-z0-9][a-z0-9/_-]*$/`, user ids are 1 to 64
+  letters, digits or `. _ @ -` (no colon). Records are prototype-free, so `"constructor"` is an ordinary
+  lesson id and `"__proto__"` is rejected. A throwing subscriber is ignored. A clock that returns a non-finite
+  value is refused. At most 500 lessons, 500 concepts and 20 bonuses per lesson, at runtime and on load.
 - `MemoryProgressStore({ now, maxEvents })` is pure; `LocalStorageProgressStore(storage, opts)` takes an
   injected `{ getItem, setItem, removeItem }` and keeps each user under `sierrendipity:progress:<userId>`
   as `{ version: 1, userId, lessons, mastery, events }`.
@@ -289,8 +329,8 @@ interface ProgressStore {
   prediction moves up one box; a missed warm-up or prediction, or Show me, moves down one. `lastSeen`
   is stamped on every change.
 - `pickWarmup(progress, lessons, now)` picks the weakest concept introduced at least a day ago that has a
-  warm-up (lowest box, then longest unseen, then id) and rotates its warm-ups by how many were answered.
+  warm-up in a lesson the student has passed (lowest box, then longest unseen, then id) and rotates its warm-ups by a monotonic per-concept counter (`warmupCounts`), which the capped event log cannot disturb.
 - `courseState(progress, lessons)` returns the path: `lessons` (done with bonuses, current, next dim, fog
-  with titles only), `current`, `next`, `sideRooms` (open when their bonus star is earned) and exactly one
+  with titles only), `current`, `next`, `sideRooms` (open when their lesson is passed and their bonus star earned) and exactly one
   `continueTarget` (`{ kind: "lesson", lessonId }` or `{ kind: "complete" }`). The first unpassed lesson
   is current; passing gates the next lesson and stars never do.

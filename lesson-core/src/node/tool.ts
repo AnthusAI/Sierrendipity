@@ -75,7 +75,13 @@ export function buildLessons(ids: string[], root: string = LESSONS_ROOT): { writ
   const written: string[] = [];
   const errors: string[] = [];
   for (const id of ids) {
-    const { loaded } = loadOne(id, root, concepts);
+    let loaded: ReturnType<typeof loadOne>["loaded"];
+    try {
+      loaded = loadOne(id, root, concepts).loaded;
+    } catch (e) {
+      errors.push(`${id}: cannot read lesson: ${(e as Error).message}`);
+      continue;
+    }
     if (!loaded.ok) {
       errors.push(...loaded.errors.map((e) => `${id}: ${e}`));
       continue;

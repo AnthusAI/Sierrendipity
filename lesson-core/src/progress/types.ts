@@ -5,6 +5,7 @@ export const DEFAULT_MAX_EVENTS = 200;
 export const MAX_LESSONS = 500;
 export const MAX_CONCEPTS = 500;
 export const MAX_ID_LENGTH = 100;
+export const MAX_BONUSES = 20;
 
 /** One try at a lesson goal, as reported by the player after running the checks. */
 export interface Attempt {
@@ -54,6 +55,8 @@ export interface ProgressData {
   userId: string;
   lessons: Record<string, LessonProgress>;
   mastery: Record<string, ConceptMastery>;
+  /** Warm-ups answered per concept: a monotonic counter (the capped event log cannot be used for rotation). */
+  warmupCounts: Record<string, number>;
   /** Newest last; bounded. */
   events: StoredEvent[];
 }
@@ -88,10 +91,14 @@ export const emptyLesson = (): LessonProgress => ({
   lastAttemptAt: null,
 });
 
+/** A record keyed by ids from stored data: no prototype, so keys like "constructor" are just keys. */
+export const bareRecord = <T>(): Record<string, T> => Object.create(null) as Record<string, T>;
+
 export const emptyProgress = (userId: string): ProgressData => ({
   version: PROGRESS_VERSION,
   userId,
-  lessons: {},
-  mastery: {},
+  lessons: bareRecord(),
+  mastery: bareRecord(),
+  warmupCounts: bareRecord(),
   events: [],
 });

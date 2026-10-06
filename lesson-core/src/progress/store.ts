@@ -1,5 +1,8 @@
 import {
   DEFAULT_MAX_EVENTS,
+  MAX_BONUSES,
+  MAX_CONCEPTS,
+  MAX_LESSONS,
   emptyLesson,
   emptyProgress,
   type Attempt,
@@ -52,9 +55,21 @@ export class MemoryProgressStore implements ProgressStore {
     return d;
   }
 
+  private time(): number {
+    const t = this.now();
+    if (typeof t !== "number" || !Number.isFinite(t) || t < 0) throw new RangeError(`the clock returned ${String(t)}; it must be a finite time in milliseconds`);
+    return t;
+  }
+
   private changed(d: ProgressData, change: ProgressChange): void {
     this.persist(d);
-    for (const cb of [...this.listeners]) cb(change);
+    for (const cb of [...this.listeners]) {
+      try {
+        cb(change);
+      } catch {
+        /* a broken subscriber must not break saving or the other subscribers */
+      }
+    }
   }
 
   getLesson(userId: string, lessonId: string): LessonProgress {
@@ -67,12 +82,14 @@ export class MemoryProgressStore implements ProgressStore {
     const bad = lessonIdProblem(lessonId) ?? attemptProblem(attempt);
     if (bad) throw new RangeError(bad);
     const d = this.data(userId);
-    const now = this.now();
+    const now = this.time();
+    if (!(lessonId in d.lessons) && Object.keys(d.lessons).length >= MAX_LESSONS) throw new RangeError(`progress holds at most ${MAX_LESSONS} lessons`);
+    for (const concept of attempt.concepts ?? []) this.room(d, concept);
     const lp = (d.lessons[lessonId] ??= emptyLesson());
     lp.attempts++;
     lp.lastAttemptAt = now;
     // Bonus stars count from any attempt (a different try can earn one); only a pass gates the path.
-    for (const star of attempt.stars) if (star !== "pass" && !lp.bonuses.includes(star)) lp.bonuses.push(star);
+    for (const star of attempt.stars) if (star !== "pass" && !lp.bonuses.includes(star) && lp.bonuses.length < MAX_BONUSES) lp.bonuses.push(star);
     if (attempt.passed) {
       if (!lp.passed) {
         lp.passed = true;
@@ -82,8 +99,10 @@ export class MemoryProgressStore implements ProgressStore {
       lp.bestSteps = lp.bestSteps === null ? attempt.steps : Math.min(lp.bestSteps, attempt.steps);
       for (const concept of attempt.concepts ?? []) {
         const m = d.mastery[concept];
-        if (m) m.lastSeen = now;
-        else d.mastery[concept] = { box: 1, lastSeen: now, introducedAt: now };
+        if (m) {
+          m.lastSeen = now;
+          if (m.box < 1) m.box = 1; // a pass puts a concept at box 1 at least, even after Show me
+        } else d.mastery[concept] = { box: 1, lastSeen: now, introducedAt: now };
       }
     }
     this.changed(d, { userId, kind: "attempt", lessonId });
@@ -94,8 +113,11 @@ export class MemoryProgressStore implements ProgressStore {
     const bad = eventProblem(event);
     if (bad) throw new RangeError(bad);
     const d = this.data(userId);
-    const now = this.now();
+    const now = this.time();
     const e = pickEvent(event);
+    if ("lessonId" in e && e.lessonId && !(e.lessonId in d.lessons) && Object.keys(d.lessons).length >= MAX_LESSONS) throw new RangeError(`progress holds at most ${MAX_LESSONS} lessons`);
+    const touched = e.type === "warmup" ? [e.concept] : "concepts" in e ? (e.concepts ?? []) : [];
+    for (const c of touched) this.room(d, c);
     d.events.push({ ...e, at: now });
     if (d.events.length > this.maxEvents) d.events.splice(0, d.events.length - this.maxEvents);
     const lesson = () => (d.lessons[(e as { lessonId: string }).lessonId] ??= emptyLesson());
@@ -116,11 +138,17 @@ export class MemoryProgressStore implements ProgressStore {
       }
       case "warmup":
         this.move(d, e.concept, e.correct ? 1 : -1, now);
+        d.warmupCounts[e.concept] = (d.warmupCounts[e.concept] ?? 0) + 1;
         break;
       case "stuck":
         break;
     }
     this.changed(d, { userId, kind: "event", ...("lessonId" in e && e.lessonId ? { lessonId: e.lessonId } : {}) });
+  }
+
+  /** Refuse a new concept past the cap (the same cap that is applied when stored data is loaded). */
+  private room(d: ProgressData, concept: string): void {
+    if (!(concept in d.mastery) && Object.keys(d.mastery).length >= MAX_CONCEPTS) throw new RangeError(`progress holds at most ${MAX_CONCEPTS} concepts`);
   }
 
   /** Leitner move: one box up or down, within 0 to 3, stamping last-seen. A concept not seen before starts at 1 going up, 0 going down. */

@@ -233,7 +233,7 @@ Then("the storage holds the key {string} with version {int}", (key: string, vers
   assert.equal(JSON.parse(raw).version, version);
 });
 Then(/^the storage keeps a backup of "(.*)" for "([^"]*)"$/, (raw: string, user: string) => {
-  assert.equal(storage.items.get(`sierrendipity:progress:${user}:backup`), raw);
+  assert.equal(storage.items.get(`sierrendipity:progress-backup:${user}`), raw);
 });
 Then("the load status for {string} is {string}", (user: string, status: string) => assert.equal(asLocal().loadStatus(user), status));
 Then("the last save failed", () => assert.ok(asLocal().lastSaveError));
@@ -326,7 +326,7 @@ Then("the store refuses the student id {string}", (id: string) => {
 });
 Then("the backup of {string} is not under any progress key", (user: string) => {
   const keys = [...storage.items.keys()];
-  const backups = keys.filter((k) => storage.items.get(k) === "{not json");
+  const backups = keys.filter((k) => storage.items.get(k) === "{not json" && k !== `sierrendipity:progress:${user}`);
   assert.equal(backups.length, 1);
   assert.ok(!backups[0]!.startsWith(`sierrendipity:progress:`), backups[0]);
   assert.ok(!backups.some((k) => k === `sierrendipity:progress:${user}:backup`));

@@ -3,7 +3,6 @@
   "events": [
     { "at": 0, "type": "point", "target": "card:0" },
     { "at": 900, "type": "spin", "card": 0, "to": 9438483 },
-    { "at": 1800, "type": "press", "control": "step" },
-    { "at": 2400, "type": "press", "control": "step" }
+    { "at": 1800, "type": "press", "control": "step" }
   ]
 }

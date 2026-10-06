@@ -1,4 +1,4 @@
-import { decode, Machine, registerName } from "@sierrendipity/explorer";
+import { decode, Machine, registerName, type StepResult } from "@sierrendipity/explorer";
 
 /** Something the student did in the UI, recorded as a fact for lesson conditions. */
 export type LessonEvent =
@@ -71,9 +71,32 @@ export function registerNumber(name: string): number | undefined {
 
 const JUMPS = new Set(["beq", "bne", "blt", "bge", "bltu", "bgeu", "jal", "jalr"]);
 
-/** Run a program from address 0 until it stops, faults, waits for input or hits the step cap. */
+/** True once the hidden end marker (Stop) has run: it is the card after the student's last one. */
+function markerRan(machine: Machine, cards: number, hideEnd: boolean): boolean {
+  return hideEnd && machine.state === "halted" && machine.exitCode === null && machine.pc === cards * 4;
+}
+
+/**
+ * With a hidden end, the marker is not a student step: when the last visible card has run, the machine
+ * executes it by itself, so the number of Steps equals the number of cards.
+ */
+function autoStop(machine: Machine, cards: number, hideEnd: boolean): void {
+  if (hideEnd && (machine.state === "ready" || machine.state === "running") && machine.pc === cards * 4) machine.step();
+}
+
+/** Student-visible steps: the machine's steps minus the hidden marker. */
+function visibleSteps(machine: Machine, cards: number, hideEnd: boolean): number {
+  return machine.steps - (markerRan(machine, cards, hideEnd) ? 1 : 0);
+}
+
+/**
+ * Run a program from address 0 until it stops, faults, waits for input or hits the step cap. With
+ * `hideEnd` the end marker is appended and run automatically; `steps` and `maxSteps` count only the
+ * student's cards.
+ */
 export function runProgram(cards: number[], opts: RunOptions = {}): LessonRun {
-  const words = opts.hideEnd ? [...cards, STOP_WORD] : cards;
+  const hideEnd = opts.hideEnd === true;
+  const words = hideEnd ? [...cards, STOP_WORD] : cards;
   const maxSteps = opts.maxSteps ?? DEFAULT_MAX_STEPS;
   let output = "";
   const decoder = new TextDecoder();
@@ -108,6 +131,7 @@ export function runProgram(cards: number[], opts: RunOptions = {}): LessonRun {
   const executed = new Set<string>();
   let laps = 0;
   let hitStepCap = false;
+  autoStop(machine, cards.length, hideEnd);
   while (machine.state === "ready" || machine.state === "running") {
     if (machine.steps >= maxSteps) {
       hitStepCap = true;
@@ -119,8 +143,10 @@ export function runProgram(cards: number[], opts: RunOptions = {}): LessonRun {
     const mnemonic = result.decoded?.mnemonic;
     if (mnemonic) {
       executed.add(mnemonic);
-      if (JUMPS.has(mnemonic) && machine.state === "running" && machine.pc < result.pc) laps++;
+      // A jump or branch that lands on itself or earlier is a lap (a jump to itself is a one-card loop).
+      if (JUMPS.has(mnemonic) && machine.state === "running" && machine.pc <= result.pc) laps++;
     }
+    autoStop(machine, cards.length, hideEnd);
   }
 
   const looks = (opts.events ?? []).filter((e): e is Extract<LessonEvent, { type: "look" }> => e.type === "look");
@@ -132,7 +158,7 @@ export function runProgram(cards: number[], opts: RunOptions = {}): LessonRun {
     output,
     predictions: opts.predictions ?? {},
     events: opts.events ?? [],
-    steps: machine.steps,
+    steps: visibleSteps(machine, cards.length, hideEnd),
     position: opts.position ?? looks.at(-1)?.step,
     executed: [...executed].sort(),
     laps,
@@ -140,21 +166,72 @@ export function runProgram(cards: number[], opts: RunOptions = {}): LessonRun {
   };
 }
 
-/** Wrap a live machine (for example the one in the browser) as a run, with facts supplied by the caller. */
-export function liveRun(machine: Machine, facts: Partial<Omit<LessonRun, "machine" | "steps">> & { words: number[] }): LessonRun {
+/**
+ * Wrap a live machine (for example the one in the browser) as a run, with facts supplied by the caller.
+ * With `hideEnd` the caller's `words` include the end marker; when the last visible card has run this
+ * executes the hidden Stop itself, and `steps` counts only student-visible steps. Evaluate scene
+ * `until` conditions on `liveRun` after every student action, and `@pass` on the finished run.
+ */
+export function liveRun(
+  machine: Machine,
+  facts: Partial<Omit<LessonRun, "machine" | "steps" | "cards">> & { words: number[]; hideEnd?: boolean },
+): LessonRun {
+  const { hideEnd = false, ...rest } = facts;
+  const cards = hideEnd ? facts.words.length - 1 : facts.words.length;
+  autoStop(machine, cards, hideEnd);
   return {
-    cards: facts.words.length,
     output: "",
     predictions: {},
     events: [],
     executed: [],
     laps: 0,
     hitStepCap: false,
-    ...facts,
+    ...rest,
+    cards,
     machine,
-    steps: machine.steps,
+    steps: visibleSteps(machine, cards, hideEnd),
   };
 }
+
+/** A machine the student is stepping through, for the player and for specs. */
+export interface Live {
+  machine: Machine;
+  cards: number;
+  hideEnd: boolean;
+  words: number[];
+  /** Facts the player records: predictions, events, output. Mutate freely. */
+  facts: Partial<Omit<LessonRun, "machine" | "steps" | "cards" | "words">>;
+}
+
+export function startLive(cards: number[], opts: { hideEnd?: boolean; memorySize?: number } = {}): Live {
+  const hideEnd = opts.hideEnd === true;
+  const words = hideEnd ? [...cards, STOP_WORD] : [...cards];
+  const machine = new Machine({ memorySize: opts.memorySize ?? 65536 });
+  const image = new Uint8Array(words.length * 4);
+  words.forEach((w, i) => new DataView(image.buffer).setUint32(i * 4, w >>> 0, true));
+  machine.load(image, 0, 0);
+  autoStop(machine, cards.length, hideEnd);
+  return { machine, cards: cards.length, hideEnd, words, facts: {} };
+}
+
+/** One student Step: runs the next card, then the hidden Stop if that was the last card. Null when the machine cannot step. */
+export function pressStep(live: Live): StepResult | null {
+  const m = live.machine;
+  if (m.state !== "ready" && m.state !== "running") return null;
+  const r = m.step();
+  autoStop(m, live.cards, live.hideEnd);
+  return r;
+}
+
+/** One student Back: undoes the last visible step (and the hidden Stop with it). False at the start. */
+export function pressBack(live: Live): boolean {
+  const m = live.machine;
+  if (visibleSteps(m, live.cards, live.hideEnd) === 0) return false;
+  if (markerRan(m, live.cards, live.hideEnd)) m.stepBack();
+  return m.stepBack();
+}
+
+export const liveRunOf = (live: Live): LessonRun => liveRun(live.machine, { ...live.facts, words: live.words, hideEnd: live.hideEnd });
 
 /** Static mnemonics of a program; words that are not valid cards are skipped. */
 export function mnemonicsOf(words: number[]): string[] {

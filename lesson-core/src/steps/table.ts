@@ -221,7 +221,7 @@ export const PHRASES: Phrase[] = [
   P("the program uses only the cards: addi, add, ebreak", "the program uses only the cards: (?<list>.+)", (g) => {
     const allowed = new Set(mnemonics(g.list));
     return (run) => {
-      const used = new Set([...mnemonicsOf(run.words), ...run.executed]);
+      const used = new Set([...mnemonicsOf(run.words.slice(0, run.cards)), ...run.executed]);
       const bad = [...used].filter((m) => !allowed.has(m)).sort();
       return pass(bad.length === 0, "only allowed cards used", `the program also uses: ${bad.join(", ")}`);
     };
@@ -229,7 +229,7 @@ export const PHRASES: Phrase[] = [
   P("the program does not use: mul, div", "the program does not use: (?<list>.+)", (g) => {
     const banned = new Set(mnemonics(g.list));
     return (run) => {
-      const used = new Set([...mnemonicsOf(run.words), ...run.executed]);
+      const used = new Set([...mnemonicsOf(run.words.slice(0, run.cards)), ...run.executed]);
       const bad = [...used].filter((m) => banned.has(m)).sort();
       return pass(bad.length === 0, "no banned cards used", `the program uses: ${bad.join(", ")}`);
     };
@@ -312,11 +312,18 @@ function distance(a: string, b: string): number {
   return prev[b.length]!;
 }
 
-/** The closest known phrases (by example text) to what was typed. */
+const wordsOf = (t: string): Set<string> => new Set(t.toLowerCase().match(/[a-z0-9]+/g) ?? []);
+
+/** The closest known phrases to what was typed: most shared words first, then edit distance. */
 export function closeMatches(text: string, limit = 3): string[] {
   const t = text.toLowerCase();
-  return PHRASES.map((p) => ({ e: p.example, d: distance(t, p.example.toLowerCase()) }))
-    .sort((x, y) => x.d - y.d)
+  const mine = wordsOf(t);
+  return PHRASES.map((p) => {
+    const theirs = wordsOf(p.example);
+    const shared = [...mine].filter((w) => theirs.has(w)).length;
+    return { e: p.example, shared: shared / (new Set([...mine, ...theirs]).size || 1), d: distance(t, p.example.toLowerCase()) };
+  })
+    .sort((x, y) => y.shared - x.shared || x.d - y.d)
     .slice(0, limit)
     .map((x) => x.e);
 }

@@ -40,8 +40,8 @@ Feature: The lesson checker runs every reference solution
     Examples:
       | file        | find                                    | replace                                   | message                                    |
       | lesson.yaml | answer: 5                               | answer: 6                                 | starter produces 5                         |
-      | lesson.yaml | - the machine has taken at least 1 step | - box a0 holds 99                         | no pass solution satisfies "box a0 holds 99" |
-      | lesson.yaml | - the machine has taken at least 1 step | - the machine has taken at least 50 steps | no pass solution satisfies                 |
+      | lesson.yaml | - the machine has taken at least 1 step | - box a0 holds 99                         | no pass solution (or the starter) satisfies "box a0 holds 99" |
+      | lesson.yaml | - the machine has taken at least 1 step | - the machine has taken at least 50 steps | no pass solution (or the starter) satisfies |
 
   Scenario: The step cap is per solution
     When I replace "{file: forever.s, earns: [], capped: true}" with "{file: forever.s, earns: [], capped: true, maxSteps: 7}" in "solutions/solutions.yaml"

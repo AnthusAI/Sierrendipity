@@ -1,15 +1,21 @@
-import { assemble, parseMachineCode } from "@sierrendipity/explorer";
+import { assemble, decode, parseMachineCode } from "@sierrendipity/explorer";
 import { parse as parseYaml } from "yaml";
 import { parseFeature, GherkinError, type Feature } from "./gherkin/parse";
 import { TARGET_PATTERN, validateGhost, type Ghost } from "./ghost";
 import {
   ASK_KINDS,
+  EARLY_MAX_CARDS,
+  EARLY_MAX_MINUTES,
   LOCKS,
+  MAX_HINT_CHARS,
+  MAX_NOW_YOU_CAN_CHARS,
+  MAX_QUESTION_CHARS,
   MAX_SENTENCES_PER_SCENE,
   MAX_STEPS_CAP,
   MAX_WORDS_PER_SCENE,
   SHOWABLE,
   TABS,
+  knownTarget,
   publishLesson,
   type Ask,
   type Lesson,
@@ -41,7 +47,7 @@ const isStrList = (v: unknown): v is string[] => Array.isArray(v) && v.every((x)
 
 /** Count sentences by their ending punctuation (an unpunctuated tail counts as one). */
 export function countSentences(text: string): number {
-  return text.split(/[.!?]+(?:\s+|$)/).filter((s) => s.trim() !== "").length;
+  return text.split(/[.!?]+(?=\s+[A-Z0-9"'(]|\s*$)/).filter((s) => s.trim() !== "").length;
 }
 export const countWords = (text: string): number => text.split(/\s+/).filter(Boolean).length;
 
@@ -73,7 +79,24 @@ function unknownKeys(obj: Obj, allowed: string[], where: string, errors: string[
   for (const k of Object.keys(obj)) if (!allowed.includes(k)) errors.push(`${where}: unknown key "${k}"`);
 }
 
-function parseScene(raw: unknown, i: number, errors: string[]): Scene | undefined {
+interface SceneCtx {
+  boxes: string[];
+  tabs: string[];
+  cards: number;
+}
+
+/** Which student control a step phrase needs the scene to leave unlocked. */
+function controlNeeded(phrase: string): { control: string; label: string } | undefined {
+  if (/^(?:the )?student edited/i.test(phrase)) return { control: "edit", label: "an edit" };
+  if (/^(?:the )?student toggled/i.test(phrase)) return { control: "toggle", label: "a toggle" };
+  if (/^(?:the )?student rewound/i.test(phrase)) return { control: "back", label: "a rewind" };
+  if (/^(?:the )?student/i.test(phrase) || /^the timeline/i.test(phrase)) return undefined;
+  return { control: "step", label: "steps" };
+}
+
+const boxesIn = (phrase: string): string[] => [...phrase.matchAll(/\bbox (?!zero\b)([a-z]\w*)/gi)].map((m) => m[1]!).filter((b) => registerNumber(b) !== undefined);
+
+function parseScene(raw: unknown, i: number, ctx: SceneCtx, errors: string[]): Scene | undefined {
   if (!isObj(raw)) return void errors.push(`scenes[${i}] must be a mapping`);
   const id = raw.id;
   if (typeof id !== "string" || !/^[a-z0-9-]+$/.test(id)) return void errors.push(`scenes[${i}]: id must be a lowercase slug`);
@@ -89,12 +112,20 @@ function parseScene(raw: unknown, i: number, errors: string[]): Scene | undefine
   }
   const show = raw.show === undefined ? [] : raw.show;
   if (!isStrList(show)) errors.push(`${w}: show must be a list of names`);
-  else for (const s of show) if (!SHOWABLE.includes(s)) errors.push(`${w}: unknown thing to show "${s}" (use ${SHOWABLE.join(", ")})`);
-  if (raw.spotlight !== undefined && !(typeof raw.spotlight === "string" && TARGET_PATTERN.test(raw.spotlight))) {
-    errors.push(`${w}: spotlight ${JSON.stringify(raw.spotlight)} is not a valid target (like "button:step" or "box:a2")`);
+  else
+    for (const s of show) {
+      if (!SHOWABLE.includes(s)) errors.push(`${w}: unknown thing to show "${s}" (use ${SHOWABLE.join(", ")})`);
+      else if ((TABS as readonly string[]).includes(s) && s !== "boxes" && !ctx.tabs.includes(s)) errors.push(`${w}: shows "${s}" but tabs does not include it`);
+    }
+  if (raw.spotlight !== undefined && !(typeof raw.spotlight === "string" && TARGET_PATTERN.test(raw.spotlight) && knownTarget(raw.spotlight, ctx))) {
+    errors.push(`${w}: spotlight ${JSON.stringify(raw.spotlight)} is not a known UI target (button:step, card:<n> of this lesson, box:<one of boxes>, tab:<one of tabs>, diagram:D1)`);
   }
   let ask: Ask | undefined;
-  if (raw.ask !== undefined) ask = parseAsk(raw.ask, w, errors);
+  if (raw.ask !== undefined) {
+    ask = parseAsk(raw.ask, w, errors);
+    if (ask && "target" in ask && ask.target && ask.kind === "number" && !ctx.boxes.includes(ask.target)) errors.push(`${w}: ask uses box ${ask.target} but boxes lists only ${ctx.boxes.join(", ")}`);
+    if (ask && ask.question.length > MAX_QUESTION_CHARS) errors.push(`${w}: ask question is too long (at most ${MAX_QUESTION_CHARS} characters)`);
+  }
 
   const until = raw.until === undefined ? [] : raw.until;
   if (!isStrList(until)) errors.push(`${w}: until must be a list of step phrases`);
@@ -102,6 +133,11 @@ function parseScene(raw: unknown, i: number, errors: string[]): Scene | undefine
     until.forEach((phrase, k) => {
       const p = parseStep(phrase);
       if (!p.ok) errors.push(`${w}: until[${k}]: ${p.error}`);
+      if (/^(?:given |when |then |and |but )?the machine has taken (?!at least)\S+ steps?$/i.test(phrase.trim())) {
+        errors.push(`${w}: until[${k}]: exact step counts are overshot by one extra press; say "the machine has taken at least N steps"`);
+      }
+      for (const b of boxesIn(phrase)) if (!ctx.boxes.includes(b)) errors.push(`${w}: until[${k}] uses box ${b} but boxes lists only ${ctx.boxes.join(", ")}`);
+      if (/\bthe box\b/i.test(phrase) && !ctx.boxes.includes("a0")) errors.push(`${w}: until[${k}] uses box a0 (the box) but boxes lists only ${ctx.boxes.join(", ")}`);
     });
 
   const hints = raw.hints;
@@ -111,21 +147,45 @@ function parseScene(raw: unknown, i: number, errors: string[]): Scene | undefine
   }
   const lock = raw.lock === undefined ? [] : raw.lock;
   if (!isStrList(lock)) errors.push(`${w}: lock must be a list`);
-  else for (const l of lock) if (!(LOCKS as readonly string[]).includes(l)) errors.push(`${w}: unknown lock "${l}" (use ${LOCKS.join(", ")})`);
+  else {
+    for (const l of lock) if (!(LOCKS as readonly string[]).includes(l)) errors.push(`${w}: unknown lock "${l}" (use ${LOCKS.join(", ")})`);
+    if (Array.isArray(until) && isStrList(until)) {
+      for (const phrase of until) {
+        const need = controlNeeded(phrase.replace(/^(?:given|when|then|and|but)\s+/i, ""));
+        if (need && lock.includes(need.control)) errors.push(`${w}: locks ${need.control[0]!.toUpperCase()}${need.control.slice(1)} but waits for ${need.label} ("${phrase}")`);
+      }
+    }
+  }
+  if (Array.isArray(hints)) for (const h of hints) if (typeof h === "string" && h.length > MAX_HINT_CHARS) errors.push(`${w}: a hint is too long (at most ${MAX_HINT_CHARS} characters)`);
   if (raw.skippable !== undefined && typeof raw.skippable !== "boolean") errors.push(`${w}: skippable must be true or false`);
   if (raw.showMe !== undefined && !isStr(raw.showMe)) errors.push(`${w}: showMe must be a ghost id`);
 
   const onWrong: OnWrong[] = [];
   if (raw.onWrong !== undefined) {
     if (!Array.isArray(raw.onWrong)) errors.push(`${w}: onWrong must be a list`);
-    else
+    else if (!ask) errors.push(`${w}: onWrong needs an ask to react to`);
+    else {
+      const seen = new Set<string>();
       raw.onWrong.forEach((o, k) => {
+        if (isObj(o) && (typeof o.match === "number" || typeof o.match === "string")) {
+          const key = String(o.match);
+          if (seen.has(key)) errors.push(`${w}: duplicate onWrong match ${key}`);
+          seen.add(key);
+          if (ask!.kind === "number") {
+            if (typeof o.match !== "number") errors.push(`${w}: onWrong[${k}]: a number ask needs a number match, not ${JSON.stringify(o.match)}`);
+            else if (o.match === ask!.answer) errors.push(`${w}: onWrong[${k}]: match ${o.match} is the correct answer`);
+          } else if (ask!.kind === "choice") {
+            const right = ask!.choices[ask!.answer];
+            if (o.match === right || o.match === ask!.answer) errors.push(`${w}: onWrong[${k}]: match ${JSON.stringify(o.match)} is the correct answer`);
+          }
+        }
         if (!isObj(o) || !(typeof o.match === "number" || isStr(o.match)) || !isStr(o.say)) return void errors.push(`${w}: onWrong[${k}] needs match (a number or text) and say`);
         unknownKeys(o, ["match", "say", "goto"], `${w}: onWrong[${k}]`, errors);
         if (countWords(o.say) > MAX_WORDS_PER_SCENE || countSentences(o.say) > MAX_SENTENCES_PER_SCENE) errors.push(`${w}: onWrong[${k}].say is too long (at most ${MAX_SENTENCES_PER_SCENE} sentences, ${MAX_WORDS_PER_SCENE} words)`);
         if (o.goto !== undefined && !isStr(o.goto)) errors.push(`${w}: onWrong[${k}].goto must be a scene id`);
         onWrong.push({ match: o.match as number | string, say: o.say, ...(o.goto ? { goto: String(o.goto) } : {}) });
       });
+    }
   }
   if (errors.length > n) return undefined;
   return {
@@ -236,6 +296,7 @@ export function loadLesson(files: Record<string, string>, opts: LoadOptions = {}
 
   const stars = new Set(feature?.scenarios.flatMap((s) => (s.tags.includes("pass") ? ["pass"] : s.tags.filter((t) => t.startsWith("star=")).map((t) => t.slice(5)))) ?? []);
   const solutions = parseSolutions(files, stars, lesson?.hideEnd === true, errors);
+  if (lesson) lessonLimits(lesson, solutions, errors);
 
   if (errors.length || !lesson || !feature) return { ok: false, errors };
   return { ok: true, lesson: { ...lesson, checks: feature, solutions } };
@@ -244,7 +305,7 @@ export function loadLesson(files: Record<string, string>, opts: LoadOptions = {}
 function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set<string> | undefined, dir: string | undefined, errors: string[]): Omit<Lesson, "solutions" | "checks"> | undefined {
   const n = errors.length;
   if (!isObj(raw)) return void errors.push("lesson.yaml: must be a mapping");
-  unknownKeys(raw, ["id", "title", "minutes", "concepts", "boxes", "pointer", "hideEnd", "starter", "tabs", "scenes", "nowYouCan", "warmups", "sideRooms"], "lesson.yaml", errors);
+  unknownKeys(raw, ["id", "title", "minutes", "concepts", "boxes", "pointer", "hideEnd", "earlyLesson", "onWrongDefault", "starter", "tabs", "scenes", "nowYouCan", "warmups", "sideRooms"], "lesson.yaml", errors);
 
   if (!isStr(raw.id) || !/^[a-z0-9]+\/[a-z0-9-]+$/.test(raw.id)) errors.push('lesson.yaml: id must look like "c1/01-press-the-button"');
   else if (dir !== undefined && raw.id !== dir) errors.push(`lesson.yaml: id "${raw.id}" does not match the directory "${dir}"`);
@@ -268,13 +329,20 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
 
   const boxes = raw.boxes;
   if (!(isStrList(boxes) && boxes.length > 0 && boxes.every((b) => registerNumber(b) !== undefined))) errors.push("lesson.yaml: boxes must be a non-empty list of box names (like a0, a1)");
-  for (const key of ["pointer", "hideEnd"] as const) if (raw[key] !== undefined && typeof raw[key] !== "boolean") errors.push(`lesson.yaml: ${key} must be true or false`);
+  if (isStrList(boxes)) boxes.forEach((b, i) => { if (boxes.indexOf(b) !== i) errors.push(`lesson.yaml: duplicate box "${b}" in boxes`); });
+  for (const key of ["pointer", "hideEnd", "earlyLesson"] as const) if (raw[key] !== undefined && typeof raw[key] !== "boolean") errors.push(`lesson.yaml: ${key} must be true or false`);
   const hideEnd = raw.hideEnd === true;
   const endProblem = (p: Program | undefined, where: string): void => {
     if (hideEnd && p && p.words.at(-1) === STOP_WORD) errors.push(`${where}: with hideEnd the end marker is added for you; remove the final Stop card (ebreak)`);
   };
+  const boxList = isStrList(boxes) ? boxes : [];
+  const boxProblem = (p: Program | undefined, where: string): void => {
+    if (!p || boxList.length === 0) return;
+    for (const r of registersIn(p.words)) if (!boxList.includes(r)) errors.push(`${where}: uses box ${r} but boxes lists only ${boxList.join(", ")}`);
+  };
   const starter = programOf(raw.starter, "starter", errors);
   endProblem(starter, "starter");
+  boxProblem(starter, "starter");
   const tabs = raw.tabs ?? [];
   if (!isStrList(tabs)) errors.push("lesson.yaml: tabs must be a list");
   else for (const t of tabs) if (!(TABS as readonly string[]).includes(t)) errors.push(`lesson.yaml: unknown tab "${t}" (use ${TABS.join(", ")})`);
@@ -287,7 +355,7 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
       const id = isObj(s) && typeof s.id === "string" ? s.id : undefined;
       if (id && ids.has(id)) errors.push(`lesson.yaml: duplicate scene id "${id}"`);
       if (id) ids.add(id);
-      const scene = parseScene(s, i, errors);
+      const scene = parseScene(s, i, { boxes: boxList, tabs: isStrList(tabs) ? tabs : [], cards: starter?.words.length ?? 0 }, errors);
       if (scene) scenes.push(scene);
     });
     for (const s of scenes) {
@@ -300,7 +368,21 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
 
   const nowYouCan = raw.nowYouCan ?? [];
   if (!isStrList(nowYouCan)) errors.push("lesson.yaml: nowYouCan must be a list of short lines");
+  else for (const line of nowYouCan) if (line.length > MAX_NOW_YOU_CAN_CHARS) errors.push(`lesson.yaml: nowYouCan line is too long (at most ${MAX_NOW_YOU_CAN_CHARS} characters): "${line}"`);
 
+  let onWrongDefault: string | undefined;
+  if (raw.onWrongDefault !== undefined) {
+    if (!isStr(raw.onWrongDefault) || countSentences(raw.onWrongDefault) > MAX_SENTENCES_PER_SCENE || countWords(raw.onWrongDefault) > MAX_WORDS_PER_SCENE) errors.push(`lesson.yaml: onWrongDefault must be text of at most ${MAX_SENTENCES_PER_SCENE} sentences and ${MAX_WORDS_PER_SCENE} words`);
+    else onWrongDefault = raw.onWrongDefault;
+  }
+  if (scenes.some((sc) => sc.ask) && onWrongDefault === undefined && raw.onWrongDefault === undefined) errors.push("lesson.yaml: this lesson asks questions, so it needs an onWrongDefault reply for any other wrong answer");
+
+  // Ghost pointing must name real UI targets.
+  for (const [id, g] of Object.entries(ghosts)) {
+    g.events.forEach((e, k) => {
+      if (e.type === "point" && !knownTarget(e.target, { boxes: boxList, tabs: isStrList(tabs) ? tabs : [], cards: starter?.words.length ?? 0 })) errors.push(`ghost "${id}": events[${k}].target "${e.target}" is not a known UI target`);
+    });
+  }
   const warmups: Warmup[] = [];
   const wl = raw.warmups ?? [];
   if (!Array.isArray(wl)) errors.push("lesson.yaml: warmups must be a list");
@@ -311,6 +393,7 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
       unknownKeys(w, ["id", "concept", "question", "program", "target", "expected", "startRegs"], where, errors);
       if (!isStr(w.concept) || !concepts.introduces.includes(w.concept)) errors.push(`${where}: concept "${String(w.concept)}" must be a concept this lesson introduces`);
       if (!isStr(w.question)) errors.push(`${where}: question must be non-empty text`);
+      else if (w.question.length > MAX_QUESTION_CHARS) errors.push(`${where}: question is too long (at most ${MAX_QUESTION_CHARS} characters)`);
       if (typeof w.expected !== "number") errors.push(`${where}: expected must be a number`);
       if (!(typeof w.target === "string" && registerNumber(w.target) !== undefined)) errors.push(`${where}: target: no box called '${String(w.target)}'`);
       let startRegs: Record<string, number> | undefined;
@@ -320,6 +403,8 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
       }
       const program = programOf(w.program, `${where}: program`, errors);
       endProblem(program, `${where}: program`);
+      boxProblem(program, `${where}: program`);
+      if (typeof w.target === "string" && registerNumber(w.target) !== undefined && boxList.length && !boxList.includes(w.target)) errors.push(`${where}: target uses box ${w.target} but boxes lists only ${boxList.join(", ")}`);
       if (program && typeof w.expected === "number" && isStr(w.concept) && isStr(w.question) && typeof w.target === "string") {
         warmups.push({ id: w.id, concept: w.concept, question: w.question, program, target: w.target, expected: w.expected, ...(startRegs ? { startRegs } : {}) });
       }
@@ -343,6 +428,8 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
     boxes: boxes as string[],
     pointer: raw.pointer === true,
     hideEnd,
+    earlyLesson: raw.earlyLesson !== false,
+    ...(onWrongDefault ? { onWrongDefault } : {}),
     starter,
     tabs: tabs as string[],
     scenes,
@@ -351,6 +438,35 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
     sideRooms,
     ghosts,
   };
+}
+
+const REGISTER_WORD = /\b(zero|ra|sp|gp|tp|fp|[ast]\d+|x\d+)\b/g;
+
+/** Boxes (registers other than zero) a program names, by ABI name. */
+export function registersIn(words: number[]): string[] {
+  const out = new Set<string>();
+  for (const w of words) {
+    const d = decode(w);
+    if (!d) continue;
+    for (const m of d.operands.matchAll(REGISTER_WORD)) if (m[1] !== "zero") out.add(m[1]!);
+  }
+  return [...out].sort();
+}
+
+/** Checks that need the whole lesson: solutions use only the shown boxes, and early lessons stay tiny. */
+function lessonLimits(lesson: Omit<Lesson, "solutions" | "checks">, solutions: SolutionDecl[], errors: string[]): void {
+  for (const sol of solutions) {
+    for (const r of registersIn(sol.words)) if (!lesson.boxes.includes(r)) errors.push(`solutions/${sol.file}: uses box ${r} but boxes lists only ${lesson.boxes.join(", ")}`);
+  }
+  if (lesson.hideEnd && !lesson.pointer && lesson.earlyLesson) {
+    const over = (words: number[], where: string) => {
+      if (words.length > EARLY_MAX_CARDS) errors.push(`${where}: an early lesson has at most ${EARLY_MAX_CARDS} cards (add "earlyLesson: false" to opt out)`);
+    };
+    over(lesson.starter.words, "starter");
+    for (const w of lesson.warmups) over(w.program.words, `warmup "${w.id}"`);
+    for (const sol of solutions) over(sol.words, `solutions/${sol.file}`);
+    if (lesson.minutes > EARLY_MAX_MINUTES) errors.push(`lesson.yaml: an early lesson takes at most ${EARLY_MAX_MINUTES} minutes (add "earlyLesson: false" to opt out)`);
+  }
 }
 
 function parseSolutions(files: Record<string, string>, stars: Set<string>, hideEnd: boolean, errors: string[]): SolutionDecl[] {

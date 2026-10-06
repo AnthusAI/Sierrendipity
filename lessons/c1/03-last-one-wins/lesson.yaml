@@ -11,9 +11,10 @@ hideEnd: true
 starter:
   hex: ["0x00300513", "0x00800513"]   # put 3 in box a0, then put 8 in box a0
 tabs: [cards]
+onWrongDefault: Not quite yet. Watch what the machine does, then try again.
 scenes:
   - id: look
-    say: Two cards now. Both put a number in the same box.
+    say: Two cards now, and both put a number in the same box. Press Continue when you are ready.
     show: [cards, boxes]
 
   - id: predict
@@ -26,15 +27,24 @@ scenes:
       target: a0
       answer: 8
     hints:
-      - The machine does the first card, then the second.
-      - The second card puts its number in the same box.
-      - The second number is the one left in the box.
+      - Which card does the machine follow last?
+      - Each card puts its number in the same box, replacing what was there.
+      - The last card puts 8 in the box.
     onWrong:
       - match: 3
-        say: That's what the first card put in. The second card runs after it, so let's watch.
+        say: That is what the first card put in. The second card runs after it, so let's watch.
         goto: watch
       - match: 11
         say: You added them, but these cards don't add. Each puts a number in, and the second replaces the first.
+        goto: watch
+      - match: 38
+        say: That puts the digits side by side. Each card puts in one number, and the second replaces the first.
+        goto: watch
+      - match: 5
+        say: That is the difference of the two numbers, but these cards don't subtract. The second card replaces the first.
+        goto: watch
+      - match: 0
+        say: The box does not end up empty. Each card puts a number in, so let's watch.
         goto: watch
     lock: [edit, drag, toggle]
 
@@ -46,14 +56,14 @@ scenes:
       - the machine has taken at least 2 steps
       - the box shows 8
     hints:
-      - Press the Step button.
-      - Press it a second time.
-      - After two steps the box shows 8.
+      - Which button follows the next card?
+      - Each press follows one card, and the second card comes after the first.
+      - After two presses the box shows 8.
     showMe: demo-step-twice
     lock: [edit, drag, toggle]
 
   - id: done
-    say: The last card to run wins, because it replaces what was in the box.
+    say: When cards put numbers in the same box, the last one wins. Press Continue to finish.
     show: [cards, boxes]
 nowYouCan:
   - Guess what a list of cards will do.

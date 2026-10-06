@@ -11,9 +11,10 @@ hideEnd: true
 starter:
   hex: ["0x00500513", "0x00700593", "0x00b50633"]   # put 5 in a0, put 7 in a1, add a0 and a1 into a2
 tabs: [cards]
+onWrongDefault: Not quite yet. Watch what the machine does, then try again.
 scenes:
   - id: meet
-    say: Three cards now, and a third box. The last card adds the first two boxes.
+    say: A third box, a2, has appeared. Its name is just a label; press Continue.
     show: [cards, boxes]
     spotlight: "box:a2"
 
@@ -26,9 +27,9 @@ scenes:
       - box a0 holds 5
       - box a1 holds 7
     hints:
-      - Press the Step button.
-      - Press it a second time.
-      - Box a0 gets 5 and box a1 gets 7.
+      - Which button follows the next card?
+      - Each press follows one card, and the first two cards fill boxes.
+      - Press Step twice. Box a0 gets 5 and box a1 gets 7.
     showMe: demo-step-twice
     lock: [edit, drag, toggle]
 
@@ -42,12 +43,24 @@ scenes:
       target: a2
       answer: 12
     hints:
-      - Box a0 holds 5 and box a1 holds 7.
-      - Add means the numbers are added, like 2 and 3 make 5.
-      - 5 plus 7 is 12.
+      - Which two boxes does the add card use?
+      - Adding puts the two amounts together, like 2 and 3 making 5.
+      - Box a0 holds 5 and box a1 holds 7, so a2 gets 12.
     onWrong:
       - match: 57
-        say: Close! Adding is not gluing digits together, so let's watch.
+        say: That puts the digits side by side. This card adds them, so let's watch.
+        goto: watch-add
+      - match: 5
+        say: That is what box a0 holds. The add card puts the total in box a2.
+        goto: watch-add
+      - match: 7
+        say: That is what box a1 holds. The add card puts the total in box a2.
+        goto: watch-add
+      - match: 0
+        say: Box a2 starts at 0, but the add card changes it. Let's watch.
+        goto: watch-add
+      - match: 35
+        say: That is 5 times 7. This card adds.
         goto: watch-add
     lock: [edit, drag, toggle]
 
@@ -59,8 +72,8 @@ scenes:
       - the machine has taken at least 3 steps
       - box a2 holds 12
     hints:
-      - Press the Step button again.
-      - Watch box a2 while the add card runs.
+      - Which button follows the add card?
+      - The add card reads a0 and a1 and writes box a2.
       - Press Step. Box a2 will change to 12.
     showMe: demo-step
     lock: [edit, drag, toggle]

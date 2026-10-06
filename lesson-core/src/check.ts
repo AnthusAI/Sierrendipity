@@ -1,6 +1,7 @@
 import type { Lesson } from "./lesson";
 import { earnedStars, runChecks, starOf } from "./steps/checks";
 import { DEFAULT_MAX_STEPS, registerNumber, runProgram } from "./steps/run";
+import { parseStep } from "./steps/table";
 
 export interface SolutionReport {
   file: string;
@@ -59,6 +60,8 @@ export function checkLesson(lesson: Lesson): LessonReport {
     return { file: decl.file, declared: decl.earns, earned, steps: run.steps, cards: run.cards, hitStepCap: run.hitStepCap, problems: out };
   });
 
+  sceneProblems(lesson, problems);
+
   for (const w of lesson.warmups) {
     const run = runProgram(w.program.words, { hideEnd: lesson.hideEnd, ...(w.startRegs ? { startRegs: w.startRegs } : {}) });
     const index = registerNumber(w.target);
@@ -69,4 +72,36 @@ export function checkLesson(lesson: Lesson): LessonReport {
 
   for (const s of solutions) for (const p of s.problems) problems.push(`${s.file}: ${p}`);
   return { id: lesson.id, solutions, problems, ok: problems.length === 0 };
+}
+
+/** Phrases about the student's UI actions that no reference solution run can show. */
+const UI_ONLY = /^(?:the student (?:rewound|toggled)|the timeline)/i;
+
+/** Scene content must agree with the machine: asks have the right answer, untils can be met. */
+function sceneProblems(lesson: Lesson, problems: string[]): void {
+  const starterRun = runProgram(lesson.starter.words, { hideEnd: lesson.hideEnd });
+  for (const sc of lesson.scenes) {
+    if (sc.ask?.kind === "number" && sc.ask.target) {
+      const index = registerNumber(sc.ask.target);
+      const have = index === undefined ? undefined : starterRun.machine.regs[index]! | 0;
+      if (have !== (sc.ask.answer | 0)) problems.push(`scene "${sc.id}": ask answer ${sc.ask.answer} but the starter produces ${have} in ${sc.ask.target}`);
+    }
+  }
+
+  const passing = lesson.solutions.filter((d) => d.earns.includes("pass"));
+  const runs = passing.map((d) => {
+    // The student's edits are the cards that differ from the starter.
+    const events = d.words.flatMap((w, card) => (w !== lesson.starter.words[card] ? [{ type: "edit" as const, card, to: w }] : []));
+    return runProgram(d.words, { predictions: d.predictions, hideEnd: lesson.hideEnd, starter: lesson.starter.words, events, maxSteps: d.maxSteps ?? DEFAULT_MAX_STEPS });
+  });
+  // A scene may also describe the machine before the student has changed anything: the starter itself.
+  runs.push(starterRun);
+  for (const sc of lesson.scenes) {
+    for (const phrase of sc.until) {
+      if (UI_ONLY.test(phrase)) continue;
+      const parsed = parseStep(phrase);
+      if (!parsed.ok) continue;
+      if (!runs.some((r) => parsed.fn(r).ok)) problems.push(`scene "${sc.id}": no pass solution (or the starter) satisfies "${phrase}", so the scene could never finish`);
+    }
+  }
 }

@@ -14,7 +14,7 @@ starter:
 tabs: [cards]
 scenes:
   - id: meet
-    say: This is a tiny machine. It has one card and one box.
+    say: This tiny machine has one card and one box. Press Continue when you are ready.
     show: [cards, boxes]
 
   - id: press-step
@@ -24,14 +24,19 @@ scenes:
     until:
       - the machine has taken at least 1 step
     hints:
-      - The Step button is under the card.
-      - Press Step once.
-      - Press Step. The box will change.
+      - Do you see the Step button under the card?
+      - A card is an instruction, and Step makes the machine follow it.
+      - Click Step once. The box will change.
     showMe: demo-step
     lock: [edit, drag, toggle]
 
   - id: did-it
-    say: It did what the card said. The box now shows 5.
+    say: It did what the card said, and the box shows 5. Press Continue.
+    show: [cards, boxes]
+    spotlight: "box:a0"
+
+  - id: names
+    say: The small letters on the box, a0, are just its name. Press Continue to finish.
     show: [cards, boxes]
     spotlight: "box:a0"
 nowYouCan:

@@ -87,6 +87,10 @@ export interface Lesson {
    * "the end of the list" until a later lesson introduces Stop.
    */
   hideEnd: boolean;
+  /** The reply to any wrong answer not covered by a scene's onWrong; required when any scene asks. */
+  onWrongDefault?: string;
+  /** False opts a hidden-end, pointer-less lesson out of the early-lesson caps. */
+  earlyLesson: boolean;
   starter: Program;
   tabs: string[];
   scenes: Scene[];
@@ -112,4 +116,31 @@ export const MAX_STEPS_CAP = 1_000_000;
 export function publishLesson(lesson: Lesson): PublishedLesson {
   const { solutions: _solutions, ...rest } = lesson;
   return { ...rest, format: 1 };
+}
+
+/** Early lessons (hidden end, no pointer) stay tiny unless the lesson says `earlyLesson: false`. */
+export const EARLY_MAX_CARDS = 3;
+export const EARLY_MAX_MINUTES = 5;
+export const MAX_HINT_CHARS = 120;
+export const MAX_QUESTION_CHARS = 200;
+export const MAX_NOW_YOU_CAN_CHARS = 80;
+export const UI_BUTTONS = ["step", "back", "run", "pause", "reset"] as const;
+
+/** Is this a UI target the player really has, given the lesson's boxes, tabs and card count? */
+export function knownTarget(target: string, ctx: { boxes: string[]; tabs: string[]; cards: number }): boolean {
+  const [kind, name = ""] = target.split(":");
+  switch (kind) {
+    case "button":
+      return (UI_BUTTONS as readonly string[]).includes(name);
+    case "card":
+      return /^\d+$/.test(name) && Number(name) < Math.max(ctx.cards, 1);
+    case "box":
+      return ctx.boxes.includes(name);
+    case "tab":
+      return ctx.tabs.includes(name);
+    case "diagram":
+      return /^D([1-9]|1[0-4])$/.test(name);
+    default:
+      return false;
+  }
 }

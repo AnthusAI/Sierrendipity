@@ -25,7 +25,7 @@ Given("the known concepts are {string}", (list: string) => {
 When(/^I replace "([\s\S]*?)" with "([\s\S]*)" in "([^"]*)"$/, (find: string, replace: string, file: string) => {
   const text = files[file];
   assert.ok(text !== undefined, `no file ${file}`);
-  const unescape = (t: string) => t.replace(/\\n/g, "\n");
+  const unescape = (t: string) => t.replace(/\\n/g, "\n").replace(/\\"/g, '"');
   assert.ok(text.includes(unescape(find)), `${file} does not contain ${find}`);
   files[file] = text.replace(unescape(find), () => unescape(replace));
 });

@@ -1,8 +1,10 @@
 import {
   DEFAULT_MAX_EVENTS,
   MAX_CONCEPTS,
+  MAX_BONUSES,
   MAX_ID_LENGTH,
   MAX_LESSONS,
+  bareRecord,
   PROGRESS_VERSION,
   emptyLesson,
   emptyProgress,
@@ -17,16 +19,19 @@ import {
 
 type Obj = Record<string, unknown>;
 const isObj = (v: unknown): v is Obj => typeof v === "object" && v !== null && !Array.isArray(v);
-const isId = (v: unknown): v is string => typeof v === "string" && v.length > 0 && v.length <= MAX_ID_LENGTH;
+/** Lesson, concept, star and scene ids: lowercase slugs that cannot be "__proto__" and never contain ":". */
+const ID_PATTERN = /^[a-z0-9][a-z0-9/_-]*$/;
+const USER_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._@-]*$/;
+const isId = (v: unknown): v is string => typeof v === "string" && v.length <= MAX_ID_LENGTH && ID_PATTERN.test(v);
 const isCount = (v: unknown): v is number => typeof v === "number" && Number.isInteger(v) && v >= 0 && v <= 1e9;
 const isTime = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v) && v >= 0;
 
 /** Problems with a user id; null when fine. */
 export function userIdProblem(userId: unknown): string | null {
-  return typeof userId === "string" && userId.length > 0 && userId.length <= 64 ? null : "user id must be a non-empty string up to 64 characters";
+  return typeof userId === "string" && userId.length <= 64 && USER_PATTERN.test(userId) ? null : "user id must be 1 to 64 letters, digits or . _ @ - (no colons)";
 }
 export function lessonIdProblem(id: unknown): string | null {
-  return isId(id) ? null : `lesson id must be a non-empty string up to ${MAX_ID_LENGTH} characters`;
+  return isId(id) ? null : `lesson id must be a lowercase slug like "c1/01-press-the-button" (up to ${MAX_ID_LENGTH} characters)`;
 }
 
 export function attemptProblem(a: unknown): string | null {
@@ -90,7 +95,7 @@ function sanitizeLesson(raw: unknown): LessonProgress | null {
   const hints = Array.isArray(raw.hintsUsed) ? raw.hintsUsed : [];
   return {
     passed: raw.passed === true,
-    bonuses: Array.isArray(raw.bonuses) ? [...new Set(raw.bonuses.filter(isId).filter((s) => s !== "pass"))].slice(0, 20) : base.bonuses,
+    bonuses: Array.isArray(raw.bonuses) ? [...new Set(raw.bonuses.filter(isId).filter((s) => s !== "pass"))].slice(0, MAX_BONUSES) : base.bonuses,
     bestCards: isCount(raw.bestCards) ? raw.bestCards : null,
     bestSteps: isCount(raw.bestSteps) ? raw.bestSteps : null,
     hintsUsed: [0, 1, 2].map((i) => (isCount(hints[i]) ? hints[i] : 0)) as [number, number, number],
@@ -136,6 +141,9 @@ export function parseProgress(raw: string, userId: string, maxEvents: number = D
   if (value.events !== undefined && !Array.isArray(value.events)) return { status: "corrupt" };
 
   const data = emptyProgress(userId);
+  if (isObj(value.warmupCounts)) {
+    for (const [id, n] of Object.entries(value.warmupCounts).slice(0, MAX_CONCEPTS)) if (isId(id) && isCount(n)) data.warmupCounts[id] = n;
+  }
   for (const [id, l] of Object.entries(value.lessons).slice(0, MAX_LESSONS)) {
     const lp = isId(id) ? sanitizeLesson(l) : null;
     if (lp) data.lessons[id] = lp;

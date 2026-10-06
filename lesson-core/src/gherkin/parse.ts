@@ -42,9 +42,13 @@ export function parseFeature(text: string): Feature {
   text.split(/\r\n|\r|\n/).forEach((raw, index) => {
     const line = index + 1;
     const t = raw.trim();
+    if (/^#\s*language\s*:/i.test(t)) throw new GherkinError(line, "language headers are not supported (lesson checks are English only)");
     if (t === "" || t.startsWith("#")) return;
     if (t.startsWith("@")) {
-      tags.push(...t.split(/\s+/).filter((x) => x.startsWith("@")).map((x) => x.slice(1)));
+      for (const tag of t.split(/\s+/)) {
+        if (!/^@[A-Za-z0-9_=.-]+$/.test(tag)) throw new GherkinError(line, `'${tag}' is not a valid tag (separate tags with spaces)`);
+        tags.push(tag.slice(1));
+      }
       return;
     }
     if (t.startsWith("|") || t.startsWith('"""') || t.startsWith("```")) {

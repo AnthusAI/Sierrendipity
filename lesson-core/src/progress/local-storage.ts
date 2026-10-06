@@ -11,10 +11,12 @@ export interface StorageLike {
 
 export const PROGRESS_KEY_PREFIX = "sierrendipity:progress:";
 export const progressKey = (userId: string): string => `${PROGRESS_KEY_PREFIX}${userId}`;
+/** Backups live under a different prefix, so no user id can make one collide with another user's record. */
+export const backupKey = (userId: string): string => `sierrendipity:progress-backup:${userId}`;
 
 /**
  * Progress persisted in localStorage under `sierrendipity:progress:<userId>`, versioned and validated
- * on load. Unreadable data falls back to an empty record and is kept under `<key>:backup`.
+ * on load. Unreadable data falls back to an empty record and is kept under `sierrendipity:progress-backup:<userId>`.
  */
 export class LocalStorageProgressStore extends MemoryProgressStore {
   private readonly statuses = new Map<string, LoadStatus>();
@@ -51,7 +53,7 @@ export class LocalStorageProgressStore extends MemoryProgressStore {
     this.statuses.set(userId, status);
     if (!data) {
       try {
-        this.storage.setItem(`${key}:backup`, raw);
+        this.storage.setItem(backupKey(userId), raw);
       } catch {
         /* keep going: the backup is a courtesy */
       }

@@ -18,12 +18,13 @@ export interface PickedWarmup {
 
 /**
  * One predict-the-result warm-up for the weakest concept that was introduced at least a day ago and
- * has a warm-up: lowest Leitner box first, then longest since last seen, then concept id. Within a
+ * has a warm-up in a lesson the student has passed: lowest Leitner box first, then longest since last seen, then concept id. Within a
  * concept the warm-ups rotate by how many have already been answered. Null when nothing qualifies.
  */
 export function pickWarmup(progress: ProgressData, lessons: LessonSummary[], now: number): PickedWarmup | null {
   const bank = new Map<string, { lessonId: string; warmup: Warmup }[]>();
-  for (const l of lessons) for (const w of l.warmups) (bank.get(w.concept) ?? bank.set(w.concept, []).get(w.concept)!).push({ lessonId: l.id, warmup: w });
+  // Only lessons the student has passed can supply a warm-up.
+  for (const l of lessons.filter((x) => progress.lessons[x.id]?.passed === true)) for (const w of l.warmups) (bank.get(w.concept) ?? bank.set(w.concept, []).get(w.concept)!).push({ lessonId: l.id, warmup: w });
 
   const candidates = Object.entries(progress.mastery)
     .filter(([concept, m]) => bank.has(concept) && m.introducedAt <= now - DAY_MS)
@@ -33,7 +34,7 @@ export function pickWarmup(progress: ProgressData, lessons: LessonSummary[], now
 
   const concept = first[0];
   const options = bank.get(concept)!;
-  const answered = progress.events.filter((e) => e.type === "warmup" && e.concept === concept).length;
+  const answered = progress.warmupCounts?.[concept] ?? 0; // a counter, not derived from the capped event log
   const pick = options[answered % options.length]!;
   return { concept, lessonId: pick.lessonId, warmup: pick.warmup };
 }
@@ -82,7 +83,7 @@ export function courseState(progress: ProgressData, lessons: LessonSummary[]): C
   });
 
   const sideRooms = lessons.flatMap((l) =>
-    l.sideRooms.map((r): SideRoomState => ({ id: r.id, title: r.title, lessonId: l.id, open: progress.lessons[l.id]?.bonuses.includes(r.opensWith) === true })),
+    l.sideRooms.map((r): SideRoomState => ({ id: r.id, title: r.title, lessonId: l.id, open: progress.lessons[l.id]?.passed === true && progress.lessons[l.id]!.bonuses.includes(r.opensWith) })),
   );
 
   const current = currentIndex < 0 ? null : lessons[currentIndex]!.id;
