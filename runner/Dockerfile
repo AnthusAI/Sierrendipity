@@ -26,8 +26,9 @@ RUN npm ci --workspace runner --include-workspace-root --ignore-scripts
 COPY tsconfig.base.json ./
 COPY runner ./runner
 
-RUN useradd --create-home student
-USER student
+# The server stays root: it needs CAP_SETUID/CAP_SETGID/CAP_KILL to give each run its own uid, and
+# CAP_CHOWN/CAP_DAC_OVERRIDE/CAP_FOWNER to prepare and delete the run's files. Student code never runs
+# as root (see sandbox-exec.c).
 ENV PORT=8080
 EXPOSE 8080
 ENTRYPOINT ["/usr/bin/tini", "--"]
@@ -35,5 +36,5 @@ CMD ["node", "--import", "tsx", "runner/src/main.ts"]
 
 FROM runtime AS test
 # Cucumber specs ride along so `npm run test:linux` can run in the image.
-COPY --chown=student cucumber.cjs commitlint.config.cjs ./
-COPY --chown=student features ./features
+COPY cucumber.cjs commitlint.config.cjs ./
+COPY features ./features

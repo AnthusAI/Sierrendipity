@@ -2,8 +2,10 @@ import { timingSafeEqual } from "node:crypto";
 import http from "node:http";
 import { startInteractive, type InteractiveRun, type RunEvent } from "./interactive.ts";
 import { RequestError, runProject } from "./run-project.ts";
+import { UidPool } from "./sandbox.ts";
 
 const MAX_BODY_BYTES = 5_000_000;
+const MAX_SLOW_CLIENT_BYTES = 1_000_000;
 
 class TooLargeError extends Error {}
 
@@ -51,7 +53,11 @@ function streamEvents(res: http.ServerResponse, run: InteractiveRun, after: numb
     "x-accel-buffering": "no",
   });
   res.flushHeaders();
-  const write = (e: RunEvent) => res.write(`id: ${e.id}\nevent: ${e.type}\ndata: ${JSON.stringify(e.data)}\n\n`);
+  const write = (e: RunEvent) => {
+    res.write(`id: ${e.id}\nevent: ${e.type}\ndata: ${JSON.stringify(e.data)}\n\n`);
+    // A client too slow to keep up is dropped rather than buffered without bound; it can resume.
+    if (res.writableLength > MAX_SLOW_CLIENT_BYTES) res.destroy();
+  };
   const { events, droppedBefore } = run.replay(after);
   // No id, so the gap notice never becomes the client's resume point.
   if (droppedBefore) res.write(`event: gap\ndata: ${JSON.stringify({ firstId: droppedBefore })}\n\n`);
@@ -87,7 +93,8 @@ function hasSecret(req: http.IncomingMessage, secret: string): boolean {
 
 export function startServer(port: number, options: ServerOptions = {}): Promise<http.Server> {
   const { maxConcurrentRuns = 4, idleTimeoutS, onIdle, secret } = options;
-  let runsInProgress = 0;
+  // One sandbox uid per concurrent run: holding a uid is holding a slot.
+  const uids = new UidPool(maxConcurrentRuns);
   let requestsInFlight = 0;
   let lastActivity = Date.now();
   let current: InteractiveRun | undefined; // the most recent interactive run
@@ -117,26 +124,26 @@ export function startServer(port: number, options: ServerOptions = {}): Promise<
           req.resume();
           return send(res, 409, { error: "a run is already active" });
         }
-        if (runsInProgress >= maxConcurrentRuns) {
+        const uid = uids.acquire();
+        if (uid === undefined) {
           req.resume();
           return send(res, 429, { error: "too many runs in progress" });
         }
-        runsInProgress++;
         let handedOff = false;
         try {
           const request = await readJson(req);
-          if (!interactive) return send(res, 200, await runProject(request));
+          if (!interactive) return send(res, 200, await runProject(request, uid));
           if (current && !current.finished) return send(res, 409, { error: "a run is already active" });
-          const run = startInteractive(request);
+          const run = startInteractive(request, uid);
           current = run;
           handedOff = true;
           void run.exited.then(() => {
-            runsInProgress--;
+            uids.release(uid);
             touch();
           });
           return send(res, 202, { runId: run.id });
         } finally {
-          if (!handedOff) runsInProgress--;
+          if (!handedOff) uids.release(uid);
         }
       }
 
@@ -174,7 +181,7 @@ export function startServer(port: number, options: ServerOptions = {}): Promise<
   if (idleTimeoutS !== undefined) {
     const idleMs = idleTimeoutS * 1000;
     const watchdog = setInterval(() => {
-      const idle = requestsInFlight === 0 && runsInProgress === 0;
+      const idle = requestsInFlight === 0 && uids.inUse === 0;
       if (idle && Date.now() - lastActivity >= idleMs) onIdle?.();
     }, Math.min(1000, idleMs / 4));
     server.on("close", () => clearInterval(watchdog));

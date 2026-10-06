@@ -26,21 +26,32 @@ if pid == 0:
     os.execvp(sys.argv[1], sys.argv[1:])
 os.close(slave)
 
+# The terminal never blocks us: input is queued and written as the program makes room for it, so a
+# huge stdin cannot stop us from relaying the program's output (which would deadlock both).
+os.set_blocking(master, False)
+pending = bytearray()
 stdin_open = True
 done = None
 while done is None:
-    watch = [master] + ([0] if stdin_open else [])
-    ready, _, _ = select.select(watch, [], [], 0.1)
+    watch = [master] + ([0] if stdin_open and len(pending) < 65536 else [])
+    ready, writable, _ = select.select(watch, [master] if pending else [], [], 0.1)
     if 0 in ready:
-        data = os.read(0, 4096)
+        data = os.read(0, 65536)
         if data:
-            os.write(master, data)
+            pending += data
         else:
             stdin_open = False
-            os.write(master, b"\x04\x04")  # twice: the first flushes a partial line
+            pending += b"\x04\x04"  # twice: the first flushes a partial line
+    if writable:
+        try:
+            del pending[: os.write(master, pending[:4096])]
+        except BlockingIOError:
+            pass
     if master in ready:
         try:
             data = os.read(master, 65536)
+        except BlockingIOError:
+            data = b""
         except OSError:  # EIO: every other end of the terminal is closed
             data = b""
         if data:
@@ -56,7 +67,7 @@ try:
         if not data:
             break
         os.write(1, data)
-except OSError:
+except OSError:  # includes EIO and "nothing left"
     pass
 
 if os.WIFSIGNALED(done):
