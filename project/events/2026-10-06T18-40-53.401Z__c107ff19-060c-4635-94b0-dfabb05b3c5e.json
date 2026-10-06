@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "c107ff19-060c-4635-94b0-dfabb05b3c5e",
+  "issue_id": "SIE-e41d3ef3-a9bd-44be-bd21-b64688c17a44",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T18:40:53.401Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Explorer: toggle comments with // in Monaco and derive mnemonic docs from the library",
+    "description": "Monaco allows one line-comment string, so toggling uses # only; the hover and highlight mnemonic table is hand-maintained because the library exposes no mnemonic list. Export one from the library and use it.",
+    "issue_type": "chore",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-fbf66b2b-589e-4e25-923a-f31d42c21cd2",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-orchestrator"
+    }
+  }
+}
