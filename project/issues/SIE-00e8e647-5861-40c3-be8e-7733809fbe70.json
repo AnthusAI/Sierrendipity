@@ -1,0 +1,25 @@
+{
+  "id": "SIE-00e8e647-5861-40c3-be8e-7733809fbe70",
+  "title": "Sync user settings to the backend so they follow the student across devices",
+  "description": "v1 stores settings in localStorage per user id behind a SettingsStore interface. Add a settings item per Cognito sub (DynamoDB or similar) with GET/PUT on the control Lambda, falling back to local when offline.",
+  "type": "task",
+  "status": "open",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-8bbb526d-501d-4fae-941e-a71d4a611735",
+  "labels": [],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-06T18:57:15.404349Z",
+  "updated_at": "2026-10-06T18:57:15.404393Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity-orchestrator"
+  },
+  "right_now_summary": "The team is adding backend sync so student settings follow users across devices.",
+  "right_now_updated_at": "2026-10-06T18:57:16.719926Z",
+  "custom": {}
+}
