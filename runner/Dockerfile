@@ -59,6 +59,16 @@ RUN mkdir -p /opt/riscv-runtime \
        -ffunction-sections -fdata-sections -fno-tree-loop-distribute-patterns -isystem runner/riscv/include \
        -c runner/riscv/libruntime.c -o /opt/riscv-runtime/libruntime.o
 
+# `sier`, the `std` of Rust programs in the explorer (runner/riscv/rust/sier): a no_std crate over core and
+# alloc with println!, String/Vec/BTreeMap, stdin, process::exit and the panic handler, compiled once for
+# RV32IM. RUSTC_BOOTSTRAP=1 is for this one command only (the `start` lang item); students' compiles never see it.
+RUN mkdir -p /opt/riscv-runtime/rust \
+    && RUSTC_BOOTSTRAP=1 /opt/rust/toolchain/bin/rustc --edition 2021 --target riscv32im-unknown-none-elf \
+       --crate-type rlib --crate-name std -C opt-level=1 -C debuginfo=1 -C panic=abort -C relocation-model=static \
+       --remap-path-prefix=/app/runner/riscv/rust/sier=/sier --out-dir /opt/riscv-runtime/rust \
+       runner/riscv/rust/sier/lib.rs \
+    && chmod -R a+rX /opt/riscv-runtime
+
 # The server stays root: it needs CAP_SETUID/CAP_SETGID/CAP_KILL to give each run its own uid, and
 # CAP_CHOWN/CAP_DAC_OVERRIDE/CAP_FOWNER to prepare and delete the run's files. Student code never runs
 # as root (see sandbox-exec.c).
@@ -71,6 +81,8 @@ FROM runtime AS test
 # Cucumber specs ride along so `npm run test:linux` can run in the image.
 COPY cucumber.cjs commitlint.config.cjs ./
 COPY features ./features
+# The explorer's Machine runs the returned Rust images in the specs.
+COPY explorer ./explorer
 # qemu-user runs the linked RISC-V ELF so the specs can prove a returned program really executes;
 # it is test-only and absent from the runtime image.
 RUN apt-get update \

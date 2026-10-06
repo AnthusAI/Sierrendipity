@@ -28,6 +28,17 @@ module.exports = {
     paths: ["features/runner/rust-demangle.feature"],
     require: ["features/steps/rust-demangle.steps.ts"],
   },
+  // In the runner image: the Rust explorer scenarios that need rustc (`--profile rust-linux`).
+  "rust-linux": {
+    ...base,
+    paths: ["features/runner/explain-rust.feature"],
+    require: [
+      "features/support/runner-server.ts",
+      "features/steps/runner.steps.ts",
+      "features/steps/explain.steps.ts",
+      "features/steps/explain-rust.steps.ts",
+    ],
+  },
   // `npm run test:web`: only the browser specs (builds web/ and launches Chromium).
   web: { ...base, paths: ["features/web/**/*.feature"] },
   // Quick loop for the explorer library: `npx cucumber-js --profile explorer`.
