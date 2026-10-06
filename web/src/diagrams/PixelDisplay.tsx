@@ -51,15 +51,13 @@ export function PixelDisplay({ timeline: tl, base = 0 }: Props) {
             <li key={color.value} data-color={color.value} className="flex items-center gap-2 text-foreground">
               <span
                 data-swatch
-                aria-hidden
                 className="flex size-6 items-center justify-center rounded-sm border text-[10px] font-medium tabular-nums"
                 style={{ backgroundColor: color.bg, color: color.fg }}
               >
                 {color.value}
               </span>
-              <span>
-                {color.value} {color.label}
-              </span>
+              {" "}
+              <span>{color.label}</span>
             </li>
           ))}
         </ul>

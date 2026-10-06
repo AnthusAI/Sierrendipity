@@ -138,11 +138,11 @@ Then("the {string} demo has a scrubber from {int} to {int}", async function (thi
   assert.equal(await slider.getAttribute("max"), String(max));
 });
 
-Then("the {string} demo shows the end of the list marker as {word} reached", async function (this: WebWorld, name: string, not: string) {
+Then(/^the "([^"]*)" demo shows the end of the list marker as (not )?reached$/, async function (this: WebWorld, name: string, not?: string) {
   const marker = demo(this, name).locator("[data-end-marker]");
   await marker.waitFor();
   assert.match(await text(marker), /end of the list/i);
-  await eventually(async () => assert.equal(await marker.getAttribute("data-reached"), String(not !== "not")));
+  await eventually(async () => assert.equal(await marker.getAttribute("data-reached"), String(!not)));
 });
 
 Then("the {string} demo shows no Stop card", async function (this: WebWorld, name: string) {
