@@ -20,7 +20,7 @@ Feature: Bit lamps and the binary counter
 
   Scenario: Lamps are labelled switches with their place values
     Then "Bit lamps demo" has 32 lamps
-    And lamp 30 of "Bit lamps demo" is named "bit 30, worth 1073741824, off"
+    And lamp 30 of "Bit lamps demo" is named "bit 30, worth 1073741824"
     And lamp 0 of "Bit lamps demo" is the rightmost lamp
     And lamp 31 of "Bit lamps demo" is the leftmost lamp
     And "Bit lamps demo" shows the place value "2^30" under lamp 30
@@ -28,10 +28,23 @@ Feature: Bit lamps and the binary counter
   Scenario: Lamps are grouped in fours
     Then "Bit lamps demo" has 8 groups of lamps
 
-  Scenario: A lamp's name follows its state
+  Scenario: A lamp's name gives its worth and the switch state says on or off
     When I light exactly the lamps for 5 in "Bit lamps demo"
-    Then lamp 2 of "Bit lamps demo" is named "bit 2, worth 4, on"
-    And lamp 1 of "Bit lamps demo" is named "bit 1, worth 2, off"
+    Then lamp 2 of "Bit lamps demo" is named "bit 2, worth 4"
+    And lamp 2 of "Bit lamps demo" is lit
+    And lamp 1 of "Bit lamps demo" is named "bit 1, worth 2"
+    And lamp 1 of "Bit lamps demo" is not lit
+
+  Scenario: Place values are for the eyes: screen readers get the worth from the lamp's name
+    Then "Bit lamps demo" hides the place values from screen readers
+
+  Scenario: Lamps always read left to right, even on a right-to-left page
+    When the page is read right to left
+    Then lamp 0 of "Bit lamps demo" is the rightmost lamp
+    And lamp 31 of "Bit lamps demo" is the leftmost lamp
+
+  Scenario: Too many lamps are limited to 32
+    Then "Too many lamps demo" has 32 lamps
 
   Scenario: The signed readout reads the top lamp as a minus sign
     When I light exactly the lamps for 4294967294 in "Bit lamps demo"
@@ -66,6 +79,25 @@ Feature: Bit lamps and the binary counter
     Then "Binary counter" says the lit lamps add up to 0
     When I step "Binary counter" 3 times
     Then "Binary counter" says the lit lamps add up to 3
+
+  Scenario: With reduced motion the counter only moves when stepped
+    Given the system prefers reduced motion
+    And the lamp lab is open
+    Then "Binary counter" has no Play button
+    And "Binary counter" keeps showing 0 for a moment
+    When I step "Binary counter" 2 times
+    Then "Binary counter" says the lit lamps add up to 2
+
+  Scenario: Make zero is not done before the student has done anything
+    Then "Make zero" asks for the number 0
+    And "Make zero" is not done
+    When I light exactly the lamps for 1 in "Make zero"
+    And I light exactly the lamps for 0 in "Make zero"
+    Then "Make zero" is done
+
+  Scenario: A number the lamps cannot make is explained, not reported as done
+    Then "Make 300 with eight lamps" says the number cannot be made with 8 lamps
+    And "Make 300 with eight lamps" is not done
 
   Scenario: Make this number completes when the lamps match
     Then "Make this number" asks for the number 12

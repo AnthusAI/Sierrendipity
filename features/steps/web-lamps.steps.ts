@@ -106,6 +106,20 @@ When("I click lamp {int} of {string}", async function (this: WebWorld, bit: numb
   await lamp(this, name, bit).click({ force: true });
 });
 
+Then("lamp {int} of {string} is not lit", async function (this: WebWorld, bit: number, name: string) {
+  assert.equal(await lamp(this, name, bit).getAttribute("aria-checked"), "false");
+});
+
+Then("{string} hides the place values from screen readers", async function (this: WebWorld, name: string) {
+  const places = group(this, name).locator("[data-place]");
+  assert.equal(await places.count(), 32);
+  assert.equal(await group(this, name).locator("[data-place]:not([aria-hidden=true])").count(), 0);
+});
+
+When("the page is read right to left", async function (this: WebWorld) {
+  await this.page.evaluate(`document.documentElement.dir = "rtl"`);
+});
+
 Then("lamp {int} of {string} is lit", async function (this: WebWorld, bit: number, name: string) {
   assert.equal(await lamp(this, name, bit).getAttribute("aria-checked"), "true");
 });
@@ -153,6 +167,19 @@ When("I step {string} {int} times", async function (this: WebWorld, name: string
   for (let i = 0; i < times; i++) await group(this, name).getByRole("button", { name: "Step" }).click();
 });
 
+Then("{string} has no Play button", async function (this: WebWorld, name: string) {
+  assert.equal(await group(this, name).getByRole("button", { name: "Play" }).count(), 0);
+});
+
+Then("{string} keeps showing 0 for a moment", async function (this: WebWorld, name: string) {
+  await this.page.waitForTimeout(1200);
+  assert.equal(await countersTotal(this, name), 0);
+});
+
+Then("{string} says the number cannot be made with {int} lamps", async function (this: WebWorld, name: string, width: number) {
+  await group(this, name).getByText(`That number cannot be made with ${width} lamps`).waitFor({ timeout: 5000 });
+});
+
 Then("{string} asks for the number {int}", async function (this: WebWorld, name: string, value: number) {
   await group(this, name).getByText(`Make the lamps add up to ${value}`, { exact: true }).waitFor({ timeout: 5000 });
 });
@@ -190,6 +217,26 @@ When("I play {string} to the end", async function (this: WebWorld, name: string)
   await group(this, name).getByRole("status", { name: "Answer" }).waitFor({ timeout: 15_000 });
 });
 
+Then("{string} scrolls sideways inside itself", async function (this: WebWorld, name: string) {
+  const box = group(this, name).locator("[data-scroll-x]");
+  const sizes = (await box.evaluate(inPage("e", "const s = getComputedStyle(e); return [s.overflowX, e.scrollWidth, e.clientWidth];"))) as [string, number, number];
+  assert.equal(sizes[0], "auto");
+  assert.ok(sizes[1] > sizes[2], "the table should be wider than its box");
+});
+
+Then("the page does not scroll sideways", async function (this: WebWorld) {
+  const wide = await this.page.evaluate(`document.documentElement.scrollWidth > document.documentElement.clientWidth`);
+  assert.equal(wide, false);
+});
+
+Then("{string} asks for whole numbers from 0 to 4294967295", async function (this: WebWorld, name: string) {
+  await group(this, name).getByText("Carry ripple needs whole numbers from 0 to 4294967295").waitFor();
+});
+
+Then("{string} shows no table", async function (this: WebWorld, name: string) {
+  assert.equal(await group(this, name).getByRole("table").count(), 0);
+});
+
 Then("{string} shows no steps yet", async function (this: WebWorld, name: string) {
   assert.equal(await trace(this, name).count(), 0);
   await group(this, name).getByText("No steps yet").waitFor();
@@ -224,7 +271,8 @@ interface BandInfo {
   field: string;
   bits: string;
   background: string;
-  name: string;
+  ranges: string;
+  tag: string;
 }
 
 async function readBands(w: WebWorld, scope: Locator): Promise<BandInfo[]> {
@@ -235,13 +283,16 @@ async function readBands(w: WebWorld, scope: Locator): Promise<BandInfo[]> {
       `return els.map((e) => ({
         hi: Number(e.dataset.hi), lo: Number(e.dataset.lo), label: e.dataset.label, field: e.dataset.field,
         bits: e.querySelector("[data-band-bits]")?.textContent ?? "", background: getComputedStyle(e).backgroundColor,
-        name: e.getAttribute("aria-label") ?? "",
+        ranges: e.querySelector("[data-band-ranges]")?.textContent ?? "", tag: e.tagName,
       }));`,
     ),
   )) as BandInfo[];
 }
 
-const PLAIN = new Set(["what kind of job", "answer goes in box", "first box", "second box", "exact job", "the number", "how many places"]);
+const PLAIN = new Set([
+  "what kind of job", "answer goes in box", "first box", "second box", "exact job", "the number", "how many places",
+  "address from box", "box to save", "where to jump", "special job", "the number (placed in the top 20 bits)",
+]);
 
 Then("the field bands of the {word} word tile bits 31 to 0 without gaps", async function (this: WebWorld, format: string) {
   const bands = await readBands(this, rWord(this, format));
@@ -269,7 +320,7 @@ Then("the bands of the {word} word are labelled {}", async function (this: WebWo
 Then("the number in the {word} word is split into {int} or fewer pieces under one label", async function (this: WebWorld, format: string, max: number) {
   const pieces = (await readBands(this, rWord(this, format))).filter((b) => b.field === "imm");
   assert.ok(pieces.length >= 2 && pieces.length <= max, `${pieces.length} pieces`);
-  assert.ok(pieces.every((p) => p.label === "the number"));
+  assert.equal(new Set(pieces.map((p) => p.label)).size, 1, "the pieces use different labels");
 });
 
 Then("every piece of the number in the {word} word has the same colour", async function (this: WebWorld, format: string) {
@@ -279,20 +330,75 @@ Then("every piece of the number in the {word} word has the same colour", async f
 
 Then("the pieces of the number in the {word} word name their bit ranges", async function (this: WebWorld, format: string) {
   const pieces = (await readBands(this, rWord(this, format))).filter((b) => b.field === "imm");
-  for (const p of pieces) assert.match(p.name, /^the number \(imm\): .*, bits? \d+/, p.name);
+  for (const p of pieces) assert.match(p.ranges, /^bits? \d+/, p.ranges);
 });
 
 Then("the band {string} of the {word} word shows the meaning {string}", async function (this: WebWorld, label: string, format: string, meaning: string) {
   assert.equal(words(await band(this, `Field bands for ${format} word`, label).locator("[data-band-meaning]").innerText()), meaning);
 });
 
-Then("the band {string} of the {word} word is named {string}", async function (this: WebWorld, label: string, format: string, name: string) {
-  assert.equal(await band(this, `Field bands for ${format} word`, label).getAttribute("aria-label"), name);
+const describedBy = (l: Locator) =>
+  l.evaluate(inPage("e", "const id = e.getAttribute('aria-describedby'); return id ? document.getElementById(id)?.textContent ?? '' : '';")) as Promise<string>;
+
+Then("the band {string} of {string} is named {string}", async function (this: WebWorld, label: string, name: string, accessible: string) {
+  assert.equal(await band(this, name, label).getAttribute("aria-label"), accessible);
 });
 
-Then("the band {string} of the {word} word has a name containing {string}", async function (this: WebWorld, label: string, format: string, part: string) {
-  const name = await band(this, `Field bands for ${format} word`, label).getAttribute("aria-label");
-  assert.ok(name?.includes(part), `"${name}" lacks "${part}"`);
+Then("the band {string} of {string} is described as {string}", async function (this: WebWorld, label: string, name: string, text: string) {
+  assert.equal(words(await describedBy(band(this, name, label))), text);
+});
+
+Then("the band {string} of the {word} word describes its bits as {string}", async function (this: WebWorld, label: string, format: string, text: string) {
+  const target = band(this, `Field bands for ${format} word`, label).locator("[data-band-ranges]");
+  assert.equal(words(await target.textContent()), text);
+});
+
+Then("the field bands of the {word} word are a list of {int} items with no buttons", async function (this: WebWorld, format: string, count: number) {
+  const scope = rWord(this, format);
+  assert.equal(await scope.getByRole("button").count(), 0);
+  assert.equal(await scope.getByRole("list").first().getByRole("listitem").count(), count);
+});
+
+Then("the page has no focusable band outside the interactive demos", async function (this: WebWorld) {
+  assert.equal(await this.page.locator('[aria-label^="Field bands for"] button').count(), 0);
+});
+
+When("the screen is {int} pixels wide", async function (this: WebWorld, width: number) {
+  await this.page.setViewportSize({ width, height: 900 });
+});
+
+Then("no band of the {word} word is clipped", async function (this: WebWorld, format: string) {
+  const clipped = await rWord(this, format).locator("[data-band]").evaluateAll(
+    inPage("els", "return els.filter((e) => e.scrollWidth > e.clientWidth + 1).map((e) => e.dataset.label);"),
+  );
+  assert.deepEqual(clipped, []);
+});
+
+Then("the card in {string} has {int} highlighted word", async function (this: WebWorld, name: string, count: number) {
+  const marks = group(this, name).getByRole("status", { name: "Card face" }).locator("[data-highlight]");
+  await eventually(async () => assert.equal(await marks.count(), count));
+});
+
+Then("the card face of {string} keeps the same elements while highlighted", async function (this: WebWorld, name: string) {
+  // The face must not swap nodes (that would make a live region re-read the whole sentence):
+  // every part is the same kind of element, highlighted or not.
+  const kinds = await group(this, name).getByRole("status", { name: "Card face" }).evaluate(
+    inPage("e", "return [...e.children].map((c) => c.tagName);"),
+  );
+  assert.ok((kinds as string[]).length > 3 && new Set(kinds as string[]).size === 1, `${kinds}`);
+});
+
+When("I focus the band {string} in {string}", async function (this: WebWorld, label: string, name: string) {
+  await band(this, name, label).focus();
+});
+
+When("I switch bit {int} of {string} without moving the focus", async function (this: WebWorld, bit: number, name: string) {
+  await lamp(this, name, bit).dispatchEvent("click");
+});
+
+Then("the band caption of {string} is the plain prompt", async function (this: WebWorld, name: string) {
+  const caption = group(this, name).locator("[data-band-caption]");
+  await eventually(async () => assert.equal(words(await caption.innerText()), "Point at a band to see which lamps it covers"));
 });
 
 When("I point at the band {string} in {string}", async function (this: WebWorld, label: string, name: string) {
@@ -384,6 +490,10 @@ Then("{string} explains hex as {string}", async function (this: WebWorld, name: 
 Then("{string} offers exactly the views {string} and {string}", async function (this: WebWorld, name: string, a: string, b: string) {
   const buttons = group(this, name).locator("[data-lens-button]");
   assert.deepEqual((await buttons.allInnerTexts()).map(words), [a, b]);
+});
+
+Then("{string} has no view buttons", async function (this: WebWorld, name: string) {
+  assert.equal(await group(this, name).getByRole("button").count(), 0);
 });
 
 Then("{string} reports the view {string} to the page", async function (this: WebWorld, name: string, view: string) {
@@ -518,4 +628,51 @@ Then("every piece of text in the lamps section meets WCAG AA", async function (t
     if (ratio < (large ? 3 : 4.5)) failures.push(`"${s.text.slice(0, 40)}" ${s.color} on ${s.background} is ${ratio.toFixed(2)}:1`);
   }
   assert.deepEqual(failures, []);
+});
+
+// Lamp outlines and locked lamps
+
+const lampShape = (l: Locator) =>
+  l.evaluate(inPage("e", "return [getComputedStyle(e).borderStyle, e.querySelector('[data-lock-icon]') ? 'lock' : 'open'].join('|');")) as Promise<string>;
+
+Then("lamp {int} and lamp {int} of {string} differ in shape, not only in colour", async function (this: WebWorld, a: number, b: number, name: string) {
+  assert.notEqual(await lampShape(lamp(this, name, a)), await lampShape(lamp(this, name, b)));
+});
+
+Then("the lit locked lamp {int} of {string} shows a lock mark", async function (this: WebWorld, bit: number, name: string) {
+  assert.equal(await lamp(this, name, bit).getAttribute("aria-checked"), "true");
+  assert.equal(await lamp(this, name, bit).locator("[data-lock-icon]").count(), 1);
+});
+
+Then("the outline of every lamp of {string} has at least 3:1 contrast with the page", async function (this: WebWorld, name: string) {
+  await settled(this);
+  const samples = (await group(this, name).getByRole("switch").evaluateAll(
+    inPage(
+      "els",
+      `const rgba = (c) => { const m = c.match(/[\\d.]+/g).map(Number); return { r: m[0], g: m[1], b: m[2], a: m[3] ?? 1 }; };
+       const page = (el) => {
+         const layers = [];
+         for (let n = el.parentElement; n; n = n.parentElement) layers.push(rgba(getComputedStyle(n).backgroundColor));
+         let base = { r: 255, g: 255, b: 255 };
+         for (const l of layers.reverse()) base = { r: l.r * l.a + base.r * (1 - l.a), g: l.g * l.a + base.g * (1 - l.a), b: l.b * l.a + base.b * (1 - l.a) };
+         return "rgb(" + Math.round(base.r) + ", " + Math.round(base.g) + ", " + Math.round(base.b) + ")";
+       };
+       return els.map((e) => ({ bit: e.getAttribute("aria-label"), outline: getComputedStyle(e).borderTopColor, width: parseFloat(getComputedStyle(e).borderTopWidth), page: page(e) }));`,
+    ),
+  )) as { bit: string; outline: string; width: number; page: string }[];
+  assert.ok(samples.length >= 8);
+  const failures = samples.filter((x) => x.width < 2 || contrastRatio(x.outline, x.page) < 3).map((x) => `${x.bit}: ${x.outline} on ${x.page}`);
+  assert.deepEqual(failures, []);
+});
+
+Then("lit lamps look different from unlit lamps in {string}", async function (this: WebWorld, name: string) {
+  const looks = (await group(this, name).getByRole("switch").evaluateAll(
+    inPage("els", "return els.map((e) => [e.getAttribute('aria-checked'), getComputedStyle(e).backgroundColor, e.textContent]);"),
+  )) as [string, string, string][];
+  const on = new Set(looks.filter((l) => l[0] === "true").map((l) => l[1] + l[2]));
+  const off = new Set(looks.filter((l) => l[0] === "false").map((l) => l[1] + l[2]));
+  assert.ok(on.size > 0 && off.size > 0);
+  for (const look of on) assert.ok(!off.has(look), "a lit lamp looks like an unlit one");
+  // Not by fill alone: lit lamps say 1, unlit say 0.
+  assert.ok(looks.every((l) => l[2] === (l[0] === "true" ? "1" : "0")));
 });

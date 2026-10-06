@@ -14,7 +14,7 @@ Feature: One card, several ways to look at it
     Then "Card flip demo" shows the "hex" view with the text "0x00500513"
     And "Card flip demo" explains hex as "a short way to write the lamps"
     When I flip "Card flip demo" to "Assembly"
-    Then "Card flip demo" shows the "assembly" view with the text "addi a0, zero, 5"
+    Then "Card flip demo" shows the "assembly" view with the text "li a0, 5"
 
   Scenario: The flip button goes to the next view and wraps around
     When I press the flip button of "Card flip demo"
@@ -51,3 +51,15 @@ Feature: One card, several ways to look at it
     When I flip "Card flip demo" to "Hex"
     Then "Card flip demo" shows the "hex" view with the text "0x00500513"
     And "Card flip demo" flips instantly
+
+  Scenario: Assembly can be shown without the friendly aliases
+    When I flip "Card flip plain demo" to "Assembly"
+    Then "Card flip plain demo" shows the "assembly" view with the text "addi a0, zero, 5"
+
+  Scenario: Aliases are on by default for beginners
+    When I flip "Card flip demo" to "Assembly"
+    Then "Card flip demo" shows the "assembly" view with the text "li a0, 5"
+
+  Scenario: A card with no other views shows just the card face
+    Then "Card only demo" has no view buttons
+    And "Card only demo" shows the "card" view with the text "Put 5 in box a0"
