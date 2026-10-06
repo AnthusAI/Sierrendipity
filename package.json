@@ -12,6 +12,7 @@
   "scripts": {
     "prepare": "husky",
     "test": "cucumber-js",
+    "test:linux": "cucumber-js --profile linux",
     "release": "semantic-release"
   },
   "devDependencies": {
