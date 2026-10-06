@@ -29,6 +29,14 @@ RUN npm ci --workspace runner --include-workspace-root --ignore-scripts
 COPY tsconfig.base.json ./
 COPY runner ./runner
 
+# The RISC-V runtime for POST /explain: crt0 and the tiny libc, built once with the toolchain (the
+# linker script and headers are read from runner/riscv at request time). Readable by the sandbox uids.
+RUN mkdir -p /opt/riscv-runtime \
+    && riscv64-unknown-elf-gcc -march=rv32im -mabi=ilp32 -c runner/riscv/crt0.S -o /opt/riscv-runtime/crt0.o \
+    && riscv64-unknown-elf-gcc -march=rv32im -mabi=ilp32 -O1 -ffreestanding -fno-pic \
+       -fno-tree-loop-distribute-patterns -isystem runner/riscv/include \
+       -c runner/riscv/libruntime.c -o /opt/riscv-runtime/libruntime.o
+
 # The server stays root: it needs CAP_SETUID/CAP_SETGID/CAP_KILL to give each run its own uid, and
 # CAP_CHOWN/CAP_DAC_OVERRIDE/CAP_FOWNER to prepare and delete the run's files. Student code never runs
 # as root (see sandbox-exec.c).

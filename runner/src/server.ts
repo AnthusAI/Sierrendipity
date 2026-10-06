@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import http from "node:http";
 import { startInteractive, type InteractiveRun, type RunEvent } from "./interactive.ts";
+import { explainProject } from "./explain.ts";
 import { RequestError, runProject } from "./run-project.ts";
 import { UidPool } from "./sandbox.ts";
 
@@ -144,6 +145,19 @@ export function startServer(port: number, options: ServerOptions = {}): Promise<
           return send(res, 202, { runId: run.id });
         } finally {
           if (!handedOff) uids.release(uid);
+        }
+      }
+
+      if (route === "POST /explain") {
+        const uid = uids.acquire();
+        if (uid === undefined) {
+          req.resume();
+          return send(res, 429, { error: "too many runs in progress" });
+        }
+        try {
+          return send(res, 200, await explainProject(await readJson(req), uid));
+        } finally {
+          uids.release(uid);
         }
       }
 
