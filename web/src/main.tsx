@@ -4,7 +4,6 @@ import "./styles.css";
 import { Component, lazy, Suspense, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
-
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 // The app must never blank: show what happened and offer a reload.

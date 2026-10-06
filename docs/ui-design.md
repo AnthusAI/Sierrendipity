@@ -97,3 +97,32 @@ with at most one warm-up. Settings has a Learning section: "Unlock all lessons" 
 default) and "Reset my progress" (progress, stars and Deck; the Gallery stays). Per-user keys:
 `sierrendipity:progress:<user>`, `sierrendipity:gallery:<user>`, `sierrendipity:learning:<user>`,
 `sierrendipity:session:<user>`. Developer components are shown at `/lab`.
+
+## Machine diagrams (`web/src/diagrams/`)
+
+Live views of the real machine, shown at `/lab` (the developer component lab, `web/src/lab/`, which holds
+no user data). `useMachineTimeline(words, { hideEnd, boxes, pointer, memorySize })` builds a `Machine` and a
+`Timeline` and returns `{ position, length, snapshot, diff, stepForward, stepBackward, seek, play, pause,
+speed, setSpeed, isAtEnd, reset, t, ... }`. With `hideEnd` the trailing `ebreak` is appended and run
+automatically after the last card, so the number of steps equals the number of visible cards.
+`MachineView` (D1), `HeartbeatView` (D3), `PointerWalk` (D6) and `PixelDisplay` (E10) are pure functions of
+that state; `TimelineControls` is the shared playback bar (native range and select, shadcn buttons).
+
+- One clock: `t` runs 0 to 1 per forward step (800 ms at 1x). Tokens, the hand and the heartbeat stations are
+  all derived from `t` in render, so there is nothing to keep in sync and nothing to cancel. Under
+  `prefers-reduced-motion` (or speed Instant) `t` is 1 at once: no token is drawn, and the box is
+  highlighted and the "What just happened" log (`role="log"`, polite) says it in words.
+- Tests add `?testclock` to the URL: the clock then stays at 1 and `window.__diagramClock.set(t)` freezes
+  it mid-step, and diagram roots carry `data-animation-t`.
+- Motion library: not added. Because `t` drives the render, a token flight needs no animation engine, and
+  there are no Web Animations to run on tokens. Bundle impact of the diagrams and the lab is about +31 kB
+  raw (+10 kB gzip) in the main chunk, mostly the explorer `Timeline` and the icons.
+- Pixel colors are 16 dedicated tokens, `--pixel-N` (fill) and `--pixel-N-fg` (the number printed on it),
+  solid Radix steps chosen so each looks like its label in every theme and mode (the text steps of the
+  `--ansi-*` tokens read as near-black when used as fills). Specs check pairwise distance, hue class per
+  label and 4.5:1 numbers. Bytes above 15 are drawn as striped "other" with a legend entry.
+- Honest states: a faulted step is shown as "The machine stopped: <plain reason>" (log, notice in the
+  views and controls) and changes no box; a trailing `ebreak` is the only hidden end marker; a program
+  that never halts is cut at `maxSteps` (default 2000) with "This program keeps going"; the log keeps
+  the newest 50 entries. Prose numbers cards from 1 and says "address" only for byte addresses.
+- Controls use `aria-disabled` so focus stays on Step or Back when it reaches the end or start.

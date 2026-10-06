@@ -86,8 +86,10 @@ export class WebWorld extends World {
     if ((await nav.isVisible()) && !(await run.isVisible())) await nav.getByRole("link", { name: "Workspace", exact: true }).click();
   }
 
-  async openLab() {
-    await this.page.goto(`${this.appUrl}/lab`);
+  /** Open the developer component lab (/lab); `query` is e.g. "?testclock". */
+  async openLab(query = "") {
+    await this.page.goto(`${this.appUrl}/lab${query}`);
+    await this.page.getByRole("heading", { name: "Component lab" }).waitFor();
   }
 }
 
