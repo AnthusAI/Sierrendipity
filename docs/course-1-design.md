@@ -49,6 +49,21 @@ Counting by dragging many copies of one card is moved to the loops lesson, where
 
 The first ten-minute session is lessons 1 to 4. After this ladder the earlier plan resumes at a similarly slow pace: flip a card to see its number, lamps and binary, fields, the pixel, then decisions and loops. The table below is the earlier plan and should be renumbered after the ladder.
 
+## Throughline: functions (the student is in Algebra 2)
+
+The student already knows functions as the heart of math (input, rule, output), plus variables, negatives, exponents and graphs. The curriculum should show that functions are also the heart of programming, and should move faster on math ideas than on machine ideas.
+
+- A box is a variable; a card is an operation; a program is a composition. The card tray shows f(x) = x squared plus 1 beside the cards that implement it; check f(3) = 10 by stepping.
+- Function tables (x, f(x)) are the same card run on 1, 2, 3, 4; repeating them motivates loops.
+- Composition f(g(x)) is chaining custom cards. An inverse function is an "undo" card.
+- The 16x16 pixel screen is a coordinate grid: a loop plotting y = 2x + 1 replaces the "Picture Machine" boss lesson with a Graph Machine.
+- Piecewise functions and absolute value are branches. Domain and "undefined" are division by zero, overflow and out-of-range input.
+- Sequences and series are loops; recurrences like a(n) = a(n-1) + 3 lead to recursion; exponentials and logs appear as "double until you pass 1000".
+- Binary is a polynomial in 2 (13 = 1*8 + 1*4 + 0*2 + 1); Horner's method evaluates it. Finding polynomial zeros leads to bisection and binary search.
+- The machine itself is a function: one fetch-execute step maps the current state to the next state, and a program applies it repeatedly.
+- Negatives can come early (the student knows them); what is new is fixed-size wraparound, where the machine disagrees with algebra, treated as a good surprise.
+- In the C course, `int f(int x) { return x*x + 1; }` compiles in the Explorer to the same multiply and add cards the student already made.
+
 ## Course 1: The Machine Follows a List (13 micro-lessons)
 
 1. Wake the Machine (step a four-card program; a2 = 12; cannot fail)
