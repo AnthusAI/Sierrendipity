@@ -89,7 +89,7 @@ function Parts() {
         <PathPage />
       </div>
       <div className="max-w-2xl">
-        <WarmupCard picked={{ concept: "add", lessonId: LESSONS[4]!.id, warmup: card(3, 4) }} onAnswer={(ok) => setReport(ok ? "Warm-up answered right" : "Warm-up missed")} onDone={() => setReport("Warm-up closed")} />
+        <WarmupCard autoFocus={false} picked={{ concept: "add", lessonId: LESSONS[4]!.id, warmup: card(3, 4) }} onAnswer={(ok) => setReport(ok ? "Warm-up answered right" : "Warm-up missed")} onDone={() => setReport("Warm-up closed")} />
       </div>
       <div className="max-w-2xl">
         <NowYouCanCard lesson={LESSONS[1]!} stats={{ stars: ["pass", "called-it"], nextMinutes: 4 }} onNext={() => setReport("Next lesson chosen")} onStop={() => setReport("Stopped here")}>

@@ -10,14 +10,16 @@ type Result = { correct: boolean } | null;
  * One predict-the-result question at the start of a session. A miss is shown kindly with the cards in plain
  * English; skipping is free. `onAnswer` records the answer; `onDone` closes the card (answered or skipped).
  */
-export function WarmupCard({ picked, onAnswer, onDone }: { picked: PickedWarmup; onAnswer: (correct: boolean) => void; onDone: () => void }) {
+export function WarmupCard({ picked, onAnswer, onDone, autoFocus = true }: { picked: PickedWarmup; onAnswer: (correct: boolean) => void; onDone: () => void; autoFocus?: boolean }) {
   const { warmup } = picked;
   const [answer, setAnswer] = useState("");
   const [problem, setProblem] = useState<string | null>(null);
   const [result, setResult] = useState<Result>(null);
   const input = useRef<HTMLInputElement>(null);
   const done = useRef<HTMLButtonElement>(null);
-  useEffect(() => input.current?.focus(), []);
+  useEffect(() => {
+    if (autoFocus) input.current?.focus();
+  }, [autoFocus]);
   // The input goes away after Check: keep keyboard focus inside the card, on the way out.
   useEffect(() => {
     if (result) done.current?.focus();
