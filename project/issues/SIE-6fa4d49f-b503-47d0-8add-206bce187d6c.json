@@ -22,17 +22,29 @@
         "model": "claude-sonnet-5-5",
         "name": "Sierrendipity orchestrator"
       }
+    },
+    {
+      "id": "acc6da57-ab6c-4e31-9940-b09820762e65",
+      "author": "home",
+      "text": "Design constraint from the maintainer: no email addresses in code, specs, fixtures, docs, or the board. The sign-in allowlist lives outside the repo (an SSM SecureString or Secrets Manager value created by the maintainer), the pre-sign-up Lambda reads it at runtime, and Gherkin specs use generated placeholder identities.",
+      "created_at": "2026-10-06T12:27:33.255315Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity orchestrator"
+      }
     }
   ],
   "created_at": "2026-10-06T11:35:54.272082Z",
-  "updated_at": "2026-10-06T12:26:23.037577Z",
+  "updated_at": "2026-10-06T12:27:33.255353Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity planning"
   },
-  "right_now_summary": "Google OAuth is set up; the maintainer still needs to add the student's email before implementation can begin.",
-  "right_now_updated_at": "2026-10-06T12:26:24.453777Z",
+  "right_now_summary": "Google OAuth setup is complete, but implementation awaits the M4 stack and maintainer allowlist setup.",
+  "right_now_updated_at": "2026-10-06T12:27:34.518557Z",
   "custom": {}
 }
