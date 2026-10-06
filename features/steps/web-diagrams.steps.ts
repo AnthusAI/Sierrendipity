@@ -302,7 +302,7 @@ Then("the {string} demo has no pixel \\({int}, {int})", async function (this: We
 Then(
   "the legend of the {string} demo lists {int} colors with the text label {string} for color {int}",
   async function (this: WebWorld, name: string, count: number, label: string, color: number) {
-    const items = demo(this, name).locator("[data-legend] [data-color]");
+    const items = demo(this, name).locator('[data-legend] [data-color]:not([data-color="other"])');
     assert.equal(await items.count(), count);
     const item = demo(this, name).locator(`[data-legend] [data-color="${color}"]`);
     assert.match(await text(item), new RegExp(`\\b${color}\\b.*\\b${label}\\b`));
@@ -360,7 +360,7 @@ Then("the diagram text and token colors of the {string} demo meet WCAG AA", asyn
 Then("the pixel legend of the {string} demo meets WCAG AA", async function (this: WebWorld, name: string) {
   const scope = await demoSelector(this, name);
   const samples = (await this.page.evaluate(sampleScript(scope, "[data-legend] [data-swatch], [data-legend] [data-color]"))) as Sample[];
-  assert.ok(samples.length >= 32, `expected 16 swatches and 16 labels, got ${samples.length}`);
+  assert.ok(samples.length >= 34, `expected 16 swatches, 16 labels and the other entry, got ${samples.length}`);
   checkContrast(samples, 4.5, "pixel legend");
 });
 
@@ -376,7 +376,7 @@ Then(
 );
 
 Then("the {int} palette colors of the {string} demo are all different", async function (this: WebWorld, count: number, name: string) {
-  const colors = await demo(this, name).locator("[data-legend] [data-swatch]").evaluateAll((els) => els.map((e) => getComputedStyle(e).backgroundColor));
+  const colors = await demo(this, name).locator('[data-legend] [data-swatch]:not([data-swatch="other"])').evaluateAll((els) => els.map((e) => getComputedStyle(e).backgroundColor));
   assert.equal(colors.length, count);
   assert.equal(new Set(colors).size, count, colors.join(" "));
 });

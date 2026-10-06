@@ -178,7 +178,7 @@ Feature: Animated machine diagrams
   Scenario Outline: Pixel colors come from the theme tokens in <theme> <mode> mode
     Given the component lab is open with the test clock in the "<theme>" theme and <mode> mode
     When I press Step in the "Pixel display" demo 2 times
-    Then pixel (0, 0) of the "Pixel display" demo is painted with the token "field-3" of "<theme>" <mode>
+    Then pixel (0, 0) of the "Pixel display" demo is painted with the token "pixel-3" of "<theme>" <mode>
     And the 16 palette colors of the "Pixel display" demo are all different
 
     Examples:
