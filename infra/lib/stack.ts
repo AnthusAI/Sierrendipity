@@ -1,6 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { CfnOutput, Duration, Fn, RemovalPolicy, SecretValue, Stack, type StackProps } from "aws-cdk-lib";
+import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as budgets from "aws-cdk-lib/aws-budgets";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
@@ -12,6 +13,8 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import * as logs from "aws-cdk-lib/aws-logs";
+import * as route53 from "aws-cdk-lib/aws-route53";
+import * as route53Targets from "aws-cdk-lib/aws-route53-targets";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
@@ -25,6 +28,9 @@ const ALLOWLIST_PARAMETER = "/sierrendipity/allowed-emails";
 const COGNITO_DOMAIN_PREFIX = "sierrendipity";
 const LOCAL_ORIGIN = "http://localhost:5173";
 const RUNNER_PORT = 8080;
+const DEFAULT_SITE_DOMAIN = "sierrendipity.anth.us";
+const DEFAULT_HOSTED_ZONE_ID = "Z02552332GG6AM25SFP73";
+const DEFAULT_HOSTED_ZONE_NAME = "anth.us";
 
 /** `https://abc.lambda-url.<region>.on.aws/` -> `https://abc.lambda-url.<region>.on.aws` */
 const origin = (functionUrl: string) => Fn.join("", ["https://", Fn.select(2, Fn.split("/", functionUrl))]);
@@ -32,6 +38,24 @@ const origin = (functionUrl: string) => Fn.join("", ["https://", Fn.select(2, Fn
 export class SierrendipityStack extends Stack {
   constructor(scope: Construct, id: string, props: StackProps) {
     super(scope, id, props);
+
+    // Custom domain: `-c siteDomain=<host>` overrides it, and an empty string disables it (offline specs, forks).
+    // The hosted zone is imported by attributes so synth needs no AWS lookups.
+    const context = (key: string, fallback: string) => String(this.node.tryGetContext(key) ?? fallback);
+    const siteDomain = context("siteDomain", DEFAULT_SITE_DOMAIN);
+    const zone = siteDomain
+      ? route53.HostedZone.fromHostedZoneAttributes(this, "Zone", {
+          hostedZoneId: context("hostedZoneId", DEFAULT_HOSTED_ZONE_ID),
+          zoneName: context("hostedZoneName", DEFAULT_HOSTED_ZONE_NAME),
+        })
+      : undefined;
+    // CloudFront only accepts certificates from us-east-1, which is this stack's region.
+    const certificate = zone
+      ? new acm.Certificate(this, "SiteCertificate", {
+          domainName: siteDomain,
+          validation: acm.CertificateValidation.fromDns(zone),
+        })
+      : undefined;
 
     // ---- Hosting: created first so Cognito and CORS can reference the CloudFront domain. ----
     const siteBucket = new s3.Bucket(this, "SiteBucket", {
@@ -44,6 +68,11 @@ export class SierrendipityStack extends Stack {
     const distribution = new cloudfront.Distribution(this, "Site", {
       defaultRootObject: "index.html",
       priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
+      ...(certificate && {
+        domainNames: [siteDomain],
+        certificate,
+        minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2021,
+      }),
       defaultBehavior: {
         origin: origins.S3BucketOrigin.withOriginAccessControl(siteBucket),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -57,6 +86,13 @@ export class SierrendipityStack extends Stack {
       })),
     });
     const siteOrigin = `https://${distribution.distributionDomainName}`;
+    // A plain string, so referencing it from Cognito and CORS adds no dependency cycle.
+    const customOrigin = siteDomain ? `https://${siteDomain}` : undefined;
+    if (zone) {
+      const target = route53.RecordTarget.fromAlias(new route53Targets.CloudFrontTarget(distribution));
+      new route53.ARecord(this, "SiteAliasA", { zone, recordName: siteDomain, target });
+      new route53.AaaaRecord(this, "SiteAliasAaaa", { zone, recordName: siteDomain, target });
+    }
 
     // ---- Auth ----
     const allowlist = new NodejsFunction(this, "PreSignUp", lambdaProps(this, "PreSignUp", "pre-sign-up", { timeout: Duration.seconds(5) }));
@@ -85,7 +121,13 @@ export class SierrendipityStack extends Stack {
     });
 
     // Cognito matches redirect URIs exactly, so allow the origin with and without a trailing slash.
-    const redirects = [`${siteOrigin}/`, siteOrigin, `${LOCAL_ORIGIN}/`, LOCAL_ORIGIN];
+    const redirects = [
+      ...(customOrigin ? [`${customOrigin}/`, customOrigin] : []),
+      `${siteOrigin}/`,
+      siteOrigin,
+      `${LOCAL_ORIGIN}/`,
+      LOCAL_ORIGIN,
+    ];
     const client = userPool.addClient("Web", {
       generateSecret: false,
       supportedIdentityProviders: [cognito.UserPoolClientIdentityProvider.GOOGLE],
@@ -148,7 +190,7 @@ export class SierrendipityStack extends Stack {
     });
     // Resolved by CloudFormation at deploy time, so the proxy needs no Secrets Manager call at runtime.
     const sessionKeyRef = sessionKey.secretValue.unsafeUnwrap();
-    const corsOrigins = [siteOrigin, LOCAL_ORIGIN];
+    const corsOrigins = [...(customOrigin ? [customOrigin] : []), siteOrigin, LOCAL_ORIGIN];
     const cors: lambda.FunctionUrlCorsOptions = {
       allowedOrigins: corsOrigins,
       allowedMethods: [lambda.HttpMethod.ALL],
@@ -237,7 +279,7 @@ export class SierrendipityStack extends Stack {
           clientId: client.userPoolClientId,
           controlUrl: origin(controlUrl.url),
           proxyUrl: origin(proxyUrl.url),
-          redirectUri: `${siteOrigin}/`,
+          redirectUri: `${customOrigin ?? siteOrigin}/`,
         }),
       ],
     });
@@ -276,6 +318,7 @@ export class SierrendipityStack extends Stack {
 
     // ---- Outputs ----
     new CfnOutput(this, "SiteUrl", { value: siteOrigin });
+    if (customOrigin) new CfnOutput(this, "CustomDomainUrl", { value: customOrigin });
     new CfnOutput(this, "ControlUrl", { value: controlUrl.url });
     new CfnOutput(this, "ProxyUrl", { value: proxyUrl.url });
     new CfnOutput(this, "UserPoolId", { value: userPool.userPoolId });
