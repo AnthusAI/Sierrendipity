@@ -1,4 +1,4 @@
-import { Given, When, Then, Before } from "@cucumber/cucumber";
+import { Given, When, Then, Before, After } from "@cucumber/cucumber";
 import assert from "node:assert/strict";
 
 type RunResult = {
@@ -18,6 +18,25 @@ let response: { status: number; body: RunResult };
 
 Before(() => {
   request = { language: "", files: [], limits: {} };
+});
+
+/** The project under construction, shared with the other step files. */
+export function currentRequest(): Req {
+  return request;
+}
+
+const CLOUD_ENV = {
+  AWS_SECRET_ACCESS_KEY: "secret",
+  AWS_CONTAINER_CREDENTIALS_RELATIVE_URI: "/v2/credentials/x",
+  ECS_CONTAINER_METADATA_URI_V4: "http://169.254.170.2/v4/x",
+};
+
+Given("the runner has cloud credentials in its environment", () => {
+  Object.assign(process.env, CLOUD_ENV);
+});
+
+After(() => {
+  for (const name of Object.keys(CLOUD_ENV)) delete process.env[name];
 });
 
 const languages: Record<string, string> = { "C++": "cpp", C: "c", Python: "python" };
@@ -97,4 +116,45 @@ Then("the request is rejected with status {int}", (status: number) => {
 
 Then("the program was killed by signal {string}", (signal: string) => {
   assert.equal(response.body.run?.signal, signal);
+});
+
+Given("a maximum output of {int} bytes", (bytes: number) => {
+  request.limits.maxOutputBytes = bytes;
+});
+
+Then("the status is one of {string}", (statuses: string) => {
+  assert.ok(statuses.split(", ").includes(response.body.status), response.body.status);
+});
+
+Then("the compiler did not time out", () => {
+  assert.equal(response.body.compile?.timedOut, false);
+});
+
+Then("the runner still answers health checks", async () => {
+  const res = await fetch(`${process.env.RUNNER_URL}/healthz`);
+  assert.equal(res.status, 200);
+});
+
+let concurrent: { status: number; body: RunResult }[];
+
+When("{int} projects are run at once", async (count: number) => {
+  const body = JSON.stringify(request);
+  concurrent = await Promise.all(
+    Array.from({ length: count }, async () => {
+      const res = await fetch(`${process.env.RUNNER_URL}/run`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body,
+      });
+      return { status: res.status, body: (await res.json()) as RunResult };
+    }),
+  );
+});
+
+Then("{int} of them finish with status {string}", (count: number, status: string) => {
+  assert.equal(concurrent.filter((r) => r.status === 200 && r.body.status === status).length, count);
+});
+
+Then("{int} of them are refused with status {int}", (count: number, status: number) => {
+  assert.equal(concurrent.filter((r) => r.status === status).length, count);
 });
