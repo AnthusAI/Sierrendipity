@@ -47,7 +47,8 @@ export class Emulator {
   }
 
   get state(): MachineState {
-    return this.looping && this.machine.state === "ready" ? "running" : this.machine.state;
+    if (this.looping) return "running";
+    return this.machine.state === "running" ? "ready" : this.machine.state; // "running" = between steps
   }
 
   /** True while a Continue is in progress or the program waits for typed input. */

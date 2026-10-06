@@ -48,15 +48,15 @@ Feature: Explore how C becomes machine code
 
     Examples: R-type, I-type load, S-type store, B-type branch
       | instruction      | segment      | line |
-      | add a5, a4, a5   | rd = a5      | 5    |
-      | add a5, a4, a5   | rs2 = a5     | 5    |
-      | lw a4, -20(s0)   | rd = a4      | 5    |
-      | lw a4, -20(s0)   | rs1 = s0     | 5    |
+      | add a5, a4, a5   | rd = a5 (x15)      | 5    |
+      | add a5, a4, a5   | rs2 = a5 (x15)     | 5    |
+      | lw a4, -20(s0)   | rd = a4 (x14)      | 5    |
+      | lw a4, -20(s0)   | rs1 = s0 (x8)     | 5    |
       | lw a4, -20(s0)   | imm = -20    | 5    |
-      | sw a5, -20(s0)   | rs2 = a5     | 5    |
+      | sw a5, -20(s0)   | rs2 = a5 (x15)     | 5    |
       | sw a5, -20(s0)   | imm = -20    | 5    |
-      | bge a5, a4, -36  | rs1 = a5     | 4    |
-      | bge a5, a4, -36  | rs2 = a4     | 4    |
+      | bge a5, a4, -36  | rs1 = a5 (x15)     | 4    |
+      | bge a5, a4, -36  | rs2 = a4 (x14)     | 4    |
       | bge a5, a4, -36  | imm = -36    | 4    |
 
   Scenario: The Machine tab shows address, bytes and the word

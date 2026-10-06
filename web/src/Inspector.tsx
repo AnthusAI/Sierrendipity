@@ -353,7 +353,7 @@ export function BitsCard({ row }: { row: Row | undefined }) {
             <li key={name}>
               <span className="swatch" style={{ background: colour(name) }} />
               <span data-segment-label>
-                {name} = {parts[0].label}
+                {parts[0].label.replace(/\s*\(bits? [^)]*\)$/, "")}
               </span>
               <small> (bits {[...parts].sort((a, b) => b.hi - a.hi).map((f) => (f.hi === f.lo ? f.hi : `${f.hi}:${f.lo}`)).join(", ")})</small>
             </li>

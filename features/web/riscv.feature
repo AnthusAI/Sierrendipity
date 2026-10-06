@@ -125,32 +125,38 @@ Feature: Write and run RISC-V programs in the browser
   Scenario: Terminal input feeds a read system call
     Given a project "echo" in RISC-V assembly with the program:
       """
-              addi a0, zero, 1
-              la a1, ask
-              addi a2, zero, 6
-              addi a7, zero, 64
+              li t0, 0x656d614e
+              sw t0, -64(sp)
+              li t0, 0x203a
+              sw t0, -60(sp)
+              li t0, 0x6c6c6548
+              sw t0, -48(sp)
+              li t0, 0x202c6f
+              sw t0, -44(sp)
+              li a0, 1
+              addi a1, sp, -64
+              li a2, 6
+              li a7, 64
               ecall
-              addi a0, zero, 0
+              li a0, 0
               addi a1, sp, -32
-              addi a2, zero, 16
-              addi a7, zero, 63
+              li a2, 16
+              li a7, 63
               ecall
-              addi s1, a0, 0
-              addi a0, zero, 1
-              la a1, hi
-              addi a2, zero, 7
-              addi a7, zero, 64
+              mv s1, a0
+              li a0, 1
+              addi a1, sp, -48
+              li a2, 7
+              li a7, 64
               ecall
-              addi a0, zero, 1
+              li a0, 1
               addi a1, sp, -32
-              addi a2, s1, 0
-              addi a7, zero, 64
+              mv a2, s1
+              li a7, 64
               ecall
-              addi a0, zero, 0
-              addi a7, zero, 93
+              li a0, 0
+              li a7, 93
               ecall
-      ask:    .string "Name: "
-      hi:     .string "Hello, "
       """
     When I press Run
     Then the terminal shows "Name: "

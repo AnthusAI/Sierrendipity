@@ -34,15 +34,18 @@ const ASM_STARTER = `# Prints "Hello" with the write system call, then exits wit
 #   write: a7 = 64, a0 = file descriptor (1 = terminal), a1 = address, a2 = length
 #   read:  a7 = 63, a0 = 0 (keyboard),                    a1 = address, a2 = size
 #   exit:  a7 = 93, a0 = exit code
+        li   t0, 0x6c6c6548 # the bytes "Hell" (stored little-endian)
+        sw   t0, -8(sp)     # put them in memory just below the stack pointer
+        li   t0, 0x0a6f     # the bytes "o" and a newline
+        sw   t0, -4(sp)
         li   a0, 1          # file descriptor 1: the terminal
-        la   a1, msg        # address of the text
+        addi a1, sp, -8     # address of the text
         li   a2, 6          # number of bytes
         li   a7, 64         # write
         ecall
         li   a0, 0          # exit code 0
         li   a7, 93         # exit
         ecall
-msg:    .string "Hello\\n"
 `;
 
 const MACHINE_STARTER = `# Machine code: one 32-bit word per entry, written in hex (0x...) or binary (0b...).

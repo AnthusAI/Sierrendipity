@@ -115,7 +115,7 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
       active: () => runIdRef.current !== null || !!sessionRef.current?.emu.active && sessionRef.current.emu.machine.state === "waiting-input",
       send: (line, eof) => {
         const emu = sessionRef.current?.emu;
-        if (emu?.machine.state === "waiting-input" && emu.active) return void (line && emu.input(line));
+        if (emu?.machine.state === "waiting-input" && emu.active) return void emu.input(line);
         const id = runIdRef.current;
         if (id) backend.sendStdin(id, line, eof).catch((e) => term.write(styles.error(`\r\n${e.message}\r\n`)));
       },
@@ -192,8 +192,11 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
     term.write(kind === "error" ? styles.error(crlf(text)) : kind === "note" ? styles.note(crlf(text)) : crlf(text));
 
   const startSession = (kind: Session["kind"], program: Program, from: string) => {
-    sessionRef.current?.emu.stop();
+    const previous = sessionRef.current;
+    previous?.emu.stop();
     const emu = new Emulator(program, emulatorOutput);
+    // Breakpoints survive edits of an assembly program (addresses are kept as they are).
+    if (kind === "riscv" && previous?.kind === "riscv") previous.emu.breakpoints.forEach((a) => emu.breakpoints.add(a));
     emu.subscribe(redraw);
     const next = { kind, source: from, program, emu };
     sessionRef.current = next;
@@ -223,7 +226,13 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
     if (model) setProblemMarkers(model, built.errors);
     if (!built.program) return null;
     const current = sessionRef.current;
-    return current?.kind === "riscv" && current.source === source ? current : startSession("riscv", built.program, source);
+    if (current?.kind === "riscv" && current.source === source) return current;
+    try {
+      return startSession("riscv", built.program, source);
+    } catch (error) {
+      setProblems([{ line: 1, column: 1, message: (error as Error).message }]);
+      return null;
+    }
   };
 
   // Follow the student's typing (debounced): problems as markers, and a fresh program in the pane.
