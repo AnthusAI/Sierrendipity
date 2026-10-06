@@ -31,6 +31,7 @@ export const CARD_KINDS = [
   "divide",
   "big-number",
   "ask-system",
+  "memory-order",
   "unknown",
 ] as const;
 
@@ -62,6 +63,11 @@ export interface DescribeOptions {
    */
   pc?: number;
 }
+
+/** Instructions whose only effect is to write rd; with rd = x0 they do nothing. */
+const WRITES_RD = new Set(
+  "addi add sub slt sltu slti sltiu and or xor andi ori xori sll srl sra slli srli srai mul mulh mulhsu mulhu div divu rem remu lui auipc lw lb lbu lh lhu".split(" "),
+);
 
 /** Pixel display: one byte per pixel at 1024 to 1279. */
 const SCREEN_START = 1024;
@@ -132,7 +138,7 @@ export function describe(word: number, opts: DescribeOptions = {}): CardText {
   /** Where a load or store looks: a plain shelf number, or the address held in a box plus an offset. */
   const place = (preposition: string, imm: number): Item[] =>
     rs1N === 0
-      ? [`${preposition} `, label(words.shelf), " ", shelfNo(imm >>> 0)]
+      ? [`${preposition} `, label(words.shelf), " ", shelfNo(imm)]
       : registers
         ? [`${preposition === "on" ? "at" : preposition} the `, label(words.shelf), " in ", rs1, ...plus(imm)]
         : [`${preposition} the `, label(words.shelf), " at ", rs1, ...plus(imm)];
@@ -142,11 +148,16 @@ export function describe(word: number, opts: DescribeOptions = {}): CardText {
     const cards = offset / 4;
     const absolute = opts.pc !== undefined && Number.isFinite(opts.pc) ? Math.floor((opts.pc + offset) / 4) : -1;
     const cap = (s: string): string => (capital ? s[0]!.toUpperCase() + s.slice(1) : s);
+    if (offset % 4 !== 0) return [verb(cap("jump to")), " an address that does not start ", registers ? "an " : "a ", label(words.card), " (the machine will fault)"];
     if (absolute >= 0) return [verb(cap("jump to")), " ", label(words.card), " ", num(absolute)];
     if (cards === 0) return [verb(cap("jump to")), " this same ", label(words.card), " again"];
     const n = Math.abs(cards);
     return [verb(cap(cards < 0 ? "jump back" : "jump forward")), " ", num(n), " ", label(n === 1 ? words.card : words.cards)];
   };
+
+  if (rdN === 0 && w !== 0x13 && WRITES_RD.has(decoded.mnemonic)) {
+    return done("do-nothing", [verb("Do nothing"), ": the answer would go in ", rd, ", which never changes"]);
+  }
 
   switch (decoded.mnemonic) {
     case "addi": {
@@ -173,12 +184,23 @@ export function describe(word: number, opts: DescribeOptions = {}): CardText {
       }
       return done("save", [verb("Copy"), " one byte of ", rs2, " ", ...place("onto", immS)]);
     }
+    case "sh":
+      return done("save", [verb("Copy"), " two bytes of ", rs2, " ", ...place("onto", immS)]);
     case "sw":
       return done("save", [verb("Copy"), " ", rs2, " ", ...place("onto", immS)]);
     case "lw":
       return done("fetch", [verb("Fetch"), " the number ", ...place("on", immI), " into ", rd]);
     case "lb":
-      return done("fetch", [verb("Fetch"), " one byte ", ...place("from", immI), " into ", rd]);
+    case "lbu":
+    case "lh":
+    case "lhu": {
+      const m = decoded.mnemonic;
+      const size = m.startsWith("lb") ? "one byte" : "two bytes";
+      const note = m.endsWith("u") ? " (never negative)" : m === "lb" ? " (a byte of 200 arrives as -56)" : " (a value of 40000 arrives as -25536)";
+      return done("fetch", [verb("Fetch"), ` ${size} `, ...place("from", immI), " into ", rd, note]);
+    }
+    case "fence":
+      return done("memory-order", [verb("Pause"), " until earlier memory jobs finish, so they stay in order"]);
     case "beq":
     case "bne":
     case "blt":
@@ -229,11 +251,11 @@ export function describe(word: number, opts: DescribeOptions = {}): CardText {
     case "sltu":
     case "slti":
     case "sltiu": {
-      const immediate = decoded.mnemonic.endsWith("i");
+      const immediate = decoded.mnemonic.startsWith("slti");
       const unsigned = decoded.mnemonic.startsWith("sltu") || decoded.mnemonic === "sltiu";
       const right: Item = immediate ? num(unsigned ? immI >>> 0 : immI) : rs2;
       return done("compare", [
-        verb("Put"), " 1 in ", rd, " if ", rs1, " is smaller than ", right, unsigned && !immediate ? unsignedNote : "", ", otherwise 0",
+        verb("Put"), " 1 in ", rd, " if ", rs1, " is smaller than ", right, unsigned ? unsignedNote : "", ", otherwise 0",
       ]);
     }
     case "and":
@@ -263,18 +285,25 @@ export function describe(word: number, opts: DescribeOptions = {}): CardText {
       return done("shift", [verb("Slide"), " the bits of ", rs1, ` ${direction} `, ...amount, signed ? ", keeping the sign" : "", ...answerIn()]);
     }
     case "mul":
+      return done("multiply", [verb("Multiply"), " ", rs1, " by ", rs2, ", put the answer in ", rd]);
     case "mulh":
+      return done("multiply", [verb("Multiply"), " ", rs1, " by ", rs2, " (both signed), put the top half of the answer in ", rd]);
+    case "mulhsu":
+      return done("multiply", [verb("Multiply"), " ", rs1, " (signed) by ", rs2, `${unsignedNote}, put the top half of the answer in `, rd]);
     case "mulhu":
-      return done("multiply", [
-        verb("Multiply"), " ", rs1, " by ", rs2, decoded.mnemonic === "mulhu" ? unsignedNote : "",
-        decoded.mnemonic === "mul" ? ", put the answer in " : ", put the top half of the answer in ", rd,
-      ]);
+      return done("multiply", [verb("Multiply"), " ", rs1, " by ", rs2, `${unsignedNote}, put the top half of the answer in `, rd]);
     case "div":
     case "divu":
-      return done("divide", [verb("Divide"), " ", rs1, " by ", rs2, decoded.mnemonic === "divu" ? unsignedNote : "", ", put the whole-number answer in ", rd]);
+      return done("divide", [
+        verb("Divide"), " ", rs1, " by ", rs2, decoded.mnemonic === "divu" ? unsignedNote : "",
+        ", put the whole-number answer in ", rd, ` (dividing by 0 gives ${decoded.mnemonic === "divu" ? "4294967295" : "-1"})`,
+      ]);
     case "rem":
     case "remu":
-      return done("divide", [verb("Divide"), " ", rs1, " by ", rs2, decoded.mnemonic === "remu" ? unsignedNote : "", ", put what is left over in ", rd]);
+      return done("divide", [
+        verb("Divide"), " ", rs1, " by ", rs2, decoded.mnemonic === "remu" ? unsignedNote : "",
+        ", put what is left over in ", rd, " (dividing by 0 leaves ", rs1, " as it was)",
+      ]);
     default:
       return unmet();
   }

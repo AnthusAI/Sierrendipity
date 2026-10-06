@@ -92,7 +92,7 @@ Machine
 ## Card text: `describe`
 
 ```ts
-export const CARD_KINDS: readonly CardKind[]; // put, add-number, add-boxes, subtract-boxes, paint-pixel, save, fetch, jump-if-different, jump-if-smaller, stop (Course 1), then copy, do-nothing, jump-if-same, jump-if-not-smaller, jump, jump-to-box, compare, logic, shift, multiply, divide, big-number, ask-system, unknown
+export const CARD_KINDS: readonly CardKind[]; // put, add-number, add-boxes, subtract-boxes, paint-pixel, save, fetch, jump-if-different, jump-if-smaller, stop (Course 1), then copy, do-nothing, jump-if-same, jump-if-not-smaller, jump, jump-to-box, compare, logic, shift, multiply, divide, big-number, ask-system, memory-order, unknown
 export type PartRole = "verb" | "box" | "number" | "shelf" | "label" | "text";
 export interface CardText { kind: CardKind; text: string; parts: { role: PartRole; text: string }[]; fallback: boolean }
 export function describe(word: number, opts?: { vocabulary?: "boxes" | "registers"; pc?: number }): CardText;
@@ -108,16 +108,21 @@ export function cardsUsed(words: number[]): CardKind[]; // distinct kinds, in CA
 - Jumps say "jump back 2 cards" (card distance = offset / 4). With `opts.pc` (the card's own address)
   they say "jump to card 5" (address / 4, counting from 0) unless the target would be negative.
 - `vocabulary: "registers"` swaps box to register, shelf to memory address and card to instruction.
-- Anything else the decoder knows but Course 1 has not met (`sh`, `lh`, `lhu`, `lbu`, `mulhsu`, `fence`, ...) is
-  `fallback: true` with kind `unknown` and "An instruction we haven't met yet: <assembly>"; a word the
-  decoder rejects is "Not an instruction the machine understands".
+- A destination of x0 (`addi zero, zero, 7`, `lw zero, ...`, `lui zero, 1`, ...) reads "Do nothing: the
+  answer would go in box zero (always 0), which never changes"; the real `nop` is plain "Do nothing".
+- Loads say what sign extension does ("a byte of 200 arrives as -56"; `lbu`/`lhu` "never negative");
+  `sh`, `lh`, `lhu`, `lbu`, `mulhsu`, `fence` have cards too. A jump offset that is not a multiple of 4 says
+  "jump to an address that does not start a card (the machine will fault)"; a negative shelf prints signed.
+- `unknown` with `fallback: true` is only for words the decoder rejects ("Not an instruction the
+  machine understands"); an unmet-but-decodable instruction would read "An instruction we haven't met
+  yet: <assembly>" (no such instruction exists today).
 
 ## Timeline
 
 ```ts
 export class Timeline {
   constructor(machine: Machine, opts?: { maxSteps?: number }); // resets the machine; default maxSteps 500,000
-  readonly length: number; readonly position: number; readonly isAtEnd: boolean;
+  readonly length: number; readonly position: number; readonly isAtEnd: boolean; readonly hitStepLimit: boolean; /* stopped at maxSteps with the program able to go on */
   readonly outputLog: readonly { step: number; fd: number; bytes: Uint8Array }[];
   readonly inputLog: readonly { position: number; bytes: Uint8Array }[];
   stepForward(): boolean; stepBackward(): boolean; seek(position: number): void; // RangeError outside 0..length
@@ -136,6 +141,8 @@ export class Timeline {
   initial image) is kept every 256 steps. Any position is the nearest checkpoint plus at most 255
   replayed records, so seeking is cheap on runs of any length and replays are exactly repeatable.
   `Machine.memorySize` (new getter) lets it capture the initial image once.
+- Records are small (pc, word, the one changed register, the write; the decoded instruction in
+  `lastStep` is rebuilt with `decode(word)`): about 25 MB for a 500,000-step run.
 - `stepForward` at the end of the recording runs one real Machine step. It returns false when halted
   or faulted, at `maxSteps`, or while the program waits for input with none provided. The first
   waiting step is recorded (state `waiting-input`, not counted in `steps`); further attempts record nothing.

@@ -25,7 +25,6 @@ Feature: Describing a machine word in plain English
       | sw t0, 1024(zero)    | 0x40502023 | save                | Copy box t0 onto shelf 1024 |
       | sw t0, 8(sp)         | 0x00512423 | save                | Copy box t0 onto the shelf at box sp plus 8 |
       | lw t1, 1024(zero)    | 0x40002303 | fetch               | Fetch the number on shelf 1024 into box t1 |
-      | lb t1, 1030(zero)    | 0x40600303 | fetch               | Fetch one byte from shelf 1030 into box t1 |
       | lw a0, 4(sp)         | 0x00412503 | fetch               | Fetch the number on the shelf at box sp plus 4 into box a0 |
       | lw a0, 0(sp)         | 0x00012503 | fetch               | Fetch the number on the shelf at box sp into box a0 |
       | bne t0, t1, -8       | 0xfe629ce3 | jump-if-different   | If box t0 and box t1 differ, jump back 2 cards |
@@ -61,21 +60,33 @@ Feature: Describing a machine word in plain English
       | lui t0, 0x12345      | 0x123452b7 | big-number          | Put the big number 0x12345000 in box t0 |
       | auipc t0, 1          | 0x00001297 | big-number          | Put this card's address plus 0x1000 in box t0 |
       | mul a0, a1, a2       | 0x02c58533 | multiply            | Multiply box a1 by box a2, put the answer in box a0 |
-      | mulh a0, a1, a2      | 0x02c59533 | multiply            | Multiply box a1 by box a2, put the top half of the answer in box a0 |
-      | div a0, a1, a2       | 0x02c5c533 | divide              | Divide box a1 by box a2, put the whole-number answer in box a0 |
-      | rem a0, a1, a2       | 0x02c5e533 | divide              | Divide box a1 by box a2, put what is left over in box a0 |
       | ecall                | 0x00000073 | ask-system          | Ask the machine to do the job named in box a7 |
-
-  Scenario Outline: Cards with an unfamiliar instruction fall back honestly
-    When I assemble "<assembly>" and describe its word
-    Then the card kind is "unknown"
-    And the card text is "<text>"
-    And the card is a fallback
-
-    Examples: instructions Course 1 has not introduced
-      | assembly      | text                                           |
-      | sh t0, 4(sp)  | An instruction we haven't met yet: sh t0, 4(sp)  |
-      | lhu t0, 4(sp) | An instruction we haven't met yet: lhu t0, 4(sp) |
+      | lb t1, 1030(zero)    | 0x40600303 | fetch               | Fetch one byte from shelf 1030 into box t1 (a byte of 200 arrives as -56) |
+      | lbu t1, 1030(zero)   | 0x40604303 | fetch               | Fetch one byte from shelf 1030 into box t1 (never negative) |
+      | lh t1, 1030(zero)    | 0x40601303 | fetch               | Fetch two bytes from shelf 1030 into box t1 (a value of 40000 arrives as -25536) |
+      | lhu t1, 1030(zero)   | 0x40605303 | fetch               | Fetch two bytes from shelf 1030 into box t1 (never negative) |
+      | sh t0, 1030(zero)    | 0x40501323 | save                | Copy two bytes of box t0 onto shelf 1030 |
+      | sh t0, 4(sp)         | 0x00511223 | save                | Copy two bytes of box t0 onto the shelf at box sp plus 4 |
+      | mulh a0, a1, a2      | 0x02c59533 | multiply            | Multiply box a1 by box a2 (both signed), put the top half of the answer in box a0 |
+      | mulhsu a0, a1, a2    | 0x02c5a533 | multiply            | Multiply box a1 (signed) by box a2 (counting from 0 up), put the top half of the answer in box a0 |
+      | mulhu a0, a1, a2     | 0x02c5b533 | multiply            | Multiply box a1 by box a2 (counting from 0 up), put the top half of the answer in box a0 |
+      | div a0, a1, a2       | 0x02c5c533 | divide              | Divide box a1 by box a2, put the whole-number answer in box a0 (dividing by 0 gives -1) |
+      | divu a0, a1, a2      | 0x02c5d533 | divide              | Divide box a1 by box a2 (counting from 0 up), put the whole-number answer in box a0 (dividing by 0 gives 4294967295) |
+      | rem a0, a1, a2       | 0x02c5e533 | divide              | Divide box a1 by box a2, put what is left over in box a0 (dividing by 0 leaves box a1 as it was) |
+      | remu a0, a1, a2      | 0x02c5f533 | divide              | Divide box a1 by box a2 (counting from 0 up), put what is left over in box a0 (dividing by 0 leaves box a1 as it was) |
+      | sltiu a0, a1, 1      | 0x0015b513 | compare             | Put 1 in box a0 if box a1 is smaller than 1 (counting from 0 up), otherwise 0 |
+      | sltiu a0, a1, -1     | 0xfff5b513 | compare             | Put 1 in box a0 if box a1 is smaller than 4294967295 (counting from 0 up), otherwise 0 |
+      | addi zero, zero, 7   | 0x00700013 | do-nothing          | Do nothing: the answer would go in box zero (always 0), which never changes |
+      | add zero, a0, a1     | 0x00b50033 | do-nothing          | Do nothing: the answer would go in box zero (always 0), which never changes |
+      | sub zero, a0, a1     | 0x40b50033 | do-nothing          | Do nothing: the answer would go in box zero (always 0), which never changes |
+      | lw zero, 4(sp)       | 0x00412003 | do-nothing          | Do nothing: the answer would go in box zero (always 0), which never changes |
+      | lui zero, 1          | 0x00001037 | do-nothing          | Do nothing: the answer would go in box zero (always 0), which never changes |
+      | slli zero, a0, 2     | 0x00251013 | do-nothing          | Do nothing: the answer would go in box zero (always 0), which never changes |
+      | bne t0, t1, 6        | 0x00629363 | jump-if-different   | If box t0 and box t1 differ, jump to an address that does not start a card (the machine will fault) |
+      | jal zero, 6          | 0x0060006f | jump                | Jump to an address that does not start a card (the machine will fault) |
+      | lw t1, -4(zero)      | 0xffc02303 | fetch               | Fetch the number on shelf -4 into box t1 |
+      | sw t0, -8(zero)      | 0xfe502c23 | save                | Copy box t0 onto shelf -8 |
+      | fence                | 0x0ff0000f | memory-order        | Pause until earlier memory jobs finish, so they stay in order |
 
   Scenario Outline: A word that is not an instruction says so
     When I describe the word <word>
@@ -124,6 +135,8 @@ Feature: Describing a machine word in plain English
       | lw t1, 4(sp)       | registers  | Fetch the number at the memory address in register sp plus 4 into register t1 |
       | sb t0, 1024(zero)  | registers  | Paint pixel 0 with the colour in register t0                         |
       | ecall              | registers  | Ask the machine to do the job named in register a7                   |
+      | addi zero, zero, 7 | registers  | Do nothing: the answer would go in register zero (always 0), which never changes |
+      | bne t0, t1, 6      | registers  | If register t0 and register t1 differ, jump to an address that does not start an instruction (the machine will fault) |
 
   Scenario: The default vocabulary is boxes
     When I assemble "addi a0, zero, 5" and describe its word
