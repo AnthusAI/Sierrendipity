@@ -7,8 +7,8 @@ import { Backend, type BackendLanguage, type BackendStatus, type Language, type 
 import { devBackend, type Config } from "./config";
 import { Emulator, type OutKind } from "./emulator";
 import { FileTree } from "./FileTree";
-import { AssemblyTab, BitsCard, MachineTab, MemoryTab, RegistersTab, TabGroup, type InspectorState } from "./Inspector";
-import { fromAssembly, fromExplain, fromMachineCode, type Built, type Program, type Row } from "./program";
+import { AssemblyTab, BitsCard, MachineTab, MemoryTab, RegistersTab, TabGroup, type Actions, type InspectorState, type MemoryView } from "./Inspector";
+import { fromAssembly, fromExplain, fromMachineCode, lineKey, type Built, type Program, type Row } from "./program";
 import { ASM, MACHINE, decorate, setProblemMarkers } from "./riscvMonaco";
 import {
   deletePath,
@@ -31,10 +31,18 @@ import { crlf, lineInput, styles, TerminalPane } from "./TerminalPane";
 /** What the right pane shows: a program, the emulator running it, and the source it came from. */
 interface Session {
   kind: "c" | "riscv";
-  source: string;
+  /** Every file the program was built from ({"": text} for the single-file RISC-V languages). */
+  files: Record<string, string>;
   program: Program;
   emu: Emulator;
 }
+
+type Focus = { path: string; line: number } | null;
+
+const sameFiles = (a: Record<string, string>, b: Record<string, string>) => {
+  const keys = Object.keys(a);
+  return keys.length === Object.keys(b).length && keys.every((k) => a[k] === b[k]);
+};
 
 interface Props {
   config: Config;
@@ -55,8 +63,10 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
   const [problems, setProblems] = useState<AsmError[]>([]);
   const [, redraw] = useReducer((n: number) => n + 1, 0);
   const [selected, setSelected] = useState<Row | null>(null);
-  const [pinnedLine, setPinnedLine] = useState(0);
-  const [hoverLine, setHoverLine] = useState<number | null>(null);
+  const [pinned, setPinned] = useState<Focus>(null);
+  const [hover, setHover] = useState<Focus>(null);
+  const [memory, setMemory] = useState<MemoryView>({ follow: "write", address: "" });
+  const [resetNote, setResetNote] = useState(false);
   const [showRuntime, setShowRuntime] = useState(false);
   const [topTab, setTopTab] = useState("assembly");
   const [bottomTab, setBottomTab] = useState("registers");
@@ -191,18 +201,18 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
   const emulatorOutput = (text: string, kind: OutKind) =>
     term.write(kind === "error" ? styles.error(crlf(text)) : kind === "note" ? styles.note(crlf(text)) : crlf(text));
 
-  const startSession = (kind: Session["kind"], program: Program, from: string) => {
+  const startSession = (kind: Session["kind"], program: Program, files: Record<string, string>) => {
     const previous = sessionRef.current;
     previous?.emu.stop();
     const emu = new Emulator(program, emulatorOutput);
     // Breakpoints survive edits of an assembly program (addresses are kept as they are).
     if (kind === "riscv" && previous?.kind === "riscv") previous.emu.breakpoints.forEach((a) => emu.breakpoints.add(a));
     emu.subscribe(redraw);
-    const next = { kind, source: from, program, emu };
+    const next = { kind, files, program, emu };
     sessionRef.current = next;
     setSession(next);
     setSelected(null);
-    setPinnedLine(0);
+    setPinned(null);
     return next;
   };
 
@@ -212,9 +222,13 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
     setSession(null);
     setProblems([]);
     setSelected(null);
-    setPinnedLine(0);
-    setHoverLine(null);
+    setPinned(null);
+    setHover(null);
+    setResetNote(false);
   };
+
+  // The IDE must not leave a Continue loop running after it unmounts.
+  useEffect(() => () => sessionRef.current?.emu.stop(), []);
 
   const build = (): Built => (language === "asm" ? fromAssembly(source) : fromMachineCode(source));
 
@@ -226,9 +240,10 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
     if (model) setProblemMarkers(model, built.errors);
     if (!built.program) return null;
     const current = sessionRef.current;
-    if (current?.kind === "riscv" && current.source === source) return current;
+    if (current?.kind === "riscv" && current.files[""] === source) return current;
     try {
-      return startSession("riscv", built.program, source);
+      if (current?.kind === "riscv" && current.emu.machine.steps > 0) setResetNote(true);
+      return startSession("riscv", built.program, { "": source });
     } catch (error) {
       setProblems([{ line: 1, column: 1, message: (error as Error).message }]);
       return null;
@@ -242,8 +257,15 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
     return () => clearTimeout(timer);
   }, [language, source, editorVersion]);
 
-  // Each project/language/file has its own session.
-  const sessionKey = `${store.current}|${language}|${ws.active}`;
+  // A RISC-V session belongs to one file; a C session to the whole project, so switching files keeps it.
+  const projectKey = `${store.current}|${language}`;
+  const sessionKey = language === "c" ? projectKey : `${projectKey}|${ws.active}`;
+  const keyRef = useRef(projectKey);
+  const filesRef = useRef(ws.files);
+  const activeRef = useRef(ws.active);
+  keyRef.current = projectKey;
+  filesRef.current = ws.files;
+  activeRef.current = ws.active;
   useEffect(() => {
     clearSession();
     if (isRiscv(language)) void syncRiscv();
@@ -257,66 +279,110 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
     const current = activeSession();
     term.reset();
     if (!current) return errors.forEach((e) => term.write(styles.error(`Line ${e.line}: ${e.message}\r\n`)));
+    setResetNote(false);
     input.current?.clear();
     term.focus();
     current.emu.reset();
-    await current.emu.run(false);
+    await current.emu.run();
   };
 
   const debug = (action: (emu: Emulator) => void) => () => {
     const current = activeSession();
-    if (current) action(current.emu);
+    if (!current) return;
+    setResetNote(false);
+    action(current.emu);
   };
 
   const explore = async () => {
-    if (exploring) return;
+    if (exploring || running) return;
     setExploring(true);
     input.current?.clear();
     term.reset();
     clearSession();
+    const startKey = keyRef.current;
+    const files = { ...ws.files };
+    // The result only counts if the project, language and every file are still as they were.
+    const current = () => keyRef.current === startKey && sameFiles(filesRef.current, files);
     try {
       if (status !== "ready") term.writeln(styles.note("Starting your workspace, this can take up to a minute..."));
       const response = await backend.explain({
         language: "c",
-        files: Object.entries(ws.files).map(([path, content]) => ({ path, content })),
+        files: Object.entries(files).map(([path, content]) => ({ path, content })),
         optLevel,
       });
+      if (!current()) return;
       term.reset();
       const program = fromExplain(response);
       if (!program) {
-        const text = response.compileOutput || `explore failed: ${response.status}`;
+        const text = response.compileOutput || (response.status === "ok" ? "explore returned no program" : `explore failed: ${response.status}`);
         term.write(styles.error(crlf(text.endsWith("\n") ? text : text + "\n")));
         return;
       }
       if (response.compileOutput) term.write(styles.warning(crlf(response.compileOutput)));
-      startSession("c", program, source);
+      startSession("c", program, files);
       setTopTab("assembly");
     } catch (error) {
-      term.writeln(styles.error(`\r\n${(error as Error).message}`));
+      if (current()) term.writeln(styles.error(`\r\n${(error as Error).message}`));
     } finally {
       setExploring(false);
     }
   };
 
-  const select = (row: Row) => {
-    setSelected(row);
-    setPinnedLine(row.line);
+  /** Show `path:line` in the editor: open the file if needed and scroll to the line. */
+  const reveal = useRef<number | null>(null);
+  const showInEditor = (path: string, line: number) => {
+    if (path && path !== activeRef.current) {
+      reveal.current = line;
+      update((w) => ({ ...w, open: w.open.includes(path) ? w.open : [...w.open, path], active: path }));
+    } else editorRef.current?.revealLineInCenterIfOutsideViewport(line);
   };
 
-  // Keep the editor in step with the machine: PC arrow, breakpoints and the linked source line.
-  const focusLine = hoverLine ?? pinnedLine;
+  const handlers = useRef<Actions>(null as unknown as Actions);
+  handlers.current = {
+    select: (row) => {
+      setSelected(row);
+      setPinned(row.line ? { path: row.path, line: row.line } : null);
+    },
+    hover: (row) => setHover(row && row.line ? { path: row.path, line: row.line } : null),
+    toggleBreakpoint: (row) => sessionRef.current?.emu.toggleBreakpoint(row.addr),
+    openChip: (path, line) => {
+      setPinned({ path, line });
+      showInEditor(path, line);
+    },
+  };
+  const actions = useMemo<Actions>(
+    () => ({
+      select: (r) => handlers.current.select(r),
+      hover: (r) => handlers.current.hover(r),
+      toggleBreakpoint: (r) => handlers.current.toggleBreakpoint(r),
+      openChip: (p, l) => handlers.current.openChip(p, l),
+    }),
+    [],
+  );
+
+  // Highlights only make sense while the source is the one the program was built from.
+  const sourceStale = session?.kind === "c" && !sameFiles(session.files, ws.files);
+  const rowPath = (path: string) => (session?.kind === "riscv" || path === ws.active ? true : false);
+  const focus = hover ?? pinned;
   const pcRow = session?.program.byAddr.get(session.emu.machine.pc);
   useEffect(() => {
     const editor = editorRef.current;
     if (!editor) return;
     decorations.current ??= editor.createDecorationsCollection();
-    const breakpointLines = session ? [...session.emu.breakpoints].map((a) => session.program.byAddr.get(a)?.line ?? 0).filter(Boolean) : [];
-    decorate(decorations.current, { pcLine: pcRow?.line ?? 0, breakpointLines, focusLine: session ? focusLine : 0 });
-    if (pcRow?.line && session?.emu.machine.steps) editor.revealLineInCenterIfOutsideViewport(pcRow.line);
+    const live = session && !sourceStale;
+    const breakpointLines = live
+      ? [...session.emu.breakpoints].flatMap((a) => {
+          const row = session.program.byAddr.get(a);
+          return row?.line && rowPath(row.path) ? [row.line] : [];
+        })
+      : [];
+    const pcLine = live && pcRow?.line && rowPath(pcRow.path) ? pcRow.line : 0;
+    const focusLine = live && focus && rowPath(focus.path) ? focus.line : 0;
+    decorate(decorations.current, { pcLine, breakpointLines, focusLine });
+    if (pcLine && session?.emu.machine.steps) editor.revealLineInCenterIfOutsideViewport(pcLine);
   });
 
   const problemLines = problems.map((e) => `Line ${e.line}: ${e.message}`);
-  const sourceStale = session?.kind === "c" && session.source !== source;
   const emuActive = !!session?.emu.active;
 
   const run = async () => {
@@ -393,7 +459,7 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
               <option value="O0">-O0 (as written)</option>
               <option value="Og">-Og (light optimization)</option>
             </select>
-            <button onClick={() => void explore()} disabled={exploring}>
+            <button onClick={() => void explore()} disabled={exploring || running}>
               Explore
             </button>
             <button onClick={() => void runEmulator()} disabled={!session || emuActive}>
@@ -471,16 +537,28 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
                 editorRef.current = editor;
                 decorations.current = null;
                 const line = (e: monaco.editor.IEditorMouseEvent) => e.target.position?.lineNumber ?? 0;
-                const rowsOf = (n: number) => sessionRef.current?.program.lineRows.get(n);
-                editor.onMouseMove((e) => setHoverLine(rowsOf(line(e)) ? line(e) : null));
-                editor.onMouseLeave(() => setHoverLine(null));
-                editor.onMouseDown((e) => {
+                // Rows of the open file's line, unless the program no longer matches the source.
+                const rowsOf = (n: number) => {
                   const current = sessionRef.current;
+                  if (!current || (current.kind === "c" && !sameFiles(current.files, filesRef.current))) return undefined;
+                  return current.program.lineRows.get(lineKey(current.kind === "riscv" ? "" : (activeRef.current ?? ""), n));
+                };
+                const focusOf = (n: number): Focus => ({ path: sessionRef.current?.kind === "riscv" ? "" : (activeRef.current ?? ""), line: n });
+                editor.onMouseMove((e) => setHover(rowsOf(line(e)) ? focusOf(line(e)) : null));
+                editor.onMouseLeave(() => setHover(null));
+                editor.onMouseDown((e) => {
                   const rows = rowsOf(line(e));
-                  if (!current || !rows) return;
-                  if (e.target.type === 2 || e.target.type === 3) current.emu.toggleBreakpoint(rows[0].addr); // glyph margin, line number
-                  else setPinnedLine(line(e));
+                  if (!rows) return;
+                  if (e.target.type === 2 || e.target.type === 3) {
+                    // Gutter: toggle the first instruction of every separate run of this line's rows.
+                    const starts = rows.filter((r, i) => i === 0 || r.index !== rows[i - 1].index + 1);
+                    sessionRef.current?.emu.toggleBreakpoint(...starts.map((r) => r.addr));
+                  } else setPinned(focusOf(line(e)));
                 });
+                if (reveal.current) {
+                  editor.revealLineInCenter(reveal.current);
+                  reveal.current = null;
+                }
                 setMountedKey(sessionKey);
                 setEditorVersion((v) => v + 1);
               }}
@@ -497,7 +575,15 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
                 {session.emu.statusText}
               </span>
             )}
-            {sourceStale && <span className="note">The source changed since Explore; press Explore to refresh.</span>}
+            {sourceStale && (
+              <span className="stale" role="note">
+                The source changed since Explore, so the highlights are hidden.{" "}
+                <button onClick={() => void explore()} disabled={exploring || running}>
+                  Re-explore
+                </button>
+              </span>
+            )}
+            {resetNote && <span className="note">The program was reset because the source changed.</span>}
             {problems.length > 0 && (
               <section role="region" aria-label="Problems" className="problems">
                 <ul>
@@ -521,6 +607,8 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
             aria-orientation="vertical"
             aria-label="Resize the inspector"
             aria-valuenow={paneWidth}
+            aria-valuemin={260}
+            aria-valuemax={900}
             tabIndex={0}
             className="splitter"
             onPointerDown={(down) => {
@@ -542,6 +630,7 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
           <aside className="inspector" role="complementary" aria-label="Inspector">
             <TabGroup
               label="Program views"
+              fill={topTab !== "bits"}
               tabs={[
                 { id: "assembly", label: "Assembly" },
                 { id: "machine", label: "Machine" },
@@ -555,20 +644,22 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
                   program: session.program,
                   emu: session.emu,
                   kind: session.kind,
-                  sourceLines: session.source.split("\n"),
+                  sources: session.files,
                   selected,
-                  focusLine,
+                  focus: sourceStale ? null : focus,
                   showRuntime,
                   onShowRuntime: setShowRuntime,
-                  onSelect: select,
-                  onHover: setHoverLine,
+                  actions,
                 };
-                if (topTab === "machine") return <MachineTab s={inspector} />;
                 if (topTab === "bits") return <BitsCard row={selected ?? pcRow} />;
                 return (
                   <>
-                    <AssemblyTab s={inspector} />
-                    {selected && <BitsCard row={selected} />}
+                    {topTab === "machine" ? <MachineTab s={inspector} /> : <AssemblyTab s={inspector} />}
+                    {selected && (
+                      <div className="dock">
+                        <BitsCard row={selected} />
+                      </div>
+                    )}
                   </>
                 );
               })()}
@@ -582,7 +673,7 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
               active={bottomTab}
               onActive={setBottomTab}
             >
-              {bottomTab === "memory" ? <MemoryTab emu={session.emu} /> : <RegistersTab emu={session.emu} />}
+              {bottomTab === "memory" ? <MemoryTab emu={session.emu} view={memory} onView={setMemory} /> : <RegistersTab emu={session.emu} />}
             </TabGroup>
           </aside>
         </>

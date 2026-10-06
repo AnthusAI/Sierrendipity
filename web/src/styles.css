@@ -50,8 +50,15 @@ tr[data-changed="true"] mark { background: none; color: #ffd966; font-weight: 60
 .legend { margin: 0.2rem 0; color: #aaa; }
 .swatch { display: inline-block; width: 0.8em; height: 0.8em; margin-right: 0.4em; border-radius: 2px; vertical-align: middle; }
 .mem-controls { display: flex; gap: 1rem; flex-wrap: wrap; }
-.instrs, .group ul { list-style: none; margin: 0; padding: 0; }
-.instrs li, .group li { display: flex; gap: 0.3rem; }
+.vlist { flex: 1 1 0; min-height: 80px; overflow: auto; }
+.item { display: flex; align-items: center; gap: 0.3rem; height: 24px; box-sizing: border-box; }
+.panel.fill { display: flex; flex-direction: column; overflow: hidden; }
+.dock { flex: none; max-height: 45%; overflow: auto; border-top: 1px solid #333; }
+.machine tr { height: 24px; }
+.machine-select { background: none; border: none; color: inherit; font: inherit; cursor: pointer; padding: 0; }
+.machine-select[aria-pressed="true"] { color: #4fc1ff; font-weight: 600; }
+.stale { background: #5a4a00; padding: 0.1rem 0.5rem; border-radius: 3px; }
+.field-error { color: #f48771; margin: 0.2rem 0; }
 .instr { flex: 1; display: flex; gap: 0.8rem; text-align: left; background: none; border: 1px solid transparent; border-radius: 3px; color: inherit; font-family: ui-monospace, monospace; cursor: pointer; padding: 1px 4px; }
 .instr .addr, .instr .word { color: #8a8a8a; }
 .instr[data-linked="true"] { background: #264f78; }

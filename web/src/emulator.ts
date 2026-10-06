@@ -1,7 +1,10 @@
 import { Machine, type MachineState } from "@sierrendipity/explorer";
-import { hex32, type Program } from "./program";
+import type { Program } from "./program";
 
 export type OutKind = "output" | "note" | "error";
+
+const SLICE_MS = 12;
+const REDRAW_MS = 100;
 
 /** Wraps the explorer Machine for the UI: time-sliced Continue, change tracking and terminal output. */
 export class Emulator {
@@ -13,10 +16,12 @@ export class Emulator {
   lastWrite?: { addr: number; length: number };
   version = 0;
   private looping = false;
-  private stopRequested = false;
+  /** Bumped by every run/stop/reset so an older Continue loop knows to quit. */
+  private generation = 0;
   private resumeOnInput = false;
   private announced = false;
   private stopped = false;
+  private regsBefore = new Uint32Array(32);
   private listeners = new Set<() => void>();
   private decoder = new TextDecoder();
 
@@ -60,11 +65,11 @@ export class Emulator {
     const m = this.machine;
     switch (this.state) {
       case "halted":
-        return `Halted, exit code ${m.exitCode ?? 0}`;
+        return m.exitCode === null ? "Halted (ebreak)" : `Halted, exit code ${m.exitCode}`;
       case "faulted":
         return `Faulted: ${m.fault ?? "unknown fault"}`;
       case "waiting-input":
-        return "Waiting for input";
+        return this.stopped ? "Stopped" : "Waiting for input";
       case "running":
         return "Running";
       default:
@@ -72,8 +77,9 @@ export class Emulator {
     }
   }
 
-  toggleBreakpoint(addr: number) {
-    if (!this.breakpoints.delete(addr)) this.breakpoints.add(addr);
+  toggleBreakpoint(...addrs: number[]) {
+    const all = addrs.every((a) => this.breakpoints.has(a));
+    for (const a of addrs) all ? this.breakpoints.delete(a) : this.breakpoints.add(a);
     this.notify();
   }
 
@@ -81,8 +87,12 @@ export class Emulator {
     const m = this.machine;
     if (this.announced || (m.state !== "halted" && m.state !== "faulted")) return;
     this.announced = true;
-    if (m.state === "halted") this.out(`\r\n[exit code ${m.exitCode ?? 0}]\r\n`, "note");
+    if (m.state === "halted") this.out(m.exitCode === null ? "\r\n[ebreak]\r\n" : `\r\n[exit code ${m.exitCode}]\r\n`, "note");
     else this.out(`\r\n[fault: ${m.fault}]\r\n`, "error");
+  }
+
+  private diff(before: Uint32Array) {
+    this.changed = new Set([...Array(32).keys()].filter((i) => before[i] !== this.machine.regs[i]));
   }
 
   /** Run `action`, then record which registers changed and announce a halt or fault. */
@@ -90,7 +100,7 @@ export class Emulator {
     const before = this.machine.regs.slice();
     const write = action();
     if (write) this.lastWrite = write;
-    this.changed = new Set([...Array(32).keys()].filter((i) => before[i] !== this.machine.regs[i]));
+    this.diff(before);
     this.announce();
     this.notify();
   }
@@ -103,6 +113,7 @@ export class Emulator {
 
   back() {
     if (this.looping) return;
+    this.stopped = false;
     this.track(() => {
       if (this.machine.stepBack()) {
         this.announced = false;
@@ -112,7 +123,8 @@ export class Emulator {
   }
 
   reset() {
-    this.stopRequested = true;
+    this.generation++;
+    this.looping = false;
     this.machine.reset();
     this.stopped = false;
     this.changed = new Set();
@@ -123,22 +135,22 @@ export class Emulator {
   }
 
   /** Run until a breakpoint, halt, fault, input request or stop(); yields to the browser between slices. */
-  async run(skipBreakpointHere = true): Promise<void> {
-    if (this.looping) return;
+  async run(): Promise<void> {
+    const generation = ++this.generation;
     this.looping = true;
-    this.stopRequested = false;
     this.stopped = false;
     this.resumeOnInput = false;
-    const before = this.machine.regs.slice();
-    let first = skipBreakpointHere;
+    this.regsBefore = this.machine.regs.slice();
+    let first = true;
+    let lastRedraw = performance.now();
     this.notify();
+    const m = this.machine;
     try {
-      while (!this.stopRequested) {
-        const deadline = performance.now() + 12;
+      for (;;) {
+        const deadline = performance.now() + SLICE_MS;
         while (performance.now() < deadline) {
-          const m = this.machine;
           if (m.state === "halted" || m.state === "faulted") return;
-          if (!first && this.breakpoints.has(m.pc)) return;
+          if (!first && this.breakpoints.has(m.pc)) return; // a breakpoint under the PC is skipped once
           first = false;
           const result = m.step();
           if (result.memWrite) this.lastWrite = result.memWrite;
@@ -147,23 +159,33 @@ export class Emulator {
             return;
           }
         }
+        if (performance.now() - lastRedraw > REDRAW_MS) {
+          lastRedraw = performance.now();
+          this.diff(this.regsBefore);
+          this.notify();
+        }
         await new Promise((resolve) => setTimeout(resolve));
+        if (generation !== this.generation) return;
       }
     } finally {
-      this.looping = false;
-      this.changed = new Set([...Array(32).keys()].filter((i) => before[i] !== this.machine.regs[i]));
-      this.announce();
-      this.notify();
+      if (generation === this.generation) {
+        this.looping = false;
+        this.diff(this.regsBefore);
+        this.announce();
+        this.notify();
+      }
     }
   }
 
+  /** Stop a Continue, or give up waiting for input. */
   stop() {
-    this.stopRequested = true;
+    if (!this.looping && this.machine.state !== "waiting-input") return;
+    this.generation++;
     this.resumeOnInput = false;
-    if (!this.looping) {
-      this.stopped = true;
-      this.notify();
-    }
+    if (this.looping) this.diff(this.regsBefore);
+    this.looping = false;
+    this.stopped = true;
+    this.notify();
   }
 
   /** Typed input for a `read` system call; resumes the program if it was running. */
@@ -171,9 +193,5 @@ export class Emulator {
     this.machine.provideInput(new TextEncoder().encode(text));
     if (this.resumeOnInput) void this.run();
     else this.notify();
-  }
-
-  get pcText() {
-    return hex32(this.machine.pc);
   }
 }

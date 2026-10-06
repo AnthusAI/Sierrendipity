@@ -23,7 +23,7 @@ export function registerRiscvLanguages() {
     registers,
     tokenizer: {
       root: [
-        [/#.*$/, "comment"],
+        [/(#|\/\/).*$/, "comment"],
         [/^\s*[A-Za-z_.][\w.]*(?=\s*:)/, "type.identifier"], // labels
         [/\.[A-Za-z_]\w*/, "keyword.directive"],
         [/"([^"\\]|\\.)*"/, "string"],
@@ -38,9 +38,10 @@ export function registerRiscvLanguages() {
     ignoreCase: true,
     tokenizer: {
       root: [
-        [/#.*$/, "comment"],
+        [/(#|\/\/).*$/, "comment"],
         [/0x[0-9a-f_]+/, "number.hex"],
-        [/0b[01_]+/, "number.binary"],
+        [/0b[01_]*(?:[ \t]+[01_]+)*/, "number.binary"], // groups of a spaced binary word
+        [/[0-9a-f]{8}\b/, "number.hex"], // a bare word of 8 hex digits
         [/\S+/, "invalid"],
       ],
     },
@@ -64,8 +65,8 @@ export function decorate(
   const at = (line: number, options: monaco.editor.IModelDecorationOptions) => ({ range: new monaco.Range(line, 1, line, 1), options });
   collection.set([
     ...(focusLine ? [at(focusLine, { isWholeLine: true, className: `src-linked src-linked-${focusLine}` })] : []),
-    ...(pcLine ? [at(pcLine, { isWholeLine: true, className: "src-pc", glyphMarginClassName: "pc-glyph", glyphMarginHoverMessage: { value: "Current instruction (PC)" } })] : []),
-    ...breakpointLines.map((line) => at(line, { glyphMarginClassName: "bp-glyph", glyphMarginHoverMessage: { value: "Breakpoint" } })),
+    ...(pcLine ? [at(pcLine, { isWholeLine: true, className: `src-pc src-pc-${pcLine}`, glyphMarginClassName: "pc-glyph", glyphMarginHoverMessage: { value: "Current instruction (PC)" } })] : []),
+    ...breakpointLines.map((line) => at(line, { className: `src-bp-${line}`, glyphMarginClassName: "bp-glyph", glyphMarginHoverMessage: { value: "Breakpoint" } })),
   ]);
 }
 

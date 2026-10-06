@@ -51,7 +51,8 @@ export const INSTRUCTIONS: Record<string, [string, string]> = {
   ebreak: ["I", "Breakpoint: stops the program"],
   // Pseudo-instructions
   li: ["pseudo", "Load immediate: rd = imm (expands to addi or lui + addi)"],
-  la: ["pseudo", "Load address of a label into rd"],
+  jr: ["pseudo", "Jump to the address in a register (jalr zero, 0(rs))"],
+  fence: ["I", "Memory ordering fence (does nothing in this emulator)"],
   mv: ["pseudo", "Copy register: rd = rs (addi rd, rs, 0)"],
   nop: ["pseudo", "Do nothing (addi zero, zero, 0)"],
   j: ["pseudo", "Jump to a label (jal zero, label)"],

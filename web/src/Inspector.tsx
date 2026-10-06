@@ -1,7 +1,15 @@
 import { decode, registerName, type Field } from "@sierrendipity/explorer";
-import { useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { memo, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode, type UIEvent } from "react";
 import type { Emulator } from "./emulator";
 import { groupRows, hex32, wordBytes, type Group, type Program, type Row } from "./program";
+
+/** Stable callbacks, so memoised rows do not re-render on every Step. */
+export interface Actions {
+  select: (row: Row) => void;
+  hover: (row: Row | null) => void;
+  toggleBreakpoint: (row: Row) => void;
+  openChip: (path: string, line: number) => void;
+}
 
 // Shared state of the right-hand pane, owned by the IDE.
 export interface InspectorState {
@@ -9,14 +17,14 @@ export interface InspectorState {
   emu: Emulator;
   /** `kind` decides how the Assembly tab lists rows: grouped by C line, or flat with the word. */
   kind: "c" | "riscv";
-  sourceLines: string[];
+  /** Every source file the program was built from. */
+  sources: Record<string, string>;
   selected: Row | null;
   /** The source line whose rows are highlighted (hovered, else pinned by a click or selection). */
-  focusLine: number;
+  focus: { path: string; line: number } | null;
   showRuntime: boolean;
   onShowRuntime: (show: boolean) => void;
-  onSelect: (row: Row) => void;
-  onHover: (line: number | null) => void;
+  actions: Actions;
 }
 
 export interface TabSpec {
@@ -25,11 +33,13 @@ export interface TabSpec {
 }
 
 /** An ARIA tab strip with roving focus: arrows, Home and End move and select. */
-export function TabGroup({ label, tabs, active, onActive, children }: {
+export function TabGroup({ label, tabs, active, onActive, fill, children }: {
   label: string;
   tabs: TabSpec[];
   active: string;
   onActive: (id: string) => void;
+  /** The panel lays out its own scrolling list instead of scrolling as a whole. */
+  fill?: boolean;
   children: ReactNode;
 }) {
   const prefix = useId();
@@ -60,11 +70,36 @@ export function TabGroup({ label, tabs, active, onActive, children }: {
           </button>
         ))}
       </div>
-      <div role="tabpanel" id={`${prefix}-panel`} aria-labelledby={`${prefix}-${active}`} className="panel">
+      <div role="tabpanel" id={`${prefix}-panel`} aria-labelledby={`${prefix}-${active}`} className={fill ? "panel fill" : "panel"}>
         {children}
       </div>
     </section>
   );
+}
+
+// Windowing: long lists render only the rows in view (plus a margin) between two spacers.
+
+const ROW_HEIGHT = 24;
+const WINDOW_THRESHOLD = 300;
+const MARGIN = 12;
+
+function useWindow(count: number) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [view, setView] = useState({ top: 0, height: 600 });
+  useLayoutEffect(() => {
+    if (ref.current) setView((v) => ({ ...v, height: ref.current!.clientHeight || v.height }));
+  }, [count]);
+  const windowed = count > WINDOW_THRESHOLD;
+  const start = windowed ? Math.max(0, Math.floor(view.top / ROW_HEIGHT) - MARGIN) : 0;
+  const end = windowed ? Math.min(count, Math.ceil((view.top + view.height) / ROW_HEIGHT) + MARGIN) : count;
+  return {
+    ref,
+    start,
+    end,
+    padTop: start * ROW_HEIGHT,
+    padBottom: (count - end) * ROW_HEIGHT,
+    onScroll: windowed ? (e: UIEvent<HTMLElement>) => setView({ top: e.currentTarget.scrollTop, height: e.currentTarget.clientHeight }) : undefined,
+  };
 }
 
 // Registers
@@ -108,25 +143,40 @@ export function RegistersTab({ emu }: { emu: Emulator }) {
 // Memory
 
 const ROWS = 8;
-type Follow = "write" | "sp" | "pc" | "address";
+export type Follow = "write" | "sp" | "pc" | "address";
+export interface MemoryView {
+  follow: Follow;
+  address: string;
+}
 
-export function MemoryTab({ emu }: { emu: Emulator }) {
-  const [follow, setFollow] = useState<Follow>("write");
-  const [address, setAddress] = useState("0x0");
+/** Parse the address box: hex digits with an optional 0x. Unsigned math throughout. */
+export function parseAddress(text: string, size: number): { value: number; problem?: string } {
+  const t = text.trim();
+  if (t === "") return { value: 0 };
+  if (!/^(0x)?[0-9a-f]+$/i.test(t)) return { value: 0, problem: `"${t}" is not a hex address (digits 0-9 and a-f, optional 0x prefix)` };
+  const digits = t.replace(/^0x/i, "");
+  const value = digits.length > 8 ? Infinity : parseInt(digits, 16);
+  if (value >= size) return { value: size - 1, problem: `${hex32(Math.min(value, 2 ** 32 - 1))} is beyond the end of memory (last address ${hex32(size - 1)}); showing the end` };
+  return { value };
+}
+
+export function MemoryTab({ emu, view, onView }: { emu: Emulator; view: MemoryView; onView: (view: MemoryView) => void }) {
   const m = emu.machine;
   const size = emu.program.memorySize;
+  const parsed = parseAddress(view.address, size);
   const target =
-    follow === "sp" ? m.regs[2] : follow === "pc" ? m.pc : follow === "address" ? parseInt(address, 16) || parseInt(address) || 0 : (emu.lastWrite?.addr ?? m.regs[2]);
-  const start = Math.max(0, Math.min(size - ROWS * 16, (target & ~15) - 32));
+    view.follow === "sp" ? m.regs[2] : view.follow === "pc" ? m.pc : view.follow === "address" ? parsed.value : (emu.lastWrite?.addr ?? m.regs[2]);
+  const start = Math.max(0, Math.min(size - ROWS * 16, Math.floor(Math.min(target, size - 1) / 16) * 16 - 32));
   const bytes = m.readMem(start, ROWS * 16);
   const written = emu.lastWrite;
   const isWritten = (a: number) => !!written && a >= written.addr && a < written.addr + written.length;
+  const problem = view.follow === "address" ? parsed.problem : undefined;
   return (
     <>
       <div className="mem-controls">
         <label>
           Follow{" "}
-          <select value={follow} onChange={(e) => setFollow(e.target.value as Follow)}>
+          <select value={view.follow} onChange={(e) => onView({ ...view, follow: e.target.value as Follow })}>
             <option value="write">Last write</option>
             <option value="sp">Stack pointer (sp)</option>
             <option value="pc">Program counter (pc)</option>
@@ -136,15 +186,15 @@ export function MemoryTab({ emu }: { emu: Emulator }) {
         <label>
           Address{" "}
           <input
-            value={address}
-            size={10}
-            onChange={(e) => {
-              setAddress(e.target.value);
-              setFollow("address");
-            }}
+            value={view.address}
+            size={12}
+            placeholder="0x… (hex)"
+            aria-invalid={!!problem}
+            onChange={(e) => onView({ follow: "address", address: e.target.value })}
           />
         </label>
       </div>
+      {problem && <p role="alert" className="field-error">{problem}</p>}
       <p className="legend">
         <span className="swatch written" /> Bytes in this colour were written by the last store.
       </p>
@@ -183,60 +233,54 @@ export function MemoryTab({ emu }: { emu: Emulator }) {
 
 // Assembly
 
-function InstrRow({ row, s }: { row: Row; s: InspectorState }) {
-  const pc = s.emu.machine.pc === row.addr;
-  const breakpoint = s.emu.breakpoints.has(row.addr);
-  const linked = row.line !== 0 && row.line === s.focusLine;
+interface InstrRowProps {
+  row: Row;
+  kind: "c" | "riscv";
+  pc: boolean;
+  breakpoint: boolean;
+  linked: boolean;
+  selected: boolean;
+  actions: Actions;
+}
+
+const InstrRow = memo(function InstrRow({ row, kind, pc, breakpoint, linked, selected, actions }: InstrRowProps) {
   return (
-    <li>
+    <div className="item">
       <button
         className="instr"
         data-linked={linked}
-        data-selected={s.selected?.index === row.index}
-        aria-pressed={s.selected?.index === row.index}
+        data-line={row.line || undefined}
+        aria-pressed={selected}
         aria-current={pc ? "step" : undefined}
-        onClick={() => s.onSelect(row)}
-        onMouseEnter={() => row.line && s.onHover(row.line)}
-        onMouseLeave={() => s.onHover(null)}
+        onClick={() => actions.select(row)}
+        onMouseEnter={() => actions.hover(row)}
+        onMouseLeave={() => actions.hover(null)}
       >
         <span className="addr">{hex32(row.addr)}</span>
-        {s.kind === "riscv" && <span className="word">{hex32(row.word)}</span>}
+        {kind === "riscv" && <span className="word">{hex32(row.word)}</span>}
         <span className="text">{row.text}</span>
-        {s.kind === "riscv" && row.line > 0 && <small>line {row.line}</small>}
+        {kind === "riscv" && row.line > 0 && <small>line {row.line}</small>}
         {pc && <mark>PC</mark>}
       </button>
       <button
         className="bp"
         aria-label={`Toggle breakpoint at ${hex32(row.addr)}`}
         aria-pressed={breakpoint}
-        onClick={() => s.emu.toggleBreakpoint(row.addr)}
+        onClick={() => actions.toggleBreakpoint(row)}
       >
         {breakpoint ? "● breakpoint" : "○"}
       </button>
-    </li>
+    </div>
   );
-}
+});
 
-function GroupView({ group, s }: { group: Group; s: InspectorState }) {
-  const [open, setOpen] = useState(true);
-  const lineText = group.line ? (s.sourceLines[group.line - 1] ?? "").trim() : "";
-  const title = group.line
-    ? `Line ${group.line}${group.parts > 1 ? ` (part ${group.part} of ${group.parts})` : ""}: ${lineText}`
-    : `Runtime: ${group.fn}`;
-  return (
-    <section className="group" data-group-line={group.line || undefined} data-group-runtime={!group.line || undefined}>
-      <button className="chip" data-chip-line={group.line || undefined} aria-expanded={open} onClick={() => setOpen(!open)}>
-        {open ? "▾" : "▸"} {title}
-      </button>
-      {open && (
-        <ul>
-          {group.rows.map((row) => (
-            <InstrRow key={row.index} row={row} s={s} />
-          ))}
-        </ul>
-      )}
-    </section>
-  );
+type Item = { kind: "chip"; group: Group; id: string; open: boolean } | { kind: "row"; row: Row };
+
+function chipTitle(group: Group, sources: Record<string, string>, multi: boolean) {
+  if (!group.line) return `Runtime: ${group.fn}`;
+  const text = (sources[group.path]?.split("\n")[group.line - 1] ?? "").trim();
+  const place = multi ? `${group.path}:${group.line}` : `Line ${group.line}`;
+  return `${place}${group.parts > 1 ? ` (part ${group.part} of ${group.parts})` : ""}: ${text}`;
 }
 
 function RuntimeToggle({ s }: { s: InspectorState }) {
@@ -247,23 +291,64 @@ function RuntimeToggle({ s }: { s: InspectorState }) {
   );
 }
 
+const isLinked = (s: InspectorState, row: Row) => !!s.focus && row.line !== 0 && row.line === s.focus.line && row.path === s.focus.path;
+
 export function AssemblyTab({ s }: { s: InspectorState }) {
-  if (s.kind === "riscv") {
-    return (
-      <ul className="instrs">
-        {s.program.rows.map((row) => (
-          <InstrRow key={row.index} row={row} s={s} />
-        ))}
-      </ul>
-    );
-  }
-  const groups = groupRows(s.program.rows).filter((g) => g.line || s.showRuntime);
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const multi = s.program.paths.length > 1;
+  const items = useMemo<Item[]>(() => {
+    if (s.kind === "riscv") return s.program.rows.map((row) => ({ kind: "row", row }));
+    const list: Item[] = [];
+    groupRows(s.program.rows).forEach((group, i) => {
+      if (!group.line && !s.showRuntime) return;
+      const id = `${group.key}:${group.part}:${i}`;
+      const open = !collapsed.has(id);
+      list.push({ kind: "chip", group, id, open });
+      if (open) for (const row of group.rows) list.push({ kind: "row", row });
+    });
+    return list;
+  }, [s.program, s.kind, s.showRuntime, collapsed]);
+  const w = useWindow(items.length);
+  const pc = s.emu.machine.pc;
   return (
     <>
-      <RuntimeToggle s={s} />
-      {groups.map((g, i) => (
-        <GroupView key={`${g.key}:${g.part}:${i}`} group={g} s={s} />
-      ))}
+      {s.kind === "c" && <RuntimeToggle s={s} />}
+      {s.kind === "c" && !s.program.rows.some((r) => r.line) && !s.showRuntime && (
+        <p className="hint">This program has no user code to show. Turn on "Show runtime" to see the runtime instructions.</p>
+      )}
+      {s.kind === "riscv" && s.program.rows.length === 0 && <p className="hint">The program is empty. Write some code to see it here.</p>}
+      <div className="vlist" ref={w.ref} onScroll={w.onScroll}>
+        <div style={{ height: w.padTop }} />
+        {items.slice(w.start, w.end).map((item) =>
+          item.kind === "chip" ? (
+            <div className="item" key={item.id}>
+              <button
+                className="chip"
+                data-chip-line={item.group.line || undefined}
+                aria-expanded={item.open}
+                onClick={() => {
+                  setCollapsed((c) => (c.delete(item.id) ? new Set(c) : new Set(c).add(item.id)));
+                  if (item.group.line) s.actions.openChip(item.group.path, item.group.line);
+                }}
+              >
+                {item.open ? "▾" : "▸"} {chipTitle(item.group, s.sources, multi)}
+              </button>
+            </div>
+          ) : (
+            <InstrRow
+              key={item.row.index}
+              row={item.row}
+              kind={s.kind}
+              pc={item.row.addr === pc}
+              breakpoint={s.emu.breakpoints.has(item.row.addr)}
+              linked={isLinked(s, item.row)}
+              selected={s.selected?.index === item.row.index}
+              actions={s.actions}
+            />
+          ),
+        )}
+        <div style={{ height: w.padBottom }} />
+      </div>
     </>
   );
 }
@@ -272,42 +357,55 @@ export function AssemblyTab({ s }: { s: InspectorState }) {
 
 const binary = (word: number) => (word >>> 0).toString(2).padStart(32, "0").replace(/(.{4})(?=.)/g, "$1 ");
 
+const MachineRow = memo(function MachineRow({ row, linked, selected, actions }: { row: Row; linked: boolean; selected: boolean; actions: Actions }) {
+  return (
+    <tr
+      data-machine-row
+      data-linked={linked}
+      data-selected={selected}
+      onClick={() => actions.select(row)}
+      onMouseEnter={() => actions.hover(row)}
+      onMouseLeave={() => actions.hover(null)}
+    >
+      <td>
+        <button className="machine-select" aria-pressed={selected} onClick={(e) => (e.stopPropagation(), actions.select(row))}>
+          {hex32(row.addr)}
+        </button>
+      </td>
+      <td data-bytes>{wordBytes(row.word).map((b) => b.toString(16).padStart(2, "0")).join(" ")}</td>
+      <td data-word>{hex32(row.word)}</td>
+      <td data-binary>{binary(row.word)}</td>
+      <td>{row.text}</td>
+    </tr>
+  );
+});
+
 export function MachineTab({ s }: { s: InspectorState }) {
-  const rows = s.program.rows.filter((r) => s.kind === "riscv" || !r.runtime || s.showRuntime);
+  const rows = useMemo(() => s.program.rows.filter((r) => s.kind === "riscv" || !r.runtime || s.showRuntime), [s.program, s.kind, s.showRuntime]);
+  const w = useWindow(rows.length);
   return (
     <>
       {s.kind === "c" && <RuntimeToggle s={s} />}
-      <table className="machine">
-        <thead>
-          <tr>
-            <th>Address</th>
-            <th>Bytes in memory</th>
-            <th>Word (hex)</th>
-            <th>Word (binary)</th>
-            <th>Instruction</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr
-              key={row.index}
-              data-machine-row
-              data-linked={row.line !== 0 && row.line === s.focusLine}
-              data-selected={s.selected?.index === row.index}
-              aria-selected={s.selected?.index === row.index}
-              onClick={() => s.onSelect(row)}
-              onMouseEnter={() => row.line && s.onHover(row.line)}
-              onMouseLeave={() => s.onHover(null)}
-            >
-              <td>{hex32(row.addr)}</td>
-              <td data-bytes>{wordBytes(row.word).map((b) => b.toString(16).padStart(2, "0")).join(" ")}</td>
-              <td data-word>{hex32(row.word)}</td>
-              <td data-binary>{binary(row.word)}</td>
-              <td>{row.text}</td>
+      <div className="vlist" ref={w.ref} onScroll={w.onScroll}>
+        <table className="machine">
+          <thead>
+            <tr>
+              <th>Address</th>
+              <th>Bytes in memory</th>
+              <th>Word (hex)</th>
+              <th>Word (binary)</th>
+              <th>Instruction</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {w.padTop > 0 && <tr style={{ height: w.padTop }} />}
+            {rows.slice(w.start, w.end).map((row) => (
+              <MachineRow key={row.index} row={row} linked={isLinked(s, row)} selected={s.selected?.index === row.index} actions={s.actions} />
+            ))}
+            {w.padBottom > 0 && <tr style={{ height: w.padBottom }} />}
+          </tbody>
+        </table>
+      </div>
     </>
   );
 }
@@ -335,14 +433,13 @@ export function BitsCard({ row }: { row: Row | undefined }) {
           <div
             key={i}
             data-segment
-            aria-label={`${f.name}, bits ${f.hi} to ${f.lo}, value ${f.label}`}
+            role="img"
+            aria-label={`${f.name}, bits ${f.hi} to ${f.lo}, ${f.label}`}
             style={{ flexGrow: f.hi - f.lo + 1, background: colour(f.name) }}
           >
             <span className="seg-name">{f.name}</span>
             <code>{bitsOf(f)}</code>
-            <small>
-              {f.hi === f.lo ? f.hi : `${f.hi}:${f.lo}`}
-            </small>
+            <small>{f.hi === f.lo ? f.hi : `${f.hi}:${f.lo}`}</small>
           </div>
         ))}
       </div>
@@ -352,9 +449,7 @@ export function BitsCard({ row }: { row: Row | undefined }) {
           return (
             <li key={name}>
               <span className="swatch" style={{ background: colour(name) }} />
-              <span data-segment-label>
-                {parts[0].label.replace(/\s*\(bits? [^)]*\)$/, "")}
-              </span>
+              <span data-segment-label>{parts[0].label.replace(/\s*\(bits? [^)]*\)$/, "")}</span>
               <small> (bits {[...parts].sort((a, b) => b.hi - a.hi).map((f) => (f.hi === f.lo ? f.hi : `${f.hi}:${f.lo}`)).join(", ")})</small>
             </li>
           );

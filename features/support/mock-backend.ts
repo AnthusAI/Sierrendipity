@@ -74,28 +74,50 @@ const PROGRAM: [number, string, number][] = [
   [0x00008067, "main", 9], // jalr zero, 0(ra)
 ];
 
+type MockInstruction = { word: number; fn: string; path: string; line: number }; // line 0 = runtime
+
+/** "// big" in the source: 20,000 nops (4 per C line) then exit(0). */
+function bigProgram(): MockInstruction[] {
+  const list: MockInstruction[] = Array.from({ length: 20_000 }, (_, i) => ({ word: 0x13, fn: "main", path: "main.c", line: 1 + (i >> 2) }));
+  list.push({ word: 0x05d00893, fn: "main", path: "main.c", line: 5001 }, { word: 0x73, fn: "main", path: "main.c", line: 5001 });
+  return list;
+}
+
 function explain(files: { path: string; content: string }[]) {
   const source = files.map((f) => f.content).join("\n");
   const error = /#error (.*)/.exec(source);
   if (error) return { status: "compile_error", compileOutput: `main.c:1:2: error: ${error[1]}\n` };
-  const image = Buffer.alloc(PROGRAM.length * 4);
-  PROGRAM.forEach(([word], i) => image.writeUInt32LE(word, i * 4));
+  if (source.includes("// noprogram")) return { status: "ok", compileOutput: "" };
+  const big = source.includes("// big");
+  const runtimeOnly = source.includes("// runtimeonly");
+  const twoFiles = files.length > 1;
+  const list: MockInstruction[] = big
+    ? bigProgram()
+    : PROGRAM.map(([word, fn, line]) => ({
+        word,
+        fn,
+        // With two files, the loop body (C line 5) lives in util.c line 1.
+        path: twoFiles && line === 5 ? "util.c" : "main.c",
+        line: twoFiles && line === 5 ? 1 : runtimeOnly ? 0 : line,
+      }));
+  const image = Buffer.alloc(list.length * 4);
+  list.forEach(({ word }, i) => image.writeUInt32LE(word, i * 4));
   const lineMap: Record<string, number[]> = {};
-  const instructions = PROGRAM.map(([word, fn, line], index) => {
-    if (line) (lineMap[`main.c:${line}`] ??= []).push(index);
+  const instructions = list.map(({ word, fn, path, line }, index) => {
+    if (line) (lineMap[`${path}:${line}`] ??= []).push(index);
     return {
       index,
       addr: index * 4,
       word,
       origin: line ? "user" : "runtime",
       function: fn,
-      ...(line ? { src: { path: "main.c", line, column: 1 } } : {}),
+      ...(line ? { src: { path, line, column: 1 } } : {}),
     };
   });
   return {
     status: "ok",
     compileOutput: "",
-    program: { image: image.toString("base64"), loadAddress: 0, entry: 0, stackTop: 0x10000, memorySize: 0x10000 },
+    program: { image: image.toString("base64"), loadAddress: 0, entry: 0, stackTop: 0x20000, memorySize: 0x20000 },
     instructions,
     lineMap,
   };
@@ -197,6 +219,8 @@ export async function startMockBackend(options: { startDelayMs?: number; port?: 
 
     if (request.method === "POST" && path === "/explain") {
       const body = await readJson(request);
+      // "// slow" in the source: answer after a delay (for the specs about stale results).
+      if (body.files.some((f: { content: string }) => f.content.includes("// slow"))) await new Promise((r) => setTimeout(r, 1500));
       return json(response, 200, explain(body.files));
     }
 

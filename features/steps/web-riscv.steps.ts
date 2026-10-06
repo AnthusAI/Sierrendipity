@@ -92,14 +92,14 @@ Then("memory byte {word} shows {string} and is marked written", async function (
 // C Explore
 
 const instr = (w: WebWorld, text: string) => w.page.locator("button.instr").filter({ hasText: text });
-const group = (w: WebWorld, line: number) => w.page.locator(`[data-group-line="${line}"]`);
+const lineRows = (w: WebWorld, line: number) => w.page.locator(`button.instr[data-line="${line}"]`);
 
 Then("the assembly group for source line {int} lists {string}", async function (this: WebWorld, line: number, text: string) {
-  await group(this, line).first().locator("button.instr").filter({ hasText: text }).first().waitFor();
+  await lineRows(this, line).filter({ hasText: text }).first().waitFor();
 });
 
 Then("the assembly group for source line {int} is headed {string}", async function (this: WebWorld, line: number, text: string) {
-  await group(this, line).first().locator("button.chip").filter({ hasText: text }).waitFor();
+  await this.page.locator(`button.chip[data-chip-line="${line}"]`).filter({ hasText: text }).first().waitFor();
 });
 
 Then("source line {int} has {int} assembly chips", async function (this: WebWorld, line: number, count: number) {
@@ -149,13 +149,13 @@ When("I hover over source line {int}", async function (this: WebWorld, line: num
 });
 
 Then("the instructions for source line {int} are highlighted", async function (this: WebWorld, line: number) {
-  await group(this, line).first().locator('button.instr[data-linked="true"]').first().waitFor();
-  assert.equal(await group(this, line).first().locator('button.instr[data-linked="false"]').count(), 0);
+  await lineRows(this, line).and(this.page.locator('[data-linked="true"]')).first().waitFor();
+  assert.equal(await lineRows(this, line).and(this.page.locator('[data-linked="false"]')).count(), 0);
 });
 
 Then("the instructions for source line {int} are not highlighted", async function (this: WebWorld, line: number) {
-  await group(this, line).first().locator("button.instr").first().waitFor();
-  assert.equal(await group(this, line).locator('button.instr[data-linked="true"]').count(), 0);
+  await lineRows(this, line).first().waitFor();
+  assert.equal(await lineRows(this, line).and(this.page.locator('[data-linked="true"]')).count(), 0);
 });
 
 When("I select the instruction {string}", async function (this: WebWorld, text: string) {
