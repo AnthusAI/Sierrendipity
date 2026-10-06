@@ -11,6 +11,8 @@ interface Props {
   /** Spoken name; with the value it announces as "number, 5". */
   label?: string;
   className?: string;
+  /** The control is switched off for now: it keeps its place, says "Not yet" and changes nothing. */
+  locked?: boolean;
 }
 
 const snapUp = (value: number, step: number) => Math.floor(value / step) * step + step;
@@ -22,9 +24,10 @@ const snapDown = (value: number, step: number) => Math.ceil(value / step) * step
  * Home (min) and End (max). A typed number outside the limits is not applied: the box says why, and leaving
  * it shows the real value again.
  */
-export function NumberSpinner({ value, min, max, step = 1, onChange, label = "number", className }: Props) {
+export function NumberSpinner({ value, min, max, step = 1, onChange, label = "number", className, locked = false }: Props) {
   const [draft, setDraft] = useState<string | null>(null);
   const errorId = useId();
+  const tipId = useId();
   const shown = draft ?? String(value);
   const accepts = (text: string) => {
     if (!(min < 0 ? /^-?\d+$/ : /^\d+$/).test(text)) return false;
@@ -41,7 +44,7 @@ export function NumberSpinner({ value, min, max, step = 1, onChange, label = "nu
   };
 
   return (
-    <>
+    <span className="relative inline-block">
       <input
         role="spinbutton"
         type="text"
@@ -53,22 +56,28 @@ export function NumberSpinner({ value, min, max, step = 1, onChange, label = "nu
         aria-valuemin={min}
         aria-valuemax={max}
         aria-invalid={valid ? undefined : true}
-        aria-describedby={valid ? undefined : errorId}
+        aria-describedby={[locked ? tipId : null, valid ? null : errorId].filter(Boolean).join(" ") || undefined}
+        aria-disabled={locked || undefined}
+        readOnly={locked}
+        title={locked ? "Not yet" : undefined}
         data-part="number"
         value={shown}
         size={Math.max(2, shown.length)}
         className={cn(
-          "rounded border border-input bg-background px-1 text-center font-mono text-[color:var(--syntax-number)] tabular-nums focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring",
+          "peer rounded border border-input bg-background px-1 text-center font-mono text-[color:var(--syntax-number)] tabular-nums focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring",
           !valid && "border-destructive",
+          locked && "cursor-not-allowed border-dashed opacity-60",
           className,
         )}
         onChange={(event) => {
+          if (locked) return;
           const text = event.target.value.trim();
           setDraft(text);
           if (accepts(text) && Number(text) !== value) onChange(Number(text));
         }}
         onBlur={() => setDraft(null)}
         onKeyDown={(event) => {
+          if (locked) return;
           const target: Record<string, number | undefined> = {
             ArrowUp: snapUp(value, step),
             ArrowDown: snapDown(value, step),
@@ -83,11 +92,16 @@ export function NumberSpinner({ value, min, max, step = 1, onChange, label = "nu
           commit(next);
         }}
       />
+      {locked ? (
+        <span id={tipId} role="tooltip" className="pointer-events-none absolute -top-7 left-0 z-10 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-xs text-background opacity-0 transition-opacity peer-hover:opacity-100 peer-focus-visible:opacity-100">
+          Not yet
+        </span>
+      ) : null}
       {valid ? null : (
-        <span id={errorId} data-testid="number-error" className="ml-1 text-xs text-danger-fg">
+        <span id={errorId} data-testid="number-error" data-card-hint className="ml-1 text-xs text-danger-fg">
           {rule}
         </span>
       )}
-    </>
+    </span>
   );
 }

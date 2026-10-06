@@ -7,7 +7,7 @@ import type { WebWorld } from "../support/web-world.ts";
 
 const root = path.resolve(__dirname, "../..");
 const panel = (w: WebWorld) => w.page.locator("[data-coach-panel]");
-const box = (w: WebWorld, name: string) => w.page.locator(`[data-coach-id="box:${name}"] output`);
+const box = (w: WebWorld, name: string) => w.page.locator(`[data-coach-id="box:${name}"] [data-value]`);
 const cardInput = (w: WebWorld, n: number) => w.page.getByLabel(`Number on card ${n}`);
 const PROGRESS_KEY = "sierrendipity:progress:local";
 
@@ -210,7 +210,7 @@ Then("the reply is not styled as an error", async function (this: WebWorld) {
 // The machine
 
 Then("box {string} shows {int}", async function (this: WebWorld, name: string, value: number) {
-  await this.page.locator(`[data-coach-id="box:${name}"] output`, { hasText: new RegExp(`^${value}$`) }).waitFor();
+  await this.page.locator(`[data-coach-id="box:${name}"] [data-value]`, { hasText: new RegExp(`^${value}$`) }).waitFor();
 });
 Then("the number on card {int} is {int}", async function (this: WebWorld, card: number, value: number) {
   assert.equal(await cardInput(this, card).inputValue(), String(value));

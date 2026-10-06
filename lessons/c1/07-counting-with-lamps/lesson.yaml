@@ -73,12 +73,12 @@ scenes:
       - the machine has taken at least 1 step
       - the box shows 7
     hints:
-      - Which lamps add up to 7?
-      - Seven is 4 plus 2 plus 1.
-      - Switch on the lamps worth 4 and 2 and keep the lamp worth 1. Then press Step.
+      - Which lamp makes 5 into 7?
+      - Seven is 4 plus 2 plus 1. Lamps 4 and 1 are on already.
+      - Switch on the lamp worth 2, then press Step.
     showMe: demo-seven
     doneSay: Lamps 4, 2 and 1 make 7.
-    lock: [edit, drag]
+    lock: [drag]
 
   - id: carry
     say: Add 5 and 7 and the lamps run out of room in a column. Watch the carry hop to the next lamp.
@@ -97,11 +97,11 @@ scenes:
       - the box shows 12
     hints:
       - Which lamps add up to 12?
-      - Twelve is 8 plus 4. The lamp worth 1 must go dark.
-      - Switch on the lamps worth 8 and 4, switch off the lamp worth 1, then press Step.
+      - Twelve is 8 plus 4. Lamps 2 and 1 must go dark.
+      - Switch on the lamp worth 8, switch off the lamps worth 2 and 1, then press Step.
     showMe: demo-twelve
     doneSay: Lamps 8 and 4 make 12.
-    lock: [edit, drag]
+    lock: [drag]
 
   - id: make-forty-two
     say: One big one. Make 42 with the lamps, then press Step.
@@ -113,11 +113,11 @@ scenes:
       - the box shows 42
     hints:
       - Which lamps add up to 42? Start with the biggest lamp that fits.
-      - Forty-two is 32 plus 8 plus 2. The lamp worth 1 must go dark.
-      - Switch on the lamps worth 32, 8 and 2, switch off the lamp worth 1, then press Step.
+      - Forty-two is 32 plus 8 plus 2. The lamp worth 4 must go dark.
+      - Switch on the lamps worth 32 and 2, switch off the lamp worth 4, then press Step.
     showMe: demo-forty-two
     doneSay: Lamps 32, 8 and 2 make 42. You can build any number this way.
-    lock: [edit, drag]
+    lock: [drag]
 nowYouCan:
   - Read lamps as a number.
   - Switch lamps to make the number you want.

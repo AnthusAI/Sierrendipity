@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, type ComponentProps } from "react";
 import { CardList } from "./CardList";
 import { ease } from "./ease";
 import { BLANK, formatValue, narrate, stopNotice, type NumberFormat } from "./narrate";
@@ -12,10 +12,14 @@ interface Props {
   /** Draw the pointing hand (default: the timeline's `pointer`, which defaults to false). */
   pointer?: boolean;
   format?: NumberFormat;
+  /** Draw each card yourself (the lesson stage draws real faces with spinners). */
+  renderCard?: ComponentProps<typeof CardList>["renderCard"];
+  /** Give the diagram, the cards and the boxes `data-coach-id`s (`diagram:D1`, `card:<n>`, `tab:cards`, `box:<name>`, `tab:boxes`). */
+  coachIds?: boolean;
 }
 
 /** D1, the clerk and boxes: cards on the left, boxes on a desk on the right, a log of what just happened. */
-export function MachineView({ timeline: tl, boxes = tl.boxes, pointer = tl.pointer, format = "signed" }: Props) {
+export function MachineView({ timeline: tl, boxes = tl.boxes, pointer = tl.pointer, format = "signed", renderCard, coachIds = false }: Props) {
   const surface = useRef<HTMLDivElement>(null);
   const cards = useRef<HTMLOListElement>(null);
   const desk = useRef<HTMLDivElement>(null);
@@ -43,14 +47,15 @@ export function MachineView({ timeline: tl, boxes = tl.boxes, pointer = tl.point
     <div
       ref={surface}
       data-diagram-surface
+      data-coach-id={coachIds ? "diagram:D1" : undefined}
       data-animation-t={TEST_CLOCK ? tl.t : undefined}
       className="relative space-y-4 rounded-lg border bg-card p-4 text-card-foreground"
     >
       <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
-        <div className="min-w-0 sm:w-[26rem] sm:max-w-full sm:shrink-0">
-          <CardList ref={cards} timeline={tl} hand={pointer} />
+        <div data-coach-id={coachIds ? "tab:cards" : undefined} className="min-w-0 sm:w-[26rem] sm:max-w-full sm:shrink-0">
+          <CardList ref={cards} timeline={tl} hand={pointer} renderCard={renderCard} coachIds={coachIds} />
         </div>
-        <div ref={desk} className="flex min-w-0 flex-col gap-3">
+        <div ref={desk} data-coach-id={coachIds ? "tab:boxes" : undefined} className="flex min-w-0 flex-col gap-3">
           <p className="text-sm font-medium">The desk</p>
           <div className="flex flex-wrap gap-3">
             {boxes.map((name) => {
@@ -64,6 +69,7 @@ export function MachineView({ timeline: tl, boxes = tl.boxes, pointer = tl.point
                   aria-label={`Box ${name}`}
                   aria-current={changed ? "true" : undefined}
                   data-box
+                  data-coach-id={coachIds ? `box:${name}` : undefined}
                   data-changed={String(changed)}
                   className={`flex h-24 w-28 flex-col items-center justify-between rounded-md border-2 px-2 py-2 ${
                     changed ? "border-foreground bg-changed text-changed-foreground" : "border-border bg-background text-foreground"

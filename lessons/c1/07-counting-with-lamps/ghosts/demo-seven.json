@@ -1,10 +1,21 @@
 {
   "id": "demo-seven",
   "events": [
-    { "at": 0, "type": "point", "target": "lamp:1" },
-    { "at": 900, "type": "toggle", "card": 0, "bit": 21 },
-    { "at": 1500, "type": "point", "target": "lamp:2" },
-    { "at": 1800, "type": "toggle", "card": 0, "bit": 22 },
-    { "at": 2700, "type": "press", "control": "step" }
+    {
+      "at": 0,
+      "type": "point",
+      "target": "lamp:1"
+    },
+    {
+      "at": 900,
+      "type": "toggle",
+      "card": 0,
+      "bit": 21
+    },
+    {
+      "at": 1800,
+      "type": "press",
+      "control": "step"
+    }
   ]
 }

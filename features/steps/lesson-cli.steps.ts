@@ -54,9 +54,10 @@ When("I build the catalog of the scratch lessons", () => {
 When("I build the catalog of the real lessons", () => {
   catalog = buildCatalog();
 });
-Then("that file is a published lesson that is a draft", () => {
-  assert.equal(JSON.parse(readFileSync(join(scratch!, "dist/c1-99-test.json"), "utf8")).draft, true);
+Then("that draft file is a published lesson that is a draft", () => {
+  assert.equal(JSON.parse(readFileSync(join(scratch!, "dist/drafts/c1-99-test.json"), "utf8")).draft, true);
 });
+Then("the file {string} does not exist in the scratch folder", (name: string) => assert.ok(!existsSync(join(scratch!, name))));
 Then("the catalog lists no lessons", () => assert.deepEqual(catalog.lessons, []));
 Then("the catalog build reports no errors", () => assert.deepEqual(catalog.errors, []));
 Then("the catalog lists the lesson {string}", (id: string) => assert.ok(catalog.lessons.some((l) => l.id === id), JSON.stringify(catalog.lessons.map((l) => l.id))));

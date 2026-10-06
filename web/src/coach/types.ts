@@ -1,4 +1,4 @@
-import type { PublishedLesson } from "@sierrendipity/lesson-core";
+import type { FlipSpec, LampSpec, PublishedLesson } from "@sierrendipity/lesson-core";
 import type { ReactNode } from "react";
 
 /** The controls a scene may lock (`lock:` in lesson.yaml). A locked control is aria-disabled and says "Not yet". */
@@ -27,11 +27,21 @@ export interface LiveView {
 /** The scene being played, as far as the stage cares. */
 export interface StageScene {
   id: string;
+  /** What the scene shows: tabs, diagrams `D1`..`D14`, `timeline`, `builder`. */
   show: string[];
   /** Target to spotlight, such as "button:step" or "box:a2"; the player draws the dimming itself. */
   spotlight: string | null;
   locked: StageControl[];
+  /** D4 bit lamps, D8 field bands, D5 card flip, D7 carry ripple and the builder's tray (card words), when the scene asks for them. */
+  lamps?: LampSpec;
+  bands?: LampSpec;
+  flip?: FlipSpec;
+  carry?: { a: number; b: number };
+  tray?: number[];
 }
+
+/** How a card was changed: a spinner (`edit`, the default) or a lamp (`toggle`). A scene may lock one and not the other. */
+export type EditVia = "edit" | "toggle";
 
 export interface StageControls {
   step(): void;
@@ -49,8 +59,13 @@ export interface StageProps {
   lesson: PublishedLesson;
   live: LiveView;
   scene: StageScene;
-  /** Replace the word of card `card` (0-based). The machine restarts from the first card. */
-  onEditStarter(card: number, word: number): void;
+  /**
+   * Replace the word of card `card` (0-based) with the FULL new 32-bit word. The machine restarts from the first
+   * card. `via` says which lock applies: a spinner is an `edit` (the default), a lamp is a `toggle`.
+   */
+  onEditStarter(card: number, word: number, via?: EditVia): void;
+  /** Replace the whole list of cards (the program builder: drag, reorder, remove). Locked by the scene's `drag`. */
+  onReplaceCards(words: number[]): void;
   controls: StageControls;
 }
 

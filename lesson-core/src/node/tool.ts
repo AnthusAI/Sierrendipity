@@ -68,7 +68,7 @@ export function formatResult(result: ToolResult): string[] {
   return out;
 }
 
-/** Write each valid lesson as lessons/dist/<course>-<slug>.json for the browser. */
+/** Write each valid lesson as lessons/dist/<course>-<slug>.json for the browser (drafts: lessons/dist/drafts/). */
 export function buildLessons(ids: string[], root: string = LESSONS_ROOT): { written: string[]; errors: string[] } {
   const concepts = readConcepts(root);
   const dist = join(root, "dist");
@@ -86,8 +86,10 @@ export function buildLessons(ids: string[], root: string = LESSONS_ROOT): { writ
       errors.push(...loaded.errors.map((e) => `${id}: ${e}`));
       continue;
     }
-    mkdirSync(dist, { recursive: true });
-    const file = join(dist, `${id.replace("/", "-")}.json`);
+    // Drafts go to dist/drafts/, which the web build only reads in dev and test builds.
+    const dir = loaded.lesson.draft ? join(dist, "drafts") : dist;
+    mkdirSync(dir, { recursive: true });
+    const file = join(dir, `${id.replace("/", "-")}.json`);
     writeFileSync(file, JSON.stringify(publishLesson(loaded.lesson)));
     written.push(file);
   }

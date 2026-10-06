@@ -16,11 +16,14 @@ import {
   type Scene,
 } from "@sierrendipity/lesson-core";
 import { cardsUsed, describe } from "@sierrendipity/explorer";
+import { numberSpec, wordToCard } from "../cards/model";
 import { markStopShown, sessionInfo, type Clock } from "./clock";
 import { STUCK, StuckDetector, type StuckReason } from "./stuck";
-import type { LiveView, StageControl } from "./types";
+import type { EditVia, LiveView, StageControl } from "./types";
 
 export const DEFAULT_WRONG = "Let's watch what happens.";
+/** The most cards the builder may hand back (the same ceiling as the cards model). */
+const MAX_REPLACED_CARDS = 200;
 /** After the last ghost event, hold the picture this long so the student can read it. */
 export const GHOST_HOLD_MS = 2500;
 
@@ -220,8 +223,9 @@ export class LessonEngine {
     this.refresh();
   }
 
-  edit(card: number, word: number): void {
-    if (!this.canAct("edit")) return;
+  /** Replace card `card` with the full new word. A spinner is an `edit`; a lamp is a `toggle` (each has its own lock). */
+  edit(card: number, word: number, via: EditVia = "edit"): void {
+    if (!this.canAct(via)) return;
     const to = word >>> 0;
     if (!Number.isInteger(card) || card < 0 || card >= this.cards.length || this.cards[card] === to) return;
     this.touch();
@@ -230,6 +234,23 @@ export class LessonEngine {
     this.live = this.build(this.cards, this.live.facts);
     (this.live.facts.events ??= []).push({ type: "edit", card, to });
     this.trigger(this.detector.edited(`card:${card}`, before, to));
+    this.afterRun(false);
+  }
+
+  /** Replace the whole list of cards (the program builder). Locked when the scene locks `drag`. */
+  replaceCards(words: number[]): void {
+    if (!this.canAct("drag")) return;
+    if (!Array.isArray(words) || words.length > MAX_REPLACED_CARDS || !words.every((w) => Number.isInteger(w) && w >= 0 && w <= 0xffffffff)) return;
+    const next = words.map((w) => w >>> 0);
+    if (next.length === this.cards.length && next.every((w, i) => w === this.cards[i])) return;
+    this.touch();
+    const before = this.cards;
+    this.cards = next;
+    this.live = this.build(this.cards, this.live.facts);
+    const events = (this.live.facts.events ??= []);
+    next.forEach((w, card) => {
+      if (before[card] !== w) events.push({ type: "edit", card, to: w });
+    });
     this.afterRun(false);
   }
 
@@ -548,16 +569,41 @@ export class LessonEngine {
       case "toggle":
       case "drag": {
         const cards = demoCards(demo);
-        if (e.type === "spin") cards[e.card] = e.to >>> 0;
-        else if (e.type === "toggle") cards[e.card] = ((cards[e.card] ?? 0) ^ (1 << e.bit)) >>> 0;
-        else cards.splice(e.to, 0, ...cards.splice(e.from, 1));
-        say(e.type === "spin" ? `changing card ${e.card + 1}.` : e.type === "toggle" ? `flipping a bit on card ${e.card + 1}.` : `moving card ${e.from + 1}.`, e.type === "drag" ? `card:${e.to}` : `card:${e.card}`);
+        let pointer = "tray";
+        let narration = "";
+        if (e.type === "spin") {
+          cards[e.card] = e.to >>> 0;
+          [pointer, narration] = [`card:${e.card}`, `changing card ${e.card + 1}.`];
+        } else if (e.type === "toggle") {
+          cards[e.card] = ((cards[e.card] ?? 0) ^ (1 << e.bit)) >>> 0;
+          [pointer, narration] = [`lamp:${e.bit}`, `flipping a lamp on card ${e.card + 1}.`];
+        } else if ("tray" in e) {
+          const word = this.scene()?.tray?.[e.tray];
+          if (word !== undefined) cards.splice(Math.min(e.to, cards.length), 0, word >>> 0);
+          [pointer, narration] = ["tray", `dragging a card from the tray to position ${Math.min(e.to, cards.length - 1) + 1}.`];
+        } else {
+          cards.splice(e.to, 0, ...cards.splice(e.from, 1));
+          [pointer, narration] = [`card:${e.to}`, `moving card ${e.from + 1}.`];
+        }
+        say(narration, pointer);
         this.demo = this.build(cards, structuredClone(demo.facts));
         break;
       }
-      case "type":
+      case "type": {
+        // Typing goes into the number of the card the ghost last pointed at.
+        const at = /^card:(\d+)$/.exec(this.ghost?.pointer ?? "");
+        const cards = demoCards(demo);
+        const index = at ? Number(at[1]) : -1;
+        const card = index >= 0 && cards[index] !== undefined ? wordToCard(cards[index]!) : null;
+        const spec = card ? numberSpec(card, { index, count: cards.length }) : null;
+        const n = /^-?\d+$/.test(e.text.trim()) ? Number(e.text.trim()) : NaN;
+        if (spec && Number.isInteger(n) && n >= spec.min && n <= spec.max && n % spec.step === 0) {
+          cards[index] = spec.apply(n).word >>> 0;
+          this.demo = this.build(cards, structuredClone(demo.facts));
+        }
         say(`typing "${e.text}".`);
         break;
+      }
     }
     this.refresh();
   }
@@ -657,6 +703,14 @@ export function plainTarget(target: string): string {
       return `card ${Number(name) + 1}`;
     case "box":
       return `box ${name}`;
+    case "band":
+      return `the ${name} band`;
+    case "lamp":
+      return `lamp ${name}`;
+    case "flip":
+      return "the card flip";
+    case "tray":
+      return "the card tray";
     default:
       return target;
   }

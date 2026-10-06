@@ -46,8 +46,9 @@ Feature: The lesson authoring CLI and the CI gate
     Given a scratch lessons folder holding the valid test lesson as "c1/99-test"
     And in the scratch lesson "lesson.yaml" is replaced "minutes: 5" with "minutes: 5\ndraft: true"
     When I build the scratch lessons
-    Then the file "dist/c1-99-test.json" exists in the scratch folder
-    And that file is a published lesson that is a draft
+    Then the file "dist/drafts/c1-99-test.json" exists in the scratch folder
+    And the file "dist/c1-99-test.json" does not exist in the scratch folder
+    And that draft file is a published lesson that is a draft
     When I build the catalog of the scratch lessons
     Then the catalog lists no lessons
     And the catalog build reports no errors

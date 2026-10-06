@@ -39,6 +39,8 @@ export interface BitLampsProps {
   lockedBits?: readonly number[];
   /** When given, only these lamps can be switched. */
   allowedBits?: readonly number[];
+  /** Give every lamp a `data-coach-id` ("lamp:<bit>") so a lesson can point at it. */
+  coachIds?: boolean;
   className?: string;
 }
 
@@ -59,6 +61,7 @@ export function BitLamps({
   bandOf,
   lockedBits,
   allowedBits,
+  coachIds = false,
   className,
 }: BitLampsProps) {
   const width = clampWidth(requestedWidth);
@@ -100,7 +103,7 @@ export function BitLamps({
               const isLocked = !inert && locked(bit);
               const name = `bit ${bit}, worth ${placeValue(bit)}`;
               return (
-                <div key={bit} data-bit={bit} className="flex w-6 flex-col items-center gap-0.5">
+                <div key={bit} data-bit={bit} data-coach-id={coachIds ? `lamp:${bit}` : undefined} className="flex w-6 flex-col items-center gap-0.5">
                   <button
                     type="button"
                     role="switch"

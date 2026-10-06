@@ -64,6 +64,8 @@ export interface FieldBandsProps extends Pick<BitLampsProps, "onChange" | "locke
   lamps?: boolean;
   /** The accessible name of the whole widget. */
   label?: string;
+  /** Give each band `data-coach-id="band:<field>"` and each lamp `lamp:<bit>`, so a lesson can point at or ask about them. */
+  coachIds?: boolean;
 }
 
 /**
@@ -71,7 +73,7 @@ export interface FieldBandsProps extends Pick<BitLampsProps, "onChange" | "locke
  * bits and what they mean, so colour is never the only clue. Pieces of one scattered number
  * (an immediate) share one label and one colour.
  */
-export function FieldBands({ word, onHoverField, onFieldClick, lamps = true, label = "Field bands", ...lampProps }: FieldBandsProps) {
+export function FieldBands({ word, onHoverField, onFieldClick, lamps = true, label = "Field bands", coachIds = false, ...lampProps }: FieldBandsProps) {
   const id = useId();
   const decoded = useMemo(() => decode(word), [word]);
   const fields = useMemo<Field[]>(() => {
@@ -121,6 +123,7 @@ export function FieldBands({ word, onHoverField, onFieldClick, lamps = true, lab
     const rangesId = `${id}-${key}`;
     const common = {
       "data-band": true,
+      "data-coach-id": coachIds ? `band:${f.name}` : undefined,
       "data-field": f.name,
       "data-label": text,
       "data-hi": f.hi,
@@ -185,7 +188,7 @@ export function FieldBands({ word, onHoverField, onFieldClick, lamps = true, lab
         </>
       )}
       {lamps && (
-        <BitLamps label="Instruction lamps" value={word >>> 0} bandOf={(bit) => colorOfBit.get(bit)} {...lampProps} />
+        <BitLamps label="Instruction lamps" value={word >>> 0} bandOf={(bit) => colorOfBit.get(bit)} coachIds={coachIds} {...lampProps} />
       )}
     </div>
   );

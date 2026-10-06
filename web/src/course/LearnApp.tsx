@@ -10,6 +10,7 @@ import { AreaNav } from "./AreaNav";
 import { useCourse } from "./CourseProvider";
 import { DeckPage } from "./DeckPage";
 import { GalleryPage } from "./GalleryPage";
+import { DRAFTS_ENABLED, useLesson } from "../lessons";
 import { LessonRoute } from "./LessonRoute";
 import { buildPath, canOpen } from "./model";
 import { PathPage } from "./PathPage";
@@ -63,12 +64,32 @@ function NotOpen({ title }: { title?: string }) {
   );
 }
 
+/**
+ * A draft lesson (`draft: true`): not in the catalog and not on the path. It plays only with `?draft=1` and only in a dev
+ * or test build, so the authors can try a lesson before it ships. Its progress is recorded like any other.
+ */
+function DraftLesson({ lessonId }: { lessonId: string }) {
+  const { gallery, userId, progress } = useCourse();
+  const { navigate, search } = useRouter();
+  const loaded = useLesson(lessonId);
+  if (loaded.status === "loading") return <p className="text-muted-foreground">Loading the lesson.</p>;
+  if (loaded.status === "error" || !loaded.lesson.draft) return <NotOpen />;
+  const { id, title, minutes, concepts } = loaded.lesson;
+  const lesson = { id, title, minutes, concepts, nowYouCan: loaded.lesson.nowYouCan, warmups: [], sideRooms: [] };
+  return (
+    <>
+      <Title text={`${title} (draft)`} />
+      <LessonRoute lesson={lesson} userId={userId} progress={progress} gallery={gallery} search={search} onExit={() => navigate("/learn")} onNext={() => navigate("/learn")} next={null} />
+    </>
+  );
+}
+
 function Lesson({ lessonId }: { lessonId: string }) {
   const { catalog, data, unlockAll, progress, gallery, galleryItems, userId, picks } = useCourse();
   const { navigate, search } = useRouter();
   const lessons = catalog.status === "ready" ? catalog.lessons : [];
   const lesson = lessons.find((l) => l.id === lessonId);
-  if (!lesson) return <NotOpen />;
+  if (!lesson) return DRAFTS_ENABLED && new URLSearchParams(search).get("draft") === "1" ? <DraftLesson lessonId={lessonId} /> : <NotOpen />;
   const model = buildPath(data, lessons, picks);
   const params = new URLSearchParams(search);
   // Replaying something made needs no open lesson; a side room only opens through its star.
