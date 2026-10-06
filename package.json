@@ -2,7 +2,7 @@
   "name": "sierrendipity",
   "version": "0.0.0",
   "private": true,
-  "description": "A web-based coding tutor for Python, C and C++ Olympiad preparation",
+  "description": "A web-based coding tutor for Python, C and C++",
   "license": "MIT",
   "repository": {
     "type": "git",

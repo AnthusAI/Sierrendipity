@@ -1,6 +1,6 @@
 # Sierrendipity
 
-A web-based coding tutor for a high-school student preparing for coding Olympiad competitions.
+A web-based coding tutor for a high-school student learning to program.
 
 - Languages: Python, C, C++
 - Browser IDE with small multi-file projects, usable from anywhere

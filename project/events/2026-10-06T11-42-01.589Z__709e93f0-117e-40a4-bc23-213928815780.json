@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "event_id": "709e93f0-117e-40a4-bc23-213928815780",
+  "issue_id": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "event_type": "field_updated",
+  "occurred_at": "2026-10-06T11:42:01.589Z",
+  "actor_id": "home",
+  "payload": {
+    "changes": {
+      "title": {
+        "from": "Sierrendipity: a browser-based Olympiad coding tutor",
+        "to": "Sierrendipity: a browser-based coding tutor"
+      },
+      "description": {
+        "from": "As a high-school student preparing for coding Olympiads, I want a browser IDE that compiles and runs Python, C, and C++ projects with interactive input, so that I can learn from lessons and practice from anywhere. Lessons are added one by one by the tutor, the student, and Claude. Out of scope for now: more than one student, languages beyond Python/C/C++, automatic grading against hidden test suites. Definition of Done: the student can sign in, open a lesson, edit a multi-file project, run it interactively, and see results; the platform scales to zero when idle and costs pennies per month; every behavior is covered by a passing Gherkin specification.",
+        "to": "As a high-school student learning to program, I want a browser IDE that compiles and runs Python, C, and C++ projects with interactive input, so that I can learn from lessons and practice from anywhere. Lessons are added one by one by the tutor, the student, and Claude. Out of scope for now: more than one student, languages beyond Python/C/C++, automatic grading against hidden test suites. Definition of Done: the student can sign in, open a lesson, edit a multi-file project, run it interactively, and see results; the platform scales to zero when idle and costs pennies per month; every behavior is covered by a passing Gherkin specification."
+      }
+    }
+  }
+}
