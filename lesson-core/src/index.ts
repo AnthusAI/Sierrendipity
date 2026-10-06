@@ -3,3 +3,4 @@ export * from "./steps";
 export * from "./gherkin/parse";
 export * from "./lesson";
 export * from "./ghost";
+export * from "./progress";
