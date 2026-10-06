@@ -222,6 +222,10 @@ Then("an interactive start without the secret is answered with status {int}", as
   assert.equal((await post("/runs")).status, status);
 });
 
+Then("an explain request without the secret is answered with status {int}", async (status: number) => {
+  assert.equal((await post("/explain")).status, status);
+});
+
 Then("the stream output is exactly {string}", (text: string) => {
   assert.equal(shownOutput(), text.replace(/\\r/g, "\r").replace(/\\n/g, "\n"));
 });

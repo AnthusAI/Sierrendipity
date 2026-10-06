@@ -7,6 +7,7 @@ Feature: Shared-secret authentication
     And a run request without the secret is answered with status 401
     And a run request with the secret "wrong" is answered with status 401
     And an interactive start without the secret is answered with status 401
+    And an explain request without the secret is answered with status 401
 
   Scenario: Requests with the secret are served
     Given a runner process requiring the secret "hunter2"

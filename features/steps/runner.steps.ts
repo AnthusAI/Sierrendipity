@@ -22,6 +22,14 @@ type Req = { language: string; entry?: string; files: { path: string; content: s
 let request: Req;
 let response: { status: number; body: RunResult };
 
+/** The latest runner response, shared with the other step files (explain.steps.ts). */
+export function setResponse(r: { status: number; body: unknown }): void {
+  response = r as typeof response;
+}
+export function getResponse(): { status: number; body: unknown } {
+  return response;
+}
+
 Before(() => {
   request = { language: "", files: [], limits: {} };
 });

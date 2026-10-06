@@ -16,6 +16,7 @@ module.exports = {
     require: [
       "features/support/runner-server.ts",
       "features/steps/runner.steps.ts",
+      "features/steps/explain.steps.ts",
       "features/steps/interactive.steps.ts",
       "features/steps/sandbox-switch.steps.ts",
     ],
