@@ -3,23 +3,36 @@
   "title": "M8: Delivery — CI, releases, and deploy",
   "description": "Intent: As the maintainer, I want green specs gating merges and automatic releases, so that main is always shippable. Includes: GitHub Actions running npm test, commitlint on PRs, Semantic Release on main, deploy workflow (CDK diff on PR, deploy on release), web hosting on S3+CloudFront or Amplify. Excludes: multi-environment promotion. DoD: a merged feat commit produces a tagged release and a deployed site.",
   "type": "epic",
-  "status": "open",
+  "status": "in_progress",
   "priority": 1,
   "assignee": null,
   "creator": null,
   "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
   "labels": [],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "b39008be-e5ef-4026-8639-86cdd55dbdb3",
+      "author": "home",
+      "text": "Hosting and manual deploy done. CI and automated release/deploy workflows still open.",
+      "created_at": "2026-10-06T14:14:17.997762Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-board"
+      }
+    }
+  ],
   "created_at": "2026-10-06T11:36:06.106765Z",
-  "updated_at": "2026-10-06T11:36:06.106786Z",
+  "updated_at": "2026-10-06T14:14:21.282655Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity planning"
   },
-  "right_now_summary": "The release workflow will tag minor releases, update the changelog, and deploy the site and backend.",
-  "right_now_updated_at": "2026-10-06T11:37:41.906289Z",
+  "right_now_summary": "CI, automated releases, and deployments are still being built; hosting and manual deployment are complete.",
+  "right_now_updated_at": "2026-10-06T14:14:37.468134Z",
   "custom": {}
 }

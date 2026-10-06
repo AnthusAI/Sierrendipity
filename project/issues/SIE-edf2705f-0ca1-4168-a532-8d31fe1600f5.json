@@ -3,23 +3,36 @@
   "title": "Cloud credentials and fork bombs are contained",
   "description": "As the maintainer, I want student code to see no AWS credentials and be unable to exhaust processes.\n\nFeature: Credential and process containment\n  Scenario: No credentials in the environment\n    Given a program that prints its environment variables\n    When the project is run\n    Then no AWS or container-credential variables appear\n  Scenario: A fork bomb is contained\n    Given a program that forks without limit\n    When the project is run\n    Then the run ends with a process limit error and the runner stays responsive",
   "type": "story",
-  "status": "in_progress",
+  "status": "closed",
   "priority": 2,
   "assignee": null,
   "creator": null,
   "parent": "SIE-00ce505c-cbb1-4869-8083-a08749f9d146",
   "labels": [],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "383fc96c-4fd6-4f76-a40d-35849c863dc8",
+      "author": "home",
+      "text": "Specs pass; credentials and fork bombs contained (per-run uid, seccomp, cleanup).",
+      "created_at": "2026-10-06T14:11:50.343207Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-board"
+      }
+    }
+  ],
   "created_at": "2026-10-06T11:36:50.646370Z",
-  "updated_at": "2026-10-06T12:30:21.029058Z",
-  "closed_at": null,
+  "updated_at": "2026-10-06T14:11:56.128651Z",
+  "closed_at": "2026-10-06T14:11:56.128614Z",
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity planning"
   },
-  "right_now_summary": "No recent activity has been recorded on this issue.",
-  "right_now_updated_at": "2026-10-06T12:30:23.091331Z",
+  "right_now_summary": "Tests confirm credentials stay hidden and fork bombs are contained while the runner remains responsive.",
+  "right_now_updated_at": "2026-10-06T14:11:58.003331Z",
   "custom": {}
 }

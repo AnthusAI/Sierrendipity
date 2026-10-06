@@ -1,0 +1,25 @@
+{
+  "id": "SIE-a323150c-f136-417d-a7c7-32c82949cf20",
+  "title": "Web: handle CRLF in SSE parser, concurrent token refresh, multi-tab project writes",
+  "description": "",
+  "type": "chore",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-7a69ac73-1724-4d79-a8ab-d20d2cf2ce45",
+  "labels": [],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-06T14:14:39.956730Z",
+  "updated_at": "2026-10-06T14:14:39.956756Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity-board"
+  },
+  "right_now_summary": "The team is addressing CRLF parsing, concurrent token refreshes, and multi-tab project writes on the web.",
+  "right_now_updated_at": "2026-10-06T14:14:41.672534Z",
+  "custom": {}
+}

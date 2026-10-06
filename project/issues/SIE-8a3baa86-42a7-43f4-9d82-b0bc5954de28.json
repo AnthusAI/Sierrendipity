@@ -10,16 +10,29 @@
   "parent": "SIE-6fa4d49f-b503-47d0-8add-206bce187d6c",
   "labels": [],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "0c205b35-e989-4cc7-95d2-1020b1f5679c",
+      "author": "home",
+      "text": "Deployed; waiting on a real Google sign-in through the site.",
+      "created_at": "2026-10-06T14:13:40.704676Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-board"
+      }
+    }
+  ],
   "created_at": "2026-10-06T11:38:18.686503Z",
-  "updated_at": "2026-10-06T12:31:00.059857Z",
+  "updated_at": "2026-10-06T14:13:40.704697Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity planning"
   },
-  "right_now_summary": "Google sign-in scenarios are defined, but no implementation activity has been recorded.",
-  "right_now_updated_at": "2026-10-06T12:31:01.056941Z",
+  "right_now_summary": "Google sign-in is deployed and awaiting a real sign-in test through the site.",
+  "right_now_updated_at": "2026-10-06T14:13:41.862662Z",
   "custom": {}
 }

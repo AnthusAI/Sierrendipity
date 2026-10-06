@@ -10,16 +10,29 @@
   "parent": "SIE-745728ee-aa3c-4dae-8b9c-09f47d9c18e4",
   "labels": [],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "a6f45e51-2ebb-4413-8f08-f9213e8d3149",
+      "author": "home",
+      "text": "Deployed; control and proxy return 401 without a token. Waiting on a real session start and SSE stream.",
+      "created_at": "2026-10-06T14:13:31.732308Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-board"
+      }
+    }
+  ],
   "created_at": "2026-10-06T11:37:08.034843Z",
-  "updated_at": "2026-10-06T12:30:45.704056Z",
+  "updated_at": "2026-10-06T14:13:31.732330Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity planning"
   },
-  "right_now_summary": "Students can start cloud sessions on demand, run code, and avoid paying for idle servers.",
-  "right_now_updated_at": "2026-10-06T12:30:46.760664Z",
+  "right_now_summary": "The service is deployed, but a real session start and SSE output stream still need testing.",
+  "right_now_updated_at": "2026-10-06T14:13:32.863005Z",
   "custom": {}
 }

@@ -3,23 +3,36 @@
   "title": "Slim the runner image: multi-stage build, compiled JS, no specs or dev deps",
   "description": "The M1 image runs tsx at runtime and ships features/, cucumber and commitlint config so specs can run in-container. Build a lean production target and keep a separate test target.",
   "type": "chore",
-  "status": "open",
+  "status": "closed",
   "priority": 2,
   "assignee": null,
   "creator": null,
   "parent": "SIE-745728ee-aa3c-4dae-8b9c-09f47d9c18e4",
   "labels": [],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "71459750-268f-4207-a3c6-0e1c73d391ee",
+      "author": "home",
+      "text": "Lean runtime target added to Dockerfile and deployed.",
+      "created_at": "2026-10-06T14:13:00.286256Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-board"
+      }
+    }
+  ],
   "created_at": "2026-10-06T12:05:00.324267Z",
-  "updated_at": "2026-10-06T12:05:00.324298Z",
-  "closed_at": null,
+  "updated_at": "2026-10-06T14:13:05.979084Z",
+  "closed_at": "2026-10-06T14:13:05.979001Z",
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity orchestrator"
   },
-  "right_now_summary": "The runner image needs a lean production build and a separate target for tests.",
-  "right_now_updated_at": "2026-10-06T12:05:02.459013Z",
+  "right_now_summary": "The lean runtime image is now built and deployed.",
+  "right_now_updated_at": "2026-10-06T14:13:15.016922Z",
   "custom": {}
 }

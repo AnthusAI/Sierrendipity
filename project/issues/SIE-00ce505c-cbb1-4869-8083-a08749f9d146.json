@@ -3,7 +3,7 @@
   "title": "M2: Sandbox — block network and credentials for student code",
   "description": "Intent: As the maintainer, I want student programs to run without network access or cloud credentials, so that untrusted code cannot reach the internet or the AWS account. Includes: small C launcher using libseccomp (denies socket for AF_INET/AF_INET6, no_new_privs), scrubbed environment, no task-role permissions, ulimits/process caps against fork bombs, proof on real Fargate. Excludes: private-subnet/VPC-endpoint egress blocking (revisit if more students join). DoD: Python socket.connect and C connect() fail with EPERM; credential/metadata reads fail; specs pass locally and on Fargate.",
   "type": "epic",
-  "status": "in_progress",
+  "status": "closed",
   "priority": 1,
   "assignee": null,
   "creator": null,
@@ -22,17 +22,29 @@
         "model": "claude-sonnet-5-5",
         "name": "Sierrendipity-orchestrator"
       }
+    },
+    {
+      "id": "fc5801e4-06db-4576-a74f-0ceaa8575701",
+      "author": "home",
+      "text": "M2 done: specs pass, two adversarial reviews, per-run uid, seccomp, cleanup. Fargate confirmation tracked separately.",
+      "created_at": "2026-10-06T14:12:13.497749Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-board"
+      }
     }
   ],
   "created_at": "2026-10-06T11:35:44.291204Z",
-  "updated_at": "2026-10-06T12:56:41.519252Z",
-  "closed_at": null,
+  "updated_at": "2026-10-06T14:12:18.497006Z",
+  "closed_at": "2026-10-06T14:12:18.496969Z",
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity planning"
   },
-  "right_now_summary": "Fixes are underway for sandbox escapes, resource limits, and network and credential isolation.",
-  "right_now_updated_at": "2026-10-06T12:56:43.010036Z",
+  "right_now_summary": "Sandbox protections pass locally; the team is verifying them on a real Fargate task.",
+  "right_now_updated_at": "2026-10-06T14:14:31.826803Z",
   "custom": {}
 }
