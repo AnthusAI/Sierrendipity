@@ -7,7 +7,7 @@ const base = {
 
 module.exports = {
   // @linux-only scenarios need prlimit; they are skipped on other platforms.
-  default: { ...base, tags: "not @linux-only" },
+  default: { ...base, tags: "not @linux-only and not @docker" },
   // `npm run test:linux` (run inside the runner container) includes them.
   // The test image carries only runner/, so this profile loads just the runner specs and steps.
   linux: {
@@ -22,4 +22,8 @@ module.exports = {
   },
   // `npm run test:web`: only the browser specs (builds web/ and launches Chromium).
   web: { ...base, paths: ["features/web/**/*.feature"] },
+  // Quick loop for the explorer library: `npx cucumber-js --profile explorer`.
+  explorer: { ...base, paths: ["features/explorer/**/*.feature"], tags: "not @docker" },
+  // `npm run test:docker`: explorer differential and riscv-tests specs; they need Docker.
+  docker: { ...base, paths: ["features/explorer/**/*.feature"], tags: "@docker" },
 };
