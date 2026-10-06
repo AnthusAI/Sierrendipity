@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "cf6e9332-2d4d-40b4-bc4b-948bc246eebd",
+  "issue_id": "SIE-edf2705f-0ca1-4168-a532-8d31fe1600f5",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T11:36:50.646Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Cloud credentials and fork bombs are contained",
+    "description": "As the maintainer, I want student code to see no AWS credentials and be unable to exhaust processes.\n\nFeature: Credential and process containment\n  Scenario: No credentials in the environment\n    Given a program that prints its environment variables\n    When the project is run\n    Then no AWS or container-credential variables appear\n  Scenario: A fork bomb is contained\n    Given a program that forks without limit\n    When the project is run\n    Then the run ends with a process limit error and the runner stays responsive",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-00ce505c-cbb1-4869-8083-a08749f9d146",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity planning"
+    }
+  }
+}

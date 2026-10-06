@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "0359b97a-495b-4a7c-9e2c-0a0a813db54b",
+  "issue_id": "SIE-51d8744f-2bda-4f8e-9fc5-58225ad73f20",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T11:36:00.656Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "M7: Lessons framework and first lessons",
+    "description": "Intent: As the tutor and the student, I want lessons to be simple files in the repo that we add one by one, so that growing the curriculum is easy. Includes: lesson file format (markdown + starter project + expected-output checks), lesson list and navigation, progress per student, lesson starter loads into the IDE, first Python lesson and first C lesson. Excludes: automatic grading with hidden test suites, ranking. DoD: the student opens lesson 1, edits the starter, runs it, and sees a pass/fail check; adding a lesson requires only adding files.",
+    "issue_type": "epic",
+    "status": "open",
+    "priority": 1,
+    "assignee": null,
+    "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity planning"
+    }
+  }
+}

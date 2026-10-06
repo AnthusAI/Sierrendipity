@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "e1901f62-0262-4f8f-99f4-cb436a19f052",
+  "issue_id": "SIE-cfdc47fb-09de-4469-a1da-ef6b434cd148",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T11:37:13.422Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Refuse unauthenticated and excess sessions",
+    "description": "As the maintainer, I want only the student to start sessions.\n\nFeature: Access control\n  Scenario: Unauthenticated start is refused\n    When a session is requested without credentials\n    Then the response is 401\n  Scenario: Only one concurrent session\n    Given an active session for the student\n    When a second session is requested\n    Then the request is refused",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-6fa4d49f-b503-47d0-8add-206bce187d6c",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity planning"
+    }
+  }
+}

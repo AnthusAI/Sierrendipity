@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "9847dd27-2255-480b-b007-c162c40c0cab",
+  "issue_id": "SIE-5ec45837-4223-4cb4-8480-66b4f15c470e",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T11:36:56.598Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Interact with a running program",
+    "description": "As the student, I want to answer a program's prompts while it runs.\n\nFeature: Interactive programs\n  Scenario: Prompt and response\n    Given a program that asks for a name and then greets it\n    When the session is started\n    Then the event stream shows the prompt\n    When the student posts the line Ada to stdin\n    Then the event stream shows the greeting Hello, Ada",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-7a69ac73-1724-4d79-a8ab-d20d2cf2ce45",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity planning"
+    }
+  }
+}
