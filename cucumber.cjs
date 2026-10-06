@@ -17,6 +17,7 @@ module.exports = {
       "features/support/runner-server.ts",
       "features/steps/runner.steps.ts",
       "features/steps/interactive.steps.ts",
+      "features/steps/sandbox-switch.steps.ts",
     ],
   },
   // `npm run test:web`: only the browser specs (builds web/ and launches Chromium).

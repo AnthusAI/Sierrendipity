@@ -25,7 +25,11 @@ jobs:
       - run: npx playwright install --with-deps chromium
       # No AWS credentials are configured: the infra specs synthesize offline from the committed
       # infra/cdk.context.json.
+      # The hosted runner is not root, so the runner's per-run uid sandbox cannot work here. The
+      # sandbox is covered with full privileges by the runner-linux job (Docker); here it is off.
       - run: npm test
+        env:
+          RUNNER_SANDBOX: "off"
 
   commitlint:
     if: github.event_name == 'pull_request'
