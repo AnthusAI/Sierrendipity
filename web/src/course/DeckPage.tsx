@@ -7,9 +7,9 @@ import { deckKinds, type DeckKind } from "./model";
 /** 32 read-only lamps, most significant bit first, in groups of four. */
 export function LampStrip({ bits }: { bits: string }) {
   return (
-    <div data-bits={bits} role="img" aria-label={`32 bits: ${bits.replace(/(.{4})(?=.)/g, "$1 ")}`} className="flex flex-wrap gap-x-1.5 gap-y-1">
+    <div data-bits={bits} role="img" aria-label={`32 bits: ${bits.replace(/(.{4})(?=.)/g, "$1 ")}`} className="grid grid-cols-[repeat(16,minmax(0,1fr))] gap-1">
       {[...bits].map((bit, i) => (
-        <span key={i} data-lamp data-lit={bit === "1"} className={cn("size-2.5 rounded-full border", bit === "1" ? "border-primary bg-primary" : "border-input bg-background", i % 4 === 3 && i < 31 && "mr-1")} />
+        <span key={i} data-lamp data-lit={bit === "1"} className={cn("aspect-square rounded-full border", bit === "1" ? "border-primary bg-primary" : "border-input bg-background")} />
       ))}
     </div>
   );
