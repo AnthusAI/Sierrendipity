@@ -553,6 +553,9 @@ Feature: Stepping RV32IM programs in the emulator
     When I run the machine
     Then the machine exit code is 8192
 
+  Scenario: The emulator and the decoder agree on which words are illegal
+    Then they agree about whether each of 200000 pseudo-random words is illegal
+
   Scenario: Summing 1 to 10 and printing the result with ecall write
     Given a machine running the program
       """

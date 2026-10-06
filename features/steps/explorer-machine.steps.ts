@@ -1,6 +1,6 @@
 import { Before, Given, Then, When } from "@cucumber/cucumber";
 import assert from "node:assert/strict";
-import { assemble, Machine, registerName, type MachineIO, type StepResult } from "@sierrendipity/explorer";
+import { assemble, decode, Machine, registerName, type MachineIO, type StepResult } from "@sierrendipity/explorer";
 
 const REGISTER_NUMBERS = new Map(Array.from({ length: 32 }, (_, n) => [registerName(n), n] as const));
 
@@ -204,6 +204,21 @@ Then("the step result shows pc {word}, word {word} and text {string}", (pc: stri
 
 Then("the step changed registers {string}", (names: string) => {
   assert.deepEqual(lastStep.changedRegs.map(registerName), names === "" ? [] : names.split(" "));
+});
+
+Then("they agree about whether each of {int} pseudo-random words is illegal", (count: number) => {
+  const m = new Machine({ memorySize: 64 });
+  const word = new Uint8Array(4);
+  const view = new DataView(word.buffer);
+  let seed = 12345;
+  for (let i = 0; i < count; i++) {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; // a fixed linear congruential sequence
+    view.setUint32(0, seed, true);
+    m.load(word, 0, 0);
+    m.step();
+    const illegal = m.fault?.startsWith("illegal instruction") ?? false;
+    assert.equal(illegal, decode(seed) === null, `word 0x${seed.toString(16)}`);
+  }
 });
 
 Then("the step wrote no memory", () => {
