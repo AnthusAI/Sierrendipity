@@ -160,9 +160,9 @@ Then("every event on the stream is newer than the last one seen before", () => {
   assert.ok(events.every((e) => e.id === undefined || e.id > lastSeenId));
 });
 
-Given("a runner process with an idle timeout of {int} seconds", async (seconds: number) => {
+async function startRunnerProcess(env: Record<string, string>): Promise<void> {
   child = spawn(process.execPath, ["--import", "tsx", "runner/src/main.ts"], {
-    env: { ...process.env, PORT: "0", IDLE_TIMEOUT_S: String(seconds) },
+    env: { ...process.env, PORT: "0", RUNNER_SECRET: "", ...env },
     stdio: ["ignore", "pipe", "inherit"],
   });
   childExit = new Promise((resolve) => child!.on("exit", (code) => resolve(code)));
@@ -173,6 +173,44 @@ Given("a runner process with an idle timeout of {int} seconds", async (seconds: 
     });
     child!.on("exit", () => reject(new Error("runner exited before listening")));
   });
+}
+
+Given("a runner process with an idle timeout of {int} seconds", (seconds: number) =>
+  startRunnerProcess({ IDLE_TIMEOUT_S: String(seconds) }),
+);
+
+Given("a runner process requiring the secret {string}", (secret: string) => startRunnerProcess({ RUNNER_SECRET: secret }));
+
+Given("a runner process with no secret", () => startRunnerProcess({}));
+
+const hello = JSON.stringify({ language: "python", files: [{ path: "main.py", content: "print(1)" }] });
+
+function post(path: string, secret?: string) {
+  return fetch(`${base()}${path}`, {
+    method: "POST",
+    headers: { "content-type": "application/json", ...(secret !== undefined && { "x-runner-secret": secret }) },
+    body: hello,
+  });
+}
+
+Then("a health check without the secret succeeds", async () => {
+  assert.equal((await fetch(`${base()}/healthz`)).status, 200);
+});
+
+Then("a run request without the secret is answered with status {int}", async (status: number) => {
+  assert.equal((await post("/run")).status, status);
+});
+
+Then("a run request with the secret {string} is answered with status {int}", async (secret: string, status: number) => {
+  assert.equal((await post("/run", secret)).status, status);
+});
+
+Then("an interactive start without the secret is answered with status {int}", async (status: number) => {
+  assert.equal((await post("/runs")).status, status);
+});
+
+Then("the stream output is exactly {string}", (text: string) => {
+  assert.equal(shownOutput(), text.replace(/\\r/g, "\r").replace(/\\n/g, "\n"));
 });
 
 Then("the runner process exits successfully within {int} seconds", async (seconds: number) => {

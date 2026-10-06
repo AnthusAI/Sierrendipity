@@ -28,10 +28,11 @@ export function currentRequest(): Req {
 const CLOUD_ENV = {
   AWS_SECRET_ACCESS_KEY: "secret",
   AWS_CONTAINER_CREDENTIALS_RELATIVE_URI: "/v2/credentials/x",
+  RUNNER_SECRET: "hunter2",
   ECS_CONTAINER_METADATA_URI_V4: "http://169.254.170.2/v4/x",
 };
 
-Given("the runner has cloud credentials in its environment", () => {
+Given("the runner has secrets in its environment", () => {
   Object.assign(process.env, CLOUD_ENV);
 });
 

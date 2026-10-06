@@ -20,10 +20,11 @@ Student code runs under a seccomp filter that denies network sockets, with a scr
 
 - `POST /run` - batch run, returns the full result (exists).
 - `POST /runs` `{language, files, entry?, stdin?, limits?}` -> `202 {runId}`; one active run at a time (409 otherwise).
-- `GET /runs/{runId}/events` - Server-Sent Events, each with a numeric `id`; honors `Last-Event-ID` and `?after=`. Event types: `compile` `{output, ok}`, `output` `{data}`, `exit` `{status, exitCode, signal, wallMs}`.
+- `GET /runs/{runId}/events` - Server-Sent Events, each with a numeric `id`; honors `Last-Event-ID` and `?after=`. Event types: `compile` `{output, ok}` (C/C++ only), `output` `{data}`, `exit` `{status, exitCode, signal, wallMs}`; the stream ends after `exit`. Programs run on a pty with echo disabled, so `output` is program output only (lines end `\r\n`). The replay buffer is bounded; if the resume point was dropped the server first sends an id-less `gap` event `{firstId}`.
 - `POST /runs/{runId}/stdin` `{data, eof?}`.
 - `POST /runs/{runId}/stop`.
 - `GET /healthz`.
+- If `RUNNER_SECRET` is set, every request except `/healthz` needs header `x-runner-secret` (else 401). More than `MAX_CONCURRENT_RUNS` (default 4) simultaneous runs get 429.
 - The process exits (status 0) after `IDLE_TIMEOUT_S` (default 1200) with no requests and no active run.
 
 ## Control API (Function URL, `Authorization: Bearer <Cognito token>`)

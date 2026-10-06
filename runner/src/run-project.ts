@@ -42,7 +42,7 @@ export interface RunResult {
 /** The request itself is invalid (as opposed to the student's program being wrong). */
 export class RequestError extends Error {}
 
-interface Exec {
+export interface Exec {
   exitCode: number | null;
   signal: string | null;
   stdout: string;
@@ -72,7 +72,7 @@ export async function runProject(request: RunRequest): Promise<RunResult> {
 }
 
 // The program may have made directories it cannot read back; never let that fail the response.
-async function cleanup(dir: string): Promise<void> {
+export async function cleanup(dir: string): Promise<void> {
   try {
     await makeWritable(dir);
     await rm(dir, { recursive: true, force: true });
@@ -91,7 +91,7 @@ async function makeWritable(dir: string): Promise<void> {
 const MAX_LIMITS = { timeLimitMs: 30_000, compileTimeLimitMs: 60_000, maxOutputBytes: 10_000_000, memoryLimitMb: 1024 };
 const DEFAULT_LIMITS = { timeLimitMs: 5000, compileTimeLimitMs: 15000, maxOutputBytes: 1_000_000, memoryLimitMb: 256 };
 
-function resolveLimits(given: unknown) {
+export function resolveLimits(given: unknown) {
   if (given !== undefined && (typeof given !== "object" || given === null)) throw new RequestError("limits must be an object");
   const input = (given ?? {}) as Record<string, unknown>;
   const limits = { ...DEFAULT_LIMITS };
@@ -106,7 +106,7 @@ function resolveLimits(given: unknown) {
   return limits;
 }
 
-function validate(request: RunRequest): void {
+export function validate(request: RunRequest): void {
   if (!["python", "c", "cpp"].includes(request?.language)) throw new RequestError("unsupported language");
   if (!Array.isArray(request.files) || request.files.length === 0) throw new RequestError("files are required");
   for (const file of request.files) {
@@ -134,9 +134,30 @@ function checkRelative(p: string): void {
   }
 }
 
-async function execute(request: RunRequest, dir: string): Promise<RunResult> {
-  const limits = resolveLimits(request.limits);
+export type Limits = ReturnType<typeof resolveLimits>;
 
+const isLinux = process.platform === "linux";
+const SANDBOX_EXEC = process.env.SANDBOX_EXEC ?? "/usr/local/bin/sandbox-exec";
+// The compiler needs far more address space than student code; this only stops a runaway compile.
+const COMPILE_MEMORY_BYTES = 1536 * 1024 * 1024;
+
+/**
+ * Wrap a student command in the sandbox launcher (seccomp filter and resource limits).
+ * Linux only: elsewhere student code runs unconfined, which is fine for local development.
+ */
+export function sandboxed(command: string[], limits: Limits): string[] {
+  if (!isLinux) return command;
+  // The CPU limit is a backstop for the wall-clock timer, hence the extra second.
+  const cpu = Math.ceil(limits.timeLimitMs / 1000) + 1;
+  return [SANDBOX_EXEC, `--as=${limits.memoryLimitMb * 1024 * 1024}`, `--cpu=${cpu}`, "--", ...command];
+}
+
+/** Write the project's files and compile it; returns the command that runs it. */
+export async function prepare(
+  request: RunRequest,
+  dir: string,
+  limits: Limits,
+): Promise<{ compile?: NonNullable<RunResult["compile"]>; command?: string[] }> {
   for (const file of request.files) {
     const target = path.resolve(dir, file.path);
     if (!target.startsWith(dir + path.sep)) throw new RequestError(`unsafe path: ${file.path}`);
@@ -144,60 +165,62 @@ async function execute(request: RunRequest, dir: string): Promise<RunResult> {
     await writeFile(target, file.content);
   }
 
-  const result: RunResult = { status: "ok" };
-  let command: string[];
-
   if (request.language === "python") {
-    command = ["python3", "./" + path.normalize(request.entry ?? "main.py")];
-  } else {
-    const { cmd, ext, flags, libs } = compilers[request.language];
-    const sources = request.files.map((f) => "./" + path.normalize(f.path)).filter((p) => p.endsWith(ext));
-    if (sources.length === 0) throw new RequestError(`no ${ext} files`);
-    const compiled = await exec([cmd, ...flags, "-o", "prog", ...sources, ...libs], dir, {
-      timeoutMs: limits.compileTimeLimitMs,
-      maxOutputBytes: limits.maxOutputBytes,
-    });
-    const ok = compiled.exitCode === 0 && !compiled.timedOut;
-    result.compile = {
-      ok,
-      output: scrub(compiled.stdout + compiled.stderr, dir),
-      timedOut: compiled.timedOut,
-    };
-    if (!ok) return { ...result, status: "compile_error" };
-    command = ["./prog"];
+    return { command: ["python3", "./" + path.normalize(request.entry ?? "main.py")] };
   }
+  const { cmd, ext, flags, libs } = compilers[request.language];
+  const sources = request.files.map((f) => "./" + path.normalize(f.path)).filter((p) => p.endsWith(ext));
+  if (sources.length === 0) throw new RequestError(`no ${ext} files`);
+  let compiler = [cmd, ...flags, "-o", "prog", ...sources, ...libs];
+  if (isLinux) compiler = ["prlimit", `--as=${COMPILE_MEMORY_BYTES}`, "--", ...compiler];
+  const compiled = await exec(compiler, dir, {
+    timeoutMs: limits.compileTimeLimitMs,
+    maxOutputBytes: limits.maxOutputBytes,
+  });
+  const ok = compiled.exitCode === 0 && !compiled.timedOut;
+  const compile = { ok, output: scrub(compiled.stdout + compiled.stderr, dir), timedOut: compiled.timedOut };
+  return ok ? { compile, command: ["./prog"] } : { compile };
+}
 
-  // prlimit is Linux-only (util-linux); elsewhere the memory limit is not enforced.
-  const limited = process.platform === "linux";
-  if (limited) command = ["prlimit", `--as=${limits.memoryLimitMb * 1024 * 1024}`, "--", ...command];
+async function execute(request: RunRequest, dir: string): Promise<RunResult> {
+  const limits = resolveLimits(request.limits);
+  const { compile, command } = await prepare(request, dir, limits);
+  const result: RunResult = { status: "ok", ...(compile && { compile }) };
+  if (!command) return { ...result, status: "compile_error" };
 
-  const ran = await exec(command, dir, {
+  const ran = await exec(sandboxed(command, limits), dir, {
     stdin: request.stdin,
     timeoutMs: limits.timeLimitMs,
     maxOutputBytes: limits.maxOutputBytes,
   });
   ran.stderr = scrub(ran.stderr, dir);
   result.run = ran;
-  result.status = classify(ran, limited);
+  result.status = classify(ran);
   return result;
 }
 
-function classify(run: Exec, memoryLimited: boolean): RunResult["status"] {
-  if (run.timedOut) return "time_limit_exceeded";
+export function classify(run: Pick<Exec, "timedOut" | "outputTruncated" | "stderr" | "exitCode" | "signal">): RunResult["status"] {
+  // SIGXCPU: the sandbox's CPU limit fired before the wall-clock timer.
+  if (run.timedOut || run.signal === "SIGXCPU") return "time_limit_exceeded";
   if (run.outputTruncated) return "output_limit_exceeded";
   // Under an address-space limit a failed allocation is reported by the runtime, not by a signal.
-  if (memoryLimited && /bad_alloc|MemoryError|Cannot allocate memory/.test(run.stderr)) {
+  if (isLinux && /bad_alloc|MemoryError|Cannot allocate memory/.test(run.stderr)) {
     return "memory_limit_exceeded";
   }
   return run.exitCode === 0 ? "ok" : "runtime_error";
 }
 
 /** Remove the temp dir from messages so they read `main.cpp:3:5: error: ...`. */
-function scrub(text: string, dir: string): string {
+export function scrub(text: string, dir: string): string {
   return text.split(dir + path.sep).join("").split(dir).join(".");
 }
 
-function exec(
+/** The only environment student code sees: nothing from the task (AWS_*, ECS_*, ...) leaks through. */
+export function studentEnv(home: string): Record<string, string | undefined> {
+  return { PATH: process.env.PATH, HOME: home, LANG: "C.UTF-8", PYTHONUNBUFFERED: "1" };
+}
+
+export function exec(
   command: string[],
   cwd: string,
   opts: { stdin?: string; timeoutMs: number; maxOutputBytes: number },
@@ -208,7 +231,7 @@ function exec(
     const child = spawn(command[0], command.slice(1), {
       cwd,
       detached: true,
-      env: { PATH: process.env.PATH, HOME: cwd, LANG: "C.UTF-8", PYTHONUNBUFFERED: "1" },
+      env: studentEnv(cwd),
       stdio: ["pipe", "pipe", "pipe"],
     });
     const out: Buffer[] = [];

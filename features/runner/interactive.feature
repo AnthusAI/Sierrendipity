@@ -20,6 +20,20 @@ Feature: Interact with a running program
       | C        | main.c   | #include <stdio.h>\nint main(){char n[64]; printf("Name: "); scanf("%63s", n); printf("Hello, %s\\n", n);}                                     |
       | C++      | main.cpp | #include <iostream>\n#include <string>\nint main(){std::string n; std::cout << "Name: "; std::cin >> n; std::cout << "Hello, " << n << "\\n";}  |
 
+  Scenario: The stream carries program output only, not the echoed input
+    Given a Python project
+    And the file "main.py" containing:
+      """
+      name = input("Name: ")
+      print("Hello, " + name)
+      """
+    When the project is started interactively
+    And the event stream is opened
+    Then the stream shows "Name: "
+    When "Ada\n" is sent to stdin
+    Then the run exits with status "ok"
+    And the stream output is exactly "Name: Hello, Ada\r\n"
+
   Scenario: Output arrives while the program waits for input
     Given a C project
     And the file "main.c" containing:

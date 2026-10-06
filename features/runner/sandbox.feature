@@ -52,8 +52,8 @@ Feature: Contain student code
     When the project is run
     Then the program output is "PermissionError\n"
 
-  Scenario: Cloud credentials are not passed to student code
-    Given the runner has cloud credentials in its environment
+  Scenario: Cloud credentials and the runner secret are not passed to student code
+    Given the runner has secrets in its environment
     And a Python project
     And the file "main.py" containing:
       """
