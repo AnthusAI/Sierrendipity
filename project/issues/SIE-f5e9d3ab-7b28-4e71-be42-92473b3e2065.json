@@ -31,7 +31,7 @@
     "platform": "claude_code",
     "model": "claude-sonnet-5-5"
   },
-  "right_now_summary": "The team is building the tutor while testing sign-in, lessons, emulators, and multi-file code runs.",
-  "right_now_updated_at": "2026-10-06T19:51:24.532268Z",
+  "right_now_summary": "The IDE, backend, lessons, and sign-in work, while runner, C++ runs, and deployment checks still need testing.",
+  "right_now_updated_at": "2026-10-06T22:28:56.294103Z",
   "custom": {}
 }

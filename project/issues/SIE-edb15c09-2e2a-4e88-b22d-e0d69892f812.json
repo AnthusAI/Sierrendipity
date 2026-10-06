@@ -1,0 +1,25 @@
+{
+  "id": "SIE-edb15c09-2e2a-4e88-b22d-e0d69892f812",
+  "title": "Rust in the Compilation Explorer on riscv32im with a small no_std runtime",
+  "description": "Feature: Rust explorer\n  Scenario: A Rust while loop maps like C\n    Given a Rust project with a while loop summing to n\n    When it is explained at the unoptimized level\n    Then user instructions link to source lines and library rows are collapsed\n  Scenario: Safety checks can be shown\n    When I turn on show safety checks\n    Then the overflow check branch appears after the multiplication",
+  "type": "story",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-02cf3a13-ae09-41de-8847-e601c543c706",
+  "labels": [],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-06T22:28:50.986778Z",
+  "updated_at": "2026-10-06T22:28:50.986917Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity-orchestrator"
+  },
+  "right_now_summary": "The Rust Compilation Explorer issue on riscv32im is being investigated.",
+  "right_now_updated_at": "2026-10-06T22:28:52.908761Z",
+  "custom": {}
+}
