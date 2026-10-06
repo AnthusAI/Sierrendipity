@@ -1,0 +1,7 @@
+project/.overlay/
+
+node_modules/
+dist/
+cdk.out/
+coverage/
+.env
