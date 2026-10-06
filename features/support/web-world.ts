@@ -50,6 +50,7 @@ export class WebWorld extends World {
   appUrl!: string;
   mock!: MockBackend;
   cognitoDomain?: string;
+  bareCognitoDomain = false;
   authorizeUrl?: URL;
   tokenBody?: URLSearchParams;
   idToken?: string;

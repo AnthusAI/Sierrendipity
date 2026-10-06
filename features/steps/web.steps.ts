@@ -44,10 +44,14 @@ Given("Cognito is the hosted UI at {string}", async function (this: WebWorld, do
   );
 });
 
+Given("the config names the Cognito domain without a scheme", function (this: WebWorld) {
+  this.bareCognitoDomain = true;
+});
+
 function signInConfig(w: WebWorld): Record<string, unknown> {
   return {
     region: "us-east-1",
-    cognitoDomain: w.cognitoDomain,
+    cognitoDomain: w.bareCognitoDomain ? w.cognitoDomain?.replace(/^https:\/\//, "") : w.cognitoDomain,
     clientId: "client-1",
     controlUrl: w.mock.url,
     proxyUrl: w.mock.url,

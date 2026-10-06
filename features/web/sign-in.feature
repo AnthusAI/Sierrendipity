@@ -12,6 +12,12 @@ Feature: Sign in with Google
     When I press "Sign in with Google"
     Then I am sent to the hosted UI with PKCE and Google as the identity provider
 
+  Scenario: A Cognito domain configured without a scheme still reaches the hosted UI
+    Given the config names the Cognito domain without a scheme
+    And the IDE is opened with sign-in required
+    When I press "Sign in with Google"
+    Then I am sent to the hosted UI with PKCE and Google as the identity provider
+
   Scenario: The callback signs the student in
     Given the IDE is opened with sign-in required
     And I press "Sign in with Google"
