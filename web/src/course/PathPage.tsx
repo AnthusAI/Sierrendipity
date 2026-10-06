@@ -1,6 +1,6 @@
 import { pickWarmup, type PathLesson, type PickedWarmup } from "@sierrendipity/lesson-core";
+import { useState, type ReactNode } from "react";
 import { ArrowRight, DoorClosed, DoorOpen, Sparkles, Star } from "lucide-react";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { CatalogLesson } from "./catalog";
@@ -20,13 +20,13 @@ function Door({ title, open, to, hint }: { title: string; open: boolean; to: str
       {title}
     </Link>
   ) : (
-    <button type="button" data-door={title} data-open="false" aria-disabled="true" className={cn(base, "cursor-default border-dashed bg-muted text-left text-muted-foreground")}>
+    <div data-door={title} data-open="false" className={cn(base, "border-dashed bg-muted text-left text-muted-foreground")}>
       <DoorClosed aria-hidden className="size-4 shrink-0" />
       <span>
         {title}
         <span className="block text-xs">{hint}</span>
       </span>
-    </button>
+    </div>
   );
 }
 
@@ -69,7 +69,7 @@ export function PathView({
   roomsOf: (lessonId: string) => PathModelRooms;
   onPick: (baseId: string, lessonId: string) => void;
   picked: string | null;
-  header?: React.ReactNode;
+  header?: ReactNode;
 }) {
   const { navigate } = useRouter();
   const { state, target } = model;
@@ -90,7 +90,7 @@ export function PathView({
   const continueLabel = target ? `Continue: ${target.title}, ${about(target.minutes)}` : "Continue: open the Workspace";
   const goOn = () => navigate(target ? lessonPath(target.id) : "/workspace");
   const continueButton = (
-    <Button data-primary-action size="default" className="h-12 px-6 text-base" onClick={goOn}>
+    <Button data-primary-action size="default" className="h-auto min-h-12 whitespace-normal px-6 py-2 text-left text-base" onClick={goOn}>
       {continueLabel}
       <ArrowRight aria-hidden />
     </Button>
@@ -120,7 +120,15 @@ export function PathView({
         {next && (
           <div data-lesson-title={next.title} data-status="next" data-prominent="true" data-layout-item="next" className="mx-4 grid gap-1 rounded-xl border bg-muted p-4 text-muted-foreground">
             <p className="text-xs font-semibold uppercase tracking-wide">Next</p>
-            <p className="text-lg font-medium">{next.title}</p>
+            <p className="text-lg font-medium">
+              {unlockAll ? (
+                <Link to={lessonPath(next.id)} aria-label={`Open ${next.title}`} className="rounded-sm underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                  {next.title}
+                </Link>
+              ) : (
+                next.title
+              )}
+            </p>
             <p className="text-sm">{about(minutes(next.id))}</p>
           </div>
         )}
@@ -199,7 +207,7 @@ type PathModelRooms = { hint: string };
 export function PathPage() {
   const { data, unlockAll, progress, userId, sessions, now } = useCourse();
   const lessons = useLessons();
-  const [picks, setPicks] = useState<Record<string, string>>({});
+  const { picks, setPick } = useCourse();
   const model = buildPath(data, lessons, picks);
 
   // The warm-up is decided once when the page opens: at most one per session, only when something is due.
@@ -226,7 +234,7 @@ export function PathPage() {
       unlockAll={unlockAll}
       roomsOf={roomsOf}
       picked={model.choice ? (picks[baseOf(model.choice[0]!)] ?? model.choice[0]!.id) : null}
-      onPick={(base, id) => setPicks((p) => ({ ...p, [base]: id }))}
+      onPick={setPick}
       header={
         warmup && (
           <WarmupCard

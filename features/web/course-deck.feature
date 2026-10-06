@@ -31,7 +31,7 @@ Feature: The Instruction Deck
     When I open the app at "/learn/deck"
     Then the front of the Deck card "Put" reads "Put 5 in box a0"
     When I flip the Deck card "Put"
-    Then the back of the Deck card "Put" shows the assembly name "addi" and the bits "00000000010100000000010100010011"
+    Then the back of the Deck card "Put" shows the assembly name "li" and the bits "00000000010100000000010100010011"
     And the back of the Deck card "Put" has a lamp strip of 32 lamps with 7 lit
     When I flip the Deck card "Put"
     Then the front of the Deck card "Put" reads "Put 5 in box a0"
@@ -41,7 +41,7 @@ Feature: The Instruction Deck
     When I open the app at "/learn/deck"
     And I press Tab until focus is on "Flip Put"
     And I press the key "Enter"
-    Then the back of the Deck card "Put" shows the assembly name "addi" and the bits "00000000010100000000010100010011"
+    Then the back of the Deck card "Put" shows the assembly name "li" and the bits "00000000010100000000010100010011"
 
   Scenario: The Deck follows progress after a reload
     Given the student has used the card kinds "put" in passing programs

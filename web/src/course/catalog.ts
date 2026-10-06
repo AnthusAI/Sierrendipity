@@ -42,10 +42,17 @@ export function parseCatalog(value: unknown): CatalogLesson[] {
   return value.lessons.map(lessonOf).filter((l): l is CatalogLesson => l !== null);
 }
 
+export const CATALOG_MISSING = "The course list is missing. Try again later.";
+
+/** A host may answer a missing file with its index page and a 200, so the body must really be a catalog. */
 export async function loadCatalog(url = "/catalog.json"): Promise<CatalogLesson[]> {
-  const response = await fetch(url, { cache: "no-cache" });
-  if (!response.ok) throw new Error(`the course catalog is missing (HTTP ${response.status})`);
-  const lessons = parseCatalog(await response.json());
-  if (lessons.length === 0) throw new Error("the course catalog is empty");
+  let lessons: CatalogLesson[] = [];
+  try {
+    const response = await fetch(url, { cache: "no-cache" });
+    if (response.ok) lessons = parseCatalog(JSON.parse(await response.text()));
+  } catch {
+    /* handled below */
+  }
+  if (lessons.length === 0) throw new Error(CATALOG_MISSING);
   return lessons;
 }

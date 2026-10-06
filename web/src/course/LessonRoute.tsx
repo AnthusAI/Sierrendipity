@@ -30,17 +30,17 @@ export function LessonRoute(props: LessonRouteProps) {
   return <LessonPlaceholder {...props} />;
 }
 
-/** A plain page until the player exists: title, minutes and, only with `?dev=1`, a way to pass the lesson. */
+/** A plain page until the player exists: title, minutes and, only with `?dev=1` in a dev or `VITE_DEV_TOOLS=1` build, a way to pass the lesson. */
 export function LessonPlaceholder({ lesson, userId, progress, search, onExit }: LessonRouteProps) {
   const params = new URLSearchParams(search);
-  const dev = params.get("dev") === "1";
+  const dev = params.get("dev") === "1" && (import.meta.env.DEV || import.meta.env.VITE_DEV_TOOLS === "1");
   const room = lesson.sideRooms.find((r) => r.id === params.get("room"));
   return (
     <section className="grid gap-4">
       <Link to="/learn" className="w-fit text-sm text-link underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring">
         Back to the path
       </Link>
-      <h1 className="text-3xl font-semibold tracking-tight">{lesson.title}</h1>
+      <h1 tabIndex={-1} className="text-3xl font-semibold tracking-tight">{lesson.title}</h1>
       <p className="text-muted-foreground">{about(lesson.minutes)}</p>
       {room && <p className="rounded-lg border bg-card p-3 text-card-foreground">Side room: {room.title}</p>}
       <p>The lesson player is on its way. Your path is ready for it.</p>

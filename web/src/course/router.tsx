@@ -81,3 +81,11 @@ export function learnPage(path: string): LearnPage {
   if (rest === "gallery" || rest === "deck") return { page: rest };
   return { page: "lesson", lessonId: rest };
 }
+
+/** Set the tab title for a page: "Gallery · Sierrendipity". */
+export function Title({ text }: { text: string }) {
+  useEffect(() => {
+    document.title = `${text} · Sierrendipity`;
+  }, [text]);
+  return null;
+}

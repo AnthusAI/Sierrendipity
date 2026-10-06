@@ -16,7 +16,12 @@ export function WarmupCard({ picked, onAnswer, onDone }: { picked: PickedWarmup;
   const [problem, setProblem] = useState<string | null>(null);
   const [result, setResult] = useState<Result>(null);
   const input = useRef<HTMLInputElement>(null);
+  const done = useRef<HTMLButtonElement>(null);
   useEffect(() => input.current?.focus(), []);
+  // The input goes away after Check: keep keyboard focus inside the card, on the way out.
+  useEffect(() => {
+    if (result) done.current?.focus();
+  }, [result]);
 
   const check = (event: FormEvent) => {
     event.preventDefault();
@@ -73,7 +78,7 @@ export function WarmupCard({ picked, onAnswer, onDone }: { picked: PickedWarmup;
             </>
           )}
           <div>
-            <Button className="h-9 px-4" variant={result.correct ? "default" : "outline"} onClick={onDone}>
+            <Button ref={done} className="h-9 px-4" variant={result.correct ? "default" : "outline"} onClick={onDone}>
               {result.correct ? "Done" : "Got it"}
             </Button>
           </div>

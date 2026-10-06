@@ -1,5 +1,6 @@
 import { Before, Given, Then, When } from "@cucumber/cucumber";
 import assert from "node:assert/strict";
+import { CARD_KINDS, decode } from "../../explorer/src";
 import { contrastRatio } from "../../web/src/theme/contrast";
 import { galleryKey } from "../../web/src/course/gallery";
 import type { WebWorld } from "../support/web-world";
@@ -78,6 +79,7 @@ interface Course {
   seeds: Map<string, Seed>;
   gallery: Map<string, unknown[]>;
   rawGallery: string | null;
+  catalogMode: "ok" | "html";
   clock: Date;
   opened: boolean;
 }
@@ -85,7 +87,7 @@ type CW = WebWorld & { course: Course };
 
 function course(w: WebWorld): Course {
   const c = w as CW;
-  c.course ??= { catalog: baseCourse(), seeds: new Map(), gallery: new Map(), rawGallery: null, clock: new Date(T0), opened: false };
+  c.course ??= { catalog: baseCourse(), seeds: new Map(), gallery: new Map(), rawGallery: null, catalogMode: "ok", clock: new Date(T0), opened: false };
   return c.course;
 }
 
@@ -144,7 +146,9 @@ async function installSeeds(w: WebWorld) {
 
 async function routeCatalog(w: WebWorld) {
   const body = { version: 1, lessons: course(w).catalog };
-  await w.page.route("**/catalog.json", (route) => route.fulfill({ json: body }));
+  await w.page.route("**/catalog.json", (route) =>
+    course(w).catalogMode === "html" ? route.fulfill({ contentType: "text/html", body: "<!doctype html><title>Sierrendipity</title>" }) : route.fulfill({ json: body }),
+  );
 }
 
 Before({ tags: "@course" }, async function (this: WebWorld) {
@@ -365,14 +369,13 @@ Then("the lesson {string} shows the stars {string}", async function (this: WebWo
 Then("the door {string} is closed and says {string}", async function (this: WebWorld, title: string, says: string) {
   const door = this.page.locator(`[data-door="${title}"]`);
   await door.waitFor();
-  assert.equal(await door.getAttribute("aria-disabled"), "true");
+  assert.equal(await door.getAttribute("data-open"), "false");
   assert.ok(squash(await door.innerText()).includes(says), `door says: ${await door.innerText()}`);
 });
 
 Then("the door {string} is open", async function (this: WebWorld, title: string) {
   const door = this.page.locator(`[data-door="${title}"]`);
   await door.waitFor();
-  assert.notEqual(await door.getAttribute("aria-disabled"), "true");
   assert.equal(await door.getAttribute("data-open"), "true");
 });
 
@@ -741,7 +744,7 @@ Then("the Deck card {string} is face down and says {string}", async function (th
 });
 
 Then("the Deck card {string} cannot be flipped", async function (this: WebWorld, title: string) {
-  assert.equal(await deckCard(this, title).getByRole("button").isDisabled(), true);
+  assert.equal(await deckCard(this, title).locator("button").count(), 0);
 });
 
 Then("the front of the Deck card {string} reads {string}", async function (this: WebWorld, title: string, text: string) {
@@ -757,7 +760,7 @@ When("I flip the Deck card {string}", async function (this: WebWorld, title: str
 
 Then("the back of the Deck card {string} shows the assembly name {string} and the bits {string}", async function (this: WebWorld, title: string, name: string, bits: string) {
   const back = deckCard(this, title).locator('[data-face="back"]');
-  await back.getByText(name, { exact: true }).waitFor();
+  await back.locator("[data-name]").filter({ hasText: new RegExp(`^${name}$`) }).waitFor();
   assert.equal(await back.locator("[data-bits]").getAttribute("data-bits"), bits);
   assert.equal(await deckCard(this, title).getAttribute("data-flipped"), "true");
 });
@@ -766,6 +769,114 @@ Then("the back of the Deck card {string} has a lamp strip of {int} lamps with {i
   const back = deckCard(this, title).locator('[data-face="back"]');
   assert.equal(await back.locator("[data-lamp]").count(), lamps);
   assert.equal(await back.locator('[data-lamp][data-lit="true"]').count(), lit);
+});
+
+// ---------------------------------------------------------------- polish: titles, focus, narrow screens, errors
+
+const FOCUS = `const el = document.activeElement; return el ? { tag: el.tagName, text: (el.textContent || "").trim() } : null;`;
+
+Then("the page title is {string}", async function (this: WebWorld, title: string) {
+  await eventually(() => this.page.title(), (t) => t === title);
+  assert.equal(await this.page.title(), title);
+});
+
+Then("focus is on the heading {string}", async function (this: WebWorld, name: string) {
+  const read = () => this.page.evaluate(inPage("", FOCUS) as never) as Promise<{ tag: string; text: string } | null>;
+  const focus = await eventually(read, (f) => f?.tag === "H1");
+  assert.deepEqual(focus && { tag: focus.tag, text: focus.text }, { tag: "H1", text: name });
+});
+
+Then("focus is on the warm-up button {string}", async function (this: WebWorld, name: string) {
+  const button = warmup(this).getByRole("button", { name, exact: true });
+  await button.waitFor();
+  assert.ok(await eventually(() => button.evaluate(inPage("el", `return el === document.activeElement;`) as never) as Promise<boolean>, (v) => v === true));
+});
+
+Then("nothing scrolls sideways and every button and link on the page is on screen", async function (this: WebWorld) {
+  await this.page.getByRole("main").waitFor();
+  await this.page.waitForTimeout(300);
+  const info = (await this.page.evaluate(
+    inPage(
+      "",
+      `const w = document.documentElement.clientWidth;
+       const off = [...document.querySelectorAll("button, a[href]")].filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && (r.left < 0 || r.right > w + 0.5); }).map((e) => (e.getAttribute("aria-label") || e.textContent || "").trim());
+       const wide = [...document.querySelectorAll("main *")].filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.right > w + 0.5; }).map((e) => e.tagName + ":" + (e.textContent || "").trim().slice(0, 20));
+       return { scroll: document.documentElement.scrollWidth, w, off, wide };`,
+    ) as never,
+  )) as { scroll: number; w: number; off: string[]; wide: string[] };
+  assert.ok(info.scroll <= info.w, `the page is ${info.scroll}px wide on a ${info.w}px screen`);
+  assert.deepEqual(info.off, []);
+  assert.deepEqual(info.wide, []);
+});
+
+Then("I see the button {string}", async function (this: WebWorld, name: string) {
+  await this.page.getByRole("button", { name, exact: true }).waitFor();
+});
+
+Given("the course list is served as a web page", function (this: WebWorld) {
+  course(this).catalogMode = "html";
+});
+
+When("the course list comes back", async function (this: WebWorld) {
+  course(this).catalogMode = "ok";
+  await this.page.unroute("**/catalog.json");
+  await routeCatalog(this);
+});
+
+Then("there is no {string} message", async function (this: WebWorld, text: string) {
+  await this.page.getByRole("heading", { name: "Course 1", exact: true }).waitFor();
+  assert.equal(await this.page.getByText(text).count(), 0);
+});
+
+Then("the page offers the link {string}", async function (this: WebWorld, name: string) {
+  await this.page.getByRole("link", { name, exact: true }).waitFor();
+});
+
+Then("the door {string} is plain text saying {string}", async function (this: WebWorld, title: string, says: string) {
+  const door = this.page.locator(`[data-door="${title}"]`);
+  await door.waitFor();
+  assert.equal(await door.getAttribute("data-open"), "false");
+  assert.equal(await door.locator("xpath=descendant-or-self::*[self::button or self::a]").count(), 0);
+  assert.equal(await door.evaluate(inPage("el", `return el.tabIndex;`) as never), -1);
+  assert.ok(squash(await door.innerText()).includes(says));
+});
+
+Then("the Deck offers one group {string}", async function (this: WebWorld, name: string) {
+  await this.page.getByRole("group", { name, exact: true }).waitFor();
+  assert.equal(await this.page.getByRole("region", { name: "Instruction Deck" }).getByRole("group").count(), 1);
+});
+
+Then("no card of the Deck that is not met is a button", async function (this: WebWorld) {
+  await deckCard(this, "Put").waitFor();
+  assert.equal(await this.page.locator('[data-deck-card][data-state="face-down"] button').count(), 0);
+  assert.equal(await this.page.getByRole("button", { name: /not met/i }).count(), 0);
+});
+
+Then("the back of the Deck card {string} shows the assembly name {string} and the instruction {string}", async function (this: WebWorld, title: string, name: string, real: string) {
+  const back = deckCard(this, title).locator('[data-face="back"]');
+  await back.waitFor();
+  assert.equal(squash(await back.locator("[data-name]").innerText()), name);
+  assert.equal(squash(await back.locator("[data-canonical]").innerText()), real);
+});
+
+Given("the student has used every card kind in passing programs", function (this: WebWorld) {
+  seedOf(course(this), USER).cardsUsed = CARD_KINDS.filter((k) => k !== "unknown");
+});
+
+Then("every Deck back names its card as the decoder does with aliases", async function (this: WebWorld) {
+  const cards = this.page.locator('[data-deck-card][data-state="face-up"]');
+  await cards.first().waitFor();
+  const count = await cards.count();
+  assert.equal(count, 24);
+  for (let i = 0; i < count; i++) {
+    const card = cards.nth(i);
+    await card.getByRole("button").click();
+    const back = card.locator('[data-face="back"]');
+    const bits = (await back.locator("[data-bits]").getAttribute("data-bits"))!;
+    const word = parseInt(bits, 2) >>> 0;
+    assert.equal(squash(await back.locator("[data-name]").innerText()), decode(word, { aliases: true })!.mnemonic, bits);
+    assert.equal(squash(await back.locator("[data-canonical]").innerText()), decode(word)!.text, bits);
+  }
 });
 
 // ---------------------------------------------------------------- the lab

@@ -47,6 +47,11 @@ export interface CourseContextValue {
   now(): number;
   /** Clear this student's progress and session (the Gallery stays). */
   resetProgress(): void;
+  /** Fetch the catalog again after a failure. */
+  retryCatalog(): void;
+  /** Which alternate the student picked at each branch point (remembered per user). */
+  picks: Record<string, string>;
+  setPick(baseId: string, lessonId: string): void;
 }
 
 const Context = createContext<CourseContextValue | null>(null);
@@ -88,6 +93,11 @@ export function CourseProvider({ userId: rawUser, services = {}, children }: { u
   const userId = safeUserId(rawUser);
   const now = services.now ?? Date.now;
   const [catalog, setCatalog] = useState<CatalogState>(services.catalog ? { status: "ready", lessons: services.catalog } : { status: "loading" });
+  const [attempt, setAttempt] = useState(0);
+  const retryCatalog = useCallback(() => {
+    setCatalog({ status: "loading" });
+    setAttempt((n) => n + 1);
+  }, []);
   useEffect(() => {
     if (services.catalog) return;
     let live = true;
@@ -97,7 +107,7 @@ export function CourseProvider({ userId: rawUser, services = {}, children }: { u
     return () => {
       live = false;
     };
-  }, [services.catalog]);
+  }, [services.catalog, attempt]);
 
   const make = services.progress ?? browserProgress;
   const [handle, setHandle] = useState<ProgressHandle>(() => make(userId, now));
@@ -132,15 +142,45 @@ export function CourseProvider({ userId: rawUser, services = {}, children }: { u
 
   const sessions = useMemo(() => createSessions(services.sessionStorage ?? browserStorage(), userId, now), [services.sessionStorage, userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const picksKey = `sierrendipity:picks:${userId}`;
+  const [picks, setPicks] = useState<Record<string, string>>(() => {
+    try {
+      const value = JSON.parse(browserStorage()?.getItem(picksKey) ?? "{}") as unknown;
+      return typeof value === "object" && value !== null && !Array.isArray(value) ? (value as Record<string, string>) : {};
+    } catch {
+      return {};
+    }
+  });
+  const setPick = useCallback(
+    (baseId: string, lessonId: string) => {
+      setPicks((p) => {
+        const next = { ...p, [baseId]: lessonId };
+        try {
+          browserStorage()?.setItem(picksKey, JSON.stringify(next));
+        } catch {
+          /* kept for this page */
+        }
+        return next;
+      });
+    },
+    [picksKey],
+  );
+
   const resetProgress = useCallback(() => {
+    setPicks({});
+    try {
+      browserStorage()?.removeItem(picksKey);
+    } catch {
+      /* nothing to clear */
+    }
     handle.clear();
     sessions.clear();
     setHandle(make(userId, now));
-  }, [handle, sessions, userId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [handle, sessions, userId, picksKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const value = useMemo<CourseContextValue>(
-    () => ({ userId, catalog, progress: handle.store, data, gallery, galleryItems, unlockAll, setUnlockAll, sessions, now, resetProgress }),
-    [userId, catalog, handle, data, gallery, galleryItems, unlockAll, setUnlockAll, sessions, resetProgress], // eslint-disable-line react-hooks/exhaustive-deps
+    () => ({ userId, catalog, progress: handle.store, data, gallery, galleryItems, unlockAll, setUnlockAll, sessions, now, resetProgress, retryCatalog, picks, setPick }),
+    [userId, catalog, handle, data, gallery, galleryItems, unlockAll, setUnlockAll, sessions, resetProgress, retryCatalog, picks, setPick], // eslint-disable-line react-hooks/exhaustive-deps
   );
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }

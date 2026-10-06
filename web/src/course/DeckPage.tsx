@@ -19,11 +19,9 @@ function DeckCard({ card, met }: { card: DeckKind; met: boolean }) {
   const [flipped, setFlipped] = useState(false);
   if (!met) {
     return (
-      <li data-deck-card={card.title} data-state="face-down" data-layout-item={card.title} className="rounded-xl border border-dashed bg-muted p-4 text-muted-foreground">
-        <button type="button" disabled aria-label="A card you have not met yet" className="grid w-full gap-1 text-left">
-          <span aria-hidden className="text-2xl font-semibold">?</span>
-          <span className="text-sm">Not met yet</span>
-        </button>
+      <li aria-hidden="true" data-deck-card={card.title} data-state="face-down" data-layout-item={card.title} className="grid gap-1 rounded-xl border border-dashed bg-muted p-4 text-muted-foreground">
+        <span className="text-2xl font-semibold">?</span>
+        <span className="text-sm">Not met yet</span>
       </li>
     );
   }
@@ -44,7 +42,12 @@ function DeckCard({ card, met }: { card: DeckKind; met: boolean }) {
       {flipped ? (
         <div data-face="back" className="grid gap-2">
           <p className="text-sm text-muted-foreground">In assembly it is called</p>
-          <p className="font-mono text-lg font-semibold">{card.name}</p>
+          <p data-name className="font-mono text-lg font-semibold">
+            {card.name}
+          </p>
+          <p data-canonical className="font-mono text-xs text-muted-foreground">
+            {card.canonical}
+          </p>
           <LampStrip bits={card.bits} />
         </div>
       ) : (
@@ -64,7 +67,12 @@ export function DeckView({ cardsUsed }: { cardsUsed: string[] }) {
   return (
     <section aria-label="Instruction Deck" className="grid gap-4">
       <p className="text-muted-foreground">{`${met} of ${cards.length} met`}</p>
-      <ul className="grid grid-cols-3 gap-4">
+      {met < cards.length && (
+        <div role="group" aria-label={`${cards.length - met} cards you have not met yet`} className="sr-only">
+          {cards.length - met} cards you have not met yet
+        </div>
+      )}
+      <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((card) => (
           <DeckCard key={card.kind} card={card} met={used.has(card.kind)} />
         ))}
@@ -77,7 +85,7 @@ export function DeckPage() {
   const { data } = useCourse();
   return (
     <div className="grid gap-4">
-      <h1 className="text-2xl font-semibold tracking-tight">Instruction Deck</h1>
+      <h1 tabIndex={-1} className="text-2xl font-semibold tracking-tight">Instruction Deck</h1>
       <DeckView cardsUsed={data.cardsUsed} />
     </div>
   );

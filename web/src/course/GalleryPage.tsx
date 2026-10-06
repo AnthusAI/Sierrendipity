@@ -12,7 +12,7 @@ export const EMPTY_GALLERY = "Nothing here yet. Things you make in lessons will 
 /** A 16 by 16 picture painted with the theme's field colors (index 0 is empty). */
 export function PixelPicture({ pixels, label }: { pixels: number[]; label: string }) {
   return (
-    <div role="img" aria-label={label} className="grid aspect-square w-32 overflow-hidden rounded-md border bg-muted" style={{ gridTemplateColumns: `repeat(${PIXEL_SIDE}, 1fr)` }}>
+    <div role="img" aria-label={label} className="grid aspect-square w-full max-w-32 overflow-hidden rounded-md border bg-muted" style={{ gridTemplateColumns: `repeat(${PIXEL_SIDE}, 1fr)` }}>
       {pixels.map((color, i) => (
         <span key={i} data-pixel={color} style={color === 0 ? undefined : { background: `var(--field-${color})` }} />
       ))}
@@ -58,7 +58,7 @@ export function GalleryView({ items, onReplay, onRemove }: { items: GalleryItem[
       {items.length === 0 ? (
         <p className="rounded-xl border border-dashed bg-muted p-6 text-muted-foreground">{EMPTY_GALLERY}</p>
       ) : (
-        <ul className="grid grid-cols-3 gap-4">
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (
             <Frame key={item.id} item={item} onReplay={() => onReplay(item)} onRemove={() => setRemoving(item)} />
           ))}
@@ -85,7 +85,7 @@ export function GalleryPage() {
   const { navigate } = useRouter();
   return (
     <div className="grid gap-4">
-      <h1 className="text-2xl font-semibold tracking-tight">Gallery</h1>
+      <h1 tabIndex={-1} className="text-2xl font-semibold tracking-tight">Gallery</h1>
       <GalleryView
         items={[...galleryItems].reverse()}
         onReplay={(item) => navigate(`/learn/${item.lessonId}?replay=${encodeURIComponent(item.id)}`)}

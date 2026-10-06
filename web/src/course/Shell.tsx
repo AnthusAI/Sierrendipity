@@ -27,6 +27,9 @@ function Areas({ config, user, getIdToken, onSignOut }: Props) {
     if (area === "workspace") setVisited(true);
   }, [area]);
   useEffect(() => {
+    if (area === "workspace") document.title = "Workspace · Sierrendipity";
+  }, [area]);
+  useEffect(() => {
     sessions.touch();
   }, [path, sessions]);
 
@@ -34,7 +37,7 @@ function Areas({ config, user, getIdToken, onSignOut }: Props) {
   useEffect(() => {
     if (area !== null || catalog.status === "loading") return;
     const finished = catalog.status === "ready" && buildPath(data, catalog.lessons).state.continueTarget.kind === "complete";
-    navigate(catalog.status === "error" || finished ? "/workspace" : "/learn", { replace: true });
+    navigate(finished ? "/workspace" : "/learn", { replace: true });
   }, [area, catalog, data, navigate]);
 
   if (area === null)

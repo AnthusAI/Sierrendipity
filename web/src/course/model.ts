@@ -107,8 +107,10 @@ export interface DeckKind {
   word: number;
   /** Plain English for the front. */
   front: string;
-  /** The assembly name (mnemonic) for the back. */
+  /** The assembly name for the back, the way a person writes it (li, mv, nop, j). */
   name: string;
+  /** The real instruction, e.g. "addi a0, zero, 5". */
+  canonical: string;
   /** The 32 bits, most significant first. */
   bits: string;
 }
@@ -124,7 +126,7 @@ export function deckKinds(): DeckKind[] {
   kinds ??= CARD_KINDS.filter((k) => k !== "unknown").map((kind) => {
     const source = SAMPLES[kind];
     const word = source ? (assemble(source).words?.[0] ?? 0) : 0;
-    return { kind, title: kindTitle(kind), word, front: describe(word).text, name: decode(word)?.mnemonic ?? "?", bits: (word >>> 0).toString(2).padStart(32, "0") };
+    return { kind, title: kindTitle(kind), word, front: describe(word).text, name: decode(word, { aliases: true })?.mnemonic ?? "?", canonical: decode(word)?.text ?? "?", bits: (word >>> 0).toString(2).padStart(32, "0") };
   });
   return kinds;
 }

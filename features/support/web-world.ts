@@ -22,7 +22,7 @@ let shared: Promise<{ browser: Browser; app: Server; appUrl: string }> | undefin
 function sharedWeb() {
   shared ??= (async () => {
     await new Promise<void>((resolve, reject) =>
-      execFile("npm", ["run", "build", "-w", "web"], { cwd: root }, (error, _out, err) =>
+      execFile("npm", ["run", "build", "-w", "web"], { cwd: root, env: { ...process.env, VITE_DEV_TOOLS: "1" } }, (error, _out, err) =>
         error ? reject(new Error(`web build failed:\n${err}`)) : resolve(),
       ),
     );

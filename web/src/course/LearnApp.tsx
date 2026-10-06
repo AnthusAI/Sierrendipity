@@ -1,5 +1,5 @@
 import { Lightbulb, LogOut, Settings as SettingsIcon } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -13,7 +13,7 @@ import { GalleryPage } from "./GalleryPage";
 import { LessonRoute } from "./LessonRoute";
 import { buildPath, canOpen } from "./model";
 import { PathPage } from "./PathPage";
-import { Link, learnPage, useRouter } from "./router";
+import { Link, learnPage, Title, useRouter } from "./router";
 
 function SubNav({ page }: { page: string }) {
   const items = [
@@ -40,34 +40,84 @@ function SubNav({ page }: { page: string }) {
   );
 }
 
+function NotOpen({ title }: { title?: string }) {
+  const { navigate } = useRouter();
+  return (
+    <section className="grid gap-4">
+      <Title text="Not open yet" />
+      <h1 tabIndex={-1} className="text-3xl font-semibold tracking-tight">
+        Not open yet
+      </h1>
+      {title ? (
+        <>
+          <p className="text-lg font-medium">{title}</p>
+          <p className="text-muted-foreground">This one is waiting for you further along the path. Finish the lesson before it first.</p>
+        </>
+      ) : (
+        <p className="text-muted-foreground">We could not find that lesson.</p>
+      )}
+      <div>
+        <Button onClick={() => navigate("/learn")}>Back to the path</Button>
+      </div>
+    </section>
+  );
+}
+
 function Lesson({ lessonId }: { lessonId: string }) {
-  const { catalog, data, unlockAll, progress, gallery, userId } = useCourse();
+  const { catalog, data, unlockAll, progress, gallery, galleryItems, userId, picks } = useCourse();
   const { navigate, search } = useRouter();
   const lessons = catalog.status === "ready" ? catalog.lessons : [];
   const lesson = lessons.find((l) => l.id === lessonId);
-  const model = buildPath(data, lessons);
-  const allowed = lesson !== undefined && canOpen(model, lessonId, unlockAll);
-  useEffect(() => {
-    if (catalog.status === "ready" && !allowed) navigate("/learn", { replace: true });
-  }, [catalog.status, allowed, navigate]);
-  if (!lesson || !allowed) return null;
-  return <LessonRoute lesson={lesson} userId={userId} progress={progress} gallery={gallery} search={search} onExit={() => navigate("/learn")} onNext={() => navigate(model.target ? `/learn/${model.target.id}` : "/learn")} />;
+  if (!lesson) return <NotOpen />;
+  const model = buildPath(data, lessons, picks);
+  const params = new URLSearchParams(search);
+  // Replaying something made needs no open lesson; a side room only opens through its star.
+  const replay = params.get("replay");
+  const replayable = replay !== null && galleryItems.some((i) => i.id === replay && i.lessonId === lessonId);
+  const room = params.get("room");
+  const roomOpen = room === null || model.state.sideRooms.some((r) => r.id === room && r.lessonId === lessonId && r.open);
+  if (!(canOpen(model, lessonId, unlockAll) || replayable) || !roomOpen) return <NotOpen title={lesson.title} />;
+  return (
+    <>
+      <Title text={lesson.title} />
+      <LessonRoute lesson={lesson} userId={userId} progress={progress} gallery={gallery} search={search} onExit={() => navigate("/learn")} onNext={() => navigate(model.target ? `/learn/${model.target.id}` : "/learn")} />
+    </>
+  );
 }
 
 /** The Learn area: its own header (same brand, areas, settings, sign-out) and the course pages. */
 export function LearnApp({ signedInAs, onSignOut }: { signedInAs?: string; onSignOut: () => void }) {
-  const { catalog } = useCourse();
+  const { catalog, retryCatalog } = useCourse();
   const { path } = useRouter();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const route = learnPage(path);
+  // A route change is announced by the new title and by moving focus to the page heading.
+  const lastPath = useRef(path);
+  useEffect(() => {
+    if (lastPath.current === path || catalog.status !== "ready") return;
+    lastPath.current = path;
+    document.querySelector<HTMLElement>("main h1")?.focus({ preventScroll: true });
+  }, [path, catalog.status]);
 
   let body: ReactNode;
   if (catalog.status === "loading") body = <p className="text-muted-foreground">Loading the course…</p>;
   else if (catalog.status === "error")
     body = (
-      <p role="alert" className="rounded-md bg-danger-bg px-3 py-2 text-danger-fg">
-        The course could not be loaded: {catalog.message}. <Link to="/workspace" className="underline">Open the Workspace</Link> meanwhile.
-      </p>
+      <div className="grid max-w-2xl gap-4">
+        <Title text="Course 1" />
+        <h1 tabIndex={-1} className="text-3xl font-semibold tracking-tight">
+          Course 1
+        </h1>
+        <p role="alert" className="rounded-md bg-danger-bg px-3 py-2 text-danger-fg">
+          {catalog.message}
+        </p>
+        <div className="flex flex-wrap items-center gap-4">
+          <Button onClick={retryCatalog}>Try again</Button>
+          <Link to="/workspace" className="text-link underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring">
+            Open the Workspace
+          </Link>
+        </div>
+      </div>
     );
   else if (route.page === "lesson") body = <Lesson lessonId={route.lessonId} />;
   else
@@ -76,13 +126,22 @@ export function LearnApp({ signedInAs, onSignOut }: { signedInAs?: string; onSig
         <SubNav page={route.page} />
         {route.page === "path" ? (
           <div className="grid gap-5">
-            <h1 className="text-3xl font-semibold tracking-tight">Course 1</h1>
+            <Title text="Course 1" />
+            <h1 tabIndex={-1} className="text-3xl font-semibold tracking-tight">
+              Course 1
+            </h1>
             <PathPage />
           </div>
         ) : route.page === "gallery" ? (
-          <GalleryPage />
+          <>
+            <Title text="Gallery" />
+            <GalleryPage />
+          </>
         ) : (
-          <DeckPage />
+          <>
+            <Title text="Instruction Deck" />
+            <DeckPage />
+          </>
         )}
       </div>
     );
