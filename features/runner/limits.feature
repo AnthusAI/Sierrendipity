@@ -38,6 +38,42 @@ Feature: Enforce time, memory, and output limits
     When the project is run
     Then the status is "memory_limit_exceeded"
 
+  Scenario: A crash is a runtime error, not a memory error
+    Given a C project
+    And the file "main.c" containing:
+      """
+      int main() { volatile int *p = 0; return *p; }
+      """
+    When the project is run
+    Then the status is "runtime_error"
+    And the program was killed by signal "SIGSEGV"
+
+  Scenario: Output printed before a timeout is kept
+    Given a Python project
+    And the file "main.py" containing:
+      """
+      print("partial")
+      while True:
+          pass
+      """
+    And a time limit of 1000 ms
+    When the project is run
+    Then the status is "time_limit_exceeded"
+    And the program output is "partial\n"
+
+  Scenario: Unreadable directories left by the program do not break cleanup
+    Given a Python project
+    And the file "main.py" containing:
+      """
+      import os
+      os.mkdir("locked")
+      os.chmod("locked", 0)
+      print("hi")
+      """
+    When the project is run
+    Then the status is "ok"
+    And the program output is "hi\n"
+
   Scenario: A nonzero exit status is a runtime error
     Given a Python project
     And the file "main.py" containing:

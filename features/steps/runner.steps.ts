@@ -6,12 +6,14 @@ type RunResult = {
   run?: {
     exitCode: number | null;
     stdout: string;
+    signal: string | null;
     outputTruncated: boolean;
   };
   status: string;
 };
 
-let request: { language: string; files: { path: string; content: string }[]; stdin?: string; limits: Record<string, number> };
+type Req = { language: string; entry?: string; files: { path: string; content: string }[]; stdin?: string; limits: Record<string, number> };
+let request: Req;
 let response: { status: number; body: RunResult };
 
 Before(() => {
@@ -26,6 +28,18 @@ Given(/^an? (C\+\+|C|Python) project$/, (name: string) => {
 
 Given("the file {string} containing:", (path: string, content: string) => {
   request.files.push({ path, content });
+});
+
+Given("the entry {string}", (entry: string) => {
+  request.entry = entry;
+});
+
+Given("a file {string} of {int} bytes", (path: string, size: number) => {
+  request.files.push({ path, content: "#".repeat(size) });
+});
+
+Given("the request field {string} set to the number {int}", (field: string, value: number) => {
+  (request as unknown as Record<string, unknown>)[field] = value;
 });
 
 Given("the stdin {string}", (input: string) => {
@@ -75,4 +89,12 @@ Then("the output was truncated", () => {
 
 Then("the request is rejected", () => {
   assert.equal(response.status, 400);
+});
+
+Then("the request is rejected with status {int}", (status: number) => {
+  assert.equal(response.status, status);
+});
+
+Then("the program was killed by signal {string}", (signal: string) => {
+  assert.equal(response.body.run?.signal, signal);
 });
