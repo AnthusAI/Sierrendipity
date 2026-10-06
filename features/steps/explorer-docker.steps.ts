@@ -35,7 +35,7 @@ const MNEMONICS = [
   "mul", "mulh", "mulhsu", "mulhu", "div", "divu", "rem", "remu",
   "addi", "slti", "sltiu", "xori", "ori", "andi", "slli", "srli", "srai",
   "lb", "lh", "lw", "lbu", "lhu", "sb", "sh", "sw",
-  "beq", "bne", "blt", "bge", "bltu", "bgeu", "lui", "auipc", "jal", "jalr", "ecall", "ebreak",
+  "beq", "bne", "blt", "bge", "bltu", "bgeu", "lui", "auipc", "jal", "jalr", "ecall", "ebreak", "fence",
 ];
 
 /**
@@ -66,7 +66,7 @@ function corpus(): { ours: string[]; gnu: string[] } {
   }
   for (const v of [-1048576, -4, 0, 4, 2048, 1048574]) relative("jal", "ra, ", v);
   for (const op of ["lui", "auipc"]) for (const v of [0, 1, 0x7ffff, 0x80000, 0xfffff]) both(`${op} t0, 0x${v.toString(16)}`);
-  for (const line of ["jalr ra, 12(t0)", "jalr zero, 0(ra)", "jalr t1, -2048(a0)", "jalr t0", "ecall", "ebreak"]) both(line);
+  for (const line of ["jalr ra, 12(t0)", "jalr zero, 0(ra)", "jalr t1, -2048(a0)", "jalr t0", "ecall", "ebreak", "fence"]) both(line);
   for (const line of ["nop", "ret", "mv a0, a1", "jr t0", ".word 0xdeadbeef"]) both(line);
   relative("j", "", 0);
   for (const v of [0, 5, -2048, 2047, 2048, -2049, 0x12345800, 0x12345000, 0x7fffffff, -2147483648, 0xffffffff, 0x80000000]) {
@@ -126,13 +126,16 @@ function normalise(addr: number, mnemonic: string, operands: string, fromObjdump
 When("I disassemble the corpus words with objdump -M no-aliases and with the explorer", SLOW, () => {
   const ours = assemble(corpus().ours.filter((l) => !l.startsWith(".word")).join("\n"));
   assert.deepEqual(ours.errors, []);
-  const source = `.text\n.org 0x${BASE.toString(16)}\n${ours.words.map((w) => `.word 0x${w.toString(16)}`).join("\n")}\n`;
-  const script = `cat > /tmp/d.s && ${AS} -o /tmp/d.o /tmp/d.s && riscv64-unknown-elf-objdump -d -M no-aliases --start-address=0x${BASE.toString(16)} /tmp/d.o`;
+  const source = `.text\n${ours.words.map((w) => `.word 0x${w.toString(16)}`).join("\n")}\n`;
+  const script = `cat > /tmp/d.s && ${AS} -o /tmp/d.o /tmp/d.s && riscv64-unknown-elf-objcopy -O binary -j .text /tmp/d.o /tmp/d.bin && riscv64-unknown-elf-objdump -D -b binary -m riscv:rv32 -M no-aliases --adjust-vma=0x${BASE.toString(16)} /tmp/d.bin`;
   const listing = inContainer(script, source);
   const theirs = new Map<number, string>();
   for (const line of listing.split("\n")) {
     const m = /^\s*([0-9a-f]+):\s+[0-9a-f]{8}\s+(\S+)\s*(.*)$/.exec(line);
-    if (m) theirs.set(parseInt(m[1]!, 16), normalise(parseInt(m[1]!, 16), m[2]!, m[3]!, true));
+    if (!m) continue;
+    // objdump appends `# 0x...` comments with computed values and spells out fence's operands.
+    const operands = m[2] === "fence" ? "" : m[3]!.replace(/\s*#.*$/, "");
+    theirs.set(parseInt(m[1]!, 16), normalise(parseInt(m[1]!, 16), m[2]!, operands, true));
   }
   disassembly = { ours: [], objdump: [] };
   ours.words.forEach((word, i) => {
