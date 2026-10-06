@@ -54,6 +54,22 @@ export class WebWorld extends World {
   authorizeUrl?: URL;
   tokenBody?: URLSearchParams;
   idToken?: string;
+  /** Computed colors noted earlier in a scenario, to compare against later. */
+  noted: Record<string, string> = {};
+  pageErrors: string[] = [];
+
+  /**
+   * Click something that opens one of the app's dialogs (they replaced window.prompt/confirm), type
+   * `answer` into its text box when given, and press its confirm button (Create, Rename or Delete).
+   */
+  async answeringDialog(answer: string | null, click: () => Promise<unknown>) {
+    await click();
+    const dialog = this.page.getByRole("dialog");
+    await dialog.waitFor();
+    if (answer !== null) await dialog.getByRole("textbox").fill(answer);
+    await dialog.getByRole("button", { name: /^(Create|Rename|Delete)$/ }).click();
+    await dialog.waitFor({ state: "detached" });
+  }
 
   async open(config: Record<string, unknown>) {
     await this.page.route("**/config.json", (route) => route.fulfill({ json: config }));
@@ -69,6 +85,7 @@ Before({ tags: "@web", timeout: 180_000 }, async function (this: WebWorld) {
   this.context = await browser.newContext();
   this.page = await this.context.newPage();
   this.page.setDefaultTimeout(15_000);
+  this.page.on("pageerror", (error) => this.pageErrors.push(error.message));
 });
 
 After({ tags: "@web" }, async function (this: WebWorld) {

@@ -2,7 +2,19 @@ import Editor from "@monaco-editor/react";
 import { Terminal } from "@xterm/xterm";
 import type * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 import type { AsmError } from "@sierrendipity/explorer";
+import { CircleAlert, Compass, Cpu, FastForward, FileCode2, Lightbulb, Loader2, LogOut, Play, Plus, RotateCcw, Settings as SettingsIcon, Square, StepBack, StepForward, X } from "lucide-react";
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { Alert } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import { ConfirmDialog, PromptDialog } from "./dialogs";
+import { SettingsDialog } from "./SettingsDialog";
+import { useAppearance } from "./theme/appearance";
+import { monacoThemeName, terminalTheme } from "./theme/editorThemes";
 import { Backend, type BackendLanguage, type BackendStatus, type Language, type RunEvent } from "./backend";
 import { devBackend, type Config } from "./config";
 import { Emulator, type OutKind } from "./emulator";
@@ -91,7 +103,21 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
       ),
     [config, getIdToken],
   );
-  const term = useMemo(() => new Terminal({ convertEol: false, fontSize: 14, theme: { background: "#111" } }), []);
+  const { theme: colorTheme, mode: colorMode } = useAppearance();
+  const term = useMemo(
+    () =>
+      new Terminal({
+        convertEol: false,
+        fontSize: 13,
+        fontFamily: 'ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace',
+        theme: terminalTheme(colorTheme, colorMode),
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  type Prompt = { kind: "project" | "file" | "folder" } | { kind: "rename" | "delete"; path: string };
+  const [prompt, setPrompt] = useState<Prompt | null>(null);
   const runIdRef = useRef<string | null>(null);
   const runAbort = useRef<AbortController | null>(null);
   const stopRequested = useRef(false);
@@ -147,33 +173,32 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
       return { ...s, projects: { ...s.projects, [s.current]: { language: next, workspaces: { ...p.workspaces, [next]: p.workspaces[next] ?? starter(next) } } } };
     });
 
-  const createProject = () => {
-    const name = prompt("Project name")?.trim();
+  // Names come from dialogs (see `prompt` state); each handler receives the submitted text.
+  const createProject = (typed: string) => {
+    const name = typed.trim();
     if (!name) return;
     if (has(store.projects, name)) return setNotice(`A project named "${name}" already exists`);
     setNotice(undefined);
     setStore((s) => ({ current: name, projects: { ...s.projects, [name]: newProject() } }));
   };
 
-  const newFile = () => {
-    const path = prompt("New file path (use / for folders)")?.trim();
-    if (path === undefined) return;
+  const newFile = (typed: string) => {
+    const path = typed.trim();
     const problem = pathProblem(path) ?? pathConflict(ws, path);
     setNotice(problem ?? undefined);
     if (!problem) update((w) => withFile(w, path));
   };
 
-  const newFolder = () => {
-    const path = prompt("New folder path")?.trim();
-    if (path === undefined) return;
+  const newFolder = (typed: string) => {
+    const path = typed.trim();
     const problem = pathProblem(path) ?? pathConflict(ws, path);
     setNotice(problem ?? undefined);
     if (!problem) update((w) => ({ ...w, folders: [...w.folders, path] }));
   };
 
-  const rename = (path: string) => {
-    const to = prompt("Rename to", path)?.trim();
-    if (to === undefined || to === path) return;
+  const rename = (path: string, typed: string) => {
+    const to = typed.trim();
+    if (to === path) return;
     const problem =
       pathProblem(to) ??
       (to.startsWith(path + "/") ? `Cannot move "${path}" into itself` : pathConflict(deletePath(ws, path), to));
@@ -181,9 +206,7 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
     if (!problem) update((w) => renamePath(w, path, to));
   };
 
-  const remove = (path: string) => {
-    if (confirm(`Delete ${path}?`)) update((w) => deletePath(w, path));
-  };
+  const remove = (path: string) => update((w) => deletePath(w, path));
 
   const onEvent = (event: RunEvent) => {
     if (event.type === "compile") {
@@ -430,109 +453,192 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
   };
   stopRef.current = stop;
 
+  const filesOpen = ws.open.filter((path) => has(ws.files, path));
+  const editorKey = `${store.current}|${language}|${ws.active}`;
+  const stepping = isRiscv(language) || !!session;
+  const statusBadge = status === "ready" ? "success" : status === "error" ? "danger" : "warning";
+
   return (
-    <div className="ide" style={{ gridTemplateColumns: `240px minmax(0, 1fr)${session ? ` 6px ${paneWidth}px` : ""}` }}>
-      <header>
-        <strong>Sierrendipity</strong>
-        <select aria-label="Project" value={store.current} onChange={(e) => setStore({ ...store, current: e.target.value })}>
+    <div className="flex h-full flex-col">
+      <header className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b bg-chrome px-4 py-2 text-chrome-foreground">
+        <strong className="flex items-center gap-2 text-base font-semibold tracking-tight">
+          <Lightbulb aria-hidden className="size-5 text-link" /> Sierrendipity
+        </strong>
+        <Separator orientation="vertical" className="mx-1 h-5" />
+        <NativeSelect aria-label="Project" className="max-w-64 truncate" value={store.current} onChange={(e) => setStore({ ...store, current: e.target.value })}>
           {Object.keys(store.projects).map((name) => (
             <option key={name}>{name}</option>
           ))}
-        </select>
-        <button onClick={createProject}>New project</button>
-        <select aria-label="Language" value={language} onChange={(e) => switchLanguage(e.target.value as Language)}>
+        </NativeSelect>
+        <Button variant="outline" size="sm" onClick={() => setPrompt({ kind: "project" })}>
+          <Plus />New project
+        </Button>
+        <NativeSelect aria-label="Language" value={language} onChange={(e) => switchLanguage(e.target.value as Language)}>
           {LANGUAGES.map((l) => (
             <option key={l.id} value={l.id}>
               {l.label}
             </option>
           ))}
-        </select>
-        <button onClick={() => void run()} disabled={running || emuActive}>
-          Run
-        </button>
-        <button onClick={stop} disabled={!runId && !emuActive}>
-          Stop
-        </button>
+        </NativeSelect>
+        <span className="flex-1" />
+        <span className="flex items-center gap-2 text-[13px] text-muted-foreground">
+          <span className="hidden xl:inline">Backend</span>
+          <Badge variant={statusBadge}>
+            <span aria-hidden className="size-1.5 rounded-full bg-current" />
+            <span role="status" aria-label="Backend status">{status}</span>
+          </Badge>
+        </span>
+        {devBackend(config) ? (
+          <Badge>Dev backend</Badge>
+        ) : (
+          <span className="max-w-64 truncate text-[13px] text-muted-foreground">Signed in as {user}</span>
+        )}
+        {!devBackend(config) && (
+          <Button variant="ghost" size="sm" onClick={onSignOut}>
+            <LogOut />Sign out
+          </Button>
+        )}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" aria-label="Settings" onClick={() => setSettingsOpen(true)}>
+              <SettingsIcon />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Settings</TooltipContent>
+        </Tooltip>
+      </header>
+      <div role="group" aria-label="Run controls" className="flex flex-wrap items-center gap-2 border-b bg-background px-4 py-2">
+        <Button onClick={() => void run()} disabled={running || emuActive}>
+          <Play />Run
+        </Button>
+        <Button variant="outline" onClick={stop} disabled={!runId && !emuActive}>
+          <Square />Stop
+        </Button>
         {language === "c" && (
           <>
-            <select aria-label="Optimization" value={optLevel} onChange={(e) => setOptLevel(e.target.value as "O0" | "Og")}>
+            <Separator orientation="vertical" className="mx-1 h-5" />
+            <NativeSelect aria-label="Optimization" value={optLevel} onChange={(e) => setOptLevel(e.target.value as "O0" | "Og")}>
               <option value="O0">-O0 (as written)</option>
               <option value="Og">-Og (light optimization)</option>
-            </select>
-            <button onClick={() => void explore()} disabled={exploring || running}>
-              Explore
-            </button>
-            <button onClick={() => void runEmulator()} disabled={!session || emuActive}>
-              Run in emulator
-            </button>
+            </NativeSelect>
+            <Button variant="secondary" onClick={() => void explore()} disabled={exploring || running}>
+              {exploring ? <Loader2 className="animate-spin" /> : <Compass />}Explore
+            </Button>
+            <Button variant="secondary" onClick={() => void runEmulator()} disabled={!session || emuActive}>
+              <Cpu />Run in emulator
+            </Button>
           </>
         )}
-        {(isRiscv(language) || session) && (
-          <span className="debug" role="group" aria-label="Stepping">
-            <button onClick={debug((emu) => emu.step())} disabled={emuActive}>Step</button>
-            <button onClick={debug((emu) => emu.back())} disabled={emuActive}>Step Back</button>
-            <button onClick={debug((emu) => void emu.run())} disabled={emuActive}>Continue</button>
-            <button onClick={debug((emu) => (term.reset(), emu.reset()))}>Reset</button>
-          </span>
+        {stepping && (
+          <>
+            <Separator orientation="vertical" className="mx-1 h-5" />
+            <span className="flex items-center gap-1" role="group" aria-label="Stepping">
+              <Button variant="outline" onClick={debug((emu) => emu.step())} disabled={emuActive}>
+                <StepForward />Step
+              </Button>
+              <Button variant="outline" onClick={debug((emu) => emu.back())} disabled={emuActive}>
+                <StepBack />Step Back
+              </Button>
+              <Button variant="outline" onClick={debug((emu) => void emu.run())} disabled={emuActive}>
+                <FastForward />Continue
+              </Button>
+              <Button variant="ghost" onClick={debug((emu) => (term.reset(), emu.reset()))}>
+                <RotateCcw />Reset
+              </Button>
+            </span>
+          </>
         )}
-        <span className="spacer" />
-        <span>
-          Backend: <span role="status" aria-label="Backend status">{status}</span>
-        </span>
-        {devBackend(config) ? <span>Dev backend</span> : <span>Signed in as {user}</span>}
-        {!devBackend(config) && <button onClick={onSignOut}>Sign out</button>}
-      </header>
-      <div className="banners">
-      {status === "starting" && <div className="banner">Starting your workspace… this can take up to a minute.</div>}
-      {status === "error" && (
-        <div className="banner error" role="alert">
-          {statusMessage ?? "Your workspace could not start."}{" "}
-          <button onClick={() => void backend.warm().then(() => backend.stopStale(), () => {})}>Retry</button>
-        </div>
-      )}
-      {notice && (
-        <div className="banner error" role="alert">
-          {notice}
-        </div>
-      )}
-      {saveFailed && (
-        <div className="banner error" role="alert">
-          Your projects could not be saved in this browser; changes may be lost on reload.
-        </div>
-      )}
       </div>
-      <FileTree
-        workspace={ws}
-        onOpen={(path) => update((w) => ({ ...w, open: w.open.includes(path) ? w.open : [...w.open, path], active: path }))}
-        onNewFile={newFile}
-        onNewFolder={newFolder}
-        onRename={rename}
-        onDelete={remove}
-      />
-      <main style={{ gridColumn: 2 }}>
-        <div role="tablist" className="tabs">
-          {ws.open
-            .filter((path) => has(ws.files, path))
-            .map((path) => (
-              <span key={path} className={path === ws.active ? "tab active" : "tab"}>
-                <button role="tab" aria-selected={path === ws.active} onClick={() => update((w) => ({ ...w, active: path }))}>
-                  {path}
-                </button>
-                <button className="icon" aria-label={`Close ${path}`} onClick={() => update((w) => ({ ...w, open: w.open.filter((p) => p !== path), active: w.active === path ? (w.open.filter((p) => p !== path).at(-1) ?? null) : w.active }))}>
-                  ×
-                </button>
-              </span>
-            ))}
-        </div>
-        <div className="editor" data-ready={mountedKey === `${store.current}|${language}|${ws.active}`}>
-          {ws.active && has(ws.files, ws.active) ? (
-            <Editor
-              key={`${store.current}|${language}|${ws.active}`}
-              theme="vs-dark"
-              language={editorLanguage(ws.active, language)}
-              value={ws.files[ws.active]}
-              onChange={(value) => update((w) => ({ ...w, files: { ...w.files, [w.active!]: value ?? "" } }))}
-              options={{ minimap: { enabled: false }, automaticLayout: true, glyphMargin: true }}
+      <div className="empty:hidden">
+        {status === "starting" && (
+          <Alert variant="info">
+            <Loader2 aria-hidden className="size-4 animate-spin" /> Starting your workspace… this can take up to a minute.
+          </Alert>
+        )}
+        {status === "error" && (
+          <Alert variant="danger" role="alert">
+            <CircleAlert aria-hidden className="size-4 shrink-0" />
+            <span>{statusMessage ?? "Your workspace could not start."}</span>
+            <Button variant="outline" size="sm" className="ml-2" onClick={() => void backend.warm().then(() => backend.stopStale(), () => {})}>
+              Retry
+            </Button>
+          </Alert>
+        )}
+        {notice && (
+          <Alert variant="danger" role="alert">
+            <CircleAlert aria-hidden className="size-4 shrink-0" /> {notice}
+          </Alert>
+        )}
+        {saveFailed && (
+          <Alert variant="danger" role="alert">
+            <CircleAlert aria-hidden className="size-4 shrink-0" /> Your projects could not be saved in this browser; changes may be lost on reload.
+          </Alert>
+        )}
+      </div>
+      <div
+        className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)]"
+        style={{ gridTemplateColumns: `208px minmax(0, 1fr)${session ? ` 8px ${paneWidth}px` : ""}` }}
+      >
+        <FileTree
+          workspace={ws}
+          onOpen={(path) => update((w) => ({ ...w, open: w.open.includes(path) ? w.open : [...w.open, path], active: path }))}
+          onNewFile={() => setPrompt({ kind: "file" })}
+          onNewFolder={() => setPrompt({ kind: "folder" })}
+          onRename={(path) => setPrompt({ kind: "rename", path })}
+          onDelete={(path) => setPrompt({ kind: "delete", path })}
+        />
+        <main className="flex min-h-0 min-w-0 flex-col">
+          <div role="tablist" aria-label="Open files" className="flex min-h-10 shrink-0 items-end gap-1 overflow-x-auto border-b bg-muted px-2 pt-1">
+            {filesOpen.map((path) => {
+              const active = path === ws.active;
+              return (
+                <span
+                  key={path}
+                  className={cn(
+                    "-mb-px flex h-8 max-w-72 shrink-0 items-center rounded-t-md border border-b-0 pl-3 pr-1 text-sm transition-colors",
+                    active ? "border-border bg-editor text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <button
+                    role="tab"
+                    aria-selected={active}
+                    title={path}
+                    className="min-w-0 truncate whitespace-nowrap rounded-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                    onClick={() => update((w) => ({ ...w, active: path }))}
+                  >
+                    {path}
+                  </button>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    className="ml-1 size-6 text-muted-foreground hover:text-foreground"
+                    aria-label={`Close ${path}`}
+                    onClick={() => update((w) => ({ ...w, open: w.open.filter((p) => p !== path), active: w.active === path ? (w.open.filter((p) => p !== path).at(-1) ?? null) : w.active }))}
+                  >
+                    <X className="!size-3.5" />
+                  </Button>
+                </span>
+              );
+            })}
+          </div>
+          <div className="editor min-h-0 min-w-0 flex-1 overflow-hidden bg-editor" data-ready={mountedKey === editorKey}>
+            {ws.active && has(ws.files, ws.active) ? (
+              <Editor
+                key={editorKey}
+                theme={monacoThemeName(colorTheme, colorMode)}
+                language={editorLanguage(ws.active, language)}
+                value={ws.files[ws.active]}
+                onChange={(value) => update((w) => ({ ...w, files: { ...w.files, [w.active!]: value ?? "" } }))}
+                options={{
+                  minimap: { enabled: false },
+                  automaticLayout: true,
+                  glyphMargin: true,
+                  fontSize: 13,
+                  fontFamily: 'ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace',
+                  padding: { top: 8 },
+                  scrollBeyondLastLine: false,
+                  renderLineHighlight: "line",
+                }}
               onMount={(editor) => {
                 editorRef.current = editor;
                 decorations.current = null;
@@ -562,83 +668,89 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
                 setMountedKey(`${store.current}|${language}|${ws.active}`);
                 setEditorVersion((v) => v + 1);
               }}
-            />
-          ) : (
-            <p className="empty">Open a file from the tree.</p>
-          )}
-        </div>
-        <div className="statusbar">
-          {(isRiscv(language) || session) && (
-            <>
-            {session && (
-              <span role="status" aria-label="Machine status">
-                {session.emu.statusText}
-              </span>
+              />
+            ) : (
+              <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground">
+                <FileCode2 aria-hidden className="size-8" />
+                <p className="font-medium text-foreground">Open a file from the tree.</p>
+                <p className="text-[13px]">Or create one with New file.</p>
+              </div>
             )}
-            {sourceStale && (
-              <span className="stale" role="note">
-                The source changed since Explore, so the highlights are hidden.{" "}
-                <button onClick={() => void explore()} disabled={exploring || running}>
-                  Re-explore
-                </button>
-              </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 shrink-0 border-t bg-chrome px-4 py-1.5 text-[13px] empty:hidden">
+            {stepping && (
+              <>
+                {session && (
+                  <span role="status" aria-label="Machine status" className="font-medium">
+                    {session.emu.statusText}
+                  </span>
+                )}
+                {sourceStale && (
+                  <span className="flex items-center gap-2 rounded-md bg-warning-bg px-2 py-0.5 text-warning-fg" role="note">
+                    The source changed since Explore, so the highlights are hidden.{" "}
+                    <Button variant="outline" size="sm" className="h-6" onClick={() => void explore()} disabled={exploring || running}>
+                      Re-explore
+                    </Button>
+                  </span>
+                )}
+                {resetNote && <span className="text-muted-foreground">The program was reset because the source changed.</span>}
+                {problems.length > 0 && (
+                  <section role="region" aria-label="Problems" className="w-full rounded-md bg-danger-bg px-3 py-1.5 text-danger-fg">
+                    <ul>
+                      {problems.map((e, i) => (
+                        <li key={i}>
+                          Line {e.line}: {e.message}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+              </>
             )}
-            {resetNote && <span className="note">The program was reset because the source changed.</span>}
-            {problems.length > 0 && (
-              <section role="region" aria-label="Problems" className="problems">
-                <ul>
-                  {problems.map((e, i) => (
-                    <li key={i}>
-                      Line {e.line}: {e.message}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
-            </>
-          )}
-        </div>
-        <TerminalPane term={term} />
-      </main>
-      {session && (
-        <>
-          <div
-            role="separator"
-            aria-orientation="vertical"
-            aria-label="Resize the inspector"
-            aria-valuenow={paneWidth}
-            aria-valuemin={260}
-            aria-valuemax={900}
-            tabIndex={0}
-            className="splitter"
-            onPointerDown={(down) => {
-              const startX = down.clientX;
-              const startWidth = paneWidth;
-              const move = (e: PointerEvent) => setPaneWidth(Math.max(260, Math.min(900, startWidth + startX - e.clientX)));
-              const up = () => {
-                window.removeEventListener("pointermove", move);
-                window.removeEventListener("pointerup", up);
-              };
-              window.addEventListener("pointermove", move);
-              window.addEventListener("pointerup", up);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "ArrowLeft") setPaneWidth((w) => Math.min(900, w + 20));
-              if (e.key === "ArrowRight") setPaneWidth((w) => Math.max(260, w - 20));
-            }}
-          />
-          <aside className="inspector" role="complementary" aria-label="Inspector">
-            <TabGroup
-              label="Program views"
-              fill={topTab !== "bits"}
-              tabs={[
-                { id: "assembly", label: "Assembly" },
-                { id: "machine", label: "Machine" },
-                { id: "bits", label: "Bits" },
-              ]}
-              active={topTab}
-              onActive={setTopTab}
+          </div>
+          <TerminalPane term={term} />
+        </main>
+        {session && (
+          <>
+            <div
+              role="separator"
+              aria-orientation="vertical"
+              aria-label="Resize the inspector"
+              aria-valuenow={paneWidth}
+              aria-valuemin={260}
+              aria-valuemax={900}
+              tabIndex={0}
+              className="group flex cursor-col-resize justify-center focus-visible:bg-accent"
+              onPointerDown={(down) => {
+                const startX = down.clientX;
+                const startWidth = paneWidth;
+                const move = (e: PointerEvent) => setPaneWidth(Math.max(260, Math.min(900, startWidth + startX - e.clientX)));
+                const up = () => {
+                  window.removeEventListener("pointermove", move);
+                  window.removeEventListener("pointerup", up);
+                };
+                window.addEventListener("pointermove", move);
+                window.addEventListener("pointerup", up);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowLeft") setPaneWidth((w) => Math.min(900, w + 20));
+                if (e.key === "ArrowRight") setPaneWidth((w) => Math.max(260, w - 20));
+              }}
             >
+              <span className="h-full w-px bg-border transition-colors group-hover:w-0.5 group-hover:bg-ring group-focus-visible:w-0.5 group-focus-visible:bg-ring" />
+            </div>
+            <aside className="flex min-h-0 min-w-0 flex-col border-l bg-background" role="complementary" aria-label="Inspector">
+              <TabGroup
+                label="Program views"
+                fill={topTab !== "bits"}
+                tabs={[
+                  { id: "assembly", label: "Assembly" },
+                  { id: "machine", label: "Machine" },
+                  { id: "bits", label: "Bits" },
+                ]}
+                active={topTab}
+                onActive={setTopTab}
+              >
               {(() => {
                 const inspector: InspectorState = {
                   program: session.program,
@@ -656,27 +768,64 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
                   <>
                     {topTab === "machine" ? <MachineTab s={inspector} /> : <AssemblyTab s={inspector} />}
                     {selected && (
-                      <div className="dock">
+                      <div className="max-h-[45%] flex-none overflow-auto border-t pt-2">
                         <BitsCard row={selected} />
                       </div>
                     )}
                   </>
                 );
               })()}
-            </TabGroup>
-            <TabGroup
-              label="Machine state"
-              tabs={[
-                { id: "registers", label: "Registers" },
-                { id: "memory", label: "Memory" },
-              ]}
-              active={bottomTab}
-              onActive={setBottomTab}
-            >
-              {bottomTab === "memory" ? <MemoryTab emu={session.emu} view={memory} onView={setMemory} /> : <RegistersTab emu={session.emu} />}
-            </TabGroup>
-          </aside>
-        </>
+              </TabGroup>
+              <TabGroup
+                label="Machine state"
+                tabs={[
+                  { id: "registers", label: "Registers" },
+                  { id: "memory", label: "Memory" },
+                ]}
+                active={bottomTab}
+                onActive={setBottomTab}
+              >
+                {bottomTab === "memory" ? <MemoryTab emu={session.emu} view={memory} onView={setMemory} /> : <RegistersTab emu={session.emu} />}
+              </TabGroup>
+            </aside>
+          </>
+        )}
+      </div>
+      <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
+      {prompt?.kind === "project" && (
+        <PromptDialog title="New project" label="Project name" confirm="Create" onCancel={() => setPrompt(null)} onSubmit={(name) => (setPrompt(null), createProject(name))} />
+      )}
+      {prompt?.kind === "file" && (
+        <PromptDialog
+          title="New file"
+          description="Use / in the name to put the file in a folder."
+          label="File path"
+          confirm="Create"
+          onCancel={() => setPrompt(null)}
+          onSubmit={(path) => (setPrompt(null), newFile(path))}
+        />
+      )}
+      {prompt?.kind === "folder" && (
+        <PromptDialog title="New folder" label="Folder path" confirm="Create" onCancel={() => setPrompt(null)} onSubmit={(path) => (setPrompt(null), newFolder(path))} />
+      )}
+      {prompt?.kind === "rename" && (
+        <PromptDialog
+          title="Rename"
+          label="New path"
+          initial={prompt.path}
+          confirm="Rename"
+          onCancel={() => setPrompt(null)}
+          onSubmit={(to) => (setPrompt(null), rename(prompt.path, to))}
+        />
+      )}
+      {prompt?.kind === "delete" && (
+        <ConfirmDialog
+          title="Delete file"
+          description={`Delete ${prompt.path}?`}
+          confirm="Delete"
+          onCancel={() => setPrompt(null)}
+          onConfirm={() => (setPrompt(null), remove(prompt.path))}
+        />
       )}
     </div>
   );

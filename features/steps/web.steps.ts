@@ -9,12 +9,6 @@ const button = (w: WebWorld, name: string) => w.page.getByRole("button", { name,
 const treeItem = (w: WebWorld, file: string) => w.page.getByRole("treeitem", { name: file, exact: true });
 const languages = "RISC-V assembly|Machine code|Python|C\\+\\+|C";
 
-// Playwright's prompt()/confirm() dialogs: answer the next one, then click.
-async function answering(w: WebWorld, answer: string | null, click: () => Promise<unknown>) {
-  w.page.once("dialog", (dialog) => (answer === null ? dialog.accept() : dialog.accept(answer)));
-  await click();
-}
-
 // Backend and sign-in
 
 Given("a mock backend that needs {int} ms to start", async function (this: WebWorld, ms: number) {
@@ -109,11 +103,11 @@ When("I press the key {string} in the terminal", async function (this: WebWorld,
 });
 
 When("I try to create the file {string}", async function (this: WebWorld, file: string) {
-  await answering(this, file, () => button(this, "New file").click());
+  await this.answeringDialog(file, () => button(this, "New file").click());
 });
 
 When("I try to rename the file {string} to {string}", async function (this: WebWorld, from: string, to: string) {
-  await answering(this, to, () => button(this, `Rename ${from}`).click());
+  await this.answeringDialog(to, () => button(this, `Rename ${from}`).click());
 });
 
 Then("I see the sign-in screen", async function (this: WebWorld) {
@@ -179,21 +173,21 @@ Then("I see the message {string}", async function (this: WebWorld, text: string)
 // Projects and files
 
 When(new RegExp(`^I create a project "([^"]*)" in (${languages})$`), async function (this: WebWorld, name: string, language: string) {
-  await answering(this, name, () => button(this, "New project").click());
+  await this.answeringDialog(name, () => button(this, "New project").click());
   await this.page.getByLabel("Language").selectOption({ label: language });
 });
 
 When("I create the file {string}", async function (this: WebWorld, file: string) {
-  await answering(this, file, () => button(this, "New file").click());
+  await this.answeringDialog(file, () => button(this, "New file").click());
   await treeItem(this, file).waitFor();
 });
 
 When("I rename the file {string} to {string}", async function (this: WebWorld, from: string, to: string) {
-  await answering(this, to, () => button(this, `Rename ${from}`).click());
+  await this.answeringDialog(to, () => button(this, `Rename ${from}`).click());
 });
 
 When("I delete the file {string}", async function (this: WebWorld, file: string) {
-  await answering(this, null, () => button(this, `Delete ${file}`).click());
+  await this.answeringDialog(null, () => button(this, `Delete ${file}`).click());
 });
 
 When("I open the file {string}", async function (this: WebWorld, file: string) {
