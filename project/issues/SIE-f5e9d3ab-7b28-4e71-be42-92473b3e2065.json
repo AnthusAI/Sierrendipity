@@ -31,7 +31,7 @@
     "platform": "claude_code",
     "model": "claude-sonnet-5-5"
   },
-  "right_now_summary": "The tutor is deployed, but real sign-in, interactive runs, and cloud session cleanup still need testing.",
-  "right_now_updated_at": "2026-10-06T14:17:08.965423Z",
+  "right_now_summary": "The platform is deployed, but final end-to-end, sign-in, C++ runs, and cleanup tests still need verification.",
+  "right_now_updated_at": "2026-10-06T14:18:50.426990Z",
   "custom": {}
 }

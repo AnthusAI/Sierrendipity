@@ -56,7 +56,7 @@
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity planning"
   },
-  "right_now_summary": "Google sign-in is deployed, but real sign-in and session limit tests still await a maintainer test account.",
-  "right_now_updated_at": "2026-10-06T14:13:50.308138Z",
+  "right_now_summary": "Google sign-in and allowlist checks are deployed; tests for refusal, sign-out, and extra sessions remain.",
+  "right_now_updated_at": "2026-10-06T14:18:26.069945Z",
   "custom": {}
 }
