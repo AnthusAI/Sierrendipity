@@ -52,8 +52,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      # The GitHub Actions layer cache keeps the toolchain layers (apt, the pinned Rust stage) between runs.
       - name: Build the runner image (default target is test)
-        run: docker build -f runner/Dockerfile -t sierrendipity-runner-test .
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: runner/Dockerfile
+          load: true
+          tags: sierrendipity-runner-test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
       - name: Run the Linux-only specs inside the image
         run: docker run --rm sierrendipity-runner-test npm run test:linux
 

@@ -10,6 +10,26 @@ RUN apt-get update \
 COPY runner/launcher/sandbox-exec.c /src/sandbox-exec.c
 RUN gcc -O2 -Wall -Werror -o /sandbox-exec /src/sandbox-exec.c -lseccomp
 
+# The Rust toolchain for student practice (`rustc` only; cargo is deliberately removed so there are no
+# crates, build scripts or proc-macros). Its own stage keeps the layer cached until RUST_VERSION changes.
+# RUSTUP_HOME/CARGO_HOME live under /opt/rust: world-readable and executable by the unprivileged run
+# uids, never written to at run time. riscv32im-unknown-none-elf is for the explorer work.
+FROM node:22-bookworm-slim AS rust
+ARG RUST_VERSION=1.99.0
+ENV RUSTUP_HOME=/opt/rust/rustup CARGO_HOME=/opt/rust/cargo
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/*
+RUN curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs -o /tmp/rustup-init.sh \
+    && sh /tmp/rustup-init.sh -y --no-modify-path --profile minimal --default-toolchain "$RUST_VERSION" \
+    && rm /tmp/rustup-init.sh
+RUN /opt/rust/cargo/bin/rustup target add riscv32im-unknown-none-elf
+# Only rustc is needed: drop cargo, the rustup proxies, downloads and docs, then make it readable.
+RUN rm -rf /opt/rust/cargo /opt/rust/rustup/downloads /opt/rust/rustup/tmp /opt/rust/rustup/update-hashes \
+    /opt/rust/rustup/toolchains/*/share/doc /opt/rust/rustup/toolchains/*/share/man \
+    && ln -s "$(ls -d /opt/rust/rustup/toolchains/*)" /opt/rust/toolchain \
+    && chmod -R a+rX /opt/rust
+
 FROM node:22-bookworm-slim AS runtime
 # gcc/g++/python3 are the student toolchain; libseccomp2 and the launcher confine student programs.
 # The riscv64-unknown-elf packages are the bare-metal cross toolchain for POST /explain (rv32 libgcc
@@ -19,6 +39,8 @@ RUN apt-get update \
        gcc-riscv64-unknown-elf binutils-riscv64-unknown-elf \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=launcher /sandbox-exec /usr/local/bin/sandbox-exec
+COPY --from=rust /opt/rust /opt/rust
+# rustc is run as /opt/rust/toolchain/bin/rustc (an arch-independent link): no rustup proxy, no network.
 
 WORKDIR /app
 # Manifests first so the dependency layer is cached across source changes.

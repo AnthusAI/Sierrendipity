@@ -125,6 +125,12 @@ Then("the stream does not show {string}", async (text: string) => {
   assert.ok(!shownOutput().includes(text), `unexpected ${text}`);
 });
 
+Then("the stream has shown nothing for {int} ms", async (ms: number) => {
+  await waitFor("the program to start", () => events.some((e) => e.type === "compile"));
+  await new Promise((resolve) => setTimeout(resolve, ms));
+  assert.equal(shownOutput(), "");
+});
+
 Then("the stream shows a failed compile mentioning {string}", async (text: string) => {
   await waitFor("a compile event", () => events.some((e) => e.type === "compile"));
   const compile = events.find((e) => e.type === "compile")!;
@@ -147,6 +153,15 @@ When("{string} is sent to stdin", async (text: string) => {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ data: text.replace(/\\n/g, "\n") }),
+  });
+  assert.equal(res.status, 200);
+});
+
+When("the end of input is sent", async () => {
+  const res = await fetch(`${base()}/runs/${runId}/stdin`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ eof: true }),
   });
   assert.equal(res.status, 200);
 });

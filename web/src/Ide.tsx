@@ -840,5 +840,6 @@ function editorLanguage(path: string, fallback: Language): string {
   if (path.endsWith(".py")) return "python";
   if (path.endsWith(".c") || path.endsWith(".h")) return "c";
   if (/\.(cpp|cc|cxx|hpp)$/.test(path)) return "cpp";
+  if (path.endsWith(".rs")) return "rust";
   return path.includes(".") ? "plaintext" : LANGUAGES.find((l) => l.id === fallback)!.monaco;
 }
