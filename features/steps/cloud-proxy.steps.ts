@@ -5,6 +5,7 @@ import { signSession } from "../../api/src/token";
 
 const KEY = "proxy-spec-key";
 const NOW = 1_700_000_000_000;
+const SECRET = "per-task-secret";
 const HOP = ["connection", "keep-alive", "transfer-encoding", "upgrade", "te", "trailer"];
 
 type Seen = { url: string; method: string; headers: Record<string, string>; body?: string };
@@ -70,7 +71,7 @@ Given("a proxy signing key", () => {});
 Given("a runner task at {string} that answers on port 8080", (_ip: string) => {});
 
 Given("a valid session token for {string} and {string}", (user: string, ip: string) => {
-  token = signSession({ sub: `sub-${user}`, taskIp: ip, exp: NOW / 1000 + 600 }, KEY);
+  token = signSession({ sub: `sub-${user}`, taskIp: ip, secret: SECRET, exp: NOW / 1000 + 600 }, KEY);
 });
 
 Given("the runner task is down", () => {
@@ -86,7 +87,7 @@ Given("the runner will stream the events {string}, {string} and {string}", (a: s
 });
 
 When(/^a client calls GET \/healthz with (no|a garbage|an expired|a tampered|a wrongly signed) token$/, async (kind: string) => {
-  const good = { sub: "sub-user1", taskIp: "10.0.0.7", exp: NOW / 1000 + 600 };
+  const good = { sub: "sub-user1", taskIp: "10.0.0.7", secret: SECRET, exp: NOW / 1000 + 600 };
   const tamperedClaims = Buffer.from(JSON.stringify({ ...good, taskIp: "10.9.9.9" })).toString("base64url");
   token = {
     no: undefined,
@@ -120,6 +121,11 @@ Then(/^the runner received POST \/runs with body '(.*)'$/, (body: string) => {
   assert.equal(seen[0].url, "http://10.0.0.7:8080/runs");
   assert.equal(seen[0].method, "POST");
   assert.equal(seen[0].body, body);
+});
+
+Then("the runner received the task secret in x-runner-secret", () => {
+  assert.ok(seen.length > 0);
+  for (const s of seen) assert.equal(s.headers["x-runner-secret"], SECRET);
 });
 
 Then("the runner did not receive the session token", () => {

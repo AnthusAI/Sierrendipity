@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-export type SessionClaims = { sub: string; taskIp: string; exp: number };
+export type SessionClaims = { sub: string; taskIp: string; secret: string; exp: number };
 
 const b64 = (b: Buffer) => b.toString("base64url");
 const mac = (payload: string, key: string) => createHmac("sha256", key).update(payload).digest();
@@ -19,7 +19,7 @@ export function verifySession(token: string, key: string, nowS: number): Session
   if (given.length !== expected.length || !timingSafeEqual(given, expected)) return null;
   try {
     const c = JSON.parse(Buffer.from(payload, "base64url").toString());
-    if (typeof c.sub !== "string" || typeof c.taskIp !== "string" || typeof c.exp !== "number") return null;
+    if (typeof c.sub !== "string" || typeof c.taskIp !== "string" || typeof c.secret !== "string" || typeof c.exp !== "number") return null;
     return c.exp > nowS ? c : null;
   } catch {
     return null;

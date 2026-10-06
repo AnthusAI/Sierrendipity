@@ -26,6 +26,7 @@ Feature: Proxy to the runner task
     Then the proxy answers 202
     And the runner received POST /runs with body '{"language":"python"}'
     And the runner did not receive the session token
+    And the runner received the task secret in x-runner-secret
 
   Scenario: Server-sent events stream chunk by chunk
     Given a valid session token for "user1" and "10.0.0.7"
@@ -55,6 +56,9 @@ Feature: Proxy to the runner task
       | GET    | /runs/a/b/events    |
       | DELETE | /runs/abc123        |
       | POST   | /healthz            |
+      | POST   | /runs/../stop       |
+      | GET    | /runs/%2e%2e/events |
+      | GET    | /runs/a.b/events    |
 
   Scenario: An unreachable task yields a clear 502
     Given a valid session token for "user1" and "10.0.0.7"

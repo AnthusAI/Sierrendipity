@@ -60,12 +60,11 @@ export class SierrendipityStack extends Stack {
 
     // ---- Auth ----
     const allowlist = new NodejsFunction(this, "PreSignUp", lambdaProps(this, "PreSignUp", "pre-sign-up", { timeout: Duration.seconds(5) }));
-    allowlist.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: ["ssm:GetParameter"],
-        resources: [this.formatArn({ service: "ssm", resource: "parameter", resourceName: ALLOWLIST_PARAMETER.slice(1) })],
-      }),
-    );
+    const allowlistRead = new iam.PolicyStatement({
+      actions: ["ssm:GetParameter"],
+      resources: [this.formatArn({ service: "ssm", resource: "parameter", resourceName: ALLOWLIST_PARAMETER.slice(1) })],
+    });
+    allowlist.addToRolePolicy(allowlistRead);
 
     const userPool = new cognito.UserPool(this, "UserPool", {
       userPoolName: "sierrendipity",
@@ -110,7 +109,10 @@ export class SierrendipityStack extends Stack {
       description: "Proxy Lambda",
       allowAllOutbound: false,
     });
-    const taskSg = new ec2.SecurityGroup(this, "TaskSg", { vpc, description: "Runner task" });
+    // Egress is limited to 443 (image pull, logs). The seccomp filter in the runner, which denies network
+    // sockets to student code, is the primary egress control; this is defence in depth.
+    const taskSg = new ec2.SecurityGroup(this, "TaskSg", { vpc, description: "Runner task", allowAllOutbound: false });
+    taskSg.addEgressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443), "Image pull and logs");
     // Adds the only ingress rule on the task (8080 from the proxy) and the matching proxy egress rule.
     proxySg.connections.allowTo(taskSg, ec2.Port.tcp(RUNNER_PORT), "Proxy to runner");
 
@@ -192,8 +194,11 @@ export class SierrendipityStack extends Stack {
       new iam.PolicyStatement({
         actions: ["iam:PassRole"],
         resources: [taskDefinition.taskRole.roleArn, taskDefinition.obtainExecutionRole().roleArn],
+        conditions: { StringEquals: { "iam:PassedToService": "ecs-tasks.amazonaws.com" } },
       }),
     );
+    // The pre-sign-up trigger only sees new users, so the control Lambda re-checks the allowlist.
+    control.addToRolePolicy(allowlistRead);
     const controlUrl = control.addFunctionUrl({ authType: lambda.FunctionUrlAuthType.NONE, cors });
 
     const proxy = new NodejsFunction(
@@ -243,6 +248,7 @@ export class SierrendipityStack extends Stack {
         principals: [new iam.ServicePrincipal("budgets.amazonaws.com")],
         actions: ["sns:Publish"],
         resources: [alerts.topicArn],
+        conditions: { StringEquals: { "aws:SourceAccount": this.account } },
       }),
     );
     // Optional subscriber (an email address or similar) comes from `cdk deploy -c budgetAlertEmail=...`.

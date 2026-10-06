@@ -6,6 +6,7 @@ Feature: Control API session lifecycle
   Background:
     Given a control API with a task cap of 3
     And the signed-in users "user1", "user2", "user3" and "user4"
+    And the control allowlist admits "user1", "user2", "user3" and "user4"
 
   Scenario: Requests without a token are rejected
     When an anonymous client calls POST /session
@@ -28,7 +29,8 @@ Feature: Control API session lifecycle
     When the task for "user1" is running at "10.0.0.7"
     And "user1" calls GET /session
     Then the control API answers 200 with state "ready"
-    And the response carries a session token for "user1" and "10.0.0.7" valid for 30 minutes
+    And the response carries a session token for "user1" and "10.0.0.7" valid for 15 minutes
+    And the task was started with a RUNNER_SECRET equal to the one in the session token
 
   Scenario: A second concurrent session reuses the existing task
     Given "user1" has called POST /session
@@ -64,3 +66,55 @@ Feature: Control API session lifecycle
     When "user1" calls POST /session
     Then the control API answers 200 with state "starting"
     And the task for "user1" was started on on-demand capacity
+
+  Scenario: A task that is stopping is never reported ready
+    Given "user1" has called POST /session
+    And the task for "user1" is running at "10.0.0.7"
+    And the task for "user1" is stopping
+    When "user1" calls POST /session
+    Then the control API answers 200 with state "starting"
+    And exactly 2 tasks have been started
+
+  Scenario: A stopping task still counts toward the cap
+    Given "user1", "user2" and "user3" have called POST /session
+    And the task for "user1" is stopping
+    When "user4" calls POST /session
+    Then the control API answers 429
+
+  Scenario: A duplicate task from a concurrent request is stopped
+    Given another request already started an older task for "user1"
+    When "user1" calls POST /session
+    Then the control API answers 200 with state "starting"
+    And only the older task for "user1" is left running
+
+  Scenario: A user who is not on the allowlist is refused
+    When "outsider" calls POST /session
+    Then the control API answers 403
+    And no task has been started
+    When "outsider" calls GET /session
+    Then the control API answers 403
+
+  Scenario: A missing allowlist refuses everyone
+    Given the control allowlist is not configured
+    When "user1" calls POST /session
+    Then the control API answers 403
+    And no task has been started
+
+  Scenario: The allowlist is cached for at most a minute
+    Given "user1" calls GET /session
+    And the control allowlist no longer admits "user1"
+    When "user1" calls GET /session
+    Then the control API answers 200 with state "none"
+    When 61 seconds pass
+    And "user1" calls GET /session
+    Then the control API answers 403
+
+  Scenario: A RunTask failure is reported as a bad gateway
+    Given starting a task fails
+    When "user1" calls POST /session
+    Then the control API answers 502 with a JSON error
+
+  Scenario: ECS throttling is reported as service unavailable
+    Given ECS is throttling requests
+    When "user1" calls POST /session
+    Then the control API answers 503 with a JSON error

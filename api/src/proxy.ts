@@ -26,9 +26,9 @@ export type ProxyDeps = {
 const ALLOWED: [method: string, path: RegExp][] = [
   ["POST", /^\/run$/],
   ["POST", /^\/runs$/],
-  ["GET", /^\/runs\/[^/]+\/events$/],
-  ["POST", /^\/runs\/[^/]+\/stdin$/],
-  ["POST", /^\/runs\/[^/]+\/stop$/],
+  ["GET", /^\/runs\/[A-Za-z0-9_-]+\/events$/],
+  ["POST", /^\/runs\/[A-Za-z0-9_-]+\/stdin$/],
+  ["POST", /^\/runs\/[A-Za-z0-9_-]+\/stop$/],
   ["GET", /^\/healthz$/],
 ];
 
@@ -37,7 +37,7 @@ const HOP_BY_HOP = new Set([
   "te", "trailer", "transfer-encoding", "upgrade",
 ]);
 // Never forwarded to the runner: the session token, and headers fetch must derive itself.
-const NOT_FORWARDED = new Set([...HOP_BY_HOP, "authorization", "host", "content-length", "x-forwarded-for"]);
+const NOT_FORWARDED = new Set([...HOP_BY_HOP, "authorization", "host", "content-length", "x-forwarded-for", "x-runner-secret"]);
 
 const message = (statusCode: number, error: string): ProxyResult => ({
   statusCode,
@@ -66,7 +66,8 @@ export function createProxyHandler(deps: ProxyDeps) {
     try {
       const res = await deps.fetch(`http://${claims.taskIp}:${RUNNER_PORT}${event.rawPath}${query}`, {
         method,
-        headers: keep(Object.entries(event.headers) as [string, string][], NOT_FORWARDED),
+        // The per-task secret proves to the runner that the request came through the proxy.
+        headers: { ...keep(Object.entries(event.headers) as [string, string][], NOT_FORWARDED), "x-runner-secret": claims.secret },
         body: method === "GET" ? undefined : body,
         signal: abort.signal,
       });

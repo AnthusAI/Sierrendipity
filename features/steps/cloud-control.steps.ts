@@ -2,6 +2,7 @@ import { Before, Given, Then, When } from "@cucumber/cucumber";
 import assert from "node:assert/strict";
 import {
   CapacityError,
+  ThrottledError,
   createControlHandler,
   type Capacity,
   type HttpResult,
@@ -11,20 +12,28 @@ import {
 import { verifySession } from "../../api/src/token";
 
 const KEY = "control-spec-key";
-const NOW = 1_700_000_000_000;
+const T0 = 1_700_000_000_000;
+let clock = T0;
 
 class FakeTasks implements TaskPort {
   tasks: TaskInfo[] = [];
-  runs: { sub: string; capacity: Capacity }[] = [];
+  runs: { sub: string; capacity: Capacity; secret: string }[] = [];
   stopped: string[] = [];
   spotFull = false;
+  failure: Error | undefined;
+  raceFor: string | undefined;
   async list() {
     return this.tasks.filter((t) => !this.stopped.includes(t.taskArn));
   }
-  async run(sub: string, capacity: Capacity) {
+  async run(sub: string, capacity: Capacity, secret: string) {
+    if (this.failure) throw this.failure;
     if (capacity === "SPOT" && this.spotFull) throw new CapacityError("no spot capacity");
-    this.runs.push({ sub, capacity });
-    const task = { taskArn: `arn:task/${this.tasks.length + 1}`, sub, status: "PENDING" };
+    this.runs.push({ sub, capacity, secret });
+    if (this.raceFor === sub) {
+      // A concurrent request got there first with an older task.
+      this.tasks.push({ taskArn: "arn:task/older", sub, status: "PENDING", createdAt: clock - 1000, secret: "older-secret" });
+    }
+    const task = { taskArn: `arn:task/${this.tasks.length + 1}`, sub, status: "PENDING", createdAt: clock, secret };
     this.tasks.push(task);
     return task;
   }
@@ -37,8 +46,11 @@ class FakeTasks implements TaskPort {
 const verifyToken = async (token: string) => {
   const m = /^token-(.+)$/.exec(token);
   if (!m) throw new Error("invalid token");
-  return { sub: `sub-${m[1]}` };
+  return { sub: `sub-${m[1]}`, email: `${m[1]}@example.test` };
 };
+
+let allowlist: string | undefined;
+let secretCounter = 0;
 
 let fake: FakeTasks;
 let call: (method: string, token?: string) => Promise<HttpResult>;
@@ -46,10 +58,19 @@ let response: HttpResult;
 
 Before({ tags: "@cloud" }, () => {
   fake = new FakeTasks();
+  clock = T0;
+  allowlist = undefined;
 });
 
 Given("a control API with a task cap of 3", () => {
-  const handler = createControlHandler({ tasks: fake, verifyToken, signingKey: KEY, now: () => NOW });
+  const handler = createControlHandler({
+    tasks: fake,
+    verifyToken,
+    getAllowlist: async () => allowlist,
+    newSecret: () => `task-secret-${++secretCounter}-`.padEnd(40, "x"),
+    signingKey: KEY,
+    now: () => clock,
+  });
   call = (method, token) =>
     handler({
       rawPath: "/session",
@@ -86,6 +107,41 @@ Given(/^"([^"]+)", "([^"]+)" and "([^"]+)" have called POST \/session$/, async (
   for (const user of [a, b, c]) await call("POST", as(user));
 });
 
+Given(
+  "the control allowlist admits {string}, {string}, {string} and {string}",
+  (a: string, b: string, c: string, d: string) => {
+    allowlist = [a, b, c, d].map((u) => `${u}@example.test`).join(",");
+  },
+);
+
+Given("the control allowlist is not configured", () => {
+  allowlist = undefined;
+});
+
+Given("the control allowlist no longer admits {string}", (user: string) => {
+  allowlist = allowlist!.replace(`${user}@example.test`, "someone-else@example.test");
+});
+
+When("{int} seconds pass", (seconds: number) => {
+  clock += seconds * 1000;
+});
+
+Given("the task for {string} is stopping", (user: string) => {
+  taskOf(user).status = "STOPPING";
+});
+
+Given("another request already started an older task for {string}", (user: string) => {
+  fake.raceFor = `sub-${user}`;
+});
+
+Given("starting a task fails", () => {
+  fake.failure = new Error("AccessDenied: something internal");
+});
+
+Given("ECS is throttling requests", () => {
+  fake.failure = new ThrottledError("Rate exceeded");
+});
+
 Given("Fargate Spot has no capacity", () => {
   fake.spotFull = true;
 });
@@ -111,17 +167,35 @@ Then("the started task is tagged with the sub of {string} and not an email", (us
 });
 
 Then(
-  "the response carries a session token for {string} and {string} valid for 30 minutes",
+  "the response carries a session token for {string} and {string} valid for 15 minutes",
   (user: string, ip: string) => {
-    const claims = verifySession(body().sessionToken, KEY, NOW / 1000);
-    assert.deepEqual(claims, { sub: `sub-${user}`, taskIp: ip, exp: NOW / 1000 + 30 * 60 });
+    const claims = verifySession(body().sessionToken, KEY, clock / 1000);
+    assert.deepEqual(claims, { sub: `sub-${user}`, taskIp: ip, secret: claims?.secret, exp: clock / 1000 + 15 * 60 });
   },
 );
+
+Then("the task was started with a RUNNER_SECRET equal to the one in the session token", () => {
+  const claims = verifySession(body().sessionToken, KEY, clock / 1000)!;
+  assert.equal(fake.runs.length, 1);
+  assert.ok(fake.runs[0].secret.length >= 32);
+  assert.equal(claims.secret, fake.runs[0].secret);
+});
+
+Then("the control API answers {int} with a JSON error", (status: number) => {
+  assert.equal(response.statusCode, status);
+  assert.equal(typeof body().error, "string");
+  assert.ok(!/AccessDenied|internal/.test(body().error), "internal details are not leaked");
+});
+
+Then("only the older task for {string} is left running", (user: string) => {
+  const running = fake.tasks.filter((t) => t.sub === `sub-${user}` && !fake.stopped.includes(t.taskArn));
+  assert.deepEqual(running.map((t) => t.taskArn), ["arn:task/older"]);
+});
 
 Then("the task for {string} has been stopped", (user: string) => {
   assert.deepEqual(fake.stopped, [taskOf(user).taskArn]);
 });
 
 Then("the task for {string} was started on on-demand capacity", (user: string) => {
-  assert.deepEqual(fake.runs, [{ sub: `sub-${user}`, capacity: "ON_DEMAND" }]);
+  assert.deepEqual(fake.runs.map(({ sub, capacity }) => ({ sub, capacity })), [{ sub: `sub-${user}`, capacity: "ON_DEMAND" }]);
 });

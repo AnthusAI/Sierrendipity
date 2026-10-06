@@ -157,3 +157,27 @@ Then("the stack outputs the site, control and proxy URLs and the Cognito ids", (
     assert.ok(outputs.includes(name), name);
   }
 });
+
+Then("the task security group allows outbound traffic only to port 443", () => {
+  // The runner's seccomp filter is the primary egress control; this is defence in depth.
+  const egress = taskSg()[1].Properties.SecurityGroupEgress;
+  assert.equal(egress.length, 1);
+  assert.deepEqual({ ...egress[0], Description: undefined }, { CidrIp: "0.0.0.0/0", IpProtocol: "tcp", FromPort: 443, ToPort: 443, Description: undefined });
+});
+
+Then("the control role may read only the allowlist parameter and pass roles only to ECS tasks", () => {
+  const statements = resources("AWS::IAM::Policy").flatMap(([, r]) => r.Properties.PolicyDocument.Statement);
+  const withAction = (a: string) => statements.filter((s: any) => ([] as string[]).concat(s.Action).includes(a));
+  // Pre-sign-up and control, each scoped to the one parameter.
+  const ssm = withAction("ssm:GetParameter");
+  assert.equal(ssm.length, 2);
+  for (const s of ssm) assert.ok(JSON.stringify(s.Resource).includes("sierrendipity/allowed-emails"));
+  const pass = only(withAction("iam:PassRole"));
+  assert.deepEqual(pass.Condition, { StringEquals: { "iam:PassedToService": "ecs-tasks.amazonaws.com" } });
+});
+
+Then("the budget topic accepts publishes only from this account", () => {
+  const policy = only(resources("AWS::SNS::TopicPolicy"))[1].Properties.PolicyDocument.Statement;
+  const budget = policy.find((s: any) => s.Principal?.Service === "budgets.amazonaws.com");
+  assert.ok(budget.Condition.StringEquals["aws:SourceAccount"]);
+});

@@ -12,6 +12,13 @@ Feature: Cloud infrastructure
   Scenario: Only the proxy may reach the runner task
     Then the task security group admits only the proxy security group on port 8080
 
+  Scenario: The runner task may only reach out on 443
+    Then the task security group allows outbound traffic only to port 443
+
+  Scenario: IAM hardening
+    Then the control role may read only the allowlist parameter and pass roles only to ECS tasks
+    And the budget topic accepts publishes only from this account
+
   Scenario: The runner task holds no permissions
     Then the task role has no policies
 
