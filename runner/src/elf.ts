@@ -4,6 +4,8 @@
 // checked and a malformed file raises ElfError instead of looping or reading out of bounds.
 
 export class ElfError extends Error {}
+/** The input is valid but exceeds a cap (sequences, rows, time); not a malformed file. */
+export class ElfLimitError extends ElfError {}
 
 class Reader {
   pos: number;
@@ -80,6 +82,7 @@ export interface FuncSymbol {
   name: string;
   addr: number;
   size: number;
+  global: boolean;
 }
 export interface Elf {
   buf: Buffer;
@@ -87,6 +90,8 @@ export interface Elf {
   /** PT_LOAD segments that occupy file bytes. */
   segments: Segment[];
   functions: FuncSymbol[];
+  /** Address range of the .text section, where all code lives. */
+  text?: { addr: number; size: number };
   symbols: Map<string, number>;
   section(name: string): Buffer | undefined;
 }
@@ -126,17 +131,18 @@ export function parseElf(buf: Buffer): Elf {
     }
   }
 
-  type Section = { name: number; type: number; offset: number; size: number; link: number };
+  type Section = { name: number; type: number; addr: number; offset: number; size: number; link: number };
   const sections: Section[] = [];
   for (let i = 0; i < shnum; i++) {
     const r = new Reader(buf, shoff + i * shentsize);
     const name = r.u32();
     const type = r.u32();
-    r.skip(8); // flags, addr
+    r.skip(4); // flags
+    const addr = r.u32();
     const offset = r.u32();
     const size = r.u32();
     const link = r.u32();
-    sections.push({ name, type, offset, size, link });
+    sections.push({ name, type, addr, offset, size, link });
   }
   const bytesOf = (s: Section | undefined): Buffer | undefined => {
     if (!s || s.type === 8 /* NOBITS */) return undefined;
@@ -164,11 +170,13 @@ export function parseElf(buf: Buffer): Elf {
       const size = symbolBytes.readUInt32LE(off + 8);
       const type = symbolBytes[off + 12] & 0xf;
       if (name) symbols.set(name, addr);
-      if (type === STT_FUNC && size > 0 && name) functions.push({ name, addr, size });
+      if (type === STT_FUNC && size > 0 && name) functions.push({ name, addr, size, global: symbolBytes[off + 12] >> 4 !== 0 });
     }
   }
   functions.sort((a, b) => a.addr - b.addr);
-  return { buf, entry, segments, functions, symbols, section: (n) => bytesOf(byName.get(n)) };
+  const textSection = byName.get(".text");
+  const text = textSection && { addr: textSection.addr, size: textSection.size };
+  return { buf, entry, segments, functions, text, symbols, section: (n) => bytesOf(byName.get(n)) };
 }
 
 // ---- DWARF line table ----
@@ -188,11 +196,13 @@ export interface Sequence {
   end: number;
 }
 
-const MAX_ROWS = 1_000_000;
+// Caps on the line table, which student inline asm can fill with anything.
+export const MAX_ROWS = 500_000;
+export const MAX_SEQUENCES = 10_000;
 
-export function parseLineTable(lineSection: Buffer, lineStrSection: Buffer | undefined): Sequence[] {
+export function parseLineTable(lineSection: Buffer, lineStrSection: Buffer | undefined, deadline = Infinity): Sequence[] {
   const out: Sequence[] = [];
-  const total = { rows: 0 };
+  const total = { rows: 0, deadline };
   for (let pos = 0; pos < lineSection.length; ) {
     const r = new Reader(lineSection, pos);
     const length = r.u32();
@@ -257,7 +267,7 @@ function entryTable(r: Reader, lineStr: Buffer | undefined): { path: string; dir
   return entries;
 }
 
-function parseUnit(r: Reader, lineStr: Buffer | undefined, out: Sequence[], total: { rows: number }): void {
+function parseUnit(r: Reader, lineStr: Buffer | undefined, out: Sequence[], total: { rows: number; deadline: number }): void {
   const version = r.u16();
   if (version < 2 || version > 5) throw new ElfError(`unsupported line table version ${version}`);
   if (version >= 5) r.skip(2); // address size, segment selector size
@@ -311,11 +321,12 @@ function parseUnit(r: Reader, lineStr: Buffer | undefined, out: Sequence[], tota
     rows = [];
   };
   const emit = () => {
-    if (++total.rows > MAX_ROWS) throw new ElfError("line table too large");
+    if (++total.rows > MAX_ROWS) throw new ElfLimitError("line table has too many rows");
     rows.push({ addr, file: pathOf(file), line, column, isStmt });
   };
   reset();
-  while (r.pos < r.buf.length) {
+  for (let steps = 0; r.pos < r.buf.length; steps++) {
+    if ((steps & 0xfff) === 0 && Date.now() > total.deadline) throw new ElfLimitError("line table took too long");
     const op = r.u8();
     if (op >= opcodeBase) {
       const adjusted = op - opcodeBase;
@@ -328,7 +339,10 @@ function parseUnit(r: Reader, lineStr: Buffer | undefined, out: Sequence[], tota
       const next = r.pos + len;
       const sub = r.u8();
       if (sub === 1) {
-        if (rows.length > 0) out.push({ rows, end: addr });
+        if (rows.length > 0) {
+          if (out.length >= MAX_SEQUENCES) throw new ElfLimitError("line table has too many sequences");
+          out.push({ rows, end: addr });
+        }
         reset();
       } else if (sub === 2) {
         addr = len - 1 === 4 ? r.u32() : 0;
@@ -367,26 +381,36 @@ function parseUnit(r: Reader, lineStr: Buffer | undefined, out: Sequence[], tota
   }
 }
 
+/** Sequences ordered by start address, ready for rowAt. */
+export function indexSequences(sequences: Sequence[]): Sequence[] {
+  return [...sequences].sort((a, b) => a.rows[0].addr - b.rows[0].addr);
+}
+
 /**
  * The row covering `addr`: the last row at the greatest row address not above it, preferring a
- * statement row among rows at that same address. Undefined if no sequence covers the address.
+ * statement row among rows at that same address. `sequences` must come from indexSequences; both
+ * lookups are binary searches. Undefined if no sequence covers the address.
  */
 export function rowAt(sequences: Sequence[], addr: number): LineRow | undefined {
-  for (const seq of sequences) {
-    if (addr < seq.rows[0].addr || addr >= seq.end) continue;
-    let lo = 0;
-    let hi = seq.rows.length - 1;
-    while (lo < hi) {
-      const mid = (lo + hi + 1) >> 1;
-      if (seq.rows[mid].addr <= addr) lo = mid;
-      else hi = mid - 1;
-    }
-    const at = seq.rows[lo].addr;
-    const best = seq.rows[lo];
-    for (let i = lo; i >= 0 && seq.rows[i].addr === at; i--) {
-      if (seq.rows[i].isStmt) return seq.rows[i];
-    }
-    return best;
+  let lo = 0;
+  let hi = sequences.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1;
+    if (sequences[mid].rows[0].addr <= addr) lo = mid;
+    else hi = mid - 1;
   }
-  return undefined;
+  const seq = sequences[lo];
+  if (!seq || addr < seq.rows[0].addr || addr >= seq.end) return undefined;
+  let a = 0;
+  let b = seq.rows.length - 1;
+  while (a < b) {
+    const mid = (a + b + 1) >> 1;
+    if (seq.rows[mid].addr <= addr) a = mid;
+    else b = mid - 1;
+  }
+  const at = seq.rows[a].addr;
+  for (let i = a; i >= 0 && i > a - 64 && seq.rows[i].addr === at; i--) {
+    if (seq.rows[i].isStmt) return seq.rows[i];
+  }
+  return seq.rows[a];
 }

@@ -31,6 +31,12 @@ interface ExplainResponse {
   Compile and link share a 10 s budget (`time_limit_exceeded`). Compiler output beyond 1 MB, more than
   200 MB of files, or the compiler running out of memory (for example `#include "/dev/zero"`) is
   `output_limit_exceeded`.
+- Hardening of the ELF analysis (it runs on the server's thread, on student-controlled bytes): the
+  line table may have at most 10 000 sequences and 500 000 rows, and parsing plus mapping share a 3 s
+  wall-clock budget; exceeding any of them is `output_limit_exceeded` (the line map is not silently
+  dropped). Lookups are binary searches. A program that does not fit the 1 MiB RAM region (linker
+  "region overflowed" / "cannot move location counter backwards") or hits a file size limit is
+  `output_limit_exceeded`. File paths longer than 200 characters are a 400.
 
 ## Toolchain and flags
 
@@ -79,7 +85,7 @@ with a small bounds-checked parser in `runner/src/elf.ts` (no objdump or readelf
   starting at `loadAddress`, the lowest one); `e_entry` is `entry`; `__stack_top` and `__memory_size`
   come from the symbol table.
 - Instructions: every `STT_FUNC` symbol with a size contributes its 4-byte words, in address order;
-  alignment padding between functions is not listed. `function` is the symbol name. `origin` is `user`
+  alignment padding between functions is not listed. Symbols outside `.text` or at unaligned addresses are ignored; aliases share an address, so one symbol is kept per address (global first) and each function is clipped at the next one, making `addr` unique and ascending. `function` is the symbol name. `origin` is `user`
   when the address lies between `__user_text_start` and `__user_text_end` (the student's objects), else
   `runtime` (crt0, libruntime, libgcc). Unused runtime functions are removed by `--gc-sections`.
 - Source lines: the DWARF line table (`.debug_line`, versions 2-5, gcc 12 emits 5) is parsed directly,

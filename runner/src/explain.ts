@@ -1,7 +1,7 @@
 import { lstat, mkdir, mkdtemp, readFile, realpath } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { ElfError, parseElf, parseLineTable, rowAt, type Elf, type Sequence } from "./elf.ts";
+import { ElfError, ElfLimitError, indexSequences, parseElf, parseLineTable, rowAt, type Elf, type Sequence } from "./elf.ts";
 import { cleanUpRun, exec, RequestError, scrub, validate, writeFiles, type Exec } from "./run-project.ts";
 import { compilerCommand } from "./sandbox.ts";
 
@@ -36,6 +36,9 @@ const MAX_ELF_BYTES = 16 * 1024 * 1024;
 const MAX_IMAGE_BYTES = 1024 * 1024;
 const MAX_INSTRUCTIONS = 20_000;
 const MAX_RESPONSE_BYTES = 4_000_000;
+// Wall-clock budget for parsing and mapping the ELF, which runs on the server's own thread.
+const ANALYSIS_BUDGET_MS = 3000;
+const MAX_PATH_CHARS = 200;
 
 // crt0.o and libruntime.o are built from runner/riscv when the image is built (see the Dockerfile).
 const RUNTIME_SOURCES = path.join(__dirname, "..", "riscv");
@@ -49,6 +52,7 @@ export function validateExplain(request: ExplainRequest): { files: ExplainReques
   const optLevel = request.optLevel ?? "O0";
   if (optLevel !== "O0" && optLevel !== "Og") throw new RequestError("optLevel must be O0 or Og");
   for (const file of request.files) {
+    if (file.path.length > MAX_PATH_CHARS) throw new RequestError(`path too long: ${file.path.slice(0, 40)}...`);
     if (!file.path.endsWith(".c") && !file.path.endsWith(".h")) throw new RequestError(`only .c and .h files are accepted: ${file.path}`);
   }
   if (!request.files.some((f) => f.path.endsWith(".c"))) throw new RequestError("no .c files");
@@ -63,11 +67,13 @@ export interface BuildResult {
 }
 
 // The compiler ran out of memory or address space on something endless (an #include of /dev/zero ...).
-const RESOURCE_EXHAUSTED = /virtual memory exhausted|out of memory|Cannot allocate memory|memory exhausted/i;
+// Also a program that does not fit the 1 MiB RAM region (the linker's own wording), or a file too big.
+const RESOURCE_EXHAUSTED =
+  /virtual memory exhausted|out of memory|Cannot allocate memory|memory exhausted|cannot move location counter backwards|region `?\w+'? overflowed|program too large|File size limit exceeded/i;
 
 function failure(run: Exec, fallback: "compile_error" | "link_error"): BuildResult["status"] {
   if (run.timedOut) return "time_limit_exceeded";
-  if (run.outputTruncated || RESOURCE_EXHAUSTED.test(run.stderr + run.stdout)) return "output_limit_exceeded";
+  if (run.outputTruncated || run.signal === "SIGXFSZ" || RESOURCE_EXHAUSTED.test(run.stderr + run.stdout)) return "output_limit_exceeded";
   return fallback;
 }
 
@@ -160,6 +166,7 @@ const tooBig = (compileOutput: string): ExplainResponse => ({ status: "output_li
 
 /** Turn the linked ELF into the program image, the instruction list and the line map. */
 async function describe(elfPath: string, compileOutput: string, studentPaths: string[]): Promise<ExplainResponse> {
+  const deadline = Date.now() + ANALYSIS_BUDGET_MS;
   const info = await lstat(elfPath);
   if (!info.isFile() || info.size > MAX_ELF_BYTES) return tooBig(compileOutput);
   let elf: Elf;
@@ -186,10 +193,28 @@ async function describe(elfPath: string, compileOutput: string, studentPaths: st
     return { status: "internal_error", compileOutput };
   }
 
-  // Only code the function symbols cover is listed: alignment padding between functions is not an
-  // instruction anyone wrote.
+  // Only code that function symbols cover is listed: alignment padding between functions is not an
+  // instruction anyone wrote. Symbols outside .text (data) or at unaligned addresses are not code. Aliases
+  // share an address, so one symbol is kept per address (global first), and each function ends where the
+  // next begins: addresses are unique and ascending.
+  const text = elf.text;
+  if (!text) {
+    console.error("the linked program has no .text");
+    return { status: "internal_error", compileOutput };
+  }
+  const textEnd = text.addr + text.size;
+  const candidates = elf.functions
+    .filter((f) => f.addr % 4 === 0 && f.addr >= text.addr && f.addr < textEnd)
+    .sort((a, b) => a.addr - b.addr || Number(b.global) - Number(a.global));
+  const listed: { name: string; addr: number; end: number }[] = [];
+  for (const f of candidates) {
+    const previous = listed[listed.length - 1];
+    if (previous && previous.addr === f.addr) continue;
+    if (previous) previous.end = Math.min(previous.end, f.addr);
+    listed.push({ name: f.name, addr: f.addr, end: Math.min(f.addr + f.size, textEnd) });
+  }
   let total = 0;
-  for (const f of elf.functions) total += Math.floor(f.size / 4);
+  for (const f of listed) total += Math.floor((f.end - f.addr) / 4);
   if (total > MAX_INSTRUCTIONS) return tooBig(compileOutput);
 
   const submitted = new Map(studentPaths.map((p) => [normalizePath(p), p]));
@@ -197,8 +222,9 @@ async function describe(elfPath: string, compileOutput: string, studentPaths: st
   const lineSection = elf.section(".debug_line");
   if (lineSection) {
     try {
-      sequences = parseLineTable(lineSection, elf.section(".debug_line_str"));
+      sequences = indexSequences(parseLineTable(lineSection, elf.section(".debug_line_str"), deadline));
     } catch (error) {
+      if (error instanceof ElfLimitError) return tooBig(compileOutput);
       if (!(error instanceof ElfError)) throw error;
       console.error("unreadable line table:", error.message); // the program still runs; only the mapping is lost
     }
@@ -206,8 +232,9 @@ async function describe(elfPath: string, compileOutput: string, studentPaths: st
 
   const instructions: ExplainInstruction[] = [];
   const lineMap: Record<string, number[]> = {};
-  for (const f of elf.functions) {
-    for (let addr = f.addr; addr + 4 <= f.addr + f.size; addr += 4) {
+  for (const f of listed) {
+    if (Date.now() > deadline) return tooBig(compileOutput);
+    for (let addr = f.addr; addr + 4 <= f.end; addr += 4) {
       const offset = addr - loadAddress;
       if (offset < 0 || offset + 4 > image.length) break;
       const index = instructions.length;
