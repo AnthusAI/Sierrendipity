@@ -17,7 +17,17 @@ export interface RunResult {
 
 /** Run words from address 0 on a real Machine (it stops at the first `ebreak`). */
 export function runWords(words: number[], maxSteps = 5000): RunResult {
-  const machine = new Machine({ memorySize: 1 << 16 });
+  const memorySize = 1 << 16;
+  if (words.length * 4 > memorySize / 2) return { state: "too big", fault: null, regs: new Array<number>(32).fill(0), trace: [] };
+  try {
+    return execute(words, maxSteps, memorySize);
+  } catch (error) {
+    return { state: "error", fault: (error as Error).message, regs: new Array<number>(32).fill(0), trace: [] };
+  }
+}
+
+function execute(words: number[], maxSteps: number, memorySize: number): RunResult {
+  const machine = new Machine({ memorySize });
   const image = new Uint8Array(words.length * 4);
   const view = new DataView(image.buffer);
   words.forEach((word, i) => view.setUint32(i * 4, word >>> 0, true));

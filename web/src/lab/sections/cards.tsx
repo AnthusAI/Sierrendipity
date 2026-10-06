@@ -1,5 +1,5 @@
 import { assemble } from "@sierrendipity/explorer";
-import { useMemo, useState } from "react";
+import { Component, useMemo, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -49,10 +49,32 @@ const TRAY: TrayItem[] = [
   { kind: "subtract-boxes" },
   { kind: "multiply" },
   { kind: "jump-if-different" },
+  { kind: "save" },
+  { kind: "save-byte", params: { address: 1024 } },
   { kind: "stop" },
 ];
 
+/** The boxes the result panel shows (register numbers 10 to 13 and 1). */
 const BOXES = ["a0", "a1", "a2", "a3", "ra"];
+
+/** Keeps a failure in the demo from blanking the whole lab page. */
+class Boundary extends Component<{ children: ReactNode }, { error?: Error }> {
+  state: { error?: Error } = {};
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  render() {
+    if (!this.state.error) return this.props.children;
+    return (
+      <div role="alert" className="space-y-2 rounded-md border p-4">
+        <p>Something went wrong in the cards demo: {this.state.error.message}</p>
+        <Button size="sm" onClick={() => this.setState({ error: undefined })}>
+          Try again
+        </Button>
+      </div>
+    );
+  }
+}
 
 const gallery = GALLERY.map((source) => {
   const word = assemble(source).words[0]!;
@@ -67,6 +89,14 @@ const squareAndAddOne: CustomCard = {
 };
 
 export default function CardsSection() {
+  return (
+    <Boundary>
+      <CardsDemo />
+    </Boundary>
+  );
+}
+
+function CardsDemo() {
   const [cards, setCards] = useState<Card[]>([]);
   const [customCards, setCustomCards] = useState<CustomCard[]>([]);
   const [hideEnd, setHideEnd] = useState(true);
@@ -94,7 +124,7 @@ export default function CardsSection() {
           ))}
         </ul>
         <h4 className="text-sm font-medium">A custom card</h4>
-        <div className="max-w-sm">
+        <div data-testid="custom-gallery" className="max-w-sm">
           <CardFace card={makeCard("custom", { name: squareAndAddOne.name })} customCards={[squareAndAddOne]} />
         </div>
       </div>
@@ -133,7 +163,6 @@ export default function CardsSection() {
           onCustomCardsChange={setCustomCards}
           showAssembly={showAssembly}
           editableBoxes
-          boxes={BOXES}
         />
       </div>
 
@@ -141,7 +170,7 @@ export default function CardsSection() {
         <div className="space-y-2">
           <h3 className="font-medium">Program words</h3>
           {built.errors.length > 0 ? (
-            <p role="alert" className="text-sm text-danger-fg">
+            <p role="alert" data-testid="build-errors" className="text-sm text-danger-fg">
               {built.errors.join(" ")}
             </p>
           ) : null}
@@ -192,7 +221,7 @@ export default function CardsSection() {
             size="sm"
             onClick={() => {
               try {
-                const loaded = programFromJson(json);
+                const loaded = programFromJson(json, { maxCards });
                 setCards(loaded.cards);
                 setCustomCards(loaded.customCards);
                 setDraft(null);

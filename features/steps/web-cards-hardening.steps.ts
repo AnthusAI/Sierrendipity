@@ -126,7 +126,7 @@ Then("no accepted random program jumps out of range", function () {
 
 // Buttons, focus and shortcuts
 
-Then("the {string} button is disabled", async function (this: WebWorld, name: string) {
+Then("the builder {string} button is disabled", async function (this: WebWorld, name: string) {
   await eventually(async () => assert.equal(await button(this, name).isDisabled(), true));
 });
 

@@ -1,11 +1,15 @@
 export { CardContent, CardFace, PART_CLASS, type CardContentProps, type CardFaceProps } from "./CardFace";
 export { NumberSpinner } from "./NumberSpinner";
 export { DEFAULT_TRAY, ProgramBuilder, type ProgramBuilderProps, type TrayItem } from "./ProgramBuilder";
-export { buildProgram, type BuiltProgram } from "./build";
+export { buildProgram, jumpProblem, type BuiltProgram } from "./build";
 export { runWords, type RunResult, type TraceEntry } from "./run";
 export {
   CARD_KINDS,
-  CUSTOM_SLOT,
+  MAX_BODY,
+  MAX_CARDS,
+  bodyIo,
+  customSlot,
+  normalizeName,
   CardError,
   DEFAULT_BOXES,
   MAX_CUSTOM_CARDS,

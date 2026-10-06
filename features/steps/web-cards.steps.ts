@@ -111,7 +111,7 @@ Then(
   async function (this: WebWorld, name: string, slot: string) {
     const card = tray(this).getByRole("button", { name: `${name}, ${slot}`, exact: true });
     await card.waitFor();
-    assert.match(await card.innerText(), new RegExp(slot));
+    assert.ok((await card.innerText()).includes(slot));
   },
 );
 
@@ -140,7 +140,7 @@ When("I focus program card {int}", async function (this: WebWorld, n: number) {
 });
 
 Then("the focused element is named {string}", async function (this: WebWorld, name: string) {
-  assert.equal(await this.page.evaluate(`document.activeElement?.getAttribute("aria-label")`), name);
+  await eventually(async () => assert.equal(await this.page.evaluate(`document.activeElement?.getAttribute("aria-label")`), name));
 });
 
 Then("program card {int} shows no assembly", async function (this: WebWorld, n: number) {

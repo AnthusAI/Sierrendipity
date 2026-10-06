@@ -125,7 +125,7 @@ Feature: Cards and the builder hold up against hostile and careless input
   Scenario: Loading a program starts a fresh history
     When I add the tray card "Put 5 in box a0"
     And I load a saved program of 1 "put" cards
-    Then the "Undo" button is disabled
+    Then the builder "Undo" button is disabled
 
   Scenario: Saving a card can be undone and redone as a whole
     Given I build the program "put 7", "multiply a0 by a0" and "add 1"
@@ -142,10 +142,10 @@ Feature: Cards and the builder hold up against hostile and careless input
 
   Scenario: Only the last 100 changes can be undone
     When I add the tray card "Put 5 in box a0"
-    And I press the "Duplicate card 1" button 120 times
+    And I press ArrowUp in the number of program card 1 120 times
     And I press the "Undo" button 100 times
-    Then the builder program has 21 cards
-    And the "Undo" button is disabled
+    Then program card 1 reads "Put 25 in box a0"
+    And the builder "Undo" button is disabled
 
   # Focus and shortcuts
 
@@ -242,7 +242,7 @@ Feature: Cards and the builder hold up against hostile and careless input
 
   Scenario: Names in a saved program are tidied on load
     When I load a saved program whose custom card is named "  Sq​  "
-    Then the tray has a custom card "Sq" with the input slot "uses box a0, answer in box a0"
+    Then the tray has a custom card "Sq" with the input slot "uses no boxes, answer in box a0"
 
   Scenario: A jump of zero cards is refused when loading
     When I load a saved program with a jump of 0 cards

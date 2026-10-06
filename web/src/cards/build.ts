@@ -1,5 +1,13 @@
 import { assemble } from "@sierrendipity/explorer";
-import { cardAssembly, customBodyProblem, type Card, type CustomCard } from "./model";
+import { MAX_BODY, MAX_CARDS, TOO_BIG, cardAssembly, customBodyProblem, type Card, type CustomCard } from "./model";
+
+/** Why a jump card cannot go where it says, in plain language, or null. A jump may land on any card or on the end of the list. */
+export function jumpProblem(cards: Card[], index: number): string | null {
+  const card = cards[index];
+  if (!card || (card.kind !== "jump-if-different" && card.kind !== "jump-if-smaller")) return null;
+  const target = index + (card.params.offset ?? 0);
+  return target < 0 || target > cards.length ? "This card jumps to a card that is not in your list." : null;
+}
 
 export interface BuiltProgram {
   /** The real words: the main program, the hidden `ebreak` end marker, then the body of each used custom card. */
@@ -23,6 +31,9 @@ export interface BuiltProgram {
  */
 export function buildProgram(cards: Card[], customCards: CustomCard[] = []): BuiltProgram {
   const errors: string[] = [];
+  if (cards.length > MAX_CARDS || customCards.some((c) => c.cards.length > MAX_BODY)) {
+    return { words: [], source: "", map: [], endAddress: 0, bodies: [], errors: [TOO_BIG] };
+  }
   const lines: string[] = [];
   const used: CustomCard[] = [];
   const map: BuiltProgram["map"] = [];
@@ -36,6 +47,11 @@ export function buildProgram(cards: Card[], customCards: CustomCard[] = []): Bui
       }
       if (!used.includes(definition)) used.push(definition);
       lines.push(`jal ra, card_${used.indexOf(definition)}`);
+      return;
+    }
+    const lost = jumpProblem(cards, index);
+    if (lost) {
+      errors.push(`Card ${index + 1} jumps to a card that is not in your list.`);
       return;
     }
     try {

@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { NumberSpinner } from "./NumberSpinner";
 import {
-  CUSTOM_SLOT,
   DEFAULT_BOXES,
   boxKeys,
   cardText,
@@ -13,6 +12,7 @@ import {
   withParams,
   type Card,
   type CustomCard,
+  type Position,
 } from "./model";
 
 /** Theme tokens for the coloured parts of a card (the editor's syntax colours, so they pass the same contrast checks). */
@@ -40,25 +40,38 @@ export interface CardContentProps {
   boxes?: string[];
   onChange?: (card: Card) => void;
   pc?: number;
+  /** For a custom card: the definitions (its input slot is worked out from its cards). */
+  customCards?: CustomCard[];
+  /** Where the card sits in its list; a jump's spinner stays inside the list. */
+  position?: Position;
 }
 
 /** The coloured sentence of a card, without any frame or role (the tray and the face both use it). */
-export function CardContent({ card, editable = false, editableBoxes = false, boxes = DEFAULT_BOXES, onChange, pc }: CardContentProps) {
-  const { parts } = cardText(card, { pc });
+export function CardContent({
+  card,
+  editable = false,
+  editableBoxes = false,
+  boxes = DEFAULT_BOXES,
+  onChange,
+  pc,
+  customCards,
+  position,
+}: CardContentProps) {
+  const { parts } = cardText(card, { pc, customCards });
   if (card.kind === "custom") {
     return (
-      <span className="flex flex-col">
+      <span className="flex min-w-0 flex-col [overflow-wrap:anywhere]">
         <span data-part="verb" className={PART_CLASS.verb}>
           {card.params.name}
         </span>
-        <span data-testid="input-slot" data-part="text" className="text-xs text-muted-foreground">
-          {CUSTOM_SLOT}
+        <span data-testid="input-slot" data-part="text" className="text-xs text-editor-foreground">
+          {parts[2]?.text}
         </span>
       </span>
     );
   }
   const mapped = sentenceMatches(card);
-  const spec = editable && mapped ? numberSpec(card) : null;
+  const spec = editable && mapped ? numberSpec(card, position) : null;
   const keys = boxKeys(card.kind);
   let boxIndex = 0;
   return (
@@ -96,6 +109,7 @@ export function CardContent({ card, editable = false, editableBoxes = false, box
               value={spec.value}
               min={spec.min}
               max={spec.max}
+              step={spec.step}
               onChange={(shown) => onChange(spec.apply(shown))}
             />
           );
@@ -113,8 +127,6 @@ export function CardContent({ card, editable = false, editableBoxes = false, box
 export interface CardFaceProps extends CardContentProps {
   /** Show the faint assembly chip (hidden by default). */
   showAssembly?: boolean;
-  /** For a custom card: the definitions, so "Peek inside" can show the cards it is made from. */
-  customCards?: CustomCard[];
   className?: string;
 }
 
@@ -124,7 +136,7 @@ export interface CardFaceProps extends CardContentProps {
  * and a "Peek inside" control that lists its cards (read-only, same faces).
  */
 export function CardFace({ card, showAssembly = false, customCards, className, editable, ...content }: CardFaceProps) {
-  const { text } = cardText(card, { pc: content.pc });
+  const { text } = cardText(card, { pc: content.pc, customCards });
   const [open, setOpen] = useState(false);
   const peekId = useId();
   const definition = card.kind === "custom" ? customCards?.find((c) => c.name === card.params.name) : undefined;
@@ -137,11 +149,11 @@ export function CardFace({ card, showAssembly = false, customCards, className, e
       tabIndex={0}
       aria-label={text}
       className={cn(
-        "rounded-md border bg-editor px-3 py-2 text-sm text-editor-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+        "min-w-0 rounded-md border bg-editor px-3 py-2 text-sm text-editor-foreground [overflow-wrap:anywhere] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
         className,
       )}
     >
-      <CardContent card={card} editable={editable ?? Boolean(content.onChange)} {...content} />
+      <CardContent card={card} editable={editable ?? Boolean(content.onChange)} customCards={customCards} {...content} />
       {showAssembly && assembly ? (
         <code data-testid="assembly" className="mt-1 block font-mono text-xs text-muted-foreground">
           {assembly}
