@@ -18,6 +18,7 @@ module.exports = {
       "features/steps/runner.steps.ts",
       "features/steps/explain.steps.ts",
       "features/steps/explain-rust.steps.ts",
+      "features/steps/rust-demangle.steps.ts",
       "features/steps/interactive.steps.ts",
       "features/steps/sandbox-switch.steps.ts",
     ],
