@@ -17,9 +17,16 @@ module.exports = {
       "features/support/runner-server.ts",
       "features/steps/runner.steps.ts",
       "features/steps/explain.steps.ts",
+      "features/steps/explain-rust.steps.ts",
       "features/steps/interactive.steps.ts",
       "features/steps/sandbox-switch.steps.ts",
     ],
+  },
+  // Quick loop for the Rust explorer (compiler-free specs only): `npx cucumber-js --profile rust`.
+  rust: {
+    ...base,
+    paths: ["features/runner/rust-demangle.feature"],
+    require: ["features/steps/rust-demangle.steps.ts"],
   },
   // `npm run test:web`: only the browser specs (builds web/ and launches Chromium).
   web: { ...base, paths: ["features/web/**/*.feature"] },
