@@ -1,4 +1,4 @@
-import type { AsmError } from "./asm.ts";
+import type { AsmError } from "./asm";
 
 /**
  * Parse machine code typed by a learner: 32-bit words as hex (0x... or bare 8 digits) or binary

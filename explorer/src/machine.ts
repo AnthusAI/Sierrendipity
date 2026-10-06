@@ -1,4 +1,4 @@
-import { decode, type Decoded } from "./decode.ts";
+import { decode, type Decoded } from "./decode";
 
 export type MachineState = "ready" | "running" | "waiting-input" | "halted" | "faulted";
 
