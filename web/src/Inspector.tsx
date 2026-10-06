@@ -256,11 +256,11 @@ const InstrRow = memo(function InstrRow({ row, kind, pc, breakpoint, linked, sel
         onMouseEnter={() => actions.hover(row)}
         onMouseLeave={() => actions.hover(null)}
       >
-        <span className="text-muted-foreground">{hex32(row.addr)}</span>
-        {kind === "riscv" && <span className="text-muted-foreground">{hex32(row.word)}</span>}
+        <span className="shrink-0 text-muted-foreground">{hex32(row.addr)}</span>
+        {kind === "riscv" && <span className="shrink-0 text-muted-foreground">{hex32(row.word)}</span>}
         <span className="truncate">{row.text}</span>
-        {kind === "riscv" && row.line > 0 && <small className="text-muted-foreground">line {row.line}</small>}
-        {pc && <mark className="rounded bg-pc-mark px-1.5 font-sans text-xs font-semibold text-pc-mark-foreground">PC</mark>}
+        {kind === "riscv" && row.line > 0 && <small className="shrink-0 whitespace-nowrap text-muted-foreground">line {row.line}</small>}
+        {pc && <mark className="shrink-0 rounded bg-pc-mark px-1.5 font-sans text-xs font-semibold text-pc-mark-foreground">PC</mark>}
       </button>
       <button
         className={cn(

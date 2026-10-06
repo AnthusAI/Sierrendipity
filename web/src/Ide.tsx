@@ -471,7 +471,7 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
           ))}
         </NativeSelect>
         <Button variant="outline" size="sm" onClick={() => setPrompt({ kind: "project" })}>
-          <Plus /> New project
+          <Plus />New project
         </Button>
         <NativeSelect aria-label="Language" value={language} onChange={(e) => switchLanguage(e.target.value as Language)}>
           {LANGUAGES.map((l) => (
@@ -495,7 +495,7 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
         )}
         {!devBackend(config) && (
           <Button variant="ghost" size="sm" onClick={onSignOut}>
-            <LogOut /> Sign out
+            <LogOut />Sign out
           </Button>
         )}
         <Tooltip>
@@ -509,10 +509,10 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
       </header>
       <div role="group" aria-label="Run controls" className="flex flex-wrap items-center gap-2 border-b bg-background px-4 py-2">
         <Button onClick={() => void run()} disabled={running || emuActive}>
-          <Play /> Run
+          <Play />Run
         </Button>
         <Button variant="outline" onClick={stop} disabled={!runId && !emuActive}>
-          <Square /> Stop
+          <Square />Stop
         </Button>
         {language === "c" && (
           <>
@@ -522,10 +522,10 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
               <option value="Og">-Og (light optimization)</option>
             </NativeSelect>
             <Button variant="secondary" onClick={() => void explore()} disabled={exploring || running}>
-              {exploring ? <Loader2 className="animate-spin" /> : <Compass />} Explore
+              {exploring ? <Loader2 className="animate-spin" /> : <Compass />}Explore
             </Button>
             <Button variant="secondary" onClick={() => void runEmulator()} disabled={!session || emuActive}>
-              <Cpu /> Run in emulator
+              <Cpu />Run in emulator
             </Button>
           </>
         )}
@@ -534,16 +534,16 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
             <Separator orientation="vertical" className="mx-1 h-5" />
             <span className="flex items-center gap-1" role="group" aria-label="Stepping">
               <Button variant="outline" onClick={debug((emu) => emu.step())} disabled={emuActive}>
-                <StepForward /> Step
+                <StepForward />Step
               </Button>
               <Button variant="outline" onClick={debug((emu) => emu.back())} disabled={emuActive}>
-                <StepBack /> Step Back
+                <StepBack />Step Back
               </Button>
               <Button variant="outline" onClick={debug((emu) => void emu.run())} disabled={emuActive}>
-                <FastForward /> Continue
+                <FastForward />Continue
               </Button>
               <Button variant="ghost" onClick={debug((emu) => (term.reset(), emu.reset()))}>
-                <RotateCcw /> Reset
+                <RotateCcw />Reset
               </Button>
             </span>
           </>

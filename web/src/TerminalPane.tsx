@@ -36,7 +36,7 @@ export function TerminalPane({ term }: { term: Terminal }) {
         <SquareTerminal aria-hidden className="size-3.5" /> Terminal
       </div>
       <div className="relative min-h-0 flex-1 bg-terminal">
-        <div className="terminal h-full overflow-hidden bg-terminal px-2 py-1" role="region" aria-label="Terminal" ref={container} />
+        <div className="terminal h-full overflow-hidden bg-terminal px-4 py-1" role="region" aria-label="Terminal" ref={container} />
         {untouched && (
           <p className="pointer-events-none absolute left-4 top-1 font-mono text-[13px] text-muted-foreground">
             Press Run to see your program's output here.

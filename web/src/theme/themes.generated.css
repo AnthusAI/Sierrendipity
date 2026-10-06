@@ -39,7 +39,7 @@
   --pc-mark-foreground: #000000; /* black */
   --bp: #e5484d; /* red-9 */
   --bp-text: #ce2c31; /* red-11 */
-  --linked: #0044ff1e; /* indigo-a4 */
+  --linked: #009eff2a; /* blue-a4 */
   --changed: #ffd40063; /* amber-a4 */
   --changed-fg: #4f3422; /* amber-12 */
   --success-bg: #e6f6eb; /* green-3 */
@@ -110,7 +110,7 @@
   --pc-mark-foreground: #000000; /* black */
   --bp: #e5484d; /* red-9 */
   --bp-text: #ff9592; /* red-11 */
-  --linked: #3566ff57; /* indigo-a4 */
+  --linked: #0075ff57; /* blue-a4 */
   --changed: #fc820032; /* amber-a4 */
   --changed-fg: #ffe7b3; /* amber-12 */
   --success-bg: #132d21; /* green-3 */
@@ -183,7 +183,7 @@
   --pc-mark-foreground: #000000; /* black */
   --bp: #e5484d; /* red-9 */
   --bp-text: #ce2c31; /* red-11 */
-  --linked: #ff91014a; /* orange-a4 */
+  --linked: #009eff2a; /* blue-a4 */
   --changed: #ffd40063; /* amber-a4 */
   --changed-fg: #4f3422; /* amber-12 */
   --success-bg: #e6f6eb; /* green-3 */
@@ -254,7 +254,7 @@
   --pc-mark-foreground: #000000; /* black */
   --bp: #e5484d; /* red-9 */
   --bp-text: #ff9592; /* red-11 */
-  --linked: #ff590039; /* orange-a4 */
+  --linked: #0075ff57; /* blue-a4 */
   --changed: #fc820032; /* amber-a4 */
   --changed-fg: #ffe7b3; /* amber-12 */
   --success-bg: #132d21; /* green-3 */
@@ -327,7 +327,7 @@
   --pc-mark-foreground: #000000; /* black */
   --bp: #e5484d; /* red-9 */
   --bp-text: #ce2c31; /* red-11 */
-  --linked: #00000017; /* gray-a4 */
+  --linked: #009eff2a; /* blue-a4 */
   --changed: #ffd40063; /* amber-a4 */
   --changed-fg: #4f3422; /* amber-12 */
   --success-bg: #e6f6eb; /* green-3 */
@@ -398,7 +398,7 @@
   --pc-mark-foreground: #000000; /* black */
   --bp: #e5484d; /* red-9 */
   --bp-text: #ff9592; /* red-11 */
-  --linked: #ffffff1b; /* gray-a4 */
+  --linked: #0075ff57; /* blue-a4 */
   --changed: #fc820032; /* amber-a4 */
   --changed-fg: #ffe7b3; /* amber-12 */
   --success-bg: #132d21; /* green-3 */

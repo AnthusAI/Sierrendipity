@@ -4,7 +4,7 @@
 // WCAG contrast specs are all derived from it.
 import {
   amber, amberA, amberDark, amberDarkA,
-  blue, blueDark,
+  blue, blueA, blueDark, blueDarkA,
   cyan, cyanDark,
   gray, grayA, grayDark, grayDarkA,
   green, greenDark,
@@ -36,7 +36,7 @@ const SCALES: Record<string, ScaleSet> = {
   amber: { light: amber, dark: amberDark, lightA: amberA, darkA: amberDarkA },
   red: { light: red, dark: redDark, lightA: redA, darkA: redDarkA },
   green: { light: green, dark: greenDark },
-  blue: { light: blue, dark: blueDark },
+  blue: { light: blue, dark: blueDark, lightA: blueA, darkA: blueDarkA },
   cyan: { light: cyan, dark: cyanDark },
   purple: { light: purple, dark: purpleDark },
   violet: { light: violet, dark: violetDark },
@@ -135,7 +135,7 @@ function refsFor(config: ThemeConfig, mode: Mode) {
     "pc-mark-foreground": "black",
     bp: "red.9",
     "bp-text": "red.11",
-    linked: "a.a4",
+    linked: "blue.a4",
     changed: "amber.a4",
     "changed-fg": "amber.12",
     // status and banners
@@ -231,6 +231,10 @@ export const CONTRAST_PAIRS: ContrastPair[] = [
   text("editor-fg", "editor-selection", "selected editor text", "editor-bg"),
   text("terminal-fg", "terminal-bg", "terminal text"),
   text("foreground", "linked", "linked instructions"),
+  text("muted-foreground", "linked", "addresses of linked instructions"),
+  text("muted-foreground", "pc-highlight", "addresses of the current instruction"),
+  text("link", "linked", "selected machine rows"),
+  text("muted-foreground", "changed", "register names in changed rows"),
   text("foreground", "pc-highlight", "the current instruction"),
   text("changed-fg", "changed", "changed registers"),
   text("pc-mark-foreground", "pc-mark", "the PC marker"),

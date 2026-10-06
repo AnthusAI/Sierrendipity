@@ -37,10 +37,10 @@ export function FileTree({ workspace, onOpen, onNewFile, onNewFolder, onRename, 
     <nav className="flex min-h-0 flex-col border-r bg-card text-card-foreground">
       <div className="flex items-center gap-1 border-b px-2 py-2">
         <Button variant="ghost" size="sm" onClick={onNewFile}>
-          <FilePlus2 /> New file
+          <FilePlus2 />New file
         </Button>
         <Button variant="ghost" size="sm" onClick={onNewFolder}>
-          <FolderPlus /> New folder
+          <FolderPlus />New folder
         </Button>
       </div>
       <ScrollArea className="min-h-0 flex-1">
