@@ -73,6 +73,7 @@ async function tokenRequest(config: Config, params: Record<string, string>): Pro
   });
   if (!response.ok) throw new Error(`token endpoint: HTTP ${response.status}`);
   const body = await response.json();
+  if (typeof body.id_token !== "string") throw new Error("token endpoint returned no id_token");
   return {
     idToken: body.id_token,
     refreshToken: body.refresh_token ?? tokens?.refreshToken,
@@ -81,22 +82,34 @@ async function tokenRequest(config: Config, params: Record<string, string>): Pro
 }
 
 /** If this page load is the OAuth redirect, exchange the code for tokens. */
-export async function handleCallback(config: Config) {
+export async function handleCallback(config: Config): Promise<string | undefined> {
   const url = new URL(location.href);
+  if (!config.redirectUri || url.pathname !== new URL(config.redirectUri).pathname) return;
   const code = url.searchParams.get("code");
-  if (!config.redirectUri || url.pathname !== new URL(config.redirectUri).pathname || !code) return;
-  const saved = JSON.parse(sessionStorage.getItem(PKCE_KEY) ?? "null");
+  const refused = url.searchParams.get("error");
+  if (!code && !refused) return;
+  let saved: { verifier: string; state: string } | null = null;
+  try {
+    saved = JSON.parse(sessionStorage.getItem(PKCE_KEY) ?? "null");
+  } catch {
+    /* treated as missing */
+  }
   sessionStorage.removeItem(PKCE_KEY);
   history.replaceState(null, "", "/");
-  if (!saved || saved.state !== url.searchParams.get("state")) return;
-  setTokens(
-    await tokenRequest(config, {
-      grant_type: "authorization_code",
-      code,
-      redirect_uri: config.redirectUri,
-      code_verifier: saved.verifier,
-    }),
-  );
+  if (refused) return url.searchParams.get("error_description") ?? refused;
+  if (!saved || saved.state !== url.searchParams.get("state")) return "Sign-in could not be verified. Please try again.";
+  try {
+    setTokens(
+      await tokenRequest(config, {
+        grant_type: "authorization_code",
+        code: code!,
+        redirect_uri: config.redirectUri,
+        code_verifier: saved.verifier,
+      }),
+    );
+  } catch (error) {
+    return `Sign-in failed: ${(error as Error).message}`;
+  }
 }
 
 /** A valid ID token (refreshed when close to expiry), or null when the student must sign in again. */

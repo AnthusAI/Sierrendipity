@@ -44,15 +44,72 @@ Given("Cognito is the hosted UI at {string}", async function (this: WebWorld, do
   );
 });
 
-Given("the IDE is opened with sign-in required", async function (this: WebWorld) {
-  await this.open({
+function signInConfig(w: WebWorld): Record<string, unknown> {
+  return {
     region: "us-east-1",
-    cognitoDomain: this.cognitoDomain,
+    cognitoDomain: w.cognitoDomain,
     clientId: "client-1",
-    controlUrl: this.mock.url,
-    proxyUrl: this.mock.url,
-    redirectUri: `${this.appUrl}/callback`,
-  });
+    controlUrl: w.mock.url,
+    proxyUrl: w.mock.url,
+    redirectUri: `${w.appUrl}/callback`,
+  };
+}
+
+Given("the IDE is opened with sign-in required", async function (this: WebWorld) {
+  await this.open(signInConfig(this));
+});
+
+Given("the IDE is opened with sign-in required but without {string}", async function (this: WebWorld, key: string) {
+  const config = signInConfig(this);
+  delete config[key];
+  await this.open(config);
+});
+
+Given("a mock backend whose workspace fails to start", async function (this: WebWorld) {
+  this.mock = await startMockBackend();
+  this.mock.setSessionFailing(true);
+});
+
+When("the backend recovers", function (this: WebWorld) {
+  this.mock.setSessionFailing(false);
+});
+
+Given("saved projects that are damaged", async function (this: WebWorld) {
+  await this.context.addInitScript(
+    `localStorage.setItem("sierrendipity.projects", ${JSON.stringify(JSON.stringify({ current: "x", projects: { x: { language: "python" } } }))})`,
+  );
+});
+
+When(
+  "Google sends me back with the error {string} and {string}",
+  async function (this: WebWorld, error: string, description: string) {
+    const state = this.authorizeUrl!.searchParams.get("state");
+    const query = new URLSearchParams({ error, error_description: description, state: state! });
+    await this.page.goto(`${this.appUrl}/callback?${query}`);
+  },
+);
+
+Then("I see the error {string}", async function (this: WebWorld, text: string) {
+  await this.page.getByRole("alert").filter({ hasText: text }).first().waitFor();
+});
+
+Then("the selected project is {string}", async function (this: WebWorld, name: string) {
+  await this.page.waitForFunction(
+    `document.querySelector('select[aria-label="Project"]').value === ${JSON.stringify(name)}`,
+  );
+});
+
+When("I press the key {string} in the terminal", async function (this: WebWorld, key: string) {
+  await terminal(this).click();
+  await this.page.keyboard.press(key);
+});
+
+When("I try to create the file {string}", async function (this: WebWorld, file: string) {
+  await answering(this, file, () => button(this, "New file").click());
+});
+
+When("I try to rename the file {string} to {string}", async function (this: WebWorld, from: string, to: string) {
+  await answering(this, to, () => button(this, `Rename ${from}`).click());
 });
 
 Then("I see the sign-in screen", async function (this: WebWorld) {

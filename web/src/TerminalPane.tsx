@@ -29,18 +29,34 @@ export const crlf = (text: string) => text.replace(/\r?\n/g, "\r\n");
  * Terminal input design: the program's stdin is a pipe/pty on the server, so we treat the pane as a
  * line-buffered console. Typed characters are echoed locally (the server stream carries program
  * output only), Backspace edits the pending line, and Enter sends the whole line, newline included,
- * with POST /runs/{id}/stdin. If the runner ever echoes input itself, set LOCAL_ECHO to false.
+ * with POST /runs/{id}/stdin. Ctrl-D sends any pending text and then end-of-input
+ * (`{data: "", eof: true}`); Ctrl-C asks to stop the run. Input is ignored while no run is active.
+ * If the runner ever echoes input itself, set LOCAL_ECHO to false.
  */
 export const LOCAL_ECHO = true;
 
-export function lineInput(term: Terminal, send: (line: string) => void) {
+interface LineInput {
+  active: () => boolean;
+  send: (line: string, eof?: boolean) => void;
+  interrupt: () => void;
+}
+
+export function lineInput(term: Terminal, { active, send, interrupt }: LineInput) {
   let line = "";
-  return term.onData((data) => {
+  const subscription = term.onData((data) => {
+    if (!active()) return;
     if (data.startsWith("\x1b")) return; // arrows and other escape sequences
     for (const char of data) {
       if (char === "\r") {
         if (LOCAL_ECHO) term.write("\r\n");
         send(line + "\n");
+        line = "";
+      } else if (char === "\x03") {
+        line = "";
+        interrupt();
+      } else if (char === "\x04") {
+        if (LOCAL_ECHO && line) term.write("\r\n");
+        send(line, true);
         line = "";
       } else if (char === "\x7f") {
         if (line) {
@@ -53,4 +69,11 @@ export function lineInput(term: Terminal, send: (line: string) => void) {
       }
     }
   });
+  return {
+    /** Drop the pending line (a run started or ended). */
+    clear: () => {
+      line = "";
+    },
+    dispose: () => subscription.dispose(),
+  };
 }

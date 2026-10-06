@@ -27,6 +27,8 @@ export interface MockBackend {
   url: string;
   /** When set, /session requires `Bearer <token>` and runner calls require the session token. */
   requireControlToken(token: string): void;
+  /** While true, /session reports the unknown state "failed". */
+  setSessionFailing(failing: boolean): void;
   close(): Promise<void>;
 }
 
@@ -34,6 +36,7 @@ export async function startMockBackend(options: { startDelayMs?: number; port?: 
   const startDelayMs = options.startDelayMs ?? 0;
   let startedAt: number | undefined;
   let controlToken: string | undefined;
+  let sessionFailing = false;
   const runs = new Map<string, Run>();
   let nextRun = 1;
 
@@ -95,6 +98,7 @@ export async function startMockBackend(options: { startDelayMs?: number; port?: 
         startedAt = undefined;
         return json(response, 200, { state: "stopped" });
       }
+      if (sessionFailing) return json(response, 200, { state: "failed" });
       if (request.method === "POST") startedAt ??= Date.now();
       const ready = startedAt !== undefined && Date.now() - startedAt >= startDelayMs;
       return json(response, 200, ready ? { state: "ready", sessionToken: SESSION_TOKEN } : { state: "starting" });
@@ -127,8 +131,11 @@ export async function startMockBackend(options: { startDelayMs?: number; port?: 
       return response.on("close", () => run.subscribers.delete(response));
     }
     if (match[2] === "stdin") {
-      const { data } = await readJson(request);
-      run.onStdin?.(data);
+      const { data, eof } = await readJson(request);
+      if (eof && !run.done) {
+        emit(run, "output", { data: "end of input\n" });
+        emit(run, "exit", { status: "ok", exitCode: 0, signal: null, wallMs: 1 });
+      } else if (data) run.onStdin?.(data);
       return json(response, 200, { ok: true });
     }
     if (!run.done) emit(run, "exit", { status: "killed", exitCode: null, signal: "SIGKILL", wallMs: 1 });
@@ -146,6 +153,9 @@ export async function startMockBackend(options: { startDelayMs?: number; port?: 
     url: `http://127.0.0.1:${address.port}`,
     requireControlToken: (token) => {
       controlToken = token;
+    },
+    setSessionFailing: (failing) => {
+      sessionFailing = failing;
     },
     close: () =>
       new Promise((resolve) => {

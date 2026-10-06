@@ -50,17 +50,68 @@ export const workspaceOf = (project: Project): Workspace => project.workspaces[p
 
 const KEY = "sierrendipity.projects";
 
+/** Own-property check: project and file names such as "toString" must not hit Object.prototype. */
+export const has = (object: object, key: string) => Object.hasOwn(object, key);
+
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+function normalizeWorkspace(raw: unknown): Workspace | undefined {
+  if (!isObject(raw) || !isObject(raw.files)) return undefined;
+  const files = Object.fromEntries(Object.entries(raw.files).filter(([, v]) => typeof v === "string")) as Record<string, string>;
+  const strings = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : []);
+  const open = strings(raw.open).filter((path) => has(files, path));
+  const active = typeof raw.active === "string" && has(files, raw.active) ? raw.active : (open[0] ?? null);
+  return { files, folders: strings(raw.folders), open, active };
+}
+
+/** Rebuild a store from untrusted saved data; null when nothing usable is left. */
+export function normalizeStore(raw: unknown): Store | null {
+  if (!isObject(raw) || !isObject(raw.projects)) return null;
+  const projects: Record<string, Project> = {};
+  for (const [name, p] of Object.entries(raw.projects)) {
+    if (!isObject(p) || !LANGUAGES.some((l) => l.id === p.language)) continue;
+    const workspaces: Project["workspaces"] = {};
+    for (const { id } of LANGUAGES) {
+      const ws = isObject(p.workspaces) ? normalizeWorkspace(p.workspaces[id]) : undefined;
+      if (ws) workspaces[id] = ws;
+    }
+    projects[name] = { language: p.language as Language, workspaces };
+  }
+  const names = Object.keys(projects);
+  if (names.length === 0) return null;
+  const current = typeof raw.current === "string" && has(projects, raw.current) ? raw.current : names[0];
+  return { current, projects };
+}
+
 export function loadStore(): Store {
   try {
-    const saved = JSON.parse(localStorage.getItem(KEY) ?? "null") as Store | null;
-    if (saved && saved.projects[saved.current]) return saved;
+    const store = normalizeStore(JSON.parse(localStorage.getItem(KEY) ?? "null"));
+    if (store) return store;
   } catch {
     /* fall through to a fresh store */
   }
   return { current: "My project", projects: { "My project": newProject() } };
 }
 
+/** Throws when the browser refuses (quota, privacy mode); callers show a non-fatal warning. */
 export const saveStore = (store: Store) => localStorage.setItem(KEY, JSON.stringify(store));
+
+/** Why a new file/folder path is unacceptable, or null when it is fine. */
+export function pathProblem(path: string): string | null {
+  const bad = path === "" || path.startsWith("/") || path.endsWith("/") || path.includes("//") || path.includes("\\");
+  if (bad || path.split("/").some((part) => part === ".." || part === ".")) return `"${path}" is not a valid path`;
+  return null;
+}
+
+/** Why `path` collides with something in `ws`, or null. */
+export function pathConflict(ws: Workspace, path: string): string | null {
+  const parts = path.split("/");
+  const parents = parts.slice(0, -1).map((_, i) => parts.slice(0, i + 1).join("/"));
+  if (has(ws.files, path) || allFolders(ws).includes(path)) return `"${path}" already exists`;
+  const blocker = parents.find((p) => has(ws.files, p));
+  return blocker ? `"${blocker}" is a file, so it cannot contain "${path}"` : null;
+}
 
 // Workspace edits (pure).
 

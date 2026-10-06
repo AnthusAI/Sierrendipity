@@ -20,6 +20,17 @@ Feature: Sign in with Google
     And the token exchange used the PKCE verifier
     And the backend status is "ready"
 
+  Scenario: A refused sign-in shows why and offers another try
+    Given the IDE is opened with sign-in required
+    And I press "Sign in with Google"
+    When Google sends me back with the error "access_denied" and "User is not on the allowlist"
+    Then I see the sign-in screen
+    And I see the error "User is not on the allowlist"
+
+  Scenario: Incomplete configuration shows a clear error
+    Given the IDE is opened with sign-in required but without "clientId"
+    Then I see the message "clientId"
+
   Scenario: Sign out returns to the sign-in screen
     Given the IDE is opened with sign-in required
     And I press "Sign in with Google"
