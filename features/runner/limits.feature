@@ -27,9 +27,11 @@ Feature: Enforce time, memory, and output limits
     Given a C project
     And the file "main.c" containing:
       """
+      #include <stdio.h>
       #include <stdlib.h>
       int main() {
         volatile char *p = malloc(1024L * 1024 * 1024);
+        if (!p) { perror("malloc"); return 1; }
         for (long i = 0; i < 1024L * 1024 * 1024; i += 4096) p[i] = 1;
         return 0;
       }

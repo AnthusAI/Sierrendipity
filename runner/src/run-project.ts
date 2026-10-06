@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { mkdtemp, mkdir, realpath, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdtemp, mkdir, readdir, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -67,8 +67,43 @@ export async function runProject(request: RunRequest): Promise<RunResult> {
     console.error(error);
     return { status: "internal_error" };
   } finally {
-    await rm(dir, { recursive: true, force: true });
+    await cleanup(dir);
   }
+}
+
+// The program may have made directories it cannot read back; never let that fail the response.
+async function cleanup(dir: string): Promise<void> {
+  try {
+    await makeWritable(dir);
+    await rm(dir, { recursive: true, force: true });
+  } catch (error) {
+    console.error(`could not remove ${dir}`, error);
+  }
+}
+
+async function makeWritable(dir: string): Promise<void> {
+  await chmod(dir, 0o700);
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    if (entry.isDirectory()) await makeWritable(path.join(dir, entry.name)).catch(() => {});
+  }
+}
+
+const MAX_LIMITS = { timeLimitMs: 30_000, compileTimeLimitMs: 60_000, maxOutputBytes: 10_000_000, memoryLimitMb: 1024 };
+const DEFAULT_LIMITS = { timeLimitMs: 5000, compileTimeLimitMs: 15000, maxOutputBytes: 1_000_000, memoryLimitMb: 256 };
+
+function resolveLimits(given: unknown) {
+  if (given !== undefined && (typeof given !== "object" || given === null)) throw new RequestError("limits must be an object");
+  const input = (given ?? {}) as Record<string, unknown>;
+  const limits = { ...DEFAULT_LIMITS };
+  for (const key of Object.keys(limits) as (keyof typeof limits)[]) {
+    const value = input[key];
+    if (value === undefined) continue;
+    if (typeof value !== "number" || !Number.isInteger(value) || value <= 0) {
+      throw new RequestError(`${key} must be a positive integer`);
+    }
+    limits[key] = Math.min(value, MAX_LIMITS[key]);
+  }
+  return limits;
 }
 
 function validate(request: RunRequest): void {
@@ -78,7 +113,18 @@ function validate(request: RunRequest): void {
     if (typeof file?.path !== "string" || typeof file.content !== "string") throw new RequestError("invalid file");
     checkRelative(file.path);
   }
-  if (request.entry !== undefined) checkRelative(request.entry);
+  if (request.stdin !== undefined && typeof request.stdin !== "string") throw new RequestError("stdin must be a string");
+  const paths = request.files.map((f) => path.posix.normalize(f.path.replaceAll("\\", "/")));
+  for (const p of paths) {
+    // "a" and "a/b" cannot both be files.
+    if (paths.filter((q) => q === p).length > 1 || paths.some((q) => q.startsWith(p + "/"))) {
+      throw new RequestError(`conflicting path: ${p}`);
+    }
+  }
+  if (request.entry !== undefined && !request.files.some((f) => f.path === request.entry)) {
+    throw new RequestError("entry must be one of the submitted files");
+  }
+  resolveLimits(request.limits);
 }
 
 function checkRelative(p: string): void {
@@ -89,12 +135,7 @@ function checkRelative(p: string): void {
 }
 
 async function execute(request: RunRequest, dir: string): Promise<RunResult> {
-  const limits = {
-    timeLimitMs: request.limits?.timeLimitMs ?? 5000,
-    compileTimeLimitMs: request.limits?.compileTimeLimitMs ?? 15000,
-    maxOutputBytes: request.limits?.maxOutputBytes ?? 1_000_000,
-    memoryLimitMb: request.limits?.memoryLimitMb ?? 256,
-  };
+  const limits = resolveLimits(request.limits);
 
   for (const file of request.files) {
     const target = path.resolve(dir, file.path);
@@ -107,10 +148,10 @@ async function execute(request: RunRequest, dir: string): Promise<RunResult> {
   let command: string[];
 
   if (request.language === "python") {
-    command = ["python3", request.entry ?? "main.py"];
+    command = ["python3", "./" + path.normalize(request.entry ?? "main.py")];
   } else {
     const { cmd, ext, flags, libs } = compilers[request.language];
-    const sources = request.files.map((f) => path.normalize(f.path)).filter((p) => p.endsWith(ext));
+    const sources = request.files.map((f) => "./" + path.normalize(f.path)).filter((p) => p.endsWith(ext));
     if (sources.length === 0) throw new RequestError(`no ${ext} files`);
     const compiled = await exec([cmd, ...flags, "-o", "prog", ...sources, ...libs], dir, {
       timeoutMs: limits.compileTimeLimitMs,
@@ -144,9 +185,8 @@ async function execute(request: RunRequest, dir: string): Promise<RunResult> {
 function classify(run: Exec, memoryLimited: boolean): RunResult["status"] {
   if (run.timedOut) return "time_limit_exceeded";
   if (run.outputTruncated) return "output_limit_exceeded";
-  // A failed allocation under an address-space limit shows up as a crash or an allocator message.
-  const crashed = ["SIGSEGV", "SIGABRT", "SIGKILL"].includes(run.signal ?? "");
-  if (memoryLimited && (crashed || /bad_alloc|MemoryError|Cannot allocate memory/.test(run.stderr))) {
+  // Under an address-space limit a failed allocation is reported by the runtime, not by a signal.
+  if (memoryLimited && /bad_alloc|MemoryError|Cannot allocate memory/.test(run.stderr)) {
     return "memory_limit_exceeded";
   }
   return run.exitCode === 0 ? "ok" : "runtime_error";
@@ -168,7 +208,7 @@ function exec(
     const child = spawn(command[0], command.slice(1), {
       cwd,
       detached: true,
-      env: { PATH: process.env.PATH, HOME: cwd, LANG: "C.UTF-8" },
+      env: { PATH: process.env.PATH, HOME: cwd, LANG: "C.UTF-8", PYTHONUNBUFFERED: "1" },
       stdio: ["pipe", "pipe", "pipe"],
     });
     const out: Buffer[] = [];

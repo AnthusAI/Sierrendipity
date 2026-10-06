@@ -3,15 +3,19 @@ import { RequestError, runProject } from "./run-project.ts";
 
 const MAX_BODY_BYTES = 5_000_000;
 
+class TooLargeError extends Error {}
+
 function readBody(req: http.IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {
+    if (Number(req.headers["content-length"]) > MAX_BODY_BYTES) return reject(new TooLargeError());
     const chunks: Buffer[] = [];
     let size = 0;
     req.on("data", (chunk: Buffer) => {
       size += chunk.length;
       if (size > MAX_BODY_BYTES) {
-        reject(new RequestError("request too large"));
-        req.destroy();
+        // Stop buffering; the response below closes the connection.
+        req.removeAllListeners("data");
+        reject(new TooLargeError());
       } else chunks.push(chunk);
     });
     req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
@@ -33,17 +37,24 @@ export function startServer(port: number): Promise<http.Server> {
         try {
           request = JSON.parse(await readBody(req));
         } catch (error) {
-          if (error instanceof RequestError) throw error;
+          if (error instanceof TooLargeError) throw error;
           throw new RequestError("invalid JSON");
         }
         return send(res, 200, await runProject(request));
       }
       send(res, 404, { error: "not found" });
     } catch (error) {
+      if (error instanceof TooLargeError) {
+        res.setHeader("connection", "close");
+        return send(res, 413, { error: "request too large" });
+      }
       if (error instanceof RequestError) return send(res, 400, { error: error.message });
       console.error(error);
       send(res, 500, { status: "internal_error" });
     }
   });
-  return new Promise((resolve) => server.listen(port, () => resolve(server)));
+  return new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(port, () => resolve(server));
+  });
 }
