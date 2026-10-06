@@ -3,7 +3,7 @@
   "title": "Explain a C program: source lines to RISC-V instructions to bytes",
   "description": "As the student, I want to see which assembly instructions and machine-code bytes each line of my C produced.\n\nFeature: Compilation explorer\n  Scenario: Hovering a source line highlights its instructions\n    Given a C program with a for loop is compiled for RISC-V\n    When I hover the for line\n    Then its instruction groups are highlighted in the assembly pane\n  Scenario: Selecting an instruction shows its bit fields\n    Given a compiled program\n    When I select a store instruction\n    Then the 32 bits are shown split into labelled opcode, register and immediate fields",
   "type": "story",
-  "status": "open",
+  "status": "in_progress",
   "priority": 2,
   "assignee": null,
   "creator": null,
@@ -12,14 +12,14 @@
   "dependencies": [],
   "comments": [],
   "created_at": "2026-10-06T16:25:02.949270Z",
-  "updated_at": "2026-10-06T16:25:02.949296Z",
+  "updated_at": "2026-10-06T16:25:39.302276Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity-orchestrator"
   },
-  "right_now_summary": "The team is building a tool that maps C lines to RISC-V instructions and machine-code bytes.",
-  "right_now_updated_at": "2026-10-06T16:25:05.488420Z",
+  "right_now_summary": "The team is defining a RISC-V compilation explorer that links C lines to instructions and machine-code fields.",
+  "right_now_updated_at": "2026-10-06T16:25:40.777072Z",
   "custom": {}
 }

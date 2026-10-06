@@ -3,7 +3,7 @@
   "title": "Runner compiles C for RISC-V and returns image plus line map (/explain)",
   "description": "As the explorer, I need a server endpoint that compiles untrusted C for RV32IM bare metal and returns a program image and instruction-to-line mapping.\n\nFeature: Explain endpoint\n  Scenario: Hello world\n    Given a C hello world\n    When it is sent to /explain\n    Then a program image and instruction list are returned with every executable line mapped\n  Scenario: Hostile compile-time input\n    Given source that includes an infinite file\n    Then the request ends with a limit status and the runner stays healthy",
   "type": "story",
-  "status": "open",
+  "status": "in_progress",
   "priority": 2,
   "assignee": null,
   "creator": null,
@@ -12,14 +12,14 @@
   "dependencies": [],
   "comments": [],
   "created_at": "2026-10-06T16:25:25.699190Z",
-  "updated_at": "2026-10-06T16:25:25.699222Z",
+  "updated_at": "2026-10-06T16:25:55.529322Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity-orchestrator"
   },
-  "right_now_summary": "The team is building an endpoint that compiles C for RISC-V and returns the program image with line mappings.",
-  "right_now_updated_at": "2026-10-06T16:25:27.185439Z",
+  "right_now_summary": "The team is building an endpoint that compiles untrusted C and returns code with source-line mappings.",
+  "right_now_updated_at": "2026-10-06T16:25:57.600896Z",
   "custom": {}
 }
