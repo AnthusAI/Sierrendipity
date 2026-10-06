@@ -98,7 +98,9 @@ runs only those. Tagged `@docker` and run with `npm run test:docker` (builds
 
 - `differential.feature`: a generated corpus of every mnemonic is assembled with
   `riscv64-unknown-elf-as -march=rv32im -mabi=ilp32` and with `assemble`, and the words compared;
-  the same words are disassembled with `objdump -d -M no-aliases` and compared with `decode`.
+  the same words are disassembled with `objdump -D -b binary -m riscv:rv32 -M no-aliases` (as raw
+  binary; `.word` data in an object file is not disassembled) and compared with `decode`. objdump's
+  trailing `# 0x...` value comments are dropped and `fence iorw,iorw` is compared as `fence`.
   Normalisations: GNU takes `.+N` where we take the plain offset `N`; objdump prints branch and `jal`
   targets as absolute hex addresses (the words are placed at 0x200000 so they stay positive) and shift
   amounts in hex, ours are relative decimals; spaces after commas are ignored. `call` is not in the
