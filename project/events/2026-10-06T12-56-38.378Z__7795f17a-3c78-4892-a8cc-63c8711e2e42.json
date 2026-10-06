@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "event_id": "7795f17a-3c78-4892-a8cc-63c8711e2e42",
+  "issue_id": "SIE-547c341c-dbb2-43e4-b8af-fac154c9ae72",
+  "event_type": "comment_added",
+  "occurred_at": "2026-10-06T12:56:38.378Z",
+  "actor_id": "home",
+  "payload": {
+    "comment_id": "9ec951e9-a74e-47ff-bc85-c043a1897483",
+    "comment_author": "home",
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-orchestrator"
+    }
+  }
+}
