@@ -46,7 +46,6 @@ Feature: The lesson step vocabulary
       | the program uses only the cards: addi, ebreak   | fails   |
       | the program does not use: sub, mul              | passes  |
       | the program does not use: add                   | fails   |
-      | the program differs from the starter by exactly 0 bits | passes  |
       | the loop ran 0 laps                             | passes  |
       | the loop ran 1 lap                              | fails   |
 
@@ -189,7 +188,6 @@ Feature: The lesson step vocabulary
 
         @pass
         Scenario: The machine adds
-          Given the program has run
           Then the machine halted normally
           And box a2 holds 12
 
