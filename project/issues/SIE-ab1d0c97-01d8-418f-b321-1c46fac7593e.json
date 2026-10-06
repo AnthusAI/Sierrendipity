@@ -1,0 +1,25 @@
+{
+  "id": "SIE-ab1d0c97-01d8-418f-b321-1c46fac7593e",
+  "title": "Open a lesson with a starter project",
+  "description": "As the student, I want to open a lesson and get its starter code in the IDE.\n\nFeature: Lessons\n  Scenario: Open lesson 1\n    Given a lesson with a markdown description and a starter project\n    When the student opens the lesson\n    Then the description is shown beside the editor\n    And the starter files are loaded",
+  "type": "story",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-51d8744f-2bda-4f8e-9fc5-58225ad73f20",
+  "labels": [],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-06T11:37:27.095718Z",
+  "updated_at": "2026-10-06T11:37:27.095743Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity planning"
+  },
+  "right_now_summary": "The lesson shows its description and loads the starter files in the editor.",
+  "right_now_updated_at": "2026-10-06T11:37:28.544562Z",
+  "custom": {}
+}

@@ -1,0 +1,25 @@
+{
+  "id": "SIE-5ec45837-4223-4cb4-8480-66b4f15c470e",
+  "title": "Interact with a running program",
+  "description": "As the student, I want to answer a program's prompts while it runs.\n\nFeature: Interactive programs\n  Scenario: Prompt and response\n    Given a program that asks for a name and then greets it\n    When the session is started\n    Then the event stream shows the prompt\n    When the student posts the line Ada to stdin\n    Then the event stream shows the greeting Hello, Ada",
+  "type": "story",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-7a69ac73-1724-4d79-a8ab-d20d2cf2ce45",
+  "labels": [],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-06T11:36:56.598113Z",
+  "updated_at": "2026-10-06T11:36:56.598140Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity planning"
+  },
+  "right_now_summary": "The feature needs support for sending input to running programs and showing their responses.",
+  "right_now_updated_at": "2026-10-06T11:36:58.707328Z",
+  "custom": {}
+}

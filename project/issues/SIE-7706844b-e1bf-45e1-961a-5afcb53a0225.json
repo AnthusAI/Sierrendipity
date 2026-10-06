@@ -1,0 +1,25 @@
+{
+  "id": "SIE-7706844b-e1bf-45e1-961a-5afcb53a0225",
+  "title": "Type into the terminal pane",
+  "description": "As the student, I want to interact with my running program in the IDE.\n\nFeature: Terminal pane\n  Scenario: Answer a prompt\n    Given a running program that asks for a name\n    When the student types Ada and presses Enter in the terminal pane\n    Then the terminal pane shows Hello, Ada",
+  "type": "story",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-547c341c-dbb2-43e4-b8af-fac154c9ae72",
+  "labels": [],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-06T11:37:22.258184Z",
+  "updated_at": "2026-10-06T11:37:22.258209Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity planning"
+  },
+  "right_now_summary": "The terminal pane needs to accept input from students running programs.",
+  "right_now_updated_at": "2026-10-06T11:37:24.103587Z",
+  "custom": {}
+}

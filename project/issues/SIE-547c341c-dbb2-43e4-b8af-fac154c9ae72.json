@@ -1,0 +1,25 @@
+{
+  "id": "SIE-547c341c-dbb2-43e4-b8af-fac154c9ae72",
+  "title": "M6: Web IDE — editor, multi-file projects, terminal",
+  "description": "Intent: As the student, I want a browser IDE with a file tree, tabs, syntax highlighting, a Run button and a terminal pane, so that I can write and run small multi-file projects from anywhere. Includes: Vite/React/Monaco, create/rename/delete files, language selection (Python/C/C++), project persistence, session start on open to hide cold start, terminal pane wired to M3. Excludes: collaborative editing, debugger. DoD: browser-driven Gherkin specs create a two-file C++ project, run it, interact with it, and reload to find it saved.",
+  "type": "epic",
+  "status": "open",
+  "priority": 1,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "labels": [],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-06T11:35:57.796020Z",
+  "updated_at": "2026-10-06T11:35:57.796045Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity planning"
+  },
+  "right_now_summary": "The web IDE is being defined, and terminal input support is still needed.",
+  "right_now_updated_at": "2026-10-06T11:37:25.325144Z",
+  "custom": {}
+}

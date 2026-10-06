@@ -1,0 +1,25 @@
+{
+  "id": "SIE-6fa4d49f-b503-47d0-8add-206bce187d6c",
+  "title": "M5: Access and abuse protection",
+  "description": "Intent: As the maintainer, I want only the student (and tutor) to be able to start sessions, so that strangers cannot run code or run up the bill. Includes: authentication on the control and proxy endpoints, per-session token, limits on concurrent sessions and session length, AWS Budget alarm. Excludes: multi-tenant signup. DoD: unauthenticated requests are refused; a second concurrent session is refused; budget alarm exists.",
+  "type": "epic",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "labels": [],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-06T11:35:54.272082Z",
+  "updated_at": "2026-10-06T11:35:54.272110Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity planning"
+  },
+  "right_now_summary": "Student authentication and single-session limits protect access, while a budget alarm guards spending.",
+  "right_now_updated_at": "2026-10-06T11:37:16.301997Z",
+  "custom": {}
+}
