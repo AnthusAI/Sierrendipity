@@ -1,4 +1,4 @@
-@web
+@web @coach
 Feature: The coach helps without penalty
   Help is free and escalates: a hint ladder of three rungs, then Show me, where a ghost cursor does the
   step on a copy of the machine and hands control back. The coach notices when a student is stuck and

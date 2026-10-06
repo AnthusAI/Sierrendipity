@@ -34,14 +34,12 @@ async function openLesson(w: WebWorld, lesson: string, opts: { reduced?: boolean
   if (opts.size) await w.page.setViewportSize({ width: opts.size[0], height: opts.size[1] });
   if (opts.reduced) await w.page.emulateMedia({ reducedMotion: "reduce" });
   if (opts.failingStorage) {
-    await w.page.addInitScript(() => {
-      const fail = () => {
-        throw new DOMException("storage is broken", "QuotaExceededError");
-      };
+    await w.page.addInitScript(`(() => {
+      const fail = () => { throw new DOMException("storage is broken", "QuotaExceededError"); };
       Storage.prototype.getItem = fail;
       Storage.prototype.setItem = fail;
       Storage.prototype.removeItem = fail;
-    });
+    })()`);
   }
   if (opts.seed) {
     await w.page.addInitScript(
@@ -95,7 +93,8 @@ When("I press Step", async function (this: WebWorld) {
   await named(this, "Step").click();
 });
 When("I press Back", async function (this: WebWorld) {
-  await named(this, "Back").click();
+  // Back may be aria-disabled (nothing to undo); a student can still click it, so force past Playwright's check.
+  await named(this, "Back").click({ force: true });
 });
 When("I press Reset", async function (this: WebWorld) {
   await named(this, "Reset").click();
@@ -191,17 +190,16 @@ Then("the reply is not styled as an error", async function (this: WebWorld) {
       const s = getComputedStyle(el);
       return { color: s.color, background: s.backgroundColor, border: s.borderTopColor };
     }),
-    this.page.evaluate(() => {
-      const probe = (token: string) => {
+    this.page.evaluate(() =>
+      ["--danger-fg", "--danger-bg", "--destructive"].map((token) => {
         const el = document.createElement("span");
         el.style.color = `var(${token})`;
         document.body.append(el);
         const c = getComputedStyle(el).color;
         el.remove();
         return c;
-      };
-      return [probe("--danger-fg"), probe("--danger-bg"), probe("--destructive")];
-    }),
+      }),
+    ),
   ]);
   for (const value of [seen.color, seen.background, seen.border]) assert.ok(!danger.includes(value), `the reply uses an error color: ${value}`);
 });

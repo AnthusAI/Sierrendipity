@@ -1,4 +1,4 @@
-@web
+@web @coach
 Feature: The coach records progress and never blocks on storage
   Attempts, hints, Show me and predictions go to the progress store, which lives in localStorage per
   user. A pass is recorded only when the lesson's @pass check holds on the finished run.

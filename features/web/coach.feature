@@ -1,4 +1,4 @@
-@web
+@web @coach
 Feature: The coach plays the lessons
   The tool is the tutor. A coach panel says a little at a time, a spotlight points at the part being
   discussed, predictions are asked before the machine shows the answer, and the lesson ends on a
@@ -17,7 +17,7 @@ Feature: The coach plays the lessons
     When I press Continue
     And I press Continue
     Then the Now you can card lists "Make the machine follow a card."
-    And the Now you can card shows what I made, "Put 5 into box a0"
+    And the Now you can card shows what I made, "Put 5 in box a0"
     And the Now you can card offers "Next lesson, about 3 min" and "Stop here"
 
   Scenario: Lesson 01 is playable with the keyboard alone
