@@ -247,7 +247,7 @@ const InstrRow = memo(function InstrRow({ row, kind, pc, breakpoint, linked, sel
   return (
     <div className="item flex h-6 items-center gap-1">
       <button
-        className="instr flex h-6 min-w-0 flex-1 items-center gap-3 rounded-md border border-transparent px-2 text-left font-mono text-[13px] outline-none transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring data-[linked=true]:bg-linked aria-[current=step]:bg-pc aria-pressed:border-ring"
+        className="instr flex h-6 min-w-0 flex-1 items-center gap-3 rounded-md border border-transparent px-2 text-left font-mono text-[13px] transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring data-[linked=true]:bg-linked aria-[current=step]:bg-pc aria-pressed:border-ring"
         data-linked={linked}
         data-line={row.line || undefined}
         aria-pressed={selected}
@@ -264,7 +264,7 @@ const InstrRow = memo(function InstrRow({ row, kind, pc, breakpoint, linked, sel
       </button>
       <button
         className={cn(
-          "bp h-6 shrink-0 rounded-md px-1.5 text-xs outline-none transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
+          "bp h-6 shrink-0 rounded-md px-1.5 text-xs transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
           breakpoint ? "font-medium text-bp-text" : "text-muted-foreground",
         )}
         aria-label={`Toggle breakpoint at ${hex32(row.addr)}`}
@@ -328,7 +328,7 @@ export function AssemblyTab({ s }: { s: InspectorState }) {
           item.kind === "chip" ? (
             <div className="item flex h-6 items-center" key={item.id}>
               <button
-                className="chip flex h-6 min-w-0 flex-1 items-center gap-1 rounded-md bg-secondary px-2 text-left text-[13px] font-medium text-secondary-foreground outline-none transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+                className="chip flex h-6 min-w-0 flex-1 items-center gap-1 rounded-md bg-secondary px-2 text-left text-[13px] font-medium text-secondary-foreground transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
                 data-chip-line={item.group.line || undefined}
                 aria-expanded={item.open}
                 onClick={() => {
@@ -376,7 +376,7 @@ const MachineRow = memo(function MachineRow({ row, linked, selected, actions }: 
     >
       <td className={CELL}>
         <button
-          className="rounded-sm outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-pressed:font-semibold aria-pressed:text-link"
+          className="rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-pressed:font-semibold aria-pressed:text-link"
           aria-pressed={selected}
           onClick={(e) => (e.stopPropagation(), actions.select(row))}
         >

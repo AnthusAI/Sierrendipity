@@ -66,7 +66,7 @@ export function FileTree({ workspace, onOpen, onNewFile, onNewFolder, onRename, 
                   </>
                 ) : (
                   <button
-                    className="flex min-w-0 flex-1 items-center gap-2 rounded-sm text-left outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+                    className="flex min-w-0 flex-1 items-center gap-2 rounded-sm text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
                     aria-label={`Open ${path}`}
                     onClick={() => onOpen(path)}
                   >

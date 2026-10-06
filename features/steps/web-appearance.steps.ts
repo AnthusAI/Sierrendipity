@@ -4,7 +4,8 @@ import { contrastRatio, parseColor } from "../../web/src/theme/contrast";
 import { FIELD_TOKENS, resolveTheme, type Mode, type ThemeName } from "../../web/src/theme/palette";
 import type { WebWorld } from "../support/web-world";
 
-const html = (w: WebWorld) => w.page.locator("html");
+/** A function to run in the page. Built from a string because tsx-compiled closures reference helpers the page lacks. */
+const inPage = <T>(args: string, body: string) => new Function(args, body) as (...values: never[]) => T;
 const radio = (w: WebWorld, name: string) => w.page.getByRole("radio", { name, exact: true });
 
 /** Retry an assertion until it holds (themes apply in React effects, Monaco themes asynchronously). */
@@ -138,7 +139,7 @@ Then("each color theme option shows a palette preview", async function (this: We
     await swatches.first().waitFor();
     assert.ok((await swatches.count()) >= 4, `${label} shows at least four swatches`);
     const colors = resolveTheme(theme, mode);
-    const painted = (await swatches.evaluateAll((els) => els.map((e) => getComputedStyle(e).backgroundColor))) as string[];
+    const painted = (await swatches.evaluateAll(inPage("els", "return els.map((e) => getComputedStyle(e).backgroundColor);"))) as string[];
     assert.ok(painted.includes(rgb(colors.background)), `${label} previews its background`);
     assert.ok(painted.includes(rgb(colors.primary)), `${label} previews its primary color`);
   }
@@ -268,24 +269,25 @@ When(
 
 /** The effective text and background color of an element, as the browser computed them. */
 async function paintOf(locator: ReturnType<WebWorld["page"]["locator"]>) {
-  return (await locator.first().evaluate((el) => {
-    const parse = (value: string) => {
-      const m = value.match(/rgba?\(([^)]+)\)/);
-      const [r, g, b, a = "1"] = m![1].split(/[ ,/]+/).filter(Boolean);
-      return { r: +r, g: +g, b: +b, a: +a };
+  const read = inPage<{ color: string; background: string }>(
+    "el",
+    `
+    const parse = (value) => {
+      const m = value.match(/rgba?\\(([^)]+)\\)/);
+      const parts = m[1].split(/[ ,/]+/).filter(Boolean);
+      return { a: parts[3] === undefined ? 1 : +parts[3] };
     };
-    let node: Element | null = el;
+    let node = el;
     let background = "rgb(255, 255, 255)";
     while (node) {
-      const color = parse(getComputedStyle(node).backgroundColor);
-      if (color.a > 0.99) {
-        background = getComputedStyle(node).backgroundColor;
-        break;
-      }
+      const style = getComputedStyle(node);
+      if (parse(style.backgroundColor).a > 0.99) { background = style.backgroundColor; break; }
       node = node.parentElement;
     }
     return { color: getComputedStyle(el).color, background };
-  })) as { color: string; background: string };
+    `,
+  );
+  return (await locator.first().evaluate(read)) as { color: string; background: string };
 }
 
 Then("the {string} button, the header and the project selector are legible", async function (this: WebWorld, name: string) {
@@ -305,7 +307,7 @@ Then("the {string} button, the header and the project selector are legible", asy
 Then("buttons do not animate", async function (this: WebWorld) {
   const seconds = (await this.page
     .getByRole("button", { name: "Run", exact: true })
-    .evaluate((el) => getComputedStyle(el).transitionDuration)) as string;
+    .evaluate(inPage("el", "return getComputedStyle(el).transitionDuration;"))) as string;
   for (const part of seconds.split(",")) assert.ok(parseFloat(part) <= 0.001, `transition-duration is ${seconds}`);
 });
 
@@ -314,7 +316,7 @@ When("I focus the {string} button with the keyboard", async function (this: WebW
   await button.focus();
   await this.page.keyboard.press("Shift+Tab");
   await this.page.keyboard.press("Tab");
-  assert.equal(await button.evaluate((el) => el === document.activeElement), true, "the button did not receive focus");
+  assert.equal(await button.evaluate(inPage("el", "return el === document.activeElement;")), true, "the button did not receive focus");
 });
 
 Then("the focused control has a visible focus ring", async function (this: WebWorld) {
@@ -332,7 +334,7 @@ Then("the bit segments use the theme palette", async function (this: WebWorld) {
   const allowed = FIELD_TOKENS.map((t) => rgb(colors[t.bg]));
   const segments = this.page.locator("[data-segment]");
   await segments.first().waitFor();
-  const painted = (await segments.evaluateAll((els) => els.map((e) => [getComputedStyle(e).backgroundColor, getComputedStyle(e).color]))) as string[][];
+  const painted = (await segments.evaluateAll(inPage("els", "return els.map((e) => [getComputedStyle(e).backgroundColor, getComputedStyle(e).color]);"))) as string[][];
   assert.ok(painted.length > 0);
   for (const [background, color] of painted) {
     assert.ok(allowed.includes(background), `${background} is not a palette field color`);

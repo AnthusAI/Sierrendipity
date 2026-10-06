@@ -576,7 +576,7 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
         )}
       </div>
       <div
-        className="grid min-h-0 flex-1"
+        className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)]"
         style={{ gridTemplateColumns: `208px minmax(0, 1fr)${session ? ` 8px ${paneWidth}px` : ""}` }}
       >
         <FileTree
@@ -587,8 +587,8 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
           onRename={(path) => setPrompt({ kind: "rename", path })}
           onDelete={(path) => setPrompt({ kind: "delete", path })}
         />
-        <main className="grid min-h-0 min-w-0 grid-rows-[auto_minmax(0,1fr)_auto_232px]">
-          <div role="tablist" aria-label="Open files" className="flex min-h-10 items-end gap-1 overflow-x-auto border-b bg-muted px-2 pt-1">
+        <main className="flex min-h-0 min-w-0 flex-col">
+          <div role="tablist" aria-label="Open files" className="flex min-h-10 shrink-0 items-end gap-1 overflow-x-auto border-b bg-muted px-2 pt-1">
             {filesOpen.map((path) => {
               const active = path === ws.active;
               return (
@@ -602,7 +602,7 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
                   <button
                     role="tab"
                     aria-selected={active}
-                    className="rounded-sm font-medium outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                    className="rounded-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                     onClick={() => update((w) => ({ ...w, active: path }))}
                   >
                     {path}
@@ -620,7 +620,7 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
               );
             })}
           </div>
-          <div className="editor min-h-0 min-w-0 overflow-hidden bg-editor" data-ready={mountedKey === editorKey}>
+          <div className="editor min-h-0 min-w-0 flex-1 overflow-hidden bg-editor" data-ready={mountedKey === editorKey}>
             {ws.active && has(ws.files, ws.active) ? (
               <Editor
                 key={editorKey}
@@ -676,7 +676,7 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
               </div>
             )}
           </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t bg-chrome px-4 py-1.5 text-[13px] empty:hidden">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 shrink-0 border-t bg-chrome px-4 py-1.5 text-[13px] empty:hidden">
             {stepping && (
               <>
                 {session && (
@@ -719,7 +719,7 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
               aria-valuemin={260}
               aria-valuemax={900}
               tabIndex={0}
-              className="group flex cursor-col-resize justify-center outline-none focus-visible:bg-accent"
+              className="group flex cursor-col-resize justify-center focus-visible:bg-accent"
               onPointerDown={(down) => {
                 const startX = down.clientX;
                 const startWidth = paneWidth;

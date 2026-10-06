@@ -19,7 +19,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error?: Error }
         <h1 className="text-2xl font-semibold tracking-tight">Something went wrong</h1>
         <p className="max-w-md text-muted-foreground">{this.state.error.message}</p>
         <button
-          className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground outline-none transition-colors hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           onClick={() => location.reload()}
         >
           Reload
