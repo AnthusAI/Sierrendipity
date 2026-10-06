@@ -36,7 +36,7 @@ export function FileTree({ workspace, onOpen, onNewFile, onNewFolder, onRename, 
   return (
     <nav className="flex min-h-0 flex-col border-r bg-card text-card-foreground">
       <div className="flex items-center gap-1 border-b px-2 py-2">
-        <Button variant="ghost" size="sm" onClick={onNewFile}>
+        <Button variant="ghost" size="sm" data-focus-fallback onClick={onNewFile}>
           <FilePlus2 />New file
         </Button>
         <Button variant="ghost" size="sm" onClick={onNewFolder}>
@@ -68,6 +68,7 @@ export function FileTree({ workspace, onOpen, onNewFile, onNewFolder, onRename, 
                   <button
                     className="flex min-w-0 flex-1 items-center gap-2 rounded-sm text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
                     aria-label={`Open ${path}`}
+                    title={path}
                     onClick={() => onOpen(path)}
                   >
                     <FileText aria-hidden className="size-4 shrink-0 text-muted-foreground" />
