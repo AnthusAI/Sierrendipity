@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "3d7f6ef7-0df4-4fcc-b1e4-41d766dd7a2a",
+  "issue_id": "SIE-7706844b-e1bf-45e1-961a-5afcb53a0225",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T11:37:22.258Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Type into the terminal pane",
+    "description": "As the student, I want to interact with my running program in the IDE.\n\nFeature: Terminal pane\n  Scenario: Answer a prompt\n    Given a running program that asks for a name\n    When the student types Ada and presses Enter in the terminal pane\n    Then the terminal pane shows Hello, Ada",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-547c341c-dbb2-43e4-b8af-fac154c9ae72",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity planning"
+    }
+  }
+}

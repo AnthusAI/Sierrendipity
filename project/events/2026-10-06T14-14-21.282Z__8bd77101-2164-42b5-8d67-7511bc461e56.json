@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "event_id": "8bd77101-2164-42b5-8d67-7511bc461e56",
+  "issue_id": "SIE-2b76fcaf-f14b-4459-b580-a9f64738827c",
+  "event_type": "state_transition",
+  "occurred_at": "2026-10-06T14:14:21.282Z",
+  "actor_id": "home",
+  "payload": {
+    "from_status": "open",
+    "to_status": "in_progress"
+  }
+}

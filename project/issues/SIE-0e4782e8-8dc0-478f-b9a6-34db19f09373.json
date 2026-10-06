@@ -1,0 +1,38 @@
+{
+  "id": "SIE-0e4782e8-8dc0-478f-b9a6-34db19f09373",
+  "title": "Build and verify the runner image for amd64 and arm64",
+  "description": "The M1 image was only built and run on Docker Desktop arm64. Fargate Spot is cheapest on x86_64 (or Graviton arm64 at a lower price); decide the target architecture, build for it, and run the Linux Gherkin profile on that architecture.",
+  "type": "chore",
+  "status": "closed",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-745728ee-aa3c-4dae-8b9c-09f47d9c18e4",
+  "labels": [],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "59497b30-d057-41a4-a712-96d6eb38f1af",
+      "author": "home",
+      "text": "Decision: ARM64 on Fargate; verified the arm64 image starts on Fargate (runner listening on 8080).",
+      "created_at": "2026-10-06T14:12:50.479375Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-board"
+      }
+    }
+  ],
+  "created_at": "2026-10-06T12:04:53.972020Z",
+  "updated_at": "2026-10-06T14:12:55.353541Z",
+  "closed_at": "2026-10-06T14:12:55.353507Z",
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity orchestrator"
+  },
+  "right_now_summary": "The ARM64 image runs on Fargate, and the runner listens on port 8080.",
+  "right_now_updated_at": "2026-10-06T14:12:56.568813Z",
+  "custom": {}
+}

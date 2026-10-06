@@ -1,0 +1,11 @@
+{
+  "name": "@sierrendipity/runner",
+  "version": "0.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "typecheck": "tsc --noEmit",
+    "docker:build": "docker build -t sierrendipity-runner -f Dockerfile .."
+  }
+}

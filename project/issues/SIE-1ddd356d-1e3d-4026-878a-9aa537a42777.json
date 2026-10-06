@@ -1,0 +1,33 @@
+{
+  "id": "SIE-1ddd356d-1e3d-4026-878a-9aa537a42777",
+  "title": "Add GitHub Actions CI (npm test, commitlint on PRs) and a TypeScript Semantic Release workflow adapted from Chatticus",
+  "description": "",
+  "type": "task",
+  "status": "closed",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-2b76fcaf-f14b-4459-b580-a9f64738827c",
+  "labels": [],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "964348c4-ca17-4a85-8886-836cd99874e5",
+      "author": "home",
+      "text": "CI (specs, commitlint, typecheck, runner-linux on real amd64) and the Semantic Release workflow are merged (PR #8) and passing on GitHub. The first release still needs the baseline tag v0.0.0 and a develop-to-main promotion; GitHub Actions deploy is not set up yet.",
+      "created_at": "2026-10-06T15:46:27.349849Z",
+      "comment_type": "default"
+    }
+  ],
+  "created_at": "2026-10-06T14:14:33.774267Z",
+  "updated_at": "2026-10-06T15:46:33.993848Z",
+  "closed_at": "2026-10-06T15:46:33.993780Z",
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity-board"
+  },
+  "right_now_summary": "CI and semantic release pass, but the first release needs the v0.0.0 tag and a develop-to-main promotion.",
+  "right_now_updated_at": "2026-10-06T15:46:37.021479Z",
+  "custom": {}
+}

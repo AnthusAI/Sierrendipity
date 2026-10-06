@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "4e2821f4-3667-43c8-9625-2e49e11c5d6b",
+  "issue_id": "SIE-2b76fcaf-f14b-4459-b580-a9f64738827c",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T11:36:06.106Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "M8: Delivery — CI, releases, and deploy",
+    "description": "Intent: As the maintainer, I want green specs gating merges and automatic releases, so that main is always shippable. Includes: GitHub Actions running npm test, commitlint on PRs, Semantic Release on main, deploy workflow (CDK diff on PR, deploy on release), web hosting on S3+CloudFront or Amplify. Excludes: multi-environment promotion. DoD: a merged feat commit produces a tagged release and a deployed site.",
+    "issue_type": "epic",
+    "status": "open",
+    "priority": 1,
+    "assignee": null,
+    "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity planning"
+    }
+  }
+}

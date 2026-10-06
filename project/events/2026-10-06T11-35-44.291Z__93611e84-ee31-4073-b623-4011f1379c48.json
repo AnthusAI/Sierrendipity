@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "93611e84-ee31-4073-b623-4011f1379c48",
+  "issue_id": "SIE-00ce505c-cbb1-4869-8083-a08749f9d146",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T11:35:44.291Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "M2: Sandbox — block network and credentials for student code",
+    "description": "Intent: As the maintainer, I want student programs to run without network access or cloud credentials, so that untrusted code cannot reach the internet or the AWS account. Includes: small C launcher using libseccomp (denies socket for AF_INET/AF_INET6, no_new_privs), scrubbed environment, no task-role permissions, ulimits/process caps against fork bombs, proof on real Fargate. Excludes: private-subnet/VPC-endpoint egress blocking (revisit if more students join). DoD: Python socket.connect and C connect() fail with EPERM; credential/metadata reads fail; specs pass locally and on Fargate.",
+    "issue_type": "epic",
+    "status": "open",
+    "priority": 1,
+    "assignee": null,
+    "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity planning"
+    }
+  }
+}

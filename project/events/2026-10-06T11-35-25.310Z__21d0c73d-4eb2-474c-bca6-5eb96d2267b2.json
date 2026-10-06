@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "21d0c73d-4eb2-474c-bca6-5eb96d2267b2",
+  "issue_id": "SIE-bda355ce-2fa1-4244-9f54-d69cf052ebb8",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T11:35:25.310Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "M1: Batch runner — compile and run Python, C, and C++ projects",
+    "description": "Intent: As the student, I want to submit a small multi-file project and get compiler output, program output, exit status, and timing back, so that I can run real code. Includes: runner container image (gcc, g++, python3), Node runner server, multi-file projects, stdin supplied up front, wall-clock and memory limits, output-size caps. Excludes: live interactive stdin, cloud deployment, UI. Definition of Done: all M1 stories' Gherkin specs pass against the runner in a local container.",
+    "issue_type": "epic",
+    "status": "open",
+    "priority": 1,
+    "assignee": null,
+    "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity planning"
+    }
+  }
+}

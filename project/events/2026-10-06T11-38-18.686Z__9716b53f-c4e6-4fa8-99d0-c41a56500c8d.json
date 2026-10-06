@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "9716b53f-c4e6-4fa8-99d0-c41a56500c8d",
+  "issue_id": "SIE-8a3baa86-42a7-43f4-9d82-b0bc5954de28",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T11:38:18.686Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Sign in with Google",
+    "description": "As a student, I want to sign in with my Google account, so that I can reach the IDE from any device.\n\nFeature: Google sign-in\n  Scenario: An approved student signs in\n    Given the Google account student@example.com is on the allowlist\n    When the student chooses Sign in with Google and completes consent\n    Then the IDE opens signed in as that account\n    And the control endpoint accepts the resulting token\n\n  Scenario: An unapproved account is refused\n    Given the Google account stranger@example.com is not on the allowlist\n    When that account tries to sign in\n    Then sign-in is refused with a message explaining access is by invitation\n\n  Scenario: Signing out\n    Given a signed-in student\n    When they choose Sign out\n    Then the token is discarded and the IDE shows the sign-in screen",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-6fa4d49f-b503-47d0-8add-206bce187d6c",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity planning"
+    }
+  }
+}

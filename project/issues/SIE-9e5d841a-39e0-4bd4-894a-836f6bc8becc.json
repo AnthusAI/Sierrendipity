@@ -1,0 +1,45 @@
+{
+  "id": "SIE-9e5d841a-39e0-4bd4-894a-836f6bc8becc",
+  "title": "Edit and run a multi-file project in the browser",
+  "description": "As the student, I want to create files, edit them, and run the project.\n\nFeature: Web IDE\n  Scenario: Create and run a two-file C++ project\n    Given the student opens the IDE\n    When they create main.cpp and util.cpp and press Run\n    Then the terminal pane shows the program output\n  Scenario: Projects persist\n    Given a saved project\n    When the page is reloaded\n    Then the files are still there",
+  "type": "story",
+  "status": "closed",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-547c341c-dbb2-43e4-b8af-fac154c9ae72",
+  "labels": [],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "99997092-6ab5-4b8d-8a39-42a0603c8338",
+      "author": "home",
+      "text": "Deployed; waiting on real sign-in and a real multi-file run.",
+      "created_at": "2026-10-06T14:13:55.781068Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-board"
+      }
+    },
+    {
+      "id": "7a498c0d-e4ac-45e9-b084-a36de0ccc341",
+      "author": "home",
+      "text": "Verified live for a signed-in Python run in the deployed IDE; multi-file C++ and persistence are covered by the browser specs.",
+      "created_at": "2026-10-06T14:18:39.126434Z",
+      "comment_type": "default"
+    }
+  ],
+  "created_at": "2026-10-06T11:37:17.871945Z",
+  "updated_at": "2026-10-06T14:18:45.111590Z",
+  "closed_at": "2026-10-06T14:18:45.111496Z",
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity planning"
+  },
+  "right_now_summary": "The deployed IDE supports signed-in Python runs, while multi-file C++ and persistence await real-world checks.",
+  "right_now_updated_at": "2026-10-06T14:18:46.346848Z",
+  "custom": {}
+}

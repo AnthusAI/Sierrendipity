@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "4c2cf44c-fbd8-410b-97bf-be186c25fb88",
+  "issue_id": "SIE-92f1451a-d298-4b65-9c00-40e915f33e72",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T14:14:24.393Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Lazy-load Monaco to cut the 3.8 MB bundle",
+    "description": "",
+    "issue_type": "chore",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-547c341c-dbb2-43e4-b8af-fac154c9ae72",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-board"
+    }
+  }
+}

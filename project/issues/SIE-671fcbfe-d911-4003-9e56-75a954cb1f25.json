@@ -1,0 +1,33 @@
+{
+  "id": "SIE-671fcbfe-d911-4003-9e56-75a954cb1f25",
+  "title": "Run a multi-file C++ project",
+  "description": "As the student, I want to compile and run a multi-file C++ project, so that I can practice real programs.\n\nFeature: Run a multi-file C++ project\n  Scenario: Compile and run two source files\n    Given a C++ project with main.cpp and util.cpp where main prints util's greeting\n    When the project is run\n    Then the exit status is 0\n    And the output is the greeting\n\n  Scenario: A compile error is reported\n    Given a C++ project with a syntax error in main.cpp\n    When the project is run\n    Then the compiler error mentions main.cpp and its line number\n    And the program is not executed",
+  "type": "story",
+  "status": "closed",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-bda355ce-2fa1-4244-9f54-d69cf052ebb8",
+  "labels": [],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "d95eeb56-b854-4ce7-9f3a-f9023096c6b9",
+      "author": "home",
+      "text": "Merged to develop in PR #1; Gherkin specs pass (26 macOS, 27 Linux in the image).",
+      "created_at": "2026-10-06T12:29:32.904990Z",
+      "comment_type": "default"
+    }
+  ],
+  "created_at": "2026-10-06T11:36:29.369465Z",
+  "updated_at": "2026-10-06T12:29:38.384763Z",
+  "closed_at": "2026-10-06T12:29:38.384643Z",
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity planning"
+  },
+  "right_now_summary": "The multi-file C++ project runs and reports compile errors correctly, with all Gherkin specs passing.",
+  "right_now_updated_at": "2026-10-06T12:29:39.892797Z",
+  "custom": {}
+}

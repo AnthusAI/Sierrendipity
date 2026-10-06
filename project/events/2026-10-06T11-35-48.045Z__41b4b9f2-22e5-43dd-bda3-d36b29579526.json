@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "41b4b9f2-22e5-43dd-bda3-d36b29579526",
+  "issue_id": "SIE-7a69ac73-1724-4d79-a8ab-d20d2cf2ce45",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T11:35:48.045Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "M3: Interactive sessions — SSE output and POST input",
+    "description": "Intent: As the student, I want to type into a running program and see output as it appears, so that interactive programs behave like a terminal. Includes: pty-backed process in the runner, GET /events (Server-Sent Events) with resumable output buffer, POST /stdin, run/stop controls, idle self-shutdown. Excludes: WebSockets, AppSync, ALB. DoD: Gherkin specs show prompt/response programs working end to end, reconnect resumes without losing output, idle session exits.",
+    "issue_type": "epic",
+    "status": "open",
+    "priority": 1,
+    "assignee": null,
+    "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity planning"
+    }
+  }
+}

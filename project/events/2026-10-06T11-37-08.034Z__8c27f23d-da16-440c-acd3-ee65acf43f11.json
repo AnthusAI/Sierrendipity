@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "8c27f23d-da16-440c-acd3-ee65acf43f11",
+  "issue_id": "SIE-83ae323a-703c-4b3c-b8fd-6a84c1568a2a",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T11:37:08.034Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Start a session on demand and run code in the cloud",
+    "description": "As the student, I want to press Run and have the backend wake up, so that I never pay for idle servers.\n\nFeature: On-demand cloud session\n  Scenario: First run after idle\n    Given no Fargate task is running\n    When the student starts a session through the control endpoint\n    Then a task starts and the session becomes ready\n    And running a hello-world project through the proxy streams its output\n  Scenario: Backend scales to zero\n    Given a session with no activity past the idle timeout\n    Then no Fargate task is running",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-745728ee-aa3c-4dae-8b9c-09f47d9c18e4",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity planning"
+    }
+  }
+}

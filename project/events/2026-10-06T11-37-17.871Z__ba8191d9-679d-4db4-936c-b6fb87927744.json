@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "ba8191d9-679d-4db4-936c-b6fb87927744",
+  "issue_id": "SIE-9e5d841a-39e0-4bd4-894a-836f6bc8becc",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T11:37:17.871Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Edit and run a multi-file project in the browser",
+    "description": "As the student, I want to create files, edit them, and run the project.\n\nFeature: Web IDE\n  Scenario: Create and run a two-file C++ project\n    Given the student opens the IDE\n    When they create main.cpp and util.cpp and press Run\n    Then the terminal pane shows the program output\n  Scenario: Projects persist\n    Given a saved project\n    When the page is reloaded\n    Then the files are still there",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-547c341c-dbb2-43e4-b8af-fac154c9ae72",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity planning"
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "id": "SIE-00ce505c-cbb1-4869-8083-a08749f9d146",
+  "title": "M2: Sandbox — block network and credentials for student code",
+  "description": "Intent: As the maintainer, I want student programs to run without network access or cloud credentials, so that untrusted code cannot reach the internet or the AWS account. Includes: small C launcher using libseccomp (denies socket for AF_INET/AF_INET6, no_new_privs), scrubbed environment, no task-role permissions, ulimits/process caps against fork bombs, proof on real Fargate. Excludes: private-subnet/VPC-endpoint egress blocking (revisit if more students join). DoD: Python socket.connect and C connect() fail with EPERM; credential/metadata reads fail; specs pass locally and on Fargate.",
+  "type": "epic",
+  "status": "closed",
+  "priority": 1,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "labels": [],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "4a3c43ae-b001-4fe8-9e6b-de0992650ada",
+      "author": "home",
+      "text": "Runner sandbox/interactive code reviewed independently. Review reproduced three high-severity exploits (student reads server secrets via /proc, kills the runner, escapes process-group kill and wedges a slot). Fixes in progress: per-run unprivileged uid, kill-by-uid cleanup, /tmp cleanup and disk watchdog, extended seccomp denylist.",
+      "created_at": "2026-10-06T12:56:41.519202Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-orchestrator"
+      }
+    },
+    {
+      "id": "fc5801e4-06db-4576-a74f-0ceaa8575701",
+      "author": "home",
+      "text": "M2 done: specs pass, two adversarial reviews, per-run uid, seccomp, cleanup. Fargate confirmation tracked separately.",
+      "created_at": "2026-10-06T14:12:13.497749Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-board"
+      }
+    }
+  ],
+  "created_at": "2026-10-06T11:35:44.291204Z",
+  "updated_at": "2026-10-06T14:12:18.497006Z",
+  "closed_at": "2026-10-06T14:12:18.496969Z",
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity planning"
+  },
+  "right_now_summary": "The sandbox passes core tests, while fixes address secret leaks, runner kills, and process cleanup.",
+  "right_now_updated_at": "2026-10-06T14:17:00.616107Z",
+  "custom": {}
+}

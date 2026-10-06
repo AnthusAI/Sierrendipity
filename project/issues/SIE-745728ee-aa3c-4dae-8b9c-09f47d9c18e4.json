@@ -1,0 +1,50 @@
+{
+  "id": "SIE-745728ee-aa3c-4dae-8b9c-09f47d9c18e4",
+  "title": "M4: Cloud backend — Fargate on demand with Lambda front door (CDK)",
+  "description": "Intent: As the maintainer, I want the backend to scale to zero and cost pennies, so that it is free to leave running. Includes: CDK stack in the default VPC (public subnet, no NAT), ECR, ECS cluster and Fargate Spot task definition, control Lambda (start/stop session, signed session token holding task IP), proxy Lambda with streaming Function URL for SSE and POST, security group allowing inbound only from the proxy, CloudWatch logs with short retention. Excludes: ALB, NAT, interface endpoints, AppSync. DoD: from a clean account, cdk deploy yields a working session; no task runs when idle; monthly cost estimate documented.",
+  "type": "epic",
+  "status": "in_progress",
+  "priority": 1,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "labels": [],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "937f24e5-0d95-4956-8251-7ca8abab1071",
+      "author": "home",
+      "text": "M4 code merged to develop (PR #2): CDK stack, control and proxy Lambdas, Fargate task definition, hosting. 76 handler/CDK specs pass; cdk synth verified against the legacy account. Independent security review fixed task-bound session tokens, 443-only task egress, allowlist recheck, listing/STOPPING, duplicate cleanup, path whitelist, error mapping. Not yet deployed or exercised against real AWS; deploy follows once the runner sandbox fixes land.",
+      "created_at": "2026-10-06T12:56:34.722793Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-orchestrator"
+      }
+    },
+    {
+      "id": "53095d57-522d-4b44-9aa7-979a7580be1b",
+      "author": "home",
+      "text": "Deployed to AWS legacy us-east-1; waiting on a real end-to-end session test through the control Lambda and proxy.",
+      "created_at": "2026-10-06T14:13:29.081732Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-board"
+      }
+    }
+  ],
+  "created_at": "2026-10-06T11:35:50.869038Z",
+  "updated_at": "2026-10-06T14:13:29.081756Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity planning"
+  },
+  "right_now_summary": "The stack is deployed in AWS, and a real end-to-end session test is still pending.",
+  "right_now_updated_at": "2026-10-06T14:17:54.977824Z",
+  "custom": {}
+}

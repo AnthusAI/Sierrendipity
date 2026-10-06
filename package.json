@@ -2,16 +2,23 @@
   "name": "sierrendipity",
   "version": "0.0.0",
   "private": true,
-  "description": "A web-based coding tutor for Python, C and C++ Olympiad preparation",
+  "description": "A web-based coding tutor for Python, C and C++",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/AnthusAI/Sierrendipity.git"
   },
-  "workspaces": ["infra", "api", "runner", "web"],
+  "workspaces": [
+    "infra",
+    "api",
+    "runner",
+    "web"
+  ],
   "scripts": {
     "prepare": "husky",
     "test": "cucumber-js",
+    "test:linux": "cucumber-js --profile linux",
+    "test:web": "cucumber-js --profile web",
     "release": "semantic-release"
   },
   "devDependencies": {
@@ -22,6 +29,7 @@
     "@semantic-release/git": "^10.0.1",
     "@types/node": "^22.0.0",
     "husky": "^9.0.0",
+    "playwright": "^1.63.0",
     "semantic-release": "^24.0.0",
     "tsx": "^4.0.0",
     "typescript": "^5.6.0"

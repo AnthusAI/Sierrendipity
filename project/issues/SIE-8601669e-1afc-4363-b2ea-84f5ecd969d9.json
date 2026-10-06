@@ -1,0 +1,38 @@
+{
+  "id": "SIE-8601669e-1afc-4363-b2ea-84f5ecd969d9",
+  "title": "Close session-start races: one task per user and the global cap",
+  "description": "Two simultaneous POST /session calls can both pass the list-then-RunTask check and exceed one task per user or the cap of 3. Tasks stop on idle so damage is bounded. Fix with a conditional write (DynamoDB) or reserved concurrency if it matters in practice.",
+  "type": "task",
+  "status": "in_progress",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-745728ee-aa3c-4dae-8b9c-09f47d9c18e4",
+  "labels": [],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "3f778e07-3ffa-42c9-8dae-04b36406f3eb",
+      "author": "home",
+      "text": "Races narrowed by duplicate cleanup but not atomic; stays open.",
+      "created_at": "2026-10-06T14:14:07.362403Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-board"
+      }
+    }
+  ],
+  "created_at": "2026-10-06T12:41:30.043002Z",
+  "updated_at": "2026-10-06T14:14:13.395068Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity orchestrator"
+  },
+  "right_now_summary": "Session-start races are narrowed by cleanup, but requests can still create duplicate tasks and exceed the cap.",
+  "right_now_updated_at": "2026-10-06T14:14:14.902244Z",
+  "custom": {}
+}

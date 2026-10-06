@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "c61dda4e-51d6-475a-b798-dd4ce3867e46",
+  "issue_id": "SIE-c22d25cc-b8b3-4415-94de-7bcc82f3e3bf",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T11:36:38.619Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Enforce time, memory, and output limits",
+    "description": "As the maintainer, I want runaway programs stopped, so that they cannot hang or exhaust a session.\n\nFeature: Resource limits\n  Scenario: An infinite loop is stopped\n    Given a program that loops forever\n    When the project is run with a 2 second limit\n    Then the result reports a time limit exceeded\n  Scenario: Huge output is truncated\n    Given a program that prints 100 MB\n    When the project is run\n    Then the captured output is truncated and flagged",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-bda355ce-2fa1-4244-9f54-d69cf052ebb8",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity planning"
+    }
+  }
+}

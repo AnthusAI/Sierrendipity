@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "07337060-2dab-41b0-ada1-438e77571172",
+  "issue_id": "SIE-20926973-e8e8-4b6b-8846-c77cc41824b4",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T11:37:38.339Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Merged feature commits produce a release",
+    "description": "As the maintainer, I want releases to be automatic.\n\nFeature: Release automation\n  Scenario: A feat commit on main\n    Given a feat commit is merged to main with green specs\n    When the release workflow runs\n    Then a new minor version tag and changelog entry are created\n    And the site and backend are deployed",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-2b76fcaf-f14b-4459-b580-a9f64738827c",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity planning"
+    }
+  }
+}

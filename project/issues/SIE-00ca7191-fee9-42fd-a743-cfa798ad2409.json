@@ -1,0 +1,38 @@
+{
+  "id": "SIE-00ca7191-fee9-42fd-a743-cfa798ad2409",
+  "title": "Network access is denied to student code",
+  "description": "As the maintainer, I want student programs unable to open sockets, so that they cannot reach the internet.\n\nFeature: Network denial\n  Scenario: Python cannot connect out\n    Given a Python program that connects to example.com on port 80\n    When the project is run\n    Then the program fails with a permission error\n  Scenario: C cannot connect out\n    Given a C program that calls connect() to a public address\n    When the project is run\n    Then connect() returns EPERM",
+  "type": "story",
+  "status": "closed",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-00ce505c-cbb1-4869-8083-a08749f9d146",
+  "labels": [],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "af65f60c-c0a1-4f6f-ad0f-a0ca7c7b20d9",
+      "author": "home",
+      "text": "Specs pass; network denial merged to develop (PRs #1-#5).",
+      "created_at": "2026-10-06T14:11:36.155422Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-board"
+      }
+    }
+  ],
+  "created_at": "2026-10-06T11:36:45.641094Z",
+  "updated_at": "2026-10-06T14:11:43.390692Z",
+  "closed_at": "2026-10-06T14:11:43.390614Z",
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity planning"
+  },
+  "right_now_summary": "Network access is denied for student code, and the Python and C tests pass.",
+  "right_now_updated_at": "2026-10-06T14:11:45.270674Z",
+  "custom": {}
+}

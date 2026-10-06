@@ -1,0 +1,45 @@
+{
+  "id": "SIE-7706844b-e1bf-45e1-961a-5afcb53a0225",
+  "title": "Type into the terminal pane",
+  "description": "As the student, I want to interact with my running program in the IDE.\n\nFeature: Terminal pane\n  Scenario: Answer a prompt\n    Given a running program that asks for a name\n    When the student types Ada and presses Enter in the terminal pane\n    Then the terminal pane shows Hello, Ada",
+  "type": "story",
+  "status": "closed",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-547c341c-dbb2-43e4-b8af-fac154c9ae72",
+  "labels": [],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "867ed70d-3270-4ebb-954b-149dcc9b03d6",
+      "author": "home",
+      "text": "Deployed; waiting on real sign-in and an interactive run for the terminal.",
+      "created_at": "2026-10-06T14:14:01.936356Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-board"
+      }
+    },
+    {
+      "id": "d53364d8-18c2-4e7e-8d8c-63dbd3bd02ff",
+      "author": "home",
+      "text": "Verified live: the program prompted in the terminal pane and the typed answer produced the greeting.",
+      "created_at": "2026-10-06T14:18:28.964238Z",
+      "comment_type": "default"
+    }
+  ],
+  "created_at": "2026-10-06T11:37:22.258184Z",
+  "updated_at": "2026-10-06T14:18:33.827930Z",
+  "closed_at": "2026-10-06T14:18:33.827859Z",
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity planning"
+  },
+  "right_now_summary": "The terminal pane accepts input and shows the greeting in a live run.",
+  "right_now_updated_at": "2026-10-06T14:18:35.515328Z",
+  "custom": {}
+}

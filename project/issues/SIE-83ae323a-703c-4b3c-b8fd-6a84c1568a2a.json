@@ -1,0 +1,57 @@
+{
+  "id": "SIE-83ae323a-703c-4b3c-b8fd-6a84c1568a2a",
+  "title": "Start a session on demand and run code in the cloud",
+  "description": "As the student, I want to press Run and have the backend wake up, so that I never pay for idle servers.\n\nFeature: On-demand cloud session\n  Scenario: First run after idle\n    Given no Fargate task is running\n    When the student starts a session through the control endpoint\n    Then a task starts and the session becomes ready\n    And running a hello-world project through the proxy streams its output\n  Scenario: Backend scales to zero\n    Given a session with no activity past the idle timeout\n    Then no Fargate task is running",
+  "type": "story",
+  "status": "closed",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-745728ee-aa3c-4dae-8b9c-09f47d9c18e4",
+  "labels": [],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "a6f45e51-2ebb-4413-8f08-f9213e8d3149",
+      "author": "home",
+      "text": "Deployed; control and proxy return 401 without a token. Waiting on a real session start and SSE stream.",
+      "created_at": "2026-10-06T14:13:31.732308Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-board"
+      }
+    },
+    {
+      "id": "056213fa-4221-4178-a156-9dff2cd2d0a7",
+      "author": "home",
+      "text": "Partly verified against real AWS: a session token minted for a hand-started Fargate task let the deployed proxy stream a full interactive C run (compile event, prompt, stdin, output, exit) and return 401 without a token. Still unverified: the control Lambda starting a task for a real Cognito identity.",
+      "created_at": "2026-10-06T14:17:02.702852Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-orchestrator"
+      }
+    },
+    {
+      "id": "f26daeb4-3407-4e0c-bda1-2cb252b97af5",
+      "author": "home",
+      "text": "Verified end to end on 2026-10-06: after a real Google sign-in the control Lambda started a Fargate task and the maintainer ran the Python starter in the deployed IDE (it answered Hello, Ryan!).",
+      "created_at": "2026-10-06T14:17:45.208400Z",
+      "comment_type": "default"
+    }
+  ],
+  "created_at": "2026-10-06T11:37:08.034843Z",
+  "updated_at": "2026-10-06T14:17:51.653032Z",
+  "closed_at": "2026-10-06T14:17:51.652947Z",
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity planning"
+  },
+  "right_now_summary": "A real sign-in now starts a cloud session and runs code successfully.",
+  "right_now_updated_at": "2026-10-06T14:17:52.845906Z",
+  "custom": {}
+}

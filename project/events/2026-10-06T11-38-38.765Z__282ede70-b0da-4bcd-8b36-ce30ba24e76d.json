@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "event_id": "282ede70-b0da-4bcd-8b36-ce30ba24e76d",
+  "issue_id": "SIE-6fa4d49f-b503-47d0-8add-206bce187d6c",
+  "event_type": "field_updated",
+  "occurred_at": "2026-10-06T11:38:38.765Z",
+  "actor_id": "home",
+  "payload": {
+    "changes": {
+      "title": {
+        "from": "M5: Access and abuse protection",
+        "to": "M5: Google sign-in (Cognito) and abuse protection"
+      },
+      "description": {
+        "from": "Intent: As the maintainer, I want only the student (and tutor) to be able to start sessions, so that strangers cannot run code or run up the bill. Includes: authentication on the control and proxy endpoints, per-session token, limits on concurrent sessions and session length, AWS Budget alarm. Excludes: multi-tenant signup. DoD: unauthenticated requests are refused; a second concurrent session is refused; budget alarm exists.",
+        "to": "Intent: As a student, I want to sign in with my Google account, so that I can use the IDE from anywhere without a new password; as the maintainer, I want only approved students able to start sessions, so that strangers cannot run code or run up the bill. Includes: Google Cloud project and OAuth client (set up together with the maintainer), Cognito user pool with Google as federated identity provider and hosted UI, allowlist of approved Google accounts enforced by a pre-sign-up Lambda trigger, JWT verification on the control and proxy endpoints, per-session token, limits on concurrent sessions and session length, AWS Budget alarm. Excludes: password or other social logins, self-service signup by unapproved accounts. DoD: an approved Google account signs in and starts a session; an unapproved account is refused; unauthenticated requests get 401; a second concurrent session per student is refused; budget alarm exists."
+      }
+    }
+  }
+}
