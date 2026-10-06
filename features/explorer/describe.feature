@@ -155,6 +155,17 @@ Feature: Describing a machine word in plain English
       | shelf | "1024"         |
     And the parts join to the card text
 
+  Scenario Outline: Box parts say which field they came from, even when registers repeat
+    When I assemble "<assembly>" and describe its word
+    Then the box parts come from the fields "<fields>"
+
+    Examples:
+      | assembly         | fields      |
+      | add a0, a0, a0   | rs1, rs2, rd |
+      | add a2, a0, a1   | rs1, rs2, rd |
+      | sw t0, 8(sp)     | rs2, rs1    |
+      | addi a1, a1, 7   | rd          |
+
   Scenario: Branch parts name the boxes and the distance
     When I assemble "bne t0, t1, -8" and describe its word
     Then the card parts have these roles in order

@@ -40,9 +40,14 @@ export type CardKind = (typeof CARD_KINDS)[number];
 /** What a piece of the card text is, so the interface can colour it. */
 export type PartRole = "verb" | "box" | "number" | "shelf" | "label" | "text";
 
+/** The instruction field a part of the card text came from (set on box parts, so repeats stay distinct). */
+export type PartField = "rd" | "rs1" | "rs2";
+
 export interface CardPart {
   role: PartRole;
   text: string;
+  /** For `box` parts: which register field this box is. Absent on every other part. */
+  field?: PartField;
 }
 
 export interface CardText {
@@ -126,9 +131,9 @@ export function describe(word: number, opts: DescribeOptions = {}): CardText {
     role: "box",
     text: n === 0 ? `${words.box} zero (always 0)` : `${words.box} ${registerName(n)}`,
   });
-  const rd = box(rdN);
-  const rs1 = box(rs1N);
-  const rs2 = box(rs2N);
+  const rd: CardPart = { ...box(rdN), field: "rd" };
+  const rs1: CardPart = { ...box(rs1N), field: "rs1" };
+  const rs2: CardPart = { ...box(rs2N), field: "rs2" };
   const plus = (imm: number): Item[] => (imm === 0 ? [] : [imm > 0 ? " plus " : " minus ", num(Math.abs(imm))]);
   const unmet = (): CardText =>
     done("unknown", [`An instruction we haven't met yet: ${decoded.text}`], true);

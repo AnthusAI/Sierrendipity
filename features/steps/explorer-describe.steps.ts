@@ -62,7 +62,14 @@ const unquote = (cell: string): string => (cell.startsWith('"') && cell.endsWith
 
 Then("the card parts are", (table: DataTable) => {
   const expected = table.hashes().map((row) => ({ role: row.role, text: unquote(row.text!) }));
-  assert.deepEqual(card.parts, expected);
+  assert.deepEqual(card.parts.map(({ role, text }) => ({ role, text })), expected);
+});
+
+Then("the box parts come from the fields {string}", (fields: string) => {
+  assert.deepEqual(
+    card.parts.filter((p) => p.role === "box").map((p) => p.field),
+    fields.split(", "),
+  );
 });
 
 Then("the card parts have these roles in order", (table: DataTable) => {
