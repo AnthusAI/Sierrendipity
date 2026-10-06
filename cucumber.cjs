@@ -7,7 +7,8 @@ const base = {
 
 module.exports = {
   // @linux-only scenarios need prlimit; they are skipped on other platforms.
-  default: { ...base, tags: "not @linux-only" },
+  // @docker scenarios (explorer vs GNU binutils and riscv-tests) need Docker; see `npm run test:docker`.
+  default: { ...base, tags: "not @linux-only and not @docker" },
   // `npm run test:linux` (run inside the runner container) includes them.
   // The test image carries only runner/, so this profile loads just the runner specs and steps.
   linux: {
@@ -21,5 +22,7 @@ module.exports = {
     ],
   },
   // `npm run test:web`: only the browser specs (builds web/ and launches Chromium).
+  // `npm run test:docker`: explorer differential and riscv-tests specs (Docker required).
+  docker: { ...base, paths: ["features/explorer/**/*.feature"], tags: "@docker" },
   web: { ...base, paths: ["features/web/**/*.feature"] },
 };

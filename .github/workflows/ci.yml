@@ -70,3 +70,4 @@ jobs:
       - run: npx tsc -p infra --noEmit
       - run: npx tsc -p runner --noEmit
       - run: npm run typecheck -w web
+      - run: npx tsc -p explorer --noEmit

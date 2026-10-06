@@ -18,6 +18,7 @@
     "prepare": "husky",
     "test": "cucumber-js",
     "test:linux": "cucumber-js --profile linux",
+    "test:docker": "cucumber-js --profile docker",
     "test:web": "cucumber-js --profile web",
     "release": "semantic-release"
   },
