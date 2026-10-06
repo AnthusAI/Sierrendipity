@@ -1,0 +1,23 @@
+html, body, #root { height: 100%; margin: 0; }
+body { font-family: system-ui, sans-serif; background: #1e1e1e; color: #ddd; }
+button, select { font: inherit; }
+.center { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 1rem; }
+.ide { display: grid; grid-template-columns: 240px 1fr; grid-template-rows: auto auto 1fr; height: 100%; }
+.ide > header { grid-column: 1 / 3; display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0.8rem; background: #252526; }
+.spacer { flex: 1; }
+.banner { grid-column: 1 / 3; padding: 0.3rem 0.8rem; background: #5a4a00; }
+.files { background: #252526; overflow: auto; }
+.files .toolbar { display: flex; gap: 0.4rem; padding: 0.4rem; }
+.files ul { list-style: none; margin: 0; padding: 0; }
+.files li { display: flex; align-items: center; gap: 0.3rem; padding-right: 0.4rem; }
+.files li.active { background: #37373d; }
+.files li .link { flex: 1; text-align: left; }
+.link, .icon, .tab button { background: none; border: none; color: inherit; cursor: pointer; }
+.files li > span { flex: 1; }
+main { display: grid; grid-template-rows: auto 1fr 220px; min-height: 0; }
+.tabs { display: flex; background: #2d2d2d; }
+.tab { display: flex; align-items: center; padding: 0 0.3rem; }
+.tab.active { background: #1e1e1e; }
+.editor { min-height: 0; }
+.empty { padding: 1rem; }
+.terminal { background: #111; padding: 4px; min-height: 0; overflow: hidden; }
