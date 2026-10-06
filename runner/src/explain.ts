@@ -97,6 +97,10 @@ export async function buildProgram(
     });
   const clean = (text: string) => {
     let t = scrub(scrub(text, src), dir);
+    // Sources are compiled as ./name (so a file called -v.c is not an option); show them as name.
+    t = t.replace(/(^|[\s'"`(])\.\/(?=[\w.-])/g, "$1");
+    // With -pipe gcc keeps no temporary files, but the driver may still name one.
+    t = t.replace(/\/(?:var\/)?tmp\/\S+/g, "<temporary file>");
     // The linker names objects by file; show the student's file instead of our numbered object.
     sources.forEach((s, i) => (t = t.split(`out/${i}.o`).join(s.replace(/^\.\//, ""))));
     return t.length > MAX_COMPILE_OUTPUT_CHARS ? t.slice(0, MAX_COMPILE_OUTPUT_CHARS) + "\n[output truncated]\n" : t;
@@ -107,7 +111,7 @@ export async function buildProgram(
   let failed: BuildResult["status"] | undefined;
   for (const [i, file] of sources.entries()) {
     const compile = [
-      GCC, ...TARGET, `-${optLevel}`, "-g", "-ffreestanding", "-fno-pic", "-static", "-nostdlib",
+      GCC, ...TARGET, `-${optLevel}`, "-g", "-ffreestanding", "-fno-pic", "-static", "-nostdlib", "-pipe",
       "-isystem", path.join(RUNTIME_SOURCES, "include"),
       `-ffile-prefix-map=${src}=.`, `-ffile-prefix-map=${dir}=.`,
       "-c", "./" + path.normalize(file), "-o", path.join(out, `${i}.o`),
@@ -124,7 +128,8 @@ export async function buildProgram(
   const elf = path.join(out, "prog.elf");
   const link = [
     GCC, ...TARGET, "-static", "-nostdlib", "-T", opts.linkScript ?? path.join(RUNTIME_SOURCES, "link.ld"),
-    "-Wl,--no-warn-rwx-segments", "-Wl,--build-id=none", "-o", elf,
+    // gc-sections drops the runtime functions the program does not call, so the list shows only what runs.
+    "-Wl,--no-warn-rwx-segments", "-Wl,--build-id=none", "-Wl,--gc-sections", "-o", elf,
     path.join(RUNTIME_OBJECTS, "crt0.o"),
     ...sources.map((_, i) => path.join(out, `${i}.o`)),
     path.join(RUNTIME_OBJECTS, "libruntime.o"), "-lgcc",

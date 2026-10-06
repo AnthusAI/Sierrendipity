@@ -34,7 +34,7 @@ COPY runner ./runner
 RUN mkdir -p /opt/riscv-runtime \
     && riscv64-unknown-elf-gcc -march=rv32im -mabi=ilp32 -c runner/riscv/crt0.S -o /opt/riscv-runtime/crt0.o \
     && riscv64-unknown-elf-gcc -march=rv32im -mabi=ilp32 -O1 -ffreestanding -fno-pic \
-       -fno-tree-loop-distribute-patterns -isystem runner/riscv/include \
+       -ffunction-sections -fdata-sections -fno-tree-loop-distribute-patterns -isystem runner/riscv/include \
        -c runner/riscv/libruntime.c -o /opt/riscv-runtime/libruntime.o
 
 # The server stays root: it needs CAP_SETUID/CAP_SETGID/CAP_KILL to give each run its own uid, and

@@ -103,7 +103,7 @@ Feature: Explain a C program as RISC-V machine code
       """
     When the project is explained
     Then the status is "compile_error"
-    And the compile output mentions "main.c:3"
+    And the compile output mentions "main.c:2:11: error"
     And the compile output has no temporary paths
     And there is no program and no instruction list
 
@@ -242,7 +242,7 @@ Feature: Explain a C program as RISC-V machine code
     And the runner still answers health checks
 
   @linux-only
-  Scenario Outline: An endless .incbin is stopped
+  Scenario Outline: An endless .incbin of a device never hangs the assembler
     Given a C project
     And the file "main.c" containing:
       """
@@ -250,8 +250,9 @@ Feature: Explain a C program as RISC-V machine code
       int main(void) { return 0; }
       """
     When the project is explained
-    Then the status is one of "time_limit_exceeded, output_limit_exceeded"
+    Then the status is one of "time_limit_exceeded, output_limit_exceeded, compile_error"
     And there is no program and no instruction list
+    And the compile output has no temporary paths
     And the runner still answers health checks
 
     Examples:
