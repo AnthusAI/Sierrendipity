@@ -22,6 +22,13 @@ sign-in through the deployed site started a Fargate task, and a Python program r
 in the browser. On Fargate the sandbox blocks network sockets and runs student code as an
 unprivileged per-run user.
 
+Compilation Explorer (milestone M9): the IDE also takes RISC-V assembly and raw machine code, runs
+them in an in-browser RV32IM emulator (step, step back, registers, memory, breakpoints), and for C
+shows source lines linked to assembly instructions, their machine-code bytes and bit fields via
+`POST /explain`. Verified: the emulator against the official riscv-tests and GNU as/objdump, and
+`/explain` on a real Fargate task with the returned program run in the emulator. See
+[docs/m9-plan.md](docs/m9-plan.md) and [docs/curriculum-design.md](docs/curriculum-design.md).
+
 Not yet verified: the one-task-per-user and global-cap limits against real concurrent requests,
 and rejection of an unapproved Google account (both covered by specs only).
 
