@@ -44,7 +44,7 @@
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity planning"
   },
-  "right_now_summary": "Sandbox protections pass locally; the team is verifying them on a real Fargate task.",
-  "right_now_updated_at": "2026-10-06T14:14:31.826803Z",
+  "right_now_summary": "The sandbox passes core tests, while fixes address secret leaks, runner kills, and process cleanup.",
+  "right_now_updated_at": "2026-10-06T14:17:00.616107Z",
   "custom": {}
 }

@@ -31,7 +31,7 @@
     "platform": "claude_code",
     "model": "claude-sonnet-5-5"
   },
-  "right_now_summary": "The tutor works locally, but AWS, sign-in, sandboxing, and multi-file runs still need live testing.",
-  "right_now_updated_at": "2026-10-06T14:14:45.336452Z",
+  "right_now_summary": "The tutor is deployed, but real sign-in, interactive runs, and cloud session cleanup still need testing.",
+  "right_now_updated_at": "2026-10-06T14:17:08.965423Z",
   "custom": {}
 }

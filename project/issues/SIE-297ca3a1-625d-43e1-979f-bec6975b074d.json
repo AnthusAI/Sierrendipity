@@ -3,23 +3,31 @@
   "title": "Confirm seccomp, capabilities and per-run uids on a real Fargate task",
   "description": "",
   "type": "task",
-  "status": "open",
+  "status": "closed",
   "priority": 2,
   "assignee": null,
   "creator": null,
   "parent": "SIE-00ce505c-cbb1-4869-8083-a08749f9d146",
   "labels": [],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "9923a2bf-e017-4fef-a453-b390ebadddcc",
+      "author": "home",
+      "text": "Verified on a real Fargate ARM64 task through the deployed proxy: a C program's socket() returned -1 with errno 1 (EPERM), and the program ran as an unprivileged per-run uid under a root server (capabilities CHOWN, DAC_OVERRIDE, SETUID, SETGID, KILL sufficed). Specs still run on Docker only; this was a smoke test.",
+      "created_at": "2026-10-06T14:16:49.545211Z",
+      "comment_type": "default"
+    }
+  ],
   "created_at": "2026-10-06T14:14:28.567691Z",
-  "updated_at": "2026-10-06T14:14:28.567719Z",
-  "closed_at": null,
+  "updated_at": "2026-10-06T14:16:56.754284Z",
+  "closed_at": "2026-10-06T14:16:56.754255Z",
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity-board"
   },
-  "right_now_summary": "The team is verifying seccomp, capabilities, and per-run UIDs on a real Fargate task.",
-  "right_now_updated_at": "2026-10-06T14:14:30.301142Z",
+  "right_now_summary": "A Fargate ARM64 smoke test confirmed seccomp and per-run UID behavior; full specs still run only on Docker.",
+  "right_now_updated_at": "2026-10-06T14:16:58.522254Z",
   "custom": {}
 }
