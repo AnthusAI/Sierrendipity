@@ -194,3 +194,21 @@ Feature: Contain student code
       """
     When the project is run
     Then the program output is "unshare -1 Operation not permitted\nmount -1 Operation not permitted\nclone -1 Operation not permitted\n"
+
+  Scenario: System V shared memory is refused
+    Given a Python project
+    And the file "main.py" containing:
+      """
+      import ctypes, os
+      libc = ctypes.CDLL(None, use_errno=True)
+      libc.shmget.argtypes = [ctypes.c_int, ctypes.c_size_t, ctypes.c_int]
+      r = libc.shmget(0, 4096, 0o1600)  # IPC_PRIVATE | IPC_CREAT
+      print(r, os.strerror(ctypes.get_errno()))
+      """
+    When the project is run
+    Then the program output is "-1 Operation not permitted\n"
+
+  Scenario: Leftover System V IPC objects of a finished run are removed
+    Given a System V shared memory segment created by sandbox user 20001 outside the filter
+    When the run's cleanup runs for sandbox user 20001
+    Then the segment no longer exists

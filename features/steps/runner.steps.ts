@@ -2,6 +2,10 @@ import { Given, When, Then, Before, After } from "@cucumber/cucumber";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { readdirSync, readFileSync } from "node:fs";
+import { mkdtemp } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { cleanUpRun } from "../../runner/src/run-project.ts";
 
 type RunResult = {
   compile?: { ok: boolean; output: string; timedOut: boolean };
@@ -205,4 +209,28 @@ Then("no sleep process is left running", () => {
 Then("no files owned by sandbox users remain", () => {
   const found = execFileSync("find", ["/tmp", "/var/tmp", "/dev/shm", "-xdev", "-uid", "+19999"]).toString();
   assert.equal(found.trim(), "");
+});
+
+let segmentId: string;
+const segments = () => readFileSync("/proc/sysvipc/shm", "utf8");
+
+Given("a System V shared memory segment created by sandbox user {int} outside the filter", (uid: number) => {
+  const program = [
+    "import ctypes",
+    "libc = ctypes.CDLL(None, use_errno=True)",
+    "print(libc.shmget(0, 4096, 0o1600))",
+  ].join("\n");
+  segmentId = execFileSync("/usr/local/bin/sandbox-exec", [`--uid=${uid}`, "--no-seccomp", "--", "python3", "-c", program])
+    .toString()
+    .trim();
+  assert.match(segmentId, /^\d+$/);
+  assert.ok(segments().split("\n").some((line) => line.trim().split(/\s+/)[1] === segmentId), "segment was not created");
+});
+
+When("the run's cleanup runs for sandbox user {int}", async (uid: number) => {
+  await cleanUpRun(await mkdtemp(path.join(tmpdir(), "sierrendipity-")), uid);
+});
+
+Then("the segment no longer exists", () => {
+  assert.ok(!segments().split("\n").some((line) => line.trim().split(/\s+/)[1] === segmentId));
 });
