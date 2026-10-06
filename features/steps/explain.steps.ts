@@ -35,6 +35,71 @@ Given("a main.c with {int} statements", (count: number) => {
   currentRequest().files.push({ path: "main.c", content: `int main(void) {\n  int x = 0;\n${body}\n  return x;\n}\n` });
 });
 
+Given("a file named with {int} characters ending in {string}", (length: number, ext: string) => {
+  currentRequest().files.push({ path: "a".repeat(length - ext.length) + ext, content: "int main(void) { return 0; }\n" });
+});
+
+// main.c holds a long run of nops in a function symbol; b.c appends a valid DWARF 4 line unit made of
+// many one-row sequences. Scanning every sequence for every instruction was quadratic.
+Given("a project whose debug line table has {int} sequences", (count: number) => {
+  const files = currentRequest().files;
+  files.push({
+    path: "main.c",
+    content:
+      '__asm__(".text\\n.type big,@function\\nbig:\\n.rept 15000\\nnop\\n.endr\\n.size big,.-big");\n' +
+      "int zz(void);\nint main(void) { return zz(); }\n",
+  });
+  files.push({
+    path: "b.c",
+    content:
+      '__asm__(".section .debug_line,\\"\\",@progbits\\n.4byte 2f-1f\\n1:\\n.2byte 4\\n.4byte 4f-3f\\n3:\\n' +
+      ".byte 1,1,1,-5,14,13\\n.byte 0,1,1,1,1,0,0,0,1,0,0,1\\n.byte 0\\n.asciz \\\"b.c\\\"\\n.byte 0,0,0,0\\n4:\\n" +
+      `.rept ${count}\\n.byte 1,0,1,1\\n.endr\\n2:\\n.text\\n");\n` +
+      '__asm__(".text\\n.globl zz\\n.type zz,@function\\nzz: li a0,1\\nret\\n.size zz,.-zz");\n',
+  });
+});
+
+let timing: { total: number; worstHealth: number };
+
+When("the project is explained while health checks are polled", async () => {
+  const started = Date.now();
+  let worst = 0;
+  let polling = true;
+  const poll = (async () => {
+    while (polling) {
+      const t = Date.now();
+      await fetch(`${process.env.RUNNER_URL}/healthz`);
+      worst = Math.max(worst, Date.now() - t);
+      await new Promise((r) => setTimeout(r, 100));
+    }
+  })();
+  setResponse(await postExplain(explainBody()));
+  timing = { total: Date.now() - started, worstHealth: worst };
+  polling = false;
+  await poll;
+});
+
+Then("the request completed within {int} seconds", (seconds: number) => {
+  assert.ok(timing.total < seconds * 1000, `took ${timing.total} ms`);
+});
+
+Then("every health check was answered within {int} seconds", (seconds: number) => {
+  assert.ok(timing.worstHealth < seconds * 1000, `worst ${timing.worstHealth} ms`);
+});
+
+Then("every instruction address is unique, ascending and 4-aligned", () => {
+  const list = instructions();
+  assert.ok(list.length > 0);
+  list.forEach((i, n) => {
+    assert.equal(i.addr % 4, 0, `0x${i.addr.toString(16)}`);
+    if (n > 0) assert.ok(i.addr > list[n - 1].addr, `0x${i.addr.toString(16)} after 0x${list[n - 1].addr.toString(16)}`);
+  });
+});
+
+Then("no instruction belongs to the function {string}", (name: string) => {
+  assert.equal(ofFunction(name).length, 0);
+});
+
 When("the project is explained", async () => {
   setResponse(await postExplain(explainBody()));
 });

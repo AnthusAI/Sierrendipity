@@ -343,3 +343,66 @@ Feature: Explain a C program as RISC-V machine code
     When the project is built and run in an emulator
     Then the emulated output is "3 1 0 9 -12 xxx abc 5000\n"
     And the emulated exit code is 3
+
+  @linux-only
+  Scenario: A hostile line table with many sequences cannot stall the runner
+    Given a C project
+    And a project whose debug line table has 200000 sequences
+    When the project is explained while health checks are polled
+    Then the status is "output_limit_exceeded"
+    And the request completed within 8 seconds
+    And every health check was answered within 3 seconds
+    And there is no program and no instruction list
+
+  @linux-only
+  Scenario: Aliased functions are listed once, at ascending addresses
+    Given a C project
+    And the file "main.c" containing:
+      """
+      int f(void) { return 3; }
+      int g(void) __attribute__((alias("f")));
+      int main(void) { return g() + f(); }
+      """
+    When the project is explained
+    Then the status is "ok"
+    And every instruction address is unique, ascending and 4-aligned
+
+  @linux-only
+  Scenario: Symbols that are not code are not listed
+    Given a C project
+    And the file "main.c" containing:
+      """
+      __asm__(".section .rodata\n.type ro,@function\nro: .word 0x13\n.size ro,4\n"
+              ".text\n.byte 0\n.type odd,@function\nodd: nop\n.size odd,4\n.byte 0,0,0\n");
+      extern const char ro[];
+      int main(void) { return ro[0]; }
+      """
+    When the project is explained
+    Then the status is "ok"
+    And every instruction address is unique, ascending and 4-aligned
+    And no instruction belongs to the function "ro"
+    And no instruction belongs to the function "odd"
+
+  @linux-only
+  Scenario Outline: A program that does not fit in memory is an output limit
+    Given a C project
+    And the file "main.c" containing:
+      """
+      <declaration>
+      int main(void) { return big[0]; }
+      """
+    When the project is explained
+    Then the status is "output_limit_exceeded"
+    And there is no program and no instruction list
+
+    Examples:
+      | declaration                |
+      | char big[2000000];         |
+      | char big[2000000] = {1};   |
+      | char big[1000000];         |
+
+  Scenario: A very long file name is refused
+    Given a C project
+    And a file named with 300 characters ending in ".c"
+    When the project is explained
+    Then the request is rejected
