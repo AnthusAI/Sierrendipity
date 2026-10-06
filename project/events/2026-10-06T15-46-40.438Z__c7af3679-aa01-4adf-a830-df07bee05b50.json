@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "c7af3679-aa01-4adf-a830-df07bee05b50",
+  "issue_id": "SIE-f0d77ce0-66c5-4546-8e4d-6d732d7c1782",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T15:46:40.438Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Deploy from GitHub Actions with an OIDC role instead of manual cdk deploy",
+    "description": "Today the stack is deployed by hand with the legacy SSO profile. Add an IAM OIDC provider/role for this repo and a deploy workflow (cdk diff on PRs, deploy after a release), modeled on Chatticus's github-deploy-stack. Also set branch protection on develop and main requiring specs, commitlint, typecheck.",
+    "issue_type": "task",
+    "status": "open",
+    "priority": 3,
+    "assignee": null,
+    "parent": "SIE-2b76fcaf-f14b-4459-b580-a9f64738827c",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-orchestrator"
+    }
+  }
+}
