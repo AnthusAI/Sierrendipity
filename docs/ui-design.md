@@ -99,5 +99,12 @@ that state; `TimelineControls` is the shared playback bar (native range and sele
 - Motion library: not added. Because `t` drives the render, a token flight needs no animation engine, and
   there are no Web Animations to run on tokens. Bundle impact of the diagrams and the lab is about +31 kB
   raw (+10 kB gzip) in the main chunk, mostly the explorer `Timeline` and the icons.
-- Pixel colors are built from existing tokens only (`--muted`, `--field-1..7`, the `--ansi-*` text steps
-  and `--foreground`); each has a text label in the legend and its number printed on the cell.
+- Pixel colors are 16 dedicated tokens, `--pixel-N` (fill) and `--pixel-N-fg` (the number printed on it),
+  solid Radix steps chosen so each looks like its label in every theme and mode (the text steps of the
+  `--ansi-*` tokens read as near-black when used as fills). Specs check pairwise distance, hue class per
+  label and 4.5:1 numbers. Bytes above 15 are drawn as striped "other" with a legend entry.
+- Honest states: a faulted step is shown as "The machine stopped: <plain reason>" (log, notice in the
+  views and controls) and changes no box; a trailing `ebreak` is the only hidden end marker; a program
+  that never halts is cut at `maxSteps` (default 2000) with "This program keeps going"; the log keeps
+  the newest 50 entries. Prose numbers cards from 1 and says "address" only for byte addresses.
+- Controls use `aria-disabled` so focus stays on Step or Back when it reaches the end or start.
