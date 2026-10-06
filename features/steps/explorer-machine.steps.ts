@@ -139,6 +139,43 @@ Then("stepping back {int} times restores every recorded state exactly", (count: 
   }
 });
 
+let loadError: string | null;
+
+When("I try to load {int} bytes at {word} with entry {word}", (length: number, address: string, entry: string) => {
+  try {
+    machine.load(new Uint8Array(length), Number(address), Number(entry));
+    loadError = null;
+  } catch (e) {
+    loadError = (e as Error).message;
+  }
+});
+
+Then("loading fails with {string}", (message: string) => {
+  assert.equal(loadError, message);
+});
+
+Given("an io whose read supplies {string} the first time and then has nothing", (text: string) => {
+  let asked = 0;
+  customRead = () => (asked++ === 0 ? new TextEncoder().encode(text) : null);
+});
+
+When("I provide {int} MiB of input", (mebibytes: number) => {
+  machine.provideInput(new Uint8Array(mebibytes << 20));
+});
+
+Then("stepping back to the start leaves the machine ready", () => {
+  while (machine.stepBack());
+  assert.equal(machine.state, "ready");
+  assert.equal(machine.pc, 0);
+  assert.equal(machine.steps, 0);
+});
+
+Then("the machine state cannot be assigned from outside", () => {
+  for (const name of ["pc", "state", "exitCode", "steps", "fault"]) {
+    assert.equal(Reflect.set(machine, name, 5), false, `${name} should be read-only`);
+  }
+});
+
 Then("stepping back once more fails", () => {
   assert.equal(machine.stepBack(), false);
 });

@@ -49,12 +49,18 @@ Decoder
 - `fields` are ordered from bit 31 down to bit 0 and tile all 32 bits. Scattered immediates are
   several `Field`s named `imm` (S: 2, B: 4, J: 4), each with the raw bits of its piece as `value`
   and a label such as `imm = -36 (bits 11:5)`; a whole immediate is `imm = -36`; U is `imm = 0x12345`.
+- `fence` (exactly 0x0ff0000f, `fence iorw, iorw`) decodes, assembles and executes as a no-op; other
+  MISC-MEM words (`fence.i`, `fence.tso`) are invalid.
 - Shift-immediates are I-format with fields `funct7`, `shamt` (not `imm`). Only `ecall` (0x73) and
   `ebreak` (0x100073) are accepted in the SYSTEM opcode.
 - Branch and `jal` operands are the relative byte offset as a decimal number (the pc is unknown).
 - Aliases: `nop`, `li rd, imm` (addi from zero), `mv rd, rs` (addi with imm 0), `ret`, `jr rs`, `j off`.
 
 Assembler
+- Lines end at `\n`, `\r\n`, a lone `\r`, U+2028 or U+2029. A line longer than 4096 characters is an
+  error (column 1) and is not scanned; `parseMachineCode` has the same cap. Mnemonics, directives and
+  register names are case-insensitive; labels are case-sensitive. A number too big for a double is
+  `number is too large`.
 - Line and column are 1-based; a program with any error returns empty `words` and `listing`.
 - Operands: `rd, rs1, rs2`; `imm(reg)` (offset optional); branch and `jal` targets are a label or a
   plain relative byte offset (so decoder output assembles again); `jal label` means `jal ra, label`;
@@ -65,6 +71,9 @@ Assembler
   low 12 bits are zero) with the bit-11 carry fix.
 
 Machine
+- `load` validates before changing anything and throws `RangeError`: load address inside memory, image
+  fits, entry 4-byte aligned and inside memory. `pc`, `state`, `exitCode`, `steps` and `fault` are
+  read-only getters. If `io.read` returns more than asked, the excess is kept for the next read.
 - `provideInput(bytes)` queues bytes for `read`; an empty array marks end of input (read then
   returns 0). If `io.read` is supplied it is asked when the queue is empty. While `waiting-input`,
   `step()` and `run()` retry the ecall (so a custom `io.read` is polled); `provideInput` moves the
@@ -75,7 +84,8 @@ Machine
 - `changedRegs` lists registers whose value changed. `memWrite` is set by stores and by `read`.
 - `stepBack` undoes registers, memory, pc, state, exit code, fault and the step counter, and puts input
   consumed by a `read` back. Output already passed to `io.write` is not retracted. History keeps
-  between 10,000 and 20,000 steps. `reset()` also clears memory, queued input and history.
+  between 10,000 and 20,000 steps and at most about 16 MiB of saved read data (oldest dropped first).
+  Stepping back over a read that had waited leaves the state `running`, and back to step 0 `ready`. `reset()` also clears memory, queued input and history.
 - `run()` always executes at least one instruction before checking breakpoints, so a machine stopped
   at a breakpoint can continue. `step()` ignores breakpoints.
 

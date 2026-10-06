@@ -79,3 +79,39 @@ Then("the parsed words are {string}", (words: string) => {
 Then("the only parse error is at line {int} column {int}: {string}", (line: number, column: number, message: string) => {
   assert.deepEqual(parsed.errors, [{ line, column, message }]);
 });
+
+let elapsedMs = 0;
+const timed = <T>(work: () => T): T => {
+  const start = performance.now();
+  const value = work();
+  elapsedMs = performance.now() - start;
+  return value;
+};
+
+When("I assemble the source with escapes {string}", (text: string) => {
+  source = text.replace(/\\r/g, "\r").replace(/\\n/g, "\n").replace(/\\u2028/g, " ");
+  result = assemble(source);
+});
+
+When("I assemble a line of {int} open parentheses after {string}", (count: number, prefix: string) => {
+  source = prefix + "(".repeat(count);
+  result = timed(() => assemble(source));
+});
+
+When("I assemble an addi with a decimal literal of {int} digits", (digits: number) => {
+  source = `addi a0, a0, ${"9".repeat(digits)}`;
+  result = assemble(source);
+});
+
+When("I parse a line of {int} words", (count: number) => {
+  parsed = timed(() => parseMachineCode("0 ".repeat(count)));
+});
+
+Then("there is one error and it mentions {string}", (text: string) => {
+  assert.equal(result.errors.length, 1);
+  assert.ok(result.errors[0]!.message.includes(text), result.errors[0]!.message);
+});
+
+Then("that took less than {int} ms", (limit: number) => {
+  assert.ok(elapsedMs < limit, `took ${elapsedMs} ms`);
+});

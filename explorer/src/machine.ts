@@ -36,19 +36,22 @@ interface HistoryEntry {
 class Fault extends Error {}
 
 const HISTORY_LIMIT = 10_000;
+const HISTORY_BYTES = 16 * 1024 * 1024;
+const entrySize = (e: HistoryEntry): number => (e.memOld?.length ?? 0) + (e.input?.length ?? 0);
 const hex = (n: number): string => `0x${(n >>> 0).toString(16)}`;
 const SYS_READ = 63;
 const SYS_WRITE = 64;
 const SYS_EXIT = 93;
 
 export class Machine {
-  pc = 0;
   readonly regs = new Uint32Array(32);
-  state: MachineState = "ready";
-  exitCode: number | null = null;
-  steps = 0;
-  fault: string | null = null;
   breakpoints = new Set<number>();
+
+  private _pc = 0;
+  private _state: MachineState = "ready";
+  private _exitCode: number | null = null;
+  private _steps = 0;
+  private _fault: string | null = null;
 
   private readonly mem: Uint8Array;
   private readonly view: DataView;
@@ -58,6 +61,7 @@ export class Machine {
   private loadAddress = 0;
   private entry = 0;
   private history: HistoryEntry[] = [];
+  private historyBytes = 0;
   private input = new Uint8Array(0);
   private inputClosed = false;
   // Working state of the step in progress.
@@ -65,6 +69,22 @@ export class Machine {
   private changed: number[] = [];
   private memWrite: { addr: number; length: number } | undefined;
   private lastWord = 0;
+
+  get pc(): number {
+    return this._pc;
+  }
+  get state(): MachineState {
+    return this._state;
+  }
+  get exitCode(): number | null {
+    return this._exitCode;
+  }
+  get steps(): number {
+    return this._steps;
+  }
+  get fault(): string | null {
+    return this._fault;
+  }
 
   constructor(opts: { memorySize?: number; stackTop?: number; io?: MachineIO } = {}) {
     const size = opts.memorySize ?? 1 << 20;
@@ -76,8 +96,15 @@ export class Machine {
   }
 
   load(image: Uint8Array, loadAddress: number, entry: number): void {
-    if (loadAddress + image.length > this.mem.length) {
-      throw new RangeError(`image of ${image.length} bytes at ${hex(loadAddress)} does not fit in memory`);
+    const size = this.mem.length;
+    if (!Number.isInteger(loadAddress) || loadAddress < 0 || loadAddress > size) {
+      throw new RangeError(`load address ${loadAddress} must be inside memory`);
+    }
+    if (loadAddress + image.length > size) {
+      throw new RangeError(`image of ${image.length} bytes at ${loadAddress} does not fit in memory`);
+    }
+    if (!Number.isInteger(entry) || entry < 0 || entry + 4 > size || entry % 4 !== 0) {
+      throw new RangeError(`entry point ${entry} must be a 4-byte aligned address inside memory`);
     }
     this.image = image.slice();
     this.loadAddress = loadAddress;
@@ -90,12 +117,13 @@ export class Machine {
     this.mem.set(this.image, this.loadAddress);
     this.regs.fill(0);
     this.regs[2] = this.stackTop;
-    this.pc = this.entry;
-    this.state = "ready";
-    this.exitCode = null;
-    this.steps = 0;
-    this.fault = null;
+    this._pc = this.entry;
+    this._state = "ready";
+    this._exitCode = null;
+    this._steps = 0;
+    this._fault = null;
     this.history = [];
+    this.historyBytes = 0;
     this.input = new Uint8Array(0);
     this.inputClosed = false;
   }
@@ -117,11 +145,11 @@ export class Machine {
       joined.set(bytes, this.input.length);
       this.input = joined;
     }
-    if (this.state === "waiting-input") this.state = "running";
+    if (this._state === "waiting-input") this._state = "running";
   }
 
   step(): StepResult {
-    const pc = this.pc;
+    const pc = this._pc;
     this.advance();
     return {
       pc,
@@ -129,24 +157,25 @@ export class Machine {
       decoded: decode(this.lastWord),
       changedRegs: this.changed,
       ...(this.memWrite ? { memWrite: this.memWrite } : {}),
-      state: this.state,
+      state: this._state,
     };
   }
 
   run(maxSteps = 1_000_000): MachineState {
     // The first instruction always runs, so that a stopped machine can continue from a breakpoint.
     for (let n = 0; n < maxSteps; n++) {
-      if (this.state === "halted" || this.state === "faulted") break;
-      if (n > 0 && this.breakpoints.has(this.pc)) break;
+      if (this._state === "halted" || this._state === "faulted") break;
+      if (n > 0 && this.breakpoints.has(this._pc)) break;
       this.advance();
-      if (this.state !== "running") break;
+      if (this._state !== "running") break;
     }
-    return this.state;
+    return this._state;
   }
 
   stepBack(): boolean {
     const entry = this.history.pop();
     if (!entry) return false;
+    this.historyBytes -= entrySize(entry);
     if (entry.reg >= 0) this.regs[entry.reg] = entry.regOld;
     if (entry.memOld) this.mem.set(entry.memOld, entry.memAddr);
     if (entry.input) {
@@ -155,11 +184,11 @@ export class Machine {
       joined.set(this.input, entry.input.length);
       this.input = joined;
     }
-    this.pc = entry.pc;
-    this.state = entry.state;
-    this.exitCode = entry.exitCode;
-    this.fault = entry.fault;
-    if (entry.counted) this.steps--;
+    this._pc = entry.pc;
+    this._state = entry.state;
+    this._exitCode = entry.exitCode;
+    this._fault = entry.fault;
+    if (entry.counted) this._steps--;
     return true;
   }
 
@@ -170,30 +199,39 @@ export class Machine {
     this.changed = [];
     this.memWrite = undefined;
     this.lastWord = 0;
-    if (this.state === "halted" || this.state === "faulted") return;
-    const pc = this.pc;
+    if (this._state === "halted" || this._state === "faulted") return;
+    const pc = this._pc;
     this.current = {
-      pc, state: this.state, exitCode: this.exitCode, fault: this.fault,
+      pc, state: this._state === "waiting-input" ? "running" : this._state, exitCode: this._exitCode, fault: this._fault,
       reg: -1, regOld: 0, memAddr: 0, memOld: null, input: null, counted: false,
     };
-    this.state = "running";
+    this._state = "running";
     try {
       if (pc % 4 !== 0) throw new Fault(`misaligned instruction fetch`);
       if (pc + 4 > this.mem.length) throw new Fault(`instruction fetch out of range`);
       this.lastWord = this.view.getUint32(pc, true);
       if (this.execute(this.lastWord, pc) === "wait") {
-        this.state = "waiting-input";
+        this._state = "waiting-input";
         return;
       }
       this.current.counted = true;
-      this.steps++;
+      this._steps++;
     } catch (e) {
       if (!(e instanceof Fault)) throw e;
-      this.state = "faulted";
-      this.fault = `${e.message} at pc ${hex(pc)}`;
+      this._state = "faulted";
+      this._fault = `${e.message} at pc ${hex(pc)}`;
     }
     this.history.push(this.current);
-    if (this.history.length > 2 * HISTORY_LIMIT) this.history.splice(0, this.history.length - HISTORY_LIMIT);
+    this.historyBytes += entrySize(this.current);
+    if (this.history.length > 2 * HISTORY_LIMIT) {
+      for (const dropped of this.history.splice(0, this.history.length - HISTORY_LIMIT)) this.historyBytes -= entrySize(dropped);
+    }
+    // Reads can save a lot of memory; drop the oldest entries beyond the byte budget (keep the newest).
+    let oldest = 0;
+    while (this.historyBytes > HISTORY_BYTES && oldest < this.history.length - 1) {
+      this.historyBytes -= entrySize(this.history[oldest++]!);
+    }
+    if (oldest > 0) this.history.splice(0, oldest);
   }
 
   private setReg(rd: number, value: number): void {
@@ -219,7 +257,7 @@ export class Machine {
   private jump(target: number): void {
     if (target % 4 !== 0) throw new Fault(`misaligned jump target ${hex(target)}`);
     if (target + 4 > this.mem.length) throw new Fault(`jump target ${hex(target)} out of range`);
-    this.pc = target;
+    this._pc = target;
   }
 
   private execute(w: number, pc: number): "ok" | "wait" | "halt" {
@@ -289,6 +327,9 @@ export class Machine {
         }
         break;
       }
+      case 0x0f:
+        if (w !== 0x0ff0000f) throw illegal();
+        break; // fence: nothing to order in a single-hart emulator
       case 0x37:
         this.setReg(rd, w & 0xfffff000);
         break;
@@ -314,13 +355,13 @@ export class Machine {
       default:
         throw illegal();
     }
-    this.pc = next;
+    this._pc = next;
     return "ok";
   }
 
   /** Stop at the current instruction without an exit code. */
   private halt(): "halt" {
-    this.state = "halted";
+    this._state = "halted";
     return "halt";
   }
 
@@ -329,7 +370,7 @@ export class Machine {
     const [a0, a1, a2] = [this.regs[10]!, this.regs[11]!, this.regs[12]!];
     switch (number) {
       case SYS_EXIT:
-        this.exitCode = a0 | 0;
+        this._exitCode = a0 | 0;
         return this.halt();
       case SYS_WRITE: {
         if (a1 + a2 > this.mem.length) throw new Fault(`write buffer ${hex(a1)}+${a2} out of range`);
@@ -342,11 +383,12 @@ export class Machine {
         let data: Uint8Array | null = null;
         if (this.input.length > 0) {
           data = this.input.slice(0, a2);
-          this.input = this.input.slice(data.length);
+          this.input = this.input.subarray(data.length);
         } else if (a2 > 0) {
           const fresh = this.io?.read(a0, a2) ?? (this.inputClosed ? new Uint8Array(0) : null);
           if (fresh === null) return "wait";
           data = fresh.slice(0, a2);
+          this.input = fresh.slice(a2); // keep what the io gave beyond this read for the next one
         } else {
           data = new Uint8Array(0);
         }
@@ -361,7 +403,7 @@ export class Machine {
       default:
         throw new Fault(`unsupported ecall ${number}`);
     }
-    this.pc += 4;
+    this._pc += 4;
     return "ok";
   }
 }

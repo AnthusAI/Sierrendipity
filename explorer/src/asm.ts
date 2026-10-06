@@ -34,6 +34,8 @@ const LOAD_OPS: Record<string, number> = { lb: 0, lh: 1, lw: 2, lbu: 4, lhu: 5 }
 const STORE_OPS: Record<string, number> = { sb: 0, sh: 1, sw: 2 };
 const BRANCH_OPS: Record<string, number> = { beq: 0, bne: 1, blt: 4, bge: 5, bltu: 6, bgeu: 7 };
 
+const MAX_LINE_LENGTH = 4096;
+
 const IGNORED_DIRECTIVES = new Set([".text", ".globl", ".global"]);
 const FILE_DIRECTIVES = new Set([".incbin", ".include"]);
 
@@ -105,8 +107,12 @@ export function assemble(source: string, opts: { base?: number } = {}): AsmResul
 
   // Pass 1: split lines into labels and statements, and assign addresses.
   let addr = base;
-  source.split(/\r?\n/).forEach((raw, index) => {
+  source.split(/\r\n|[\r\n\u2028\u2029]/).forEach((raw, index) => {
     const line = index + 1;
+    if (raw.length > MAX_LINE_LENGTH) {
+      fail(line, 1, `line is longer than ${MAX_LINE_LENGTH} characters`);
+      return;
+    }
     let text = raw;
     const comment = text.search(/#|\/\//);
     if (comment >= 0) text = text.slice(0, comment);
@@ -119,8 +125,11 @@ export function assemble(source: string, opts: { base?: number } = {}): AsmResul
       else labels[name] = addr;
       pos += m[0].length;
     }
-    const stmt = /^(\s*)(\S+)(.*)$/.exec(text.slice(pos));
-    if (!stmt) return;
+    const stmt = /^(\s*)(\S+)([\s\S]*)$/.exec(text.slice(pos));
+    if (!stmt) {
+      if (text.slice(pos).trim() !== "") fail(line, pos + 1, "could not read this line");
+      return;
+    }
     const column = pos + stmt[1]!.length + 1;
     const mnemonic = stmt[2]!;
     const operands: Operand[] = [];
@@ -159,9 +168,9 @@ export function assemble(source: string, opts: { base?: number } = {}): AsmResul
 }
 
 function sizeInWords(st: Statement): number {
-  if (st.mnemonic === ".word") return Math.max(st.operands.length, 1);
+  if (st.mnemonic.toLowerCase() === ".word") return Math.max(st.operands.length, 1);
   if (st.mnemonic.startsWith(".")) return 0;
-  if (st.mnemonic === "li" && st.operands.length === 2) {
+  if (st.mnemonic.toLowerCase() === "li" && st.operands.length === 2) {
     const value = parseNumber(st.operands[1]!.text);
     if (value !== null && value >= -2147483648 && value <= 4294967295) return liWords(0, value).length;
   }
@@ -169,7 +178,8 @@ function sizeInWords(st: Statement): number {
 }
 
 function encode(st: Statement, labels: Record<string, number>): number[] {
-  const { mnemonic: m, operands: ops } = st;
+  const { operands: ops } = st;
+  const m = st.mnemonic.toLowerCase();
 
   const expect = (min: number, max = min) => {
     if (ops.length < min || ops.length > max) {
@@ -178,13 +188,14 @@ function encode(st: Statement, labels: Record<string, number>): number[] {
     }
   };
   const reg = (op: Operand | undefined): number => {
-    const n = REGISTERS.get(op!.text);
+    const n = REGISTERS.get(op!.text.toLowerCase());
     if (n === undefined) throw new AsmFailure(op!.column, `bad register '${op!.text}'`);
     return n;
   };
   const num = (op: Operand): number => {
     const v = parseNumber(op.text);
     if (v === null) throw new AsmFailure(op.column, `bad number '${op.text}'`);
+    if (!Number.isSafeInteger(v)) throw new AsmFailure(op.column, "number is too large");
     return v;
   };
   const imm12 = (op: Operand): number => {
@@ -194,12 +205,15 @@ function encode(st: Statement, labels: Record<string, number>): number[] {
   };
   /** `offset(register)`, with the offset optional. */
   const memory = (op: Operand): { offset: number; base: number } => {
-    const match = /^(.*)\((.*)\)$/.exec(op.text);
-    if (!match) throw new AsmFailure(op.column, `expected offset(register) but found '${op.text}'`);
-    const offsetText = match[1]!.trim();
+    const open = op.text.indexOf("(");
+    if (open < 0 || !op.text.endsWith(")")) {
+      throw new AsmFailure(op.column, `expected offset(register) but found '${op.text}'`);
+    }
+    const offsetText = op.text.slice(0, open).trim();
     const offset = offsetText === "" ? 0 : imm12({ text: offsetText, column: op.column });
-    const registerText = match[2]!.trim();
-    const registerColumn = op.column + op.text.indexOf("(") + 1 + (match[2]!.length - match[2]!.trimStart().length);
+    const inner = op.text.slice(open + 1, -1);
+    const registerText = inner.trim();
+    const registerColumn = op.column + open + 1 + (inner.length - inner.trimStart().length);
     return { offset, base: reg({ text: registerText, column: registerColumn }) };
   };
   /** A number is a relative offset already; a name is a label. */
@@ -299,6 +313,9 @@ function encode(st: Statement, labels: Record<string, number>): number[] {
       const mem = memory(ops[1]!);
       return [iType(mem.offset, 0, rd, mem.base, 0x67)];
     }
+    case "fence":
+      expect(0);
+      return [0x0ff0000f];
     case "ecall":
       expect(0);
       return [0x73];
@@ -333,6 +350,6 @@ function encode(st: Statement, labels: Record<string, number>): number[] {
       expect(1);
       return [jType(jumpOffset(ops[0]!), 1)];
     default:
-      throw new AsmFailure(st.column, `unknown mnemonic '${m}'`);
+      throw new AsmFailure(st.column, `unknown mnemonic '${st.mnemonic}'`);
   }
 }

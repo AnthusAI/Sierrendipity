@@ -115,6 +115,12 @@ export function decode(word: number, opts: { aliases?: boolean } = {}): Decoded 
       }
       return make("I", "jalr", `${rdN}, ${v}(${rs1N})`, fields);
     }
+    case 0x0f: {
+      if (w !== 0x0ff0000f) return null; // only the plain `fence iorw, iorw`
+      return make("I", "fence", "", [
+        plain("imm", 31, 20, `imm = ${bits(w, 31, 20)}`), reg("rs1", 19, 15), funct3(), reg("rd", 11, 7), opcode(),
+      ]);
+    }
     case 0x73: {
       if (w !== 0x73 && w !== 0x100073) return null;
       return make("I", w === 0x73 ? "ecall" : "ebreak", "", [
