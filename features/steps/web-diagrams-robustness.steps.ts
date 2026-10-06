@@ -145,7 +145,10 @@ Then("the page does not scroll sideways", async function (this: WebWorld) {
   const { scroll, width } = (await this.page.evaluate(
     `({ scroll: document.documentElement.scrollWidth, width: document.documentElement.clientWidth })`,
   )) as { scroll: number; width: number };
-  assert.ok(scroll <= width, `the page is ${scroll}px wide in a ${width}px window`);
+  const wide = (await this.page.evaluate(
+    `[...document.querySelectorAll("main *")].filter((el) => el.getBoundingClientRect().right > document.documentElement.clientWidth + 1).slice(0, 6).map((el) => el.tagName + "." + String(el.className).slice(0, 60) + " right=" + Math.round(el.getBoundingClientRect().right))`,
+  )) as string[];
+  assert.ok(scroll <= width, `the page is ${scroll}px wide in a ${width}px window; too wide: ${wide.join(" | ")}`);
 });
 
 Then("no card text of the {string} demo spills out of its card", async function (this: WebWorld, name: string) {

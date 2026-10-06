@@ -115,6 +115,7 @@ Feature: Diagrams tell the truth about faults, limits and every kind of card
 
     Examples:
       | width |
+      | 320   |
       | 400   |
       | 512   |
       | 1024  |

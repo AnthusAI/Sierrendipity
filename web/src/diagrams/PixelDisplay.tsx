@@ -59,7 +59,7 @@ export function PixelDisplay({ timeline: tl, base = 0 }: Props) {
           })}
         </div>
       </div>
-      <div className="shrink-0">
+      <div className="min-w-0 max-w-full">
         <p className="mb-2 text-sm font-medium">Colours</p>
         <ul aria-label="Colour legend" data-legend className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
           {PIXEL_PALETTE.map((color) => (
