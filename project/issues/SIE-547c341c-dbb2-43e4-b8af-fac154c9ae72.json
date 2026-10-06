@@ -22,17 +22,29 @@
         "model": "claude-sonnet-5-5",
         "name": "Sierrendipity planning"
       }
+    },
+    {
+      "id": "9ec951e9-a74e-47ff-bc85-c043a1897483",
+      "author": "home",
+      "text": "M6 merged to develop (PR #3): Vite/React/Monaco/xterm IDE with Google sign-in client, 21 browser specs against a mock backend. Review fixes applied (warm-up deadline, stale-run recovery, storage hardening, path validation, SSE cleanup, terminal EOF/Ctrl-C, auth error screens). Not yet verified against real Cognito or runner.",
+      "created_at": "2026-10-06T12:56:38.378166Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-orchestrator"
+      }
     }
   ],
   "created_at": "2026-10-06T11:35:57.796020Z",
-  "updated_at": "2026-10-06T12:31:04.377664Z",
+  "updated_at": "2026-10-06T12:56:38.378203Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity planning"
   },
-  "right_now_summary": "The IDE work awaits M5 sign-in and token handling before cloud sessions can start.",
-  "right_now_updated_at": "2026-10-06T12:31:21.640906Z",
+  "right_now_summary": "M6 is merged to develop but still needs real Cognito and runner verification.",
+  "right_now_updated_at": "2026-10-06T12:56:39.513665Z",
   "custom": {}
 }

@@ -31,7 +31,7 @@
     "platform": "claude_code",
     "model": "claude-sonnet-5-5"
   },
-  "right_now_summary": "Core IDE work awaits sign-in, runner design, resource limits, and session handling.",
-  "right_now_updated_at": "2026-10-06T12:41:34.201164Z",
+  "right_now_summary": "Core features are merged, while sandbox fixes and real Cognito, runner, and AWS deployment checks remain.",
+  "right_now_updated_at": "2026-10-06T12:56:44.846653Z",
   "custom": {}
 }
