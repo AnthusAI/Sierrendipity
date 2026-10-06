@@ -7,8 +7,9 @@ import type { AsmError } from "./asm";
 const MAX_LINE_LENGTH = 4096;
 const TOKEN = /\S+/y;
 
-export function parseMachineCode(text: string): { words: number[]; errors: AsmError[] } {
+export function parseMachineCode(text: string): { words: number[]; lines: number[]; errors: AsmError[] } {
   const words: number[] = [];
+  const lines: number[] = []; // the 1-based source line of each word
   const errors: AsmError[] = [];
 
   text.split(/\r\n|[\r\n\u2028\u2029]/).forEach((raw, index) => {
@@ -45,7 +46,7 @@ export function parseMachineCode(text: string): { words: number[]; errors: AsmEr
           }
           end++;
         }
-        if (count === 32) words.push(value >>> 0);
+        if (count === 32) { words.push(value >>> 0); lines.push(line); }
         else if (count > 32) {
           while (end < code.length && /[01_]/.test(code[end]!)) end++; // swallow the rest of the digits
           fail(column, "binary word has more than 32 bits");
@@ -59,14 +60,14 @@ export function parseMachineCode(text: string): { words: number[]; errors: AsmEr
         const digits = token.slice(2).replace(/_/g, "");
         if (!/^[0-9a-fA-F]+$/.test(digits)) fail(column, `'${token}' is not a valid hex word`);
         else if (digits.length > 8) fail(column, `'${token}' has more than 32 bits`);
-        else words.push(parseInt(digits, 16) >>> 0);
+        else { words.push(parseInt(digits, 16) >>> 0); lines.push(line); }
       } else if (/^[0-9a-fA-F]{8}$/.test(token)) {
-        words.push(parseInt(token, 16) >>> 0);
+        { words.push(parseInt(token, 16) >>> 0); lines.push(line); }
       } else {
         fail(column, `'${token}' is not a hex or binary word`);
       }
     }
   });
 
-  return { words, errors };
+  return { words, lines, errors };
 }
