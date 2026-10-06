@@ -18,6 +18,9 @@ const PTY_RUN = path.join(__dirname, "..", "launcher", "pty-run.py");
 
 const FIRST_UID = 20001;
 // The compiler needs far more address space than student code; this only stops a runaway compile.
+// Measured for rustc 1.99 (LLVM): hello world needs about 512 MB, a 2.5k-line program 512 MB and a
+// generics-heavy one 640 MB; below that rustc dies, or hangs until the compile time limit. 1.5 GB
+// leaves more than 2x headroom for both gcc and rustc.
 const COMPILE_MEMORY_BYTES = 1536 * 1024 * 1024;
 // Files a run leaves in the shared scratch areas; the run directory lives in /tmp too.
 const SCRATCH = ["/tmp", "/var/tmp", "/dev/shm"];

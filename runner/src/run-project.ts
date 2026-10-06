@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { compilerCommand, isLinux, killUid, settlePipes, studentCommand, watchDisk, wipeUid } from "./sandbox.ts";
 
-export type Language = "python" | "c" | "cpp";
+export type Language = "python" | "c" | "cpp" | "rust";
 
 export interface RunRequest {
   language: Language;
@@ -57,6 +57,22 @@ const compilers = {
   c: { cmd: "gcc", ext: ".c", flags: ["-O2", "-std=c17"], libs: ["-lm"] },
   cpp: { cmd: "g++", ext: ".cpp", flags: ["-O2", "-std=c++20"], libs: [] as string[] },
 };
+
+/**
+ * Rust is compiled with `rustc` itself, never cargo: no crates, build scripts or proc-macros. The
+ * toolchain is pinned in runner/Dockerfile (RUST_VERSION) and linked at /opt/rust/toolchain.
+ * - opt-level=2 for speed, debuginfo=0 for small binaries, panic=unwind so a panic prints its message
+ *   and exits 101 like `cargo run`.
+ * - overflow-checks=on: integer overflow panics ("attempt to add with overflow") as in the debug builds
+ *   Rust courses teach with, instead of silently wrapping as a plain release build would.
+ * - No flag comes from the student, and RUSTC_BOOTSTRAP is never in the scrubbed environment, so
+ *   `#![feature(...)]` is refused by the compiler itself (error[E0554]).
+ */
+export const RUSTC = process.env.RUSTC ?? "/opt/rust/toolchain/bin/rustc";
+const RUSTC_FLAGS = [
+  "--edition", "2021", "-C", "opt-level=2", "-C", "debuginfo=0", "-C", "panic=unwind",
+  "-C", "overflow-checks=on", "--color", "never", "--error-format=human",
+];
 
 /** Run to completion. `uid` is this run's own sandbox user (see UidPool). */
 export async function runProject(request: RunRequest, uid?: number): Promise<RunResult> {
@@ -116,7 +132,7 @@ export function resolveLimits(given: unknown) {
 }
 
 export function validate(request: RunRequest): void {
-  if (!["python", "c", "cpp"].includes(request?.language)) throw new RequestError("unsupported language");
+  if (!["python", "c", "cpp", "rust"].includes(request?.language)) throw new RequestError("unsupported language");
   if (!Array.isArray(request.files) || request.files.length === 0) throw new RequestError("files are required");
   for (const file of request.files) {
     if (typeof file?.path !== "string" || typeof file.content !== "string") throw new RequestError("invalid file");
@@ -129,6 +145,10 @@ export function validate(request: RunRequest): void {
     if (paths.filter((q) => q === p).length > 1 || paths.some((q) => q.startsWith(p + "/"))) {
       throw new RequestError(`conflicting path: ${p}`);
     }
+  }
+  if (request.language === "rust") {
+    const other = request.files.find((f) => !f.path.endsWith(".rs"));
+    if (other) throw new RequestError(`only .rs files are accepted: ${other.path}`);
   }
   if (request.entry !== undefined && !request.files.some((f) => f.path === request.entry)) {
     throw new RequestError("entry must be one of the submitted files");
@@ -175,10 +195,19 @@ export async function prepare(
   if (request.language === "python") {
     return { command: ["python3", "./" + path.normalize(request.entry ?? "main.py")] };
   }
-  const { cmd, ext, flags, libs } = compilers[request.language];
-  const sources = request.files.map((f) => "./" + path.normalize(f.path)).filter((p) => p.endsWith(ext));
-  if (sources.length === 0) throw new RequestError(`no ${ext} files`);
-  const compiler = [cmd, ...flags, "-o", "prog", ...sources, ...libs];
+  let compiler: string[];
+  if (request.language === "rust") {
+    // The crate root; `mod` declarations pull in the other files, relative to it.
+    const root = request.entry ?? "main.rs";
+    if (!request.files.some((f) => f.path === root)) throw new RequestError(`no ${root}`);
+    if (!root.endsWith(".rs")) throw new RequestError("entry must be a .rs file");
+    compiler = [RUSTC, ...RUSTC_FLAGS, "-o", "prog", "./" + path.normalize(root)];
+  } else {
+    const { cmd, ext, flags, libs } = compilers[request.language];
+    const sources = request.files.map((f) => "./" + path.normalize(f.path)).filter((p) => p.endsWith(ext));
+    if (sources.length === 0) throw new RequestError(`no ${ext} files`);
+    compiler = [cmd, ...flags, "-o", "prog", ...sources, ...libs];
+  }
   const compiled = await exec(uid === undefined ? compiler : compilerCommand(compiler, uid), dir, {
     timeoutMs: limits.compileTimeLimitMs,
     maxOutputBytes: limits.maxOutputBytes,
@@ -213,7 +242,7 @@ export function classify(run: Pick<Exec, "timedOut" | "outputTruncated" | "stder
   if (run.timedOut || run.signal === "SIGXCPU") return "time_limit_exceeded";
   if (run.outputTruncated) return "output_limit_exceeded";
   // Under an address-space limit a failed allocation is reported by the runtime, not by a signal.
-  if (isLinux && /bad_alloc|MemoryError|Cannot allocate memory/.test(run.stderr)) {
+  if (isLinux && /bad_alloc|MemoryError|Cannot allocate memory|memory allocation of \d+ bytes failed/.test(run.stderr)) {
     return "memory_limit_exceeded";
   }
   return run.exitCode === 0 ? "ok" : "runtime_error";
