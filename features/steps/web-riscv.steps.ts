@@ -8,7 +8,7 @@ const status = (w: WebWorld) => w.page.getByRole("status", { name: "Machine stat
 
 // Replace the editor text by pasting it: typing would trigger auto-indent and auto-closing brackets.
 async function pasteIntoEditor(w: WebWorld, text: string) {
-  await w.page.locator(".monaco-editor").first().click();
+  await w.page.locator('.editor[data-ready="true"] .monaco-editor').first().click();
   await w.page.keyboard.press("ControlOrMeta+a");
   await w.page.keyboard.press("Backspace");
   await w.page.evaluate(

@@ -77,3 +77,6 @@ tr[data-machine-row][data-selected="true"] { outline: 1px solid #4fc1ff; }
 .src-pc { background: rgba(255, 217, 102, 0.25); }
 .pc-glyph::before { content: "\25B6"; color: #ffd966; }
 .bp-glyph::before { content: "\25CF"; color: #f48771; }
+.statusbar:empty { padding: 0; }
+.tabgroup { overflow: hidden; }
+.panel { min-height: 0; }

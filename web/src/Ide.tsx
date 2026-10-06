@@ -66,6 +66,7 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const decorations = useRef<monaco.editor.IEditorDecorationsCollection | null>(null);
   const [editorVersion, setEditorVersion] = useState(0);
+  const [mountedKey, setMountedKey] = useState("");
   const sessionRef = useRef<Session | null>(null);
   sessionRef.current = session;
   const backend = useMemo(
@@ -448,7 +449,7 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
               </span>
             ))}
         </div>
-        <div className="editor">
+        <div className="editor" data-ready={mountedKey === `${store.current}|${language}|${ws.active}`}>
           {ws.active && has(ws.files, ws.active) ? (
             <Editor
               key={`${store.current}|${language}|${ws.active}`}
@@ -471,6 +472,7 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
                   if (e.target.type === 2 || e.target.type === 3) current.emu.toggleBreakpoint(rows[0].addr); // glyph margin, line number
                   else setPinnedLine(line(e));
                 });
+                setMountedKey(sessionKey);
                 setEditorVersion((v) => v + 1);
               }}
             />
@@ -478,8 +480,9 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
             <p className="empty">Open a file from the tree.</p>
           )}
         </div>
-        {(isRiscv(language) || session) && (
-          <div className="statusbar">
+        <div className="statusbar">
+          {(isRiscv(language) || session) && (
+            <>
             {session && (
               <span role="status" aria-label="Machine status">
                 {session.emu.statusText}
@@ -497,8 +500,9 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
                 </ul>
               </section>
             )}
-          </div>
-        )}
+            </>
+          )}
+        </div>
         <TerminalPane term={term} />
       </main>
       {session && (
