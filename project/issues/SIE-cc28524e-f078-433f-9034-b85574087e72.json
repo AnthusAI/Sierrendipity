@@ -1,0 +1,25 @@
+{
+  "id": "SIE-cc28524e-f078-433f-9034-b85574087e72",
+  "title": "E9: Bit-lamp widget with toggles, counter and field bands (M)",
+  "description": "Feature: Lamps\n  Scenario: Toggling bit 30 of add makes sub",
+  "type": "story",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-e8c91813-9ff5-4d5a-9ac2-ccef5abae556",
+  "labels": [],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-06T19:11:20.476037Z",
+  "updated_at": "2026-10-06T19:11:20.476061Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity-orchestrator"
+  },
+  "right_now_summary": "The bit-lamp widget is being built with toggles, a counter, and field bands.",
+  "right_now_updated_at": "2026-10-06T19:11:22.172400Z",
+  "custom": {}
+}

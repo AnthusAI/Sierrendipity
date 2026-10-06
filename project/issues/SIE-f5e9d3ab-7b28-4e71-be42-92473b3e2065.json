@@ -31,7 +31,7 @@
     "platform": "claude_code",
     "model": "claude-sonnet-5-5"
   },
-  "right_now_summary": "The tutor is taking shape: sign-in and lessons work, while IDE checks, deployment, and testing continue.",
-  "right_now_updated_at": "2026-10-06T18:57:20.903787Z",
+  "right_now_summary": "The tutor is deployed, but sign-in, multi-file runs, and cloud testing still need verification.",
+  "right_now_updated_at": "2026-10-06T19:12:03.268063Z",
   "custom": {}
 }
