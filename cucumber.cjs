@@ -25,6 +25,12 @@ module.exports = {
   web: { ...base, paths: ["features/web/**/*.feature"] },
   // Quick loop for the explorer library: `npx cucumber-js --profile explorer`.
   explorer: { ...base, paths: ["features/explorer/**/*.feature"], tags: "not @docker" },
+  // Quick loop for the lesson library: `npx cucumber-js --profile lessons`.
+  lessons: {
+    ...base,
+    paths: ["features/lessons/**/*.feature"],
+    require: ["features/steps/lesson*.ts"],
+  },
   // `npm run test:docker`: explorer differential and riscv-tests specs; they need Docker.
   docker: { ...base, paths: ["features/explorer/**/*.feature"], tags: "@docker" },
 };

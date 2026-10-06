@@ -1,0 +1,23 @@
+solutions:
+  - file: good.hex
+    earns: [pass, called-it]
+    predictions: { a0: [8] }
+    note: The starter, with a correct first guess.
+  - file: good-wrong-guess.hex
+    earns: [pass]
+    predictions: { a0: [11, 8] }
+    note: The anticipated wrong guess of 11 (adding) first, so no Called it.
+  - file: good-guessed-three.hex
+    earns: [pass]
+    predictions: { a0: [3, 8] }
+    note: The other anticipated wrong guess, 3 (only the first card), then 8.
+  - file: wrong-swapped.hex
+    earns: []
+    note: The cards in the other order, so the box shows 3.
+  - file: wrong-adds.hex
+    earns: []
+    note: The second card adds 8 to the box, so it shows 11 instead of replacing the 3.
+  - file: forever.s
+    earns: []
+    capped: true
+    note: A card that jumps to itself; only the step cap stops it.

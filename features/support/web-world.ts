@@ -71,13 +71,15 @@ export class WebWorld extends World {
     await dialog.waitFor({ state: "detached" });
   }
 
-  async openLab() {
-    await this.page.goto(`${this.appUrl}/lab`);
-  }
-
   async open(config: Record<string, unknown>) {
     await this.page.route("**/config.json", (route) => route.fulfill({ json: config }));
     await this.page.goto(this.appUrl);
+  }
+
+  /** Open the developer component lab (/lab); `query` is e.g. "?testclock". */
+  async openLab(query = "") {
+    await this.page.goto(`${this.appUrl}/lab${query}`);
+    await this.page.getByRole("heading", { name: "Component lab" }).waitFor();
   }
 }
 

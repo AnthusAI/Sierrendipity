@@ -1,0 +1,14 @@
+solutions:
+  - file: good.hex
+    earns: [pass]
+    note: The card as it came; the box shows 5.
+  - file: wrong-six.hex
+    earns: []
+    note: A different card, so the box shows 6.
+  - file: wrong-no-card.hex
+    earns: []
+    note: No card at all, so the box stays 0.
+  - file: forever.s
+    earns: []
+    capped: true
+    note: A card that jumps to itself; the end of the list is never reached, so only the step cap stops it.
