@@ -10,15 +10,28 @@
   "parent": null,
   "labels": [],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "7eea102a-15ee-42d6-9e46-6b12ad7c2a52",
+      "author": "home",
+      "text": "Requirement added 2026-10-06: authentication is Google sign-in through Cognito (federated IdP). Google Cloud project and OAuth client will be set up together with the maintainer. Tracked in M5 (SIE-6fa4d4).",
+      "created_at": "2026-10-06T11:38:29.438698Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity planning"
+      }
+    }
+  ],
   "created_at": "2026-10-06T11:35:12.922732Z",
-  "updated_at": "2026-10-06T11:35:12.922959Z",
+  "updated_at": "2026-10-06T11:38:29.438735Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5"
   },
-  "right_now_summary": "The team is building the browser IDE with interactive runs, recovery, and safe code execution.",
-  "right_now_updated_at": "2026-10-06T11:37:43.520946Z",
+  "right_now_summary": "The team is building the IDE, sandboxed code runner, lessons, and Google sign-in.",
+  "right_now_updated_at": "2026-10-06T11:38:32.760300Z",
   "custom": {}
 }

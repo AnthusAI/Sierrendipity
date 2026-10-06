@@ -10,16 +10,29 @@
   "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
   "labels": [],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "bc938a24-401e-4eb5-bd8f-05095fe86b14",
+      "author": "home",
+      "text": "Dependency: the IDE needs a sign-in screen and token handling from M5 (Google sign-in via Cognito) before it can start cloud sessions. Local development can use a bypass.",
+      "created_at": "2026-10-06T11:38:26.096208Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity planning"
+      }
+    }
+  ],
   "created_at": "2026-10-06T11:35:57.796020Z",
-  "updated_at": "2026-10-06T11:35:57.796045Z",
+  "updated_at": "2026-10-06T11:38:26.096234Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity planning"
   },
-  "right_now_summary": "The web IDE is being defined, and terminal input support is still needed.",
-  "right_now_updated_at": "2026-10-06T11:37:25.325144Z",
+  "right_now_summary": "The IDE is being defined, with terminal input and sign-in dependencies still to address.",
+  "right_now_updated_at": "2026-10-06T11:38:27.735080Z",
   "custom": {}
 }
