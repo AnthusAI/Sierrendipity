@@ -101,7 +101,7 @@ When("I lift program card {int} with the keyboard, move it up and drop it", asyn
   // dnd-kit announces where the card is now; drop only once it has moved.
   await eventually(async () => {
     const said = await this.page.locator("[role=status]").allInnerTexts();
-    assert.ok(said.some((t) => t.includes("Over card")), JSON.stringify(said));
+    assert.ok(said.some((t) => t.includes(`Over card ${n - 1}.`)), JSON.stringify(said));
   });
   await this.page.keyboard.press("Space");
 });
