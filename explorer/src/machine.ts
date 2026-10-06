@@ -85,6 +85,9 @@ export class Machine {
   get fault(): string | null {
     return this._fault;
   }
+  get memorySize(): number {
+    return this.mem.length;
+  }
 
   constructor(opts: { memorySize?: number; stackTop?: number; io?: MachineIO } = {}) {
     const size = opts.memorySize ?? 1 << 20;

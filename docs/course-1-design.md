@@ -29,6 +29,58 @@ Course 1 cards: put N in box, add N to box, add boxes, subtract boxes, paint a p
 
 Pixel display (proposal): 16x16 screen at addresses 1024 to 1279, one byte per pixel, values 0 to 15 pick a palette colour; a view over `readMem(1024, 256)` with no emulator change.
 
+## Revision (2026-10-06): the first lessons are much simpler
+
+Owner feedback: the early assignments must be much, much simpler. Rule for the early lessons: ONE new idea, ONE student action, at most THREE cards, about THREE minutes. The machine starts small (one box visible, no pointing arrow, no hex, no jargon) and parts appear only when a lesson needs them. The program's final `ebreak` is hidden and shown only as "the end of the list" until a later lesson introduces the Stop card.
+
+New opening ladder, replacing the old lessons 1 to 3:
+
+1. Press the button: one card, "Put 5 into the box"; press Step; a 5 appears. Cannot fail.
+2. Change the number: the same card with a spinner; make the box show 9.
+3. Last one wins: put 3, then put 8 in the same box; predict 8 (a box holds one number; a new one replaces it).
+4. Two boxes: a second box appears; put 4 in A and 6 in B; make B hold 9 by changing one card.
+5. Add: put 5, put 7, add them into a third box; predict (the 57 misconception), then 12. This is the old lesson 1.
+6. In order: the pointing hand appears; drag two cards into the right order so the add works.
+7. Multiply: the card "multiply box A by box B"; make 6 x 7 = 42, then square 7 (a card may use the same box twice) to get 49.
+8. Make your own card (functions): select two cards ("multiply the box by itself", "add 1"), save them as a new card named Square-and-add-one (n squared plus one); put 7 in the box, drop the new card in, get 50; peek inside to see its two cards. Under the hood this is a real call: the body is placed after the main program and entered with `jal ra, f`, left with `jalr zero, 0(ra)`; the student only sees one card. Course 3 peels it back ("a call is a bookmark").
+9. Use it again: use the card on 3, 5 and 7; bonus, feed a result back into the card.
+
+Counting by dragging many copies of one card is moved to the loops lesson, where it is the motivation for loops.
+
+The first ten-minute session is lessons 1 to 4. After this ladder the earlier plan resumes at a similarly slow pace: flip a card to see its number, lamps and binary, fields, the pixel, then decisions and loops. The table below is the earlier plan and should be renumbered after the ladder.
+
+## Throughline: functions (the student is in Algebra 2)
+
+The student already knows functions as the heart of math (input, rule, output), plus variables, negatives, exponents and graphs. The curriculum should show that functions are also the heart of programming, and should move faster on math ideas than on machine ideas.
+
+- A box is a variable; a card is an operation; a program is a composition. The card tray shows f(x) = x squared plus 1 beside the cards that implement it; check f(3) = 10 by stepping.
+- Function tables (x, f(x)) are the same card run on 1, 2, 3, 4; repeating them motivates loops.
+- Composition f(g(x)) is chaining custom cards. An inverse function is an "undo" card.
+- The 16x16 pixel screen is a coordinate grid: a loop plotting y = 2x + 1 replaces the "Picture Machine" boss lesson with a Graph Machine.
+- Piecewise functions and absolute value are branches. Domain and "undefined" are division by zero, overflow and out-of-range input.
+- Sequences and series are loops; recurrences like a(n) = a(n-1) + 3 lead to recursion; exponentials and logs appear as "double until you pass 1000".
+- Binary is a polynomial in 2 (13 = 1*8 + 1*4 + 0*2 + 1); Horner's method evaluates it. Finding polynomial zeros leads to bisection and binary search.
+- The machine itself is a function: one fetch-execute step maps the current state to the next state, and a program applies it repeatedly.
+- Negatives can come early (the student knows them); what is new is fixed-size wraparound, where the machine disagrees with algebra, treated as a good surprise.
+- In the C course, `int f(int x) { return x*x + 1; }` compiles in the Explorer to the same multiply and add cards the student already made.
+
+## The Rosetta function: f(x) = x squared plus 1 at every level
+
+Verified with the real `riscv64-unknown-elf-gcc` 12.2 (`-march=rv32im -mabi=ilp32`) and run in our emulator: with x = 7 in a0, both versions leave 50 in a0.
+
+- Algebra: f(x) = x^2 + 1, so f(7) = 50.
+- C: `int f(int x) { return x * x + 1; }`
+- Assembly and machine code at `-Og` (light optimization, the clean one for teaching):
+
+| Address | Word | Assembly | Card |
+|---|---|---|---|
+| 0 | 0x02a50533 | mul a0, a0, a0 | Multiply the box by itself |
+| 4 | 0x00150513 | addi a0, a0, 1 | Add 1 to the box |
+| 8 | 0x00008067 | jalr zero, 0(ra) (ret) | Go back to where you were called from |
+
+- At `-O0` (no optimization) the same function is 11 instructions (6 steps become 14 with the caller): it saves the old frame pointer, copies the argument to the stack, reloads it, multiplies, adds, copies the result back and restores the stack. Words: fe010113 00812e23 02010413 fea42623 fec42783 02f787b3 00178793 00078513 01c12403 02010113 00008067. Showing -O0 next to -Og is the "same C, different effort" lesson.
+- The three-instruction `-Og` version is exactly the two cards the student saved in "Make your own card", plus the return.
+
 ## Course 1: The Machine Follows a List (13 micro-lessons)
 
 1. Wake the Machine (step a four-card program; a2 = 12; cannot fail)

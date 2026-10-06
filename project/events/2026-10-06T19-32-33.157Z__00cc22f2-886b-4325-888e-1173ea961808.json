@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "00cc22f2-886b-4325-888e-1173ea961808",
+  "issue_id": "SIE-0ad8dc6d-b9c7-4a3d-9ca6-a46ab20f12c6",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T19:32:33.157Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "M12: Make it real: ESP32-C3 microcontroller course",
+    "description": "Intent: As the student, I want to run my programs on a real microcontroller, so that machine code, memory-mapped I/O and loops become things I can see and touch. Why feasible: the ESP32-C3 core is RISC-V RV32IMC, our lesson ISA is RV32IM (the C compressed extension is off in lessons), so instructions transfer exactly. Classic ESP32, S2 and S3 are Xtensa (a different ISA) and are out of scope. Includes: a virtual ESP32-C3 dev board in the emulator (memory-mapped GPIO/LED, timer, UART at the real register addresses), a C3 memory map and linker script, a bare-metal firmware image path (startup code with watchdogs disabled, image format), optional flashing from the browser with esptool-js over Web Serial (Chrome or Edge), a Make-it-real course (blink, button, delays by counting steps, serial output), and a lesson on 16-bit compressed instructions. Hardware is optional: everything works on the virtual board first. Sequenced after the lesson player (M11).",
+    "issue_type": "epic",
+    "status": "open",
+    "priority": 3,
+    "assignee": null,
+    "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-orchestrator"
+    }
+  }
+}

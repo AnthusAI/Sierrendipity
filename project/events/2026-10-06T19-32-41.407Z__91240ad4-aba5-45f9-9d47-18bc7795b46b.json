@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "91240ad4-aba5-45f9-9d47-18bc7795b46b",
+  "issue_id": "SIE-06e41809-97c7-4cac-9d4e-35894abe10e4",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T19:32:41.407Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "ESP32-C3 memory map, linker script and startup code in the runner toolchain",
+    "description": "Link bare-metal RV32 programs for the C3 address map (IRAM/DRAM), startup that disables the watchdogs, verify the instruction stream in the explorer matches objdump. Research spike: image format for loading as the second-stage image from ROM.",
+    "issue_type": "task",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-0ad8dc6d-b9c7-4a3d-9ca6-a46ab20f12c6",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-orchestrator"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "de93f8bd-b5ae-4abb-b49e-b20ca46ad7d4",
+  "issue_id": "SIE-60b6082b-b1ec-436c-a440-a876475514a2",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T19:32:47.452Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Spike: flash a bare-metal image to a real ESP32-C3 from the browser with esptool-js",
+    "description": "Web Serial in Chrome or Edge only. Build the image on the runner, flash from the browser, blink an LED. Document board, cable and browser requirements, and failure modes (permissions, boot mode).",
+    "issue_type": "task",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-0ad8dc6d-b9c7-4a3d-9ca6-a46ab20f12c6",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-orchestrator"
+    }
+  }
+}
