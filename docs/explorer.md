@@ -89,6 +89,68 @@ Machine
 - `run()` always executes at least one instruction before checking breakpoints, so a machine stopped
   at a breakpoint can continue. `step()` ignores breakpoints.
 
+## Card text: `describe`
+
+```ts
+export const CARD_KINDS: readonly CardKind[]; // put, add-number, add-boxes, subtract-boxes, paint-pixel, save, fetch, jump-if-different, jump-if-smaller, stop (Course 1), then copy, do-nothing, jump-if-same, jump-if-not-smaller, jump, jump-to-box, compare, logic, shift, multiply, divide, big-number, ask-system, unknown
+export type PartRole = "verb" | "box" | "number" | "shelf" | "label" | "text";
+export interface CardText { kind: CardKind; text: string; parts: { role: PartRole; text: string }[]; fallback: boolean }
+export function describe(word: number, opts?: { vocabulary?: "boxes" | "registers"; pc?: number }): CardText;
+export function cardsUsed(words: number[]): CardKind[]; // distinct kinds, in CARD_KINDS order (the Instruction Deck)
+```
+
+- `text` is always the `parts` joined, so the UI can colour parts (a `box` part is "box a0", or
+  "box zero (always 0)"; `shelf` is the address number, `number` an immediate or a card count).
+- `addi` is read by shape: `addi X, zero, N` is "Put N in box X"; `addi X, X, N` is "Add N to box X"
+  (negative: "Take N away from box X"); `addi X, Y, 0` and `add X, zero, Y` are "Copy box Y into box
+  X"; `addi zero, zero, 0` is "Do nothing". `sb` with base `zero` and an address in 1024 to 1279 is
+  "Paint pixel N with the colour in box t0" (N = address - 1024); other stores and loads say shelf.
+- Jumps say "jump back 2 cards" (card distance = offset / 4). With `opts.pc` (the card's own address)
+  they say "jump to card 5" (address / 4, counting from 0) unless the target would be negative.
+- `vocabulary: "registers"` swaps box to register, shelf to memory address and card to instruction.
+- Anything else the decoder knows but Course 1 has not met (`sh`, `lh`, `lhu`, `lbu`, `mulhsu`, `fence`, ...) is
+  `fallback: true` with kind `unknown` and "An instruction we haven't met yet: <assembly>"; a word the
+  decoder rejects is "Not an instruction the machine understands".
+
+## Timeline
+
+```ts
+export class Timeline {
+  constructor(machine: Machine, opts?: { maxSteps?: number }); // resets the machine; default maxSteps 500,000
+  readonly length: number; readonly position: number; readonly isAtEnd: boolean;
+  readonly outputLog: readonly { step: number; fd: number; bytes: Uint8Array }[];
+  readonly inputLog: readonly { position: number; bytes: Uint8Array }[];
+  stepForward(): boolean; stepBackward(): boolean; seek(position: number): void; // RangeError outside 0..length
+  play(opts?: { steps?: number }): number; runToEnd(maxSteps?: number): number; // steps advanced; no timers
+  provideInput(bytes: Uint8Array): void; reset(): void;
+  snapshotAt(position: number): { pc; regs: number[]; state; exitCode; fault; steps; lastStep?: StepResult };
+  readMem(addr: number, length: number, position?: number): Uint8Array;
+  diff(a: number, b: number): { pc: { before; after }; regs: { reg; before; after }[]; memory: { addr; before: Uint8Array; after: Uint8Array }[] };
+  outputText(fd?: number, position?: number): string;
+}
+```
+
+- Strategy: the Machine's own undo history is bounded, so the Timeline never rewinds it. The Machine
+  stays at the last recorded step; each step is recorded with its register results, bytes written and
+  the pc and state after it, and a checkpoint (registers, pc, state, memory pages that differ from the
+  initial image) is kept every 256 steps. Any position is the nearest checkpoint plus at most 255
+  replayed records, so seeking is cheap on runs of any length and replays are exactly repeatable.
+  `Machine.memorySize` (new getter) lets it capture the initial image once.
+- `stepForward` at the end of the recording runs one real Machine step. It returns false when halted
+  or faulted, at `maxSteps`, or while the program waits for input with none provided. The first
+  waiting step is recorded (state `waiting-input`, not counted in `steps`); further attempts record nothing.
+- `play({ steps })` stops early at the end, while waiting, or just before a card at a Machine
+  breakpoint (the first step always runs). `runToEnd` has no breakpoints.
+- Output: a write ecall's bytes are logged once, keyed by the step that did it (`step` is the 0-based
+  index, visible at positions > step). Scrubbing and replay never re-execute, so the Machine's `io.write`
+  is not called again and `outputText` at a position shows exactly what had been written by then.
+- Input: `provideInput` forwards to the Machine and logs `{ position: length, bytes }`; it reaches the
+  end of the recording even while scrubbed back. Recorded steps replay identically because they are
+  not re-run.
+- `diff` accepts either order; `memory` lists runs of bytes that really differ, from the writes between
+  the positions. `reset()` forgets the recording, resets the Machine (dropping queued input) and
+  clears both logs.
+
 ## Specs
 
 `npm test` runs `features/explorer/*.feature` without Docker. `npx cucumber-js --profile explorer`
