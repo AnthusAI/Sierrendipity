@@ -28,7 +28,7 @@ export { publishLesson };
 
 export type LoadResult = { ok: true; lesson: Lesson } | { ok: false; errors: string[] };
 export interface LoadOptions {
-  /** The lesson's directory relative to lessons/ (for example "c1/01-wake"); the id must match it. */
+  /** The lesson's directory relative to lessons/ (for example "c1/01-press-the-button"); the id must match it. */
   dir?: string;
   /** When given, every concept named by the lesson must be in this set. */
   knownConcepts?: Iterable<string>;
@@ -246,7 +246,7 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
   if (!isObj(raw)) return void errors.push("lesson.yaml: must be a mapping");
   unknownKeys(raw, ["id", "title", "minutes", "concepts", "boxes", "pointer", "hideEnd", "starter", "tabs", "scenes", "nowYouCan", "warmups", "sideRooms"], "lesson.yaml", errors);
 
-  if (!isStr(raw.id) || !/^[a-z0-9]+\/[a-z0-9-]+$/.test(raw.id)) errors.push('lesson.yaml: id must look like "c1/01-wake"');
+  if (!isStr(raw.id) || !/^[a-z0-9]+\/[a-z0-9-]+$/.test(raw.id)) errors.push('lesson.yaml: id must look like "c1/01-press-the-button"');
   else if (dir !== undefined && raw.id !== dir) errors.push(`lesson.yaml: id "${raw.id}" does not match the directory "${dir}"`);
   if (!isStr(raw.title)) errors.push("lesson.yaml: title must be a non-empty string");
   if (!(Number.isInteger(raw.minutes) && (raw.minutes as number) >= 1 && (raw.minutes as number) <= 60)) errors.push("lesson.yaml: minutes must be a whole number from 1 to 60");

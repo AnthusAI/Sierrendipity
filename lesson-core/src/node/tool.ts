@@ -12,7 +12,7 @@ export interface ToolResult {
   ok: boolean;
 }
 
-/** Turn a CLI argument (a path, or an id like "c1/01-wake") into a lesson id under root. */
+/** Turn a CLI argument (a path, or an id like "c1/01-press-the-button") into a lesson id under root. */
 export function lessonIdFromArg(arg: string, root: string = LESSONS_ROOT): string {
   const abs = resolve(arg);
   const rel = relative(root, abs);
