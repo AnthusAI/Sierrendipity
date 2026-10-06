@@ -465,7 +465,7 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
           <Lightbulb aria-hidden className="size-5 text-link" /> Sierrendipity
         </strong>
         <Separator orientation="vertical" className="mx-1 h-5" />
-        <NativeSelect aria-label="Project" value={store.current} onChange={(e) => setStore({ ...store, current: e.target.value })}>
+        <NativeSelect aria-label="Project" className="max-w-64 truncate" value={store.current} onChange={(e) => setStore({ ...store, current: e.target.value })}>
           {Object.keys(store.projects).map((name) => (
             <option key={name}>{name}</option>
           ))}
@@ -595,14 +595,15 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
                 <span
                   key={path}
                   className={cn(
-                    "-mb-px flex h-8 items-center rounded-t-md border border-b-0 pl-3 pr-1 text-sm transition-colors",
+                    "-mb-px flex h-8 max-w-72 shrink-0 items-center rounded-t-md border border-b-0 pl-3 pr-1 text-sm transition-colors",
                     active ? "border-border bg-editor text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
                   )}
                 >
                   <button
                     role="tab"
                     aria-selected={active}
-                    className="rounded-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                    title={path}
+                    className="min-w-0 truncate whitespace-nowrap rounded-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                     onClick={() => update((w) => ({ ...w, active: path }))}
                   >
                     {path}

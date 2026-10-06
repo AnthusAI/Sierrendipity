@@ -151,3 +151,46 @@ Feature: Color themes and light, dark or system mode
       | warm    | dark  |
       | neutral | light |
       | neutral | dark  |
+
+  Scenario: Bracket pair colors come from the theme
+    Given the saved settings are the theme "warm" and the mode "light"
+    And the IDE is opened in dev mode
+    Then the editor's outermost brackets use the "warm" theme in light mode
+
+  Scenario: A stale last-used theme from another user does not flash
+    Given the page records the theme from its first moment
+    And another user's warm theme is the last one used in this browser
+    And this browser session belongs to a user without saved settings
+    When the IDE is opened in dev mode
+    Then the color theme is "cool"
+    And the theme was never "warm" before the app started
+
+  Scenario: Forced colors keep the highlights visible in the assembly pane
+    Given the system uses forced colors
+    And the IDE is opened in dev mode
+    When I create a project "asm" in RISC-V assembly
+    And I press "Step"
+    And I select the instruction "lui t0, 0x6c6c6"
+    Then the current instruction row, the changed register and the selected row are outlined
+    And the Bits segments have borders
+
+  Scenario: Forced colors keep linked instructions visible after Explore
+    Given the system uses forced colors
+    And the IDE is opened in dev mode
+    And I switch the language to C
+    And I press "Explore"
+    When I select the instruction "addi sp, sp, -32"
+    Then the linked instructions are outlined
+
+  Scenario: Long file names stay on one line
+    Given the window is 1024 by 768
+    And the IDE is opened in dev mode
+    When I create the file "an-extremely-long-file-name-that-keeps-going-and-going-until-it-no-longer-fits-in-a-tab.py"
+    Then the editor tabs stay on one line
+    And the file tree stays on one line
+
+  Scenario: Long project names do not stretch the header
+    Given the window is 1024 by 768
+    And the IDE is opened in dev mode
+    When I create a project "an-extremely-long-project-name-that-keeps-going-and-going-until-it-no-longer-fits-in-a-select" in Python
+    Then the project selector is at most 300 pixels wide

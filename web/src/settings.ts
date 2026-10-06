@@ -21,7 +21,10 @@ export const DEFAULT_SETTINGS: Settings = { appearance: DEFAULT_APPEARANCE, vers
 
 /** The last appearance used in this browser, read by the inline script in index.html before first paint. */
 export const LAST_KEY = "sierrendipity:settings:last";
-export const settingsKey = (userId: string) => `sierrendipity:settings:${userId}`;
+export const SETTINGS_PREFIX = "sierrendipity:settings:";
+export const settingsKey = (userId: string) => `${SETTINGS_PREFIX}${userId}`;
+/** sessionStorage: the user of this browser session (the Cognito `sub`, or "local"), read before first paint. */
+export const USER_KEY = "sierrendipity:user";
 /** The user id when nobody is signed in (the dev-backend bypass). */
 export const LOCAL_USER = "local";
 
@@ -125,7 +128,16 @@ export function createLocalStorageSettingsStore(storage?: StorageLike): Settings
       listeners.set(userId, set);
       return () => void set.delete(listener);
     },
-    last: () => parseAppearance(safeParse(read(LAST_KEY))),
+    last: () => {
+      // The session's user decides whose appearance applies; without one, the last used in this browser.
+      let user: string | null = null;
+      try {
+        user = typeof sessionStorage === "undefined" ? null : sessionStorage.getItem(USER_KEY);
+      } catch {
+        /* storage unavailable */
+      }
+      return user ? parseSettings(read(settingsKey(user))).appearance : parseAppearance(safeParse(read(LAST_KEY)));
+    },
   };
 }
 

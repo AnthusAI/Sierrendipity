@@ -112,3 +112,18 @@
 /* The terminal fills its pane; xterm paints its own background from the theme set in TerminalPane. */
 .terminal .xterm { height: 100%; }
 .terminal .xterm-viewport { background-color: var(--terminal-bg) !important; }
+
+/* Forced colors (Windows high contrast): backgrounds are dropped, so mark states with system-colored outlines and borders. */
+@media (forced-colors: active) {
+  [data-linked="true"],
+  [aria-current="step"],
+  [data-changed="true"],
+  [data-selected="true"],
+  [data-written="true"],
+  button.instr[aria-pressed="true"] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+  [data-segment] { border: 1px solid CanvasText; }
+  .src-linked, .src-pc { outline: 1px solid Highlight; outline-offset: -1px; }
+}

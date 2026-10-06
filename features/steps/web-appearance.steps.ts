@@ -341,3 +341,133 @@ Then("the bit segments use the theme palette", async function (this: WebWorld) {
     assert.equal(color, rgb(colors["field-foreground"]));
   }
 });
+
+// Dialogs and focus
+
+const active = (w: WebWorld) =>
+  w.page.evaluate(
+    `(() => { const e = document.activeElement; return { tag: e ? e.tagName : "", label: e ? (e.getAttribute("aria-label") || (e.textContent || "").trim()) : "" }; })()`,
+  ) as Promise<{ tag: string; label: string }>;
+
+When("I open Settings by keyboard", async function (this: WebWorld) {
+  await this.page.getByRole("button", { name: "Settings", exact: true }).focus();
+  await this.page.keyboard.press("Enter");
+  await this.page.getByRole("dialog", { name: "Settings" }).waitFor();
+});
+
+When("I open the {string} dialog by keyboard", async function (this: WebWorld, name: string) {
+  await this.page.getByRole("button", { name, exact: true }).focus();
+  await this.page.keyboard.press("Enter");
+  await this.page.getByRole("dialog").waitFor();
+});
+
+When("I press the key {string}", async function (this: WebWorld, key: string) {
+  await this.page.keyboard.press(key);
+});
+
+When("I type {string} in the dialog and press Enter", async function (this: WebWorld, text: string) {
+  await this.page.getByRole("dialog").getByRole("textbox").fill(text);
+  await this.page.keyboard.press("Enter");
+});
+
+Then("the focused control is the {string} button", async function (this: WebWorld, name: string) {
+  await eventually(async () => {
+    const seen = await active(this);
+    assert.equal(seen.tag, "BUTTON", `focus is on ${seen.tag}`);
+    assert.equal(seen.label, name);
+  });
+});
+
+Then("the focus is on a control", async function (this: WebWorld) {
+  await this.page.getByRole("dialog").waitFor({ state: "detached" });
+  await eventually(async () => {
+    const seen = await active(this);
+    assert.notEqual(seen.tag, "BODY", "focus fell back to the page");
+  });
+});
+
+// Stale last-used theme
+
+Given("another user's warm theme is the last one used in this browser", async function (this: WebWorld) {
+  await this.context.addInitScript(
+    `localStorage.setItem("sierrendipity:settings:last", ${JSON.stringify(JSON.stringify({ theme: "warm", mode: "light" }))});`,
+  );
+});
+
+Given("this browser session belongs to a user without saved settings", async function (this: WebWorld) {
+  await this.context.addInitScript(`sessionStorage.setItem("sierrendipity:user", "sub-nobody");`);
+});
+
+Then("the theme was never {string} before the app started", async function (this: WebWorld, theme: string) {
+  const log = (await this.page.evaluate(`window.__themeLog`)) as { theme: string }[];
+  assert.deepEqual(log.filter((entry) => entry.theme === theme), [], JSON.stringify(log));
+});
+
+// Brackets, forced colors and long names
+
+Then("the editor's outermost brackets use the {string} theme in {word} mode", async function (this: WebWorld, theme: string, mode: string) {
+  const colors = resolveTheme(theme as ThemeName, mode as Mode);
+  await eventually(async () => {
+    const seen = (await this.page.evaluate(
+      `(() => { const e = document.querySelector(".monaco-editor .bracket-highlighting-0"); return e ? getComputedStyle(e).color : null; })()`,
+    )) as string | null;
+    assert.equal(seen, rgb(colors["bracket-1"]));
+  });
+});
+
+Given("the system uses forced colors", async function (this: WebWorld) {
+  await this.page.emulateMedia({ forcedColors: "active" });
+});
+
+Given("the window is {int} by {int}", async function (this: WebWorld, width: number, height: number) {
+  await this.page.setViewportSize({ width, height });
+});
+
+const outlined = inPage<boolean>(
+  "el",
+  `const s = getComputedStyle(el); return s.outlineStyle !== "none" && parseFloat(s.outlineWidth) > 0;`,
+);
+
+Then("the current instruction row, the changed register and the selected row are outlined", async function (this: WebWorld) {
+  for (const selector of ['button.instr[aria-current="step"]', 'tr[data-changed="true"]', 'button.instr[aria-pressed="true"]']) {
+    const element = this.page.locator(selector).first();
+    await element.waitFor();
+    assert.equal(await element.evaluate(outlined), true, `${selector} has no outline in forced colors`);
+  }
+});
+
+Then("the linked instructions are outlined", async function (this: WebWorld) {
+  const rows = this.page.locator('button.instr[data-linked="true"]');
+  await rows.first().waitFor();
+  assert.equal(await rows.first().evaluate(outlined), true, "linked rows have no outline in forced colors");
+});
+
+Then("the Bits segments have borders", async function (this: WebWorld) {
+  const segment = this.page.locator("[data-segment]").first();
+  await segment.waitFor();
+  const border = await segment.evaluate(inPage("el", `const s = getComputedStyle(el); return s.borderTopStyle !== "none" && parseFloat(s.borderTopWidth) > 0;`));
+  assert.equal(border, true);
+});
+
+Then("the editor tabs stay on one line", async function (this: WebWorld) {
+  const tab = this.page.getByRole("tablist", { name: "Open files" });
+  await tab.waitFor();
+  const seen = (await tab.evaluate(
+    inPage("el", `const t = el.querySelector('[role="tab"]'); return { tab: t.getBoundingClientRect().height, scroll: el.scrollHeight, client: el.clientHeight };`),
+  )) as { tab: number; scroll: number; client: number };
+  assert.ok(seen.tab <= 24, `the tab label is ${seen.tab}px tall (wrapped)`);
+  assert.ok(seen.scroll <= seen.client + 1, `the tab strip clips vertically (${seen.scroll} > ${seen.client})`);
+});
+
+Then("the file tree stays on one line", async function (this: WebWorld) {
+  const heights = (await this.page.getByRole("treeitem").evaluateAll(
+    inPage("els", `return els.map((e) => e.getBoundingClientRect().height);`),
+  )) as number[];
+  assert.ok(heights.length > 0);
+  for (const h of heights) assert.ok(h <= 33, `a file tree row is ${h}px tall`);
+});
+
+Then("the project selector is at most {int} pixels wide", async function (this: WebWorld, width: number) {
+  const box = await this.page.getByLabel("Project").boundingBox();
+  assert.ok(box && box.width <= width, `the selector is ${box?.width}px wide`);
+});
