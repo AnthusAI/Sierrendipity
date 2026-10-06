@@ -22,6 +22,8 @@ module.exports = {
   },
   // `npm run test:web`: only the browser specs (builds web/ and launches Chromium).
   web: { ...base, paths: ["features/web/**/*.feature"] },
+  // Quick loop for the explorer library: `npx cucumber-js --profile explorer`.
+  explorer: { ...base, paths: ["features/explorer/**/*.feature"], tags: "not @docker" },
   // `npm run test:docker`: explorer differential and riscv-tests specs; they need Docker.
   docker: { ...base, paths: ["features/explorer/**/*.feature"], tags: "@docker" },
 };
