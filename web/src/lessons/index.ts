@@ -1,4 +1,4 @@
-import type { PublishedLesson } from "@sierrendipity/lesson-core";
+import { isPublishedLesson, type PublishedLesson } from "@sierrendipity/lesson-core";
 import { useEffect, useState } from "react";
 
 // The browser consumes the PRECOMPILED lessons (`npm run lessons:build` writes lessons/dist/*.json,
@@ -18,10 +18,12 @@ function load(file: string): Promise<PublishedLesson> {
   let loaded = cache.get(file);
   if (!loaded) {
     loaded = files[file]!().then((m) => {
-      const lesson = m.default;
-      if (lesson?.format !== 1) throw new Error(`${file} is not a published lesson (format 1)`);
-      return lesson;
+      const problem = isPublishedLesson(m.default);
+      if (problem) throw new Error(`${file} is not a usable published lesson: ${problem}`);
+      return m.default;
     });
+    // A failed load must not be remembered: "Try again" has to fetch again.
+    loaded.catch(() => cache.delete(file));
     cache.set(file, loaded);
   }
   return loaded;
@@ -43,21 +45,28 @@ export async function listLessons(): Promise<LessonInfo[]> {
 
 export type LessonState = { status: "loading" } | { status: "ready"; lesson: PublishedLesson } | { status: "error"; error: string };
 
-/** Load a lesson inside a component; never throws. */
-export function useLesson(id: string): LessonState {
+/**
+ * Load a lesson inside a component; never throws. `error` is a technical detail for the console: show
+ * students `LessonLoadError`, never this text. `retry` loads again.
+ */
+export function useLesson(id: string): LessonState & { retry(): void } {
   const [state, setState] = useState<LessonState>({ status: "loading" });
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     let live = true;
     setState({ status: "loading" });
     loadLesson(id).then(
       (lesson) => live && setState({ status: "ready", lesson }),
-      (e: unknown) => live && setState({ status: "error", error: e instanceof Error ? e.message : String(e) }),
+      (e: unknown) => {
+        console.error(`Could not load lesson "${id}":`, e);
+        if (live) setState({ status: "error", error: e instanceof Error ? e.message : String(e) });
+      },
     );
     return () => {
       live = false;
     };
-  }, [id]);
-  return state;
+  }, [id, attempt]);
+  return { ...state, retry: () => setAttempt((n) => n + 1) };
 }
 
 /** The lesson after `id` in course order, or null at the end. */

@@ -210,3 +210,17 @@ Then("the solution {string} ran {int} steps", (file: string, steps: number) => a
 Then("the official Gherkin parser agrees with ours about the checks", () => {
   assert.deepEqual(crossCheckGherkin(files["checks.feature"]!), []);
 });
+
+Then("the scene {string} says when done {string}", (id: string, text: string) => {
+  assert.equal(lesson().scenes.find((s) => s.id === id)?.doneSay, text);
+});
+Then("the lesson sends other wrong answers to {string} saying {string}", (goto: string, text: string) => {
+  assert.equal(lesson().onWrongDefaultGoto, goto);
+  assert.equal(lesson().onWrongDefault, text);
+});
+Then("every scene that waits on the machine says something when it is done", () => {
+  for (const sc of lesson().scenes.filter((x) => x.until.length > 0)) {
+    assert.ok(sc.doneSay, `scene "${sc.id}" has no doneSay`);
+    assert.ok(!/\b(machine has taken|student edited|at least \d)/.test(sc.doneSay), `scene "${sc.id}" doneSay reads like a test log`);
+  }
+});

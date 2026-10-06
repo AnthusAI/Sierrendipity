@@ -127,3 +127,14 @@
   [data-segment] { border: 1px solid CanvasText; }
   .src-linked, .src-pc { outline: 1px solid Highlight; outline-offset: -1px; }
 }
+
+/* The coach spotlight dims with a box-shadow, which forced colors removes: keep the dimming (the frame opts out of
+   color adjustment) and add a system-colored outline so the target is always outlined. */
+@media (forced-colors: active) {
+  [data-coach-spotlight] {
+    forced-color-adjust: none;
+    outline: 3px solid Highlight;
+    outline-offset: 0;
+  }
+  [data-ghost-pointer] { forced-color-adjust: none; color: Highlight; }
+}

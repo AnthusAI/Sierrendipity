@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { claims } from "../../auth";
 import { defaultProgressStore, labClock, LessonPlayer } from "../../coach";
 import { nextLessonAfter, useLesson, type LessonInfo } from "../../lessons";
+import { LessonLoadError } from "../../lessons/LessonLoadError";
 
 export const title = "Coach and lesson player";
 
@@ -55,7 +56,7 @@ export default function CoachSection() {
   };
 
   if (state.status === "loading") return <p>Loading the lesson.</p>;
-  if (state.status === "error") return <p role="alert">{state.error}</p>;
+  if (state.status === "error") return <LessonLoadError onRetry={state.retry} onBack={() => go(DEFAULT_LESSON)} />;
   return (
     <>
       <LessonPlayer key={state.lesson.id} lesson={state.lesson} store={store} userId={userId} clock={clock} next={next} onNext={go} />

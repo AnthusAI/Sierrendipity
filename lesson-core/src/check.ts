@@ -88,6 +88,14 @@ function sceneProblems(lesson: Lesson, problems: string[]): void {
     }
   }
 
+  // Any other wrong answer goes to the next scene unless the lesson says where: that scene must reveal the answer.
+  if (lesson.onWrongDefaultGoto === undefined) {
+    lesson.scenes.forEach((sc, i) => {
+      const next = lesson.scenes[i + 1];
+      if (sc.ask && next && next.until.length === 0) problems.push(`scene "${sc.id}": onWrongDefault needs a goto to the scene that reveals the answer, because the next scene "${next.id}" does not wait on the machine`);
+    });
+  }
+
   const passing = lesson.solutions.filter((d) => d.earns.includes("pass"));
   const runs = passing.map((d) => {
     // The student's edits are the cards that differ from the starter.

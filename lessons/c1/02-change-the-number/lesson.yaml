@@ -30,6 +30,7 @@ scenes:
       - The box shows whatever number the card has, so change the card first.
       - Spin the card's number up to 9, then press Step.
     showMe: demo-spin
+    doneSay: You changed the card, and the box followed.
     lock: [drag, toggle]
 
   - id: another

@@ -28,6 +28,7 @@ scenes:
       - A card is an instruction, and Step makes the machine follow it.
       - Click Step once. The box will change.
     showMe: demo-step
+    doneSay: "There it is: the box holds 5."
     lock: [edit, drag, toggle]
 
   - id: did-it

@@ -16,11 +16,11 @@ import {
   type Scene,
 } from "@sierrendipity/lesson-core";
 import { describe } from "@sierrendipity/explorer";
-import { sessionStart, type Clock } from "./clock";
+import { markStopShown, sessionInfo, type Clock } from "./clock";
 import { STUCK, StuckDetector, type StuckReason } from "./stuck";
 import type { LiveView, StageControl } from "./types";
 
-export const DEFAULT_WRONG = "Not quite yet. Watch what the machine does, then try again.";
+export const DEFAULT_WRONG = "Let's watch what happens.";
 /** After the last ghost event, hold the picture this long so the student can read it. */
 export const GHOST_HOLD_MS = 2500;
 
@@ -48,7 +48,12 @@ export interface PlayerState {
   /** The ghost's pointer target and what it is doing, during Show me. */
   ghost: { narration: string; pointer: string | null } | null;
   yourTurn: boolean;
+  /** The scene's authored `doneSay`, shown until the student acts or the next scene completes. */
   doneLine: string | null;
+  /** A short polite announcement for screen readers when a scene completes without a doneSay. */
+  announce: string | null;
+  /** The machine cannot reach the goal by stepping: the coach points at Back. */
+  stranded: boolean;
   reply: string | null;
   hint: { rung: 1 | 2 | 3; text: string } | null;
   canHint: boolean;
@@ -61,6 +66,9 @@ export interface PlayerState {
   end: { made: string[]; values: string[]; nowYouCan: string[] } | null;
   stopped: boolean;
 }
+
+/** A prediction is made before the reveal: while it is asked, the machine does not move. */
+const ASK_LOCKED: StageControl[] = ["step", "back", "reset", "edit"];
 
 const finished = (live: Live): boolean => live.machine.state !== "ready" && live.machine.state !== "running";
 
@@ -77,7 +85,9 @@ export class LessonEngine {
   private cards: number[];
   private live: Live;
   private demo: Live | null = null;
-  private attemptRecorded = false;
+  /** Runs already recorded as attempts, keyed by scene and cards, so Back and Reset never add attempts. */
+  private recorded = new Set<string>();
+  private bonusSeen = new Set<string>();
 
   private phase: PlayerState["phase"] = "scene";
   private sceneIndex = 0;
@@ -86,6 +96,7 @@ export class LessonEngine {
   private quick = false;
 
   private doneLine: string | null = null;
+  private announce: string | null = null;
   private reply: string | null = null;
   private hintRung = 0;
   private yourTurn = false;
@@ -123,11 +134,15 @@ export class LessonEngine {
   start(): void {
     if (this.started) return;
     this.started = true;
-    const left = Math.max(0, sessionStart(this.clock) + STUCK.sessionMs - this.clock.now());
-    this.sessionTimer = this.clock.setTimeout(() => {
-      this.stopSuggested = true;
-      this.refresh();
-    }, left);
+    const session = sessionInfo(this.clock);
+    if (!session.shown) {
+      const left = Math.max(0, session.start + STUCK.sessionMs - this.clock.now());
+      this.sessionTimer = this.clock.setTimeout(() => {
+        this.stopSuggested = true;
+        markStopShown(this.clock);
+        this.refresh();
+      }, left);
+    }
     this.armIdle();
   }
 
@@ -192,7 +207,6 @@ export class LessonEngine {
     if (!pressBack(this.live)) return;
     this.touch();
     (this.live.facts.events ??= []).push({ type: "rewind" });
-    this.attemptRecorded = false;
     this.trigger(this.detector.undone(this.clock.now()));
     this.afterRun(false);
   }
@@ -202,7 +216,6 @@ export class LessonEngine {
     this.touch();
     const worked = this.snapshot.view.steps > 0;
     this.live = this.build(this.cards, this.live.facts);
-    this.attemptRecorded = false;
     if (worked) this.trigger(this.detector.undone(this.clock.now()));
     this.refresh();
   }
@@ -216,7 +229,6 @@ export class LessonEngine {
     this.cards = this.cards.map((w, i) => (i === card ? to : w));
     this.live = this.build(this.cards, this.live.facts);
     (this.live.facts.events ??= []).push({ type: "edit", card, to });
-    this.attemptRecorded = false;
     this.trigger(this.detector.edited(`card:${card}`, before, to));
     this.afterRun(false);
   }
@@ -227,12 +239,13 @@ export class LessonEngine {
     const ask = scene?.ask;
     if (!ask || this.phase !== "scene" || (ask.kind !== "number" && ask.kind !== "choice") || !Number.isFinite(value)) return;
     this.touch();
-    if (ask.kind === "number" && ask.target) {
+    const genuine = !finished(this.live);
+    if (genuine && ask.kind === "number" && ask.target) {
       const facts = this.live.facts;
       facts.predictions = { ...(facts.predictions ?? {}), [ask.target]: [...(facts.predictions?.[ask.target] ?? []), value] };
     }
     const label = ask.kind === "choice" ? (ask.choices[value] ?? String(value)) : value;
-    this.resolveAnswer(value === ask.answer, label);
+    this.resolveAnswer(value === ask.answer, label, genuine);
   }
 
   /** Answer a click-target prediction: the student clicked the element with this data-coach-id. */
@@ -240,7 +253,7 @@ export class LessonEngine {
     const ask = this.scene()?.ask;
     if (!ask || ask.kind !== "click-target" || this.phase !== "scene") return;
     this.touch();
-    this.resolveAnswer(id === ask.target, id);
+    this.resolveAnswer(id === ask.target, id, !finished(this.live));
   }
 
   /** Answer a machine-query prediction: does the live machine satisfy the question's phrase? */
@@ -248,7 +261,7 @@ export class LessonEngine {
     const ask = this.scene()?.ask;
     if (!ask || ask.kind !== "machine-query" || this.phase !== "scene") return;
     this.touch();
-    this.resolveAnswer(this.holds([ask.query], liveRunOf(this.live)), "no");
+    this.resolveAnswer(this.holds([ask.query], liveRunOf(this.live)), "no", !finished(this.live));
   }
 
   // Help
@@ -340,7 +353,9 @@ export class LessonEngine {
   }
 
   private canAct(control: StageControl): boolean {
-    return this.phase === "scene" && !(this.scene()?.lock as string[] | undefined)?.includes(control);
+    if (this.phase !== "scene") return false;
+    if (this.waiting() === "ask" && ASK_LOCKED.includes(control)) return false;
+    return !(this.scene()?.lock as string[] | undefined)?.includes(control);
   }
 
   private skipping(i: number): boolean {
@@ -380,6 +395,8 @@ export class LessonEngine {
   private touch(): void {
     this.detector.input(this.clock.now());
     this.yourTurn = false;
+    this.doneLine = null;
+    this.announce = null;
     this.armIdle();
   }
 
@@ -390,23 +407,36 @@ export class LessonEngine {
     });
   }
 
-  /** After a student action: record a finished run, then see whether the goal holds. */
+  /** The last scene with a goal on the machine: where an unfinished or wrong run counts as an attempt. */
+  private goalScene(): number {
+    for (let i = this.lesson.scenes.length - 1; i >= 0; i--) if (this.lesson.scenes[i]!.until.length > 0) return i;
+    return -1;
+  }
+
+  /**
+   * Record a finished run as an attempt, once per scene and cards: always in the goal scene, elsewhere only
+   * when it earns a bonus not yet earned. Back and Reset never add attempts, and a pass counts only here.
+   */
+  private recordRun(run: LessonRun): void {
+    const key = `${this.sceneIndex}|${this.cards.join(",")}`;
+    if (this.recorded.has(key)) return;
+    const stars = earnedStars(runChecks(this.lesson.checks, run));
+    const newBonus = stars.some((s) => s !== "pass" && !this.bonusSeen.has(s));
+    if (this.sceneIndex !== this.goalScene() && !newBonus) return;
+    this.recorded.add(key);
+    for (const s of stars) this.bonusSeen.add(s);
+    this.safe(() => this.store?.recordAttempt(this.userId, this.lesson.id, { passed: stars.includes("pass"), stars, cards: run.cards, steps: run.steps, concepts: this.lesson.concepts.introduces }));
+  }
+
+  /** After a student action (or on entering a scene): record a finished run, then see whether the goal holds. */
   private afterRun(countFailure = true): void {
-    const live = this.live;
-    const run = liveRunOf(live);
-    const over = finished(live);
-    if (over && !this.attemptRecorded) {
-      this.attemptRecorded = true;
-      const stars = earnedStars(runChecks(this.lesson.checks, run));
-      this.safe(() =>
-        this.store?.recordAttempt(this.userId, this.lesson.id, { passed: stars.includes("pass"), stars, cards: run.cards, steps: run.steps, concepts: this.lesson.concepts.introduces }),
-      );
-    }
+    const run = liveRunOf(this.live);
+    const over = finished(this.live);
+    if (over) this.recordRun(run);
     const scene = this.scene();
-    if (scene && this.waiting(scene) === "until") {
+    if (scene && this.phase === "scene" && this.waiting(scene) === "until") {
       if (this.holds(scene.until, run)) {
-        this.doneLine = `Done: ${scene.until.join(", ")}.`;
-        this.goNext();
+        this.complete(scene);
         return;
       }
       if (over && countFailure) this.trigger(this.detector.failedCheck());
@@ -414,23 +444,30 @@ export class LessonEngine {
     this.refresh();
   }
 
-  private resolveAnswer(correct: boolean, given: string | number): void {
+  /** The scene's goal is met: say the authored doneSay (or announce quietly), then move on. */
+  private complete(scene: Scene): void {
+    this.doneLine = scene.doneSay ?? null;
+    this.announce = scene.doneSay ? null : "Scene complete.";
+    this.goNext();
+  }
+
+  /** `genuine`: the guess was made before the machine showed the answer. Anything later is not a prediction. */
+  private resolveAnswer(correct: boolean, given: string | number, genuine: boolean): void {
     const scene = this.scene()!;
-    const ask = scene.ask!;
-    const concepts = this.lesson.concepts.introduces;
-    this.safe(() => this.store?.recordEvent(this.userId, { type: "prediction", lessonId: this.lesson.id, correct, concepts }));
+    if (genuine) this.safe(() => this.store?.recordEvent(this.userId, { type: "prediction", lessonId: this.lesson.id, correct, concepts: this.lesson.concepts.introduces }));
     if (correct) {
-      this.doneLine = `Done: ${ask.kind === "number" && ask.target ? `box ${ask.target} holds ${ask.answer}` : ask.kind === "choice" ? ask.choices[ask.answer] : "that is right"}.`;
-      this.goNext();
+      this.complete(scene);
       return;
     }
     this.trigger(this.detector.failedCheck());
     const match = scene.onWrong.find((w) => w.match === given);
     const reply = match?.say ?? this.lesson.onWrongDefault ?? DEFAULT_WRONG;
-    const target = match?.goto ? this.lesson.scenes.findIndex((s) => s.id === match.goto) : this.sceneIndex + 1;
-    if (target >= 0 && target < this.lesson.scenes.length && target !== this.sceneIndex) this.enterScene(target);
-    else this.refresh();
-    this.reply = reply;
+    const gotoId = match ? match.goto : this.lesson.onWrongDefaultGoto;
+    const target = gotoId ? this.lesson.scenes.findIndex((x) => x.id === gotoId) : this.sceneIndex + 1;
+    if (target >= 0 && target < this.lesson.scenes.length && target !== this.sceneIndex) {
+      this.enterScene(target);
+      if (this.sceneIndex === target) this.reply = reply;
+    } else this.reply = reply;
     this.refresh();
   }
 
@@ -450,7 +487,15 @@ export class LessonEngine {
     this.skipTourAsk = false;
     this.detector.newGoal(this.clock.now());
     this.armIdle();
-    this.refresh();
+    const scene = this.lesson.scenes[i]!;
+    // A scene that locks editing promises the starter cards: put them back if the student changed them.
+    if (scene.lock.includes("edit") && this.cards.some((w, k) => w !== this.lesson.starter.words[k])) {
+      this.cards = [...this.lesson.starter.words];
+      this.live = this.build(this.cards, this.live.facts);
+    }
+    // The goal may already hold (the student got there early): do not make them do it again.
+    if (this.waiting(scene) === "until") this.afterRun(false);
+    else this.refresh();
   }
 
   private finish(): void {
@@ -550,7 +595,10 @@ export class LessonEngine {
     const scene = this.phase === "scene" || this.phase === "ghost" ? this.scene() : null;
     const showing = this.phase === "scene" && scene ? scene : null;
     const view = this.viewOf(this.demo ?? this.live, this.phase === "ghost");
-    const spotlight = showing?.spotlight && (!this.tourSkipped || this.hintRung >= 1) ? showing.spotlight : null;
+    const locked = (this.phase === "scene" ? [...(scene?.lock ?? []), ...(this.waiting(scene) === "ask" ? ASK_LOCKED : [])] : ["edit", "step", "back", "run", "reset", "drag", "toggle"]) as StageControl[];
+    // Stranded: the run is over, the goal does not hold, and no edit can change that. Back is the way out.
+    const stranded = !!showing && this.waiting(showing) === "until" && !view.canStep && view.steps > 0 && locked.includes("edit") && !locked.includes("back") && !this.holds(showing.until, liveRunOf(this.live));
+    const spotlight = stranded ? "button:back" : showing?.spotlight && (!this.tourSkipped || this.hintRung >= 1) ? showing.spotlight : null;
     const rung = this.hintRung;
     this.snapshot = {
       phase: this.phase,
@@ -559,11 +607,13 @@ export class LessonEngine {
       waiting: this.waiting(scene),
       say: scene?.say ?? "",
       view,
-      locked: this.phase === "scene" ? ((scene?.lock ?? []) as StageControl[]) : ["edit", "step", "back", "run", "reset", "drag", "toggle"],
+      locked,
       spotlight,
       ghost: this.ghost,
       yourTurn: this.yourTurn && this.phase === "scene",
       doneLine: this.doneLine,
+      announce: this.announce,
+      stranded,
       reply: this.reply,
       hint: rung > 0 && showing ? { rung: rung as 1 | 2 | 3, text: showing.hints[rung - 1] ?? "" } : null,
       canHint: !!showing && showing.hints.length >= 3 && rung < 3,

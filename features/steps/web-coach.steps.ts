@@ -1,8 +1,11 @@
 import { Given, Then, When } from "@cucumber/cucumber";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { composite, contrastRatio, parseColor, toHex, type Rgba } from "../../web/src/theme/contrast";
 import type { WebWorld } from "../support/web-world.ts";
 
+const root = path.resolve(__dirname, "../..");
 const panel = (w: WebWorld) => w.page.locator("[data-coach-panel]");
 const box = (w: WebWorld, name: string) => w.page.locator(`[data-coach-id="box:${name}"] output`);
 const cardInput = (w: WebWorld, n: number) => w.page.getByLabel(`Number on card ${n}`);
@@ -358,4 +361,141 @@ Then("the coach panel is fully inside the window", async function (this: WebWorl
   assert.ok(r.x >= 0 && r.x + r.width <= w && r.y >= 0 && r.y < h, `panel at ${JSON.stringify(r)} in ${w}x${h}`);
   const primary = await this.page.locator("[data-coach-panel] button").first().boundingBox();
   assert.ok(primary && primary.y + primary.height <= h + 1, "the first coach button is below the fold");
+});
+
+// Added for the review fixes
+
+When("I double-click Continue", async function (this: WebWorld) {
+  await named(this, "Continue").dblclick();
+});
+Then("the coach confirms {string}", async function (this: WebWorld, text: string) {
+  await this.page.locator("[data-coach-done]", { hasText: text }).waitFor();
+});
+Then("the coach shows no confirmation", async function (this: WebWorld) {
+  await settle(this);
+  assert.equal(await this.page.locator("[data-coach-done]").count(), 0);
+});
+When("I clear the number on card {int} with the keyboard", async function (this: WebWorld, card: number) {
+  await cardInput(this, card).fill("");
+});
+When("I type {string} into the number on card {int}", async function (this: WebWorld, text: string, card: number) {
+  await cardInput(this, card).fill(text);
+});
+When("I type {string} into the number on card {int} and leave it", async function (this: WebWorld, text: string, card: number) {
+  await cardInput(this, card).fill(text);
+  await this.page.keyboard.press("Tab");
+});
+Then("the card hint says {string}", async function (this: WebWorld, text: string) {
+  await this.page.locator("[data-card-hint]", { hasText: text }).waitFor();
+});
+for (const control of ["Step", "Back", "Reset"]) {
+  Then(`the ${control} button is locked with the explanation {string}`, async function (this: WebWorld, text: string) {
+    const b = named(this, control);
+    assert.equal(await b.getAttribute("aria-disabled"), "true");
+    const described = await b.evaluate((el) => (el.getAttribute("aria-describedby") ?? "").split(" ").map((id) => document.getElementById(id)?.textContent ?? "").join(" "));
+    assert.ok(described.includes(text), `description was "${described}"`);
+  });
+}
+Then("the Now you can card is not shown yet", async function (this: WebWorld) {
+  await settle(this);
+  assert.equal(await this.page.locator("[data-coach-end]").count(), 0);
+});
+Then("the stored mastery of {string} is box {int}", async function (this: WebWorld, concept: string, box: number) {
+  const raw = await this.page.evaluate((key) => localStorage.getItem(key), PROGRESS_KEY);
+  assert.equal(JSON.parse(raw ?? "{}").mastery?.[concept]?.box, box);
+});
+When("I type {string} as my answer and press Answer", async function (this: WebWorld, text: string) {
+  await this.page.getByLabel("Your answer").fill(text);
+  await named(this, "Answer").click();
+});
+When("I start typing the answer {string}", async function (this: WebWorld, text: string) {
+  await this.page.getByLabel("Your answer").fill(text);
+});
+Then("the answer hint says {string}", async function (this: WebWorld, text: string) {
+  await this.page.locator("[data-coach-answer-hint]", { hasText: text }).waitFor();
+});
+Then("the coach does not suggest stopping", async function (this: WebWorld) {
+  await settle(this);
+  assert.equal(await this.page.locator("[data-coach-stop-suggestion]").count(), 0);
+});
+Then("no hint is shown", async function (this: WebWorld) {
+  await settle(this);
+  assert.equal(await this.page.locator("[data-coach-hint]").count(), 0);
+});
+Then("the stored progress of {string} has used no hints", async function (this: WebWorld, id: string) {
+  await settle(this);
+  const p = await readProgress(this, id);
+  assert.ok(!p || JSON.stringify(p.hintsUsed) === "[0,0,0]", JSON.stringify(p));
+});
+Then("the coach question is inside the polite live region", async function (this: WebWorld) {
+  assert.ok((await this.page.locator("[aria-live='polite'] [data-coach-nudge], [aria-live='polite'] [data-coach-skip-tour]").count()) >= 1);
+});
+
+// Forced colors, the idle Step button, narrow screens
+
+Given("the coach lab shows lesson {string} with forced colors", async function (this: WebWorld, lesson: string) {
+  await this.page.emulateMedia({ forcedColors: "active" });
+  await openLesson(this, lesson);
+});
+Then("the spotlight is outlined in a system color", async function (this: WebWorld) {
+  const style = await this.page.locator("[data-coach-spotlight]").evaluate((el) => {
+    const s = getComputedStyle(el);
+    return { width: s.outlineWidth, style: s.outlineStyle };
+  });
+  assert.equal(style.style, "solid");
+  assert.equal(style.width, "3px");
+});
+Then("the spotlight still dims the rest of the page", async function (this: WebWorld) {
+  const shadow = await this.page.locator("[data-coach-spotlight]").evaluate((el) => getComputedStyle(el).boxShadow);
+  assert.match(shadow, /\d{3,}px/, `expected a huge spread, got ${shadow}`);
+});
+Then("the Step button explains {string}", async function (this: WebWorld, text: string) {
+  await this.page.locator("[data-idle-note]", { hasText: text }).waitFor();
+});
+Then("the idle Step button meets {float}:1 contrast", async function (this: WebWorld, min: number) {
+  const items = await paint(this, '[data-coach-id="button:step"][aria-disabled="true"], [data-idle-note]');
+  assert.ok(items.length >= 2);
+  for (const { color, layers, text } of items) assert.ok(ratioOf(color, layers) >= min, `"${text}" is ${ratioOf(color, layers).toFixed(2)}:1`);
+});
+Then("the coach panel starts in the top half of the window", async function (this: WebWorld) {
+  const r = await rectOf(this, "[data-coach-panel]");
+  const h = await this.page.evaluate(() => window.innerHeight);
+  assert.ok(r.y < h / 2, `panel starts at ${r.y} of ${h}`);
+});
+Then("the number pad buttons are at least {int}px tall", async function (this: WebWorld, min: number) {
+  const heights = await this.page.locator('[role="group"][aria-label="Number pad"] button').evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height));
+  assert.equal(heights.length, 10);
+  for (const h of heights) assert.ok(h >= min, `a pad button is ${h}px tall`);
+});
+
+// Loading problems
+
+Given("the coach lab is asked for the lesson {string}", async function (this: WebWorld, lesson: string) {
+  await this.openLab(`?lesson=${encodeURIComponent(lesson)}&testclock`);
+  await this.page.locator("[data-lesson-load-error], [data-coach-panel]").first().waitFor();
+});
+Then("the lab says {string}", async function (this: WebWorld, text: string) {
+  await this.page.locator("[data-lesson-load-error]", { hasText: text }).waitFor();
+});
+Then("the lab shows no technical error text", async function (this: WebWorld) {
+  const text = await this.page.locator("main").innerText();
+  assert.ok(!/Cannot read|dynamically imported|published lesson|undefined|TypeError|format 1/i.test(text), text);
+});
+const lessonChunk = (id: string) => `**/assets/${id.replace("/", "-")}-*.js`;
+Given("the lesson file of {string} is damaged", async function (this: WebWorld, id: string) {
+  await this.page.route(lessonChunk(id), (route) => route.fulfill({ contentType: "text/javascript", body: "export default { format: 1 };" }));
+});
+Given("the lesson file of {string} cannot be fetched", async function (this: WebWorld, id: string) {
+  await this.page.route(lessonChunk(id), (route) => route.abort());
+});
+When("the lesson file can be fetched again", async function (this: WebWorld) {
+  await this.page.unroute("**/assets/*.js");
+  await this.page.unrouteAll();
+});
+Then("the main bundle does not contain the coach", async function (this: WebWorld) {
+  const html = await readFile(path.join(root, "web/dist/index.html"), "utf8");
+  const src = html.match(/<script[^>]*src="([^"]+)"/)![1]!;
+  const js = await readFile(path.join(root, "web/dist", src), "utf8");
+  assert.ok(!js.includes("data-coach-panel"), "the coach is in the main bundle");
+  assert.ok(!js.includes("Component lab"), "the lab is in the main bundle");
 });

@@ -11,7 +11,9 @@ hideEnd: true
 starter:
   hex: ["0x00300513", "0x00800513"]   # put 3 in box a0, then put 8 in box a0
 tabs: [cards]
-onWrongDefault: Not quite yet. Watch what the machine does, then try again.
+onWrongDefault:
+  say: Let's watch what happens.
+  goto: watch
 scenes:
   - id: look
     say: Two cards now, and both put a number in the same box. Press Continue when you are ready.
@@ -60,6 +62,7 @@ scenes:
       - Each press follows one card, and the second card comes after the first.
       - After two presses the box shows 8.
     showMe: demo-step-twice
+    doneSay: Both cards ran, and the box ended on 8.
     lock: [edit, drag, toggle]
 
   - id: done

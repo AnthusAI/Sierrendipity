@@ -136,3 +136,63 @@ Feature: The coach helps without penalty
     When I press Continue
     And the clock advances 12 minutes
     Then the coach suggests stopping after this goal
+
+  Scenario: The 12-minute suggestion is made once per session, not again in the next lesson
+    Given the coach lab shows lesson "c1/01-press-the-button"
+    When I press Continue
+    And the clock advances 12 minutes
+    Then the coach suggests stopping after this goal
+    When I choose "Okay"
+    And I reload the lab
+    And I press Continue
+    And the clock advances 13 minutes
+    Then the coach does not suggest stopping
+
+  Scenario: The suggestion does not come back in the next lesson either
+    Given the coach lab shows lesson "c1/01-press-the-button"
+    When the clock advances 12 minutes
+    Then the coach suggests stopping after this goal
+    When I choose "Okay"
+    And I press Continue
+    And I press Step
+    And I press Continue
+    And I press Continue
+    And I choose "Next lesson, about 3 min"
+    And the clock advances 13 minutes
+    Then the coach does not suggest stopping
+
+  Scenario: Double-clicking Continue does not spend a hint
+    Given the coach lab shows lesson "c1/01-press-the-button"
+    When I double-click Continue
+    Then the coach says "Press Step"
+    And no hint is shown
+    And the stored progress of "c1/01-press-the-button" has used no hints
+
+  Scenario: A nudge is announced politely and takes focus, which returns when it is dismissed
+    Given the coach lab shows lesson "c1/01-press-the-button"
+    When I press Continue
+    Then the focus is on "Step"
+    When the clock advances 76 seconds
+    Then the coach offers "Want a nudge?"
+    And the coach question is inside the polite live region
+    And the focus is on "Nudge"
+    When I choose "I'm fine"
+    Then the focus is on "Step"
+
+  Scenario: "Skip the tour?" is announced politely and takes focus, which returns when it is dismissed
+    Given the coach lab shows lesson "c1/01-press-the-button"
+    When I press Continue
+    And I press the Escape key
+    Then the coach question is inside the polite live region
+    And the focus is on "Keep going"
+    When I choose "Keep going"
+    Then the focus is on "Step"
+
+  Scenario: The 12-minute note does not steal focus from an answer being typed
+    Given the coach lab shows lesson "c1/03-last-one-wins"
+    When I press Continue
+    And I start typing the answer "1"
+    And the clock advances 12 minutes
+    Then the coach suggests stopping after this goal
+    And the focus is on "Your answer"
+

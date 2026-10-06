@@ -13,8 +13,9 @@ Feature: The coach plays the lessons
     When I press Step
     Then box "a0" shows 5
     And the coach says "the box shows 5"
-    And the coach announces "Done:"
+    And the coach confirms "There it is: the box holds 5."
     When I press Continue
+    Then the coach shows no confirmation
     And I press Continue
     Then the Now you can card lists "Make the machine follow a card."
     And the Now you can card shows what I made, "Put 5 in box a0"
@@ -64,13 +65,14 @@ Feature: The coach plays the lessons
       | 38    | digits side by side         |
       | 5     | these cards don't subtract  |
       | 0     | does not end up empty       |
-      | 99    | Watch what the machine does |
+      | 99    | Let's watch what happens   |
 
   Scenario: Lesson 03 rewards a correct first prediction
     Given the coach lab shows lesson "c1/03-last-one-wins"
     When I press Continue
     And I answer 8
     Then the coach says "Press Step twice"
+    And the coach announces "Scene complete"
     When I press Step
     And I press Step
     Then the stored progress of "c1/03-last-one-wins" has passed with the bonus "called-it"
@@ -149,3 +151,94 @@ Feature: The coach plays the lessons
     Then the spotlight is instant
     When I ask to be shown
     Then the ghost pointer is instant
+
+  Scenario: A number on a card can be cleared and retyped by keyboard
+    Given the coach lab shows lesson "c1/02-change-the-number"
+    When I press Continue
+    And I clear the number on card 1 with the keyboard
+    Then the card hint says "a number from 0 to 2047"
+    When I type "9" into the number on card 1
+    Then the number on card 1 is 9
+    When I press Step
+    Then box "a0" shows 9
+
+  Scenario Outline: A number that cannot be used is explained, not silently reverted
+    Given the coach lab shows lesson "c1/02-change-the-number"
+    When I press Continue
+    And I type "<text>" into the number on card 1 and leave it
+    Then the number on card 1 is 5
+    And the card hint says "The card keeps 5"
+
+    Examples:
+      | text |
+      | -3   |
+      | 5000 |
+      | abc  |
+
+  Scenario: The prediction is made before the machine moves
+    Given the coach lab shows lesson "c1/03-last-one-wins"
+    When I press Continue
+    Then the Step button is locked with the explanation "Not yet"
+    And the Back button is locked with the explanation "Not yet"
+    And the Reset button is locked with the explanation "Not yet"
+
+  Scenario: A goal reached early is not asked for again
+    Given the coach lab shows lesson "c1/03-last-one-wins"
+    When I press Step
+    And I press Step
+    And I press Continue
+    And I answer 8
+    Then the Now you can card is not shown yet
+    And the coach says "last one wins"
+
+  Scenario: A prediction made after the reveal earns nothing, and re-running earns nothing more
+    Given the coach lab shows lesson "c1/03-last-one-wins"
+    When I press Step
+    And I press Step
+    And I press Continue
+    And I answer 8
+    And I press Reset
+    And I press Step
+    And I press Step
+    Then the stored progress of "c1/03-last-one-wins" has passed without the bonus "called-it"
+    And the stored progress of "c1/03-last-one-wins" has 1 attempt
+    And the stored progress of "c1/03-last-one-wins" asked 0 prediction and got 0 right
+    And the stored mastery of "last-wins" is box 1
+
+  Scenario: Running again with Back and Reset does not add attempts
+    Given the coach lab shows lesson "c1/04-two-boxes"
+    When I press Continue
+    And I press Step
+    And I press Step
+    And I press Reset
+    And I press Step
+    And I press Step
+    And I press Reset
+    And I press Step
+    And I press Step
+    Then the stored progress of "c1/04-two-boxes" has 1 attempt
+
+  Scenario Outline: A whole-number answer is read strictly: <typed>
+    Given the coach lab shows lesson "c1/03-last-one-wins"
+    When I press Continue
+    And I type "<typed>" as my answer and press Answer
+    Then the answer hint says "<hint>"
+    And the coach says "last one wins"
+
+    Examples:
+      | typed | hint                       |
+      | 1.2   | Type a whole number, like 12 |
+      | -12.0 | Type a whole number, like 12 |
+      | 12abc | Type a whole number, like 12 |
+      |       | Type your guess first        |
+
+  Scenario Outline: A negative or spaced whole number is accepted: <typed>
+    Given the coach lab shows lesson "c1/03-last-one-wins"
+    When I press Continue
+    And I type "<typed>" as my answer and press Answer
+    Then the coach replies "Let's watch"
+
+    Examples:
+      | typed |
+      | -3    |
+      |  11   |

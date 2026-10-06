@@ -59,13 +59,35 @@ export function labClock(search = window.location.search): Clock {
   return window.__testclock;
 }
 
-const sessionStarts = new WeakMap<Clock, number>();
-/** When this browser session with the coach began (the first lesson played on this clock). */
-export function sessionStart(clock: Clock): number {
-  let at = sessionStarts.get(clock);
-  if (at === undefined) {
-    at = clock.now();
-    sessionStarts.set(clock, at);
+const SESSION_KEY = "sierrendipity:coach:session";
+const memory = new WeakMap<Clock, { start: number; shown: boolean }>();
+
+/**
+ * The coach session: when it began and whether the "good place to stop" suggestion was already made. Kept in
+ * sessionStorage so it survives a lesson change and a reload, and once per session (falls back to memory).
+ */
+export function sessionInfo(clock: Clock): { start: number; shown: boolean } {
+  const now = clock.now();
+  try {
+    const stored = JSON.parse(sessionStorage.getItem(SESSION_KEY) ?? "null") as { start?: unknown; shown?: unknown } | null;
+    if (stored && typeof stored.start === "number" && stored.start <= now) return { start: stored.start, shown: stored.shown === true };
+    const fresh = { start: now, shown: false };
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(fresh));
+    return fresh;
+  } catch {
+    let info = memory.get(clock);
+    if (!info) memory.set(clock, (info = { start: now, shown: false }));
+    return info;
   }
-  return at;
+}
+
+/** Remember that the suggestion was made, so no later lesson repeats it. */
+export function markStopShown(clock: Clock): void {
+  const info = { ...sessionInfo(clock), shown: true };
+  memory.set(clock, info);
+  try {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(info));
+  } catch {
+    /* kept in memory */
+  }
 }

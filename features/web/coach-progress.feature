@@ -17,6 +17,9 @@ Feature: The coach records progress and never blocks on storage
     When I press Continue
     And I press Step
     And I press Step
+    And I press Reset
+    And I press Step
+    And I press Step
     Then the stored progress of "c1/04-two-boxes" has not passed
     And the stored progress of "c1/04-two-boxes" has 1 attempt
 
@@ -71,3 +74,49 @@ Feature: The coach records progress and never blocks on storage
       | width | height |
       | 1024  | 768    |
       | 1440  | 900    |
+
+  Scenario: Forced colors keep the spotlight visible
+    Given the coach lab shows lesson "c1/01-press-the-button" with forced colors
+    When I press Continue
+    Then the spotlight surrounds "button:step"
+    And the spotlight is outlined in a system color
+    And the spotlight still dims the rest of the page
+
+  Scenario: The step button explains itself when it cannot step
+    Given the coach lab shows lesson "c1/01-press-the-button"
+    When I press Continue
+    And I press Step
+    Then the Step button explains "Press Back first"
+    And the idle Step button meets 4.5:1 contrast
+
+  Scenario: At 400 by 800 the coach comes first and the number pad is easy to hit
+    Given the coach lab shows lesson "c1/03-last-one-wins" at 400 by 800
+    When I press Continue
+    Then the coach panel starts in the top half of the window
+    And the number pad buttons are at least 44px tall
+    And the lab page does not scroll sideways
+
+  Scenario: A lesson that does not exist is explained kindly
+    Given the coach lab is asked for the lesson "c9/99-nothing"
+    Then the lab says "This lesson couldn't load. Try again, or pick another lesson."
+    And the lab shows no technical error text
+    When I choose "Back to the path"
+    Then the coach says "one card and one box"
+
+  Scenario: A lesson file that is damaged is explained kindly
+    Given the lesson file of "c1/01-press-the-button" is damaged
+    And the coach lab is asked for the lesson "c1/01-press-the-button"
+    Then the lab says "This lesson couldn't load. Try again, or pick another lesson."
+    And the lab shows no technical error text
+
+  Scenario: A lesson file that cannot be fetched is explained kindly, and Try again fetches it again
+    Given the lesson file of "c1/01-press-the-button" cannot be fetched
+    And the coach lab is asked for the lesson "c1/01-press-the-button"
+    Then the lab says "This lesson couldn't load. Try again, or pick another lesson."
+    And the lab shows no technical error text
+    When the lesson file can be fetched again
+    And I choose "Try again"
+    Then the coach says "one card and one box"
+
+  Scenario: Visitors to the app do not download the coach
+    Then the main bundle does not contain the coach
