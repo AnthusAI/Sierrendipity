@@ -71,6 +71,11 @@ export class WebWorld extends World {
     await dialog.waitFor({ state: "detached" });
   }
 
+  /** Open the component lab (/lab) with a query string such as "?lesson=c1/01-press-the-button&testclock". */
+  async openLab(query = "") {
+    await this.page.goto(`${this.appUrl}/lab${query}`);
+  }
+
   async open(config: Record<string, unknown>) {
     await this.page.route("**/config.json", (route) => route.fulfill({ json: config }));
     await this.page.goto(this.appUrl);
