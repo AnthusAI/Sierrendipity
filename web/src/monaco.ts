@@ -5,9 +5,11 @@ import "monaco-editor/esm/vs/editor/edcore.main";
 import "monaco-editor/esm/vs/basic-languages/python/python.contribution";
 import "monaco-editor/esm/vs/basic-languages/cpp/cpp.contribution";
 import { registerRiscvLanguages } from "./riscvMonaco";
+import { defineMonacoThemes } from "./theme/editorThemes";
 import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
 
 self.MonacoEnvironment = { getWorker: () => new EditorWorker() };
 loader.config({ monaco });
 
 registerRiscvLanguages();
+defineMonacoThemes();

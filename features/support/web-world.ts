@@ -58,6 +58,19 @@ export class WebWorld extends World {
   noted: Record<string, string> = {};
   pageErrors: string[] = [];
 
+  /**
+   * Click something that opens one of the app's dialogs (they replaced window.prompt/confirm), type
+   * `answer` into its text box when given, and press its confirm button (Create, Rename or Delete).
+   */
+  async answeringDialog(answer: string | null, click: () => Promise<unknown>) {
+    await click();
+    const dialog = this.page.getByRole("dialog");
+    await dialog.waitFor();
+    if (answer !== null) await dialog.getByRole("textbox").fill(answer);
+    await dialog.getByRole("button", { name: /^(Create|Rename|Delete)$/ }).click();
+    await dialog.waitFor({ state: "detached" });
+  }
+
   async open(config: Record<string, unknown>) {
     await this.page.route("**/config.json", (route) => route.fulfill({ json: config }));
     await this.page.goto(this.appUrl);

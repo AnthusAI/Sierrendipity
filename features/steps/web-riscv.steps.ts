@@ -28,8 +28,7 @@ When("I paste this into the editor:", async function (this: WebWorld, text: stri
 Given(
   "a project {string} in {word} {word} with the program:",
   async function (this: WebWorld, name: string, a: string, b: string, text: string) {
-    this.page.once("dialog", (dialog) => dialog.accept(name));
-    await this.page.getByRole("button", { name: "New project", exact: true }).click();
+    await this.answeringDialog(name, () => this.page.getByRole("button", { name: "New project", exact: true }).click());
     await this.page.getByLabel("Language").selectOption({ label: `${a} ${b}` });
     await pasteIntoEditor(this, text);
   },

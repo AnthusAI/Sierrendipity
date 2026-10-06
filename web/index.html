@@ -1,9 +1,37 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="cool">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
     <title>Sierrendipity</title>
+    <script>
+      // Apply the last used color theme and mode before first paint, so a reload never flashes the wrong
+      // palette. Mirrors src/theme/appearance.tsx; the last appearance is written by src/settings.ts.
+      (function () {
+        var root = document.documentElement;
+        var theme = "cool";
+        var mode = "system";
+        try {
+          var last = JSON.parse(localStorage.getItem("sierrendipity:settings:last") || "null") || {};
+          if (["cool", "warm", "neutral"].indexOf(last.theme) >= 0) theme = last.theme;
+          if (["light", "dark", "system"].indexOf(last.mode) >= 0) mode = last.mode;
+        } catch (e) {
+          /* damaged or unavailable storage: the defaults apply */
+        }
+        var dark = mode === "dark";
+        if (mode === "system") {
+          try {
+            dark = matchMedia("(prefers-color-scheme: dark)").matches;
+          } catch (e) {
+            dark = false;
+          }
+        }
+        root.setAttribute("data-theme", theme);
+        root.setAttribute("data-mode", dark ? "dark" : "light");
+        root.classList.toggle("dark", dark);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

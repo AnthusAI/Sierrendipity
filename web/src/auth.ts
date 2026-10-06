@@ -33,7 +33,7 @@ const base64url = (bytes: Uint8Array) =>
 
 const random = () => base64url(crypto.getRandomValues(new Uint8Array(48)));
 
-export function claims(): { email?: string } | null {
+export function claims(): { email?: string; sub?: string } | null {
   if (!tokens) return null;
   try {
     const payload = tokens.idToken.split(".")[1].replaceAll("-", "+").replaceAll("_", "/");
