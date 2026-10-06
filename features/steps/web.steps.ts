@@ -7,7 +7,7 @@ import type { WebWorld } from "../support/web-world.ts";
 const terminal = (w: WebWorld) => w.page.getByRole("region", { name: "Terminal" });
 const button = (w: WebWorld, name: string) => w.page.getByRole("button", { name, exact: true });
 const treeItem = (w: WebWorld, file: string) => w.page.getByRole("treeitem", { name: file, exact: true });
-const languages = "RISC-V assembly|Machine code|Python|C\\+\\+|C";
+const languages = "RISC-V assembly|Machine code|Python|C\\+\\+|Rust|C";
 
 // Backend and sign-in
 
@@ -223,13 +223,28 @@ Then("the editor shows {string}", async function (this: WebWorld, text: string) 
   await this.page.locator(".monaco-editor .view-lines").filter({ hasText: text }).waitFor();
 });
 
+Then("the editor highlights the Rust keyword {string}", async function (this: WebWorld, keyword: string) {
+  // Monaco wraps each token in a span whose class is mtk<N>; plain text is mtk1, keywords are not.
+  const token = this.page.locator(".monaco-editor .view-line span span").getByText(keyword, { exact: true }).first();
+  await token.waitFor();
+  const className = (await token.getAttribute("class")) ?? "";
+  if (!/mtk\d+/.test(className) || /\bmtk1\b/.test(className)) throw new Error(`"${keyword}" is not highlighted: ${className}`);
+});
+
 // Running
 
 When("I press Run", async function (this: WebWorld) {
   await button(this, "Run").click();
 });
 
-When("I press Stop", async function (this: WebWorld) {
+Then("the backend received a {string} run request with the file {string}", async function (this: WebWorld, language: string, file: string) {
+  const last = this.mock.runRequests.at(-1);
+  if (!last || last.language !== language || !last.files.some((f) => f.path === file)) {
+    throw new Error(`unexpected run request: ${JSON.stringify(last)}`);
+  }
+});
+
+When("I press Stop",async function (this: WebWorld) {
   await button(this, "Stop").click();
 });
 

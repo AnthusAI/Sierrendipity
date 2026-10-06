@@ -1,7 +1,8 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 
 // A small in-repo mock of the Control, Proxy and Runner APIs in docs/architecture.md, served from
-// one origin. It runs a fake program chosen from the submitted source:
+// one origin. It runs a fake program chosen from the submitted source (the same for every language,
+// Python, C, C++ and Rust alike; POST /runs bodies are recorded in `runRequests`):
 //   "#error <text>"   -> compile error "main.cpp:1:2: error: <text>"
 //   "while True"      -> prints "still running" and waits for Stop
 //   more than 1 file  -> prints "files: <names>"
@@ -129,6 +130,8 @@ export interface MockBackend {
   requireControlToken(token: string): void;
   /** While true, /session reports the unknown state "failed". */
   setSessionFailing(failing: boolean): void;
+  /** Every POST /runs body so far, so specs can check the language and files the IDE sent. */
+  runRequests: { language: string; files: { path: string; content: string }[] }[];
   close(): Promise<void>;
 }
 
@@ -138,6 +141,7 @@ export async function startMockBackend(options: { startDelayMs?: number; port?: 
   let controlToken: string | undefined;
   let sessionFailing = false;
   const runs = new Map<string, Run>();
+  const runRequests: MockBackend["runRequests"] = [];
   let nextRun = 1;
 
   const emit = (run: Run, type: string, data: unknown) => {
@@ -210,6 +214,7 @@ export async function startMockBackend(options: { startDelayMs?: number; port?: 
     if (request.method === "POST" && path === "/runs") {
       if ([...runs.values()].some((r) => !r.done)) return json(response, 409, { error: "a run is active" });
       const body = await readJson(request);
+      runRequests.push({ language: body.language, files: body.files });
       const runId = `run-${nextRun++}`;
       const run: Run = { events: [], done: false, subscribers: new Set() };
       runs.set(runId, run);
@@ -258,6 +263,7 @@ export async function startMockBackend(options: { startDelayMs?: number; port?: 
 
   return {
     url: `http://127.0.0.1:${address.port}`,
+    runRequests,
     requireControlToken: (token) => {
       controlToken = token;
     },

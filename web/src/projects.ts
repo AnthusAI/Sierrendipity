@@ -4,6 +4,7 @@ export const LANGUAGES: { id: Language; label: string; monaco: string }[] = [
   { id: "python", label: "Python", monaco: "python" },
   { id: "c", label: "C", monaco: "c" },
   { id: "cpp", label: "C++", monaco: "cpp" },
+  { id: "rust", label: "Rust", monaco: "rust" },
   { id: "asm", label: "RISC-V assembly", monaco: "riscv-asm" },
   { id: "machine", label: "Machine code", monaco: "riscv-machine" },
 ];
@@ -68,6 +69,11 @@ const STARTERS: Record<Language, Record<string, string>> = {
   cpp: {
     "main.cpp":
       '#include <iostream>\n#include <string>\n\nint main() {\n  std::string name;\n  std::cout << "Name: ";\n  std::cin >> name;\n  std::cout << "Hello, " << name << "!\\n";\n  return 0;\n}\n',
+  },
+  // Rust's stdout is not flushed when the program reads stdin, so the prompt needs an explicit flush.
+  rust: {
+    "main.rs":
+      'use std::io::{self, Write};\n\nfn main() {\n    print!("Name: ");\n    io::stdout().flush().unwrap();\n    let mut name = String::new();\n    io::stdin().read_line(&mut name).unwrap();\n    println!("Hello, {}!", name.trim());\n}\n',
   },
 };
 

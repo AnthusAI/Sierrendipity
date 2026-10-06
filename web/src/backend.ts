@@ -2,9 +2,9 @@ import { devBackend, type Config } from "./config";
 import { parseSse } from "./sse";
 
 export type BackendStatus = "starting" | "ready" | "error";
-export type Language = "python" | "c" | "cpp" | "asm" | "machine";
+export type Language = "python" | "c" | "cpp" | "rust" | "asm" | "machine";
 /** Languages that run on the backend; the two RISC-V languages run entirely in the browser. */
-export type BackendLanguage = "python" | "c" | "cpp";
+export type BackendLanguage = "python" | "c" | "cpp" | "rust";
 
 export interface ExplainRequest {
   language: "c";
