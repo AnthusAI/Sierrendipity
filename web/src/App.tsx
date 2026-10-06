@@ -1,4 +1,4 @@
-import { Loader2, Sparkles } from "lucide-react";
+import { Lightbulb, Loader2 } from "lucide-react";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { claims, getIdToken, handleCallback, isSignedIn, signOut, startLogin } from "./auth";
@@ -61,7 +61,7 @@ export function App() {
   } else if (!devBackend(boot.config) && !signedIn) {
     screen = (
       <Screen>
-        <Sparkles aria-hidden className="size-10 text-link" />
+        <Lightbulb aria-hidden className="size-10 text-link" />
         <h1 className="text-2xl font-semibold tracking-tight">Sign in to Sierrendipity</h1>
         <p className="max-w-sm text-muted-foreground">Write, run and explore code in your browser.</p>
         {authError && (

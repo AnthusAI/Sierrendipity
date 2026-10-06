@@ -2,7 +2,7 @@ import Editor from "@monaco-editor/react";
 import { Terminal } from "@xterm/xterm";
 import type * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 import type { AsmError } from "@sierrendipity/explorer";
-import { CircleAlert, Compass, Cpu, FastForward, FileCode2, Loader2, LogOut, Play, Plus, RotateCcw, Settings as SettingsIcon, Sparkles, Square, StepBack, StepForward, X } from "lucide-react";
+import { CircleAlert, Compass, Cpu, FastForward, FileCode2, Lightbulb, Loader2, LogOut, Play, Plus, RotateCcw, Settings as SettingsIcon, Square, StepBack, StepForward, X } from "lucide-react";
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -462,7 +462,7 @@ export function Ide({ config, user, getIdToken, onSignOut }: Props) {
     <div className="flex h-full flex-col">
       <header className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b bg-chrome px-4 py-2 text-chrome-foreground">
         <strong className="flex items-center gap-2 text-base font-semibold tracking-tight">
-          <Sparkles aria-hidden className="size-5 text-link" /> Sierrendipity
+          <Lightbulb aria-hidden className="size-5 text-link" /> Sierrendipity
         </strong>
         <Separator orientation="vertical" className="mx-1 h-5" />
         <NativeSelect aria-label="Project" value={store.current} onChange={(e) => setStore({ ...store, current: e.target.value })}>
