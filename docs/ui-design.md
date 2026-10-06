@@ -79,3 +79,25 @@ An 8px rhythm (controls are 32px high, rows 24px, panel padding 12-16px), subtle
 transitions of 150 ms. `prefers-reduced-motion` turns every animation and transition off. Focus rings
 use `outline` with the `--ring` color (3:1 against the page, header, cards and dialogs). The layout works down to about
 1024px: the toolbar wraps and the right pane is resizable (260-900px).
+
+## Machine diagrams (`web/src/diagrams/`)
+
+Live views of the real machine, shown at `/lab` (the developer component lab, `web/src/lab/`, which holds
+no user data). `useMachineTimeline(words, { hideEnd, boxes, pointer, memorySize })` builds a `Machine` and a
+`Timeline` and returns `{ position, length, snapshot, diff, stepForward, stepBackward, seek, play, pause,
+speed, setSpeed, isAtEnd, reset, t, ... }`. With `hideEnd` the trailing `ebreak` is appended and run
+automatically after the last card, so the number of steps equals the number of visible cards.
+`MachineView` (D1), `HeartbeatView` (D3), `PointerWalk` (D6) and `PixelDisplay` (E10) are pure functions of
+that state; `TimelineControls` is the shared playback bar (native range and select, shadcn buttons).
+
+- One clock: `t` runs 0 to 1 per forward step (800 ms at 1x). Tokens, the hand and the heartbeat stations are
+  all derived from `t` in render, so there is nothing to keep in sync and nothing to cancel. Under
+  `prefers-reduced-motion` (or speed Instant) `t` is 1 at once: no token is drawn, and the box is
+  highlighted and the "What just happened" log (`role="log"`, polite) says it in words.
+- Tests add `?testclock` to the URL: the clock then stays at 1 and `window.__diagramClock.set(t)` freezes
+  it mid-step, and diagram roots carry `data-animation-t`.
+- Motion library: not added. Because `t` drives the render, a token flight needs no animation engine, and
+  there are no Web Animations to run on tokens. Bundle impact of the diagrams and the lab is about +31 kB
+  raw (+10 kB gzip) in the main chunk, mostly the explorer `Timeline` and the icons.
+- Pixel colors are built from existing tokens only (`--muted`, `--field-1..7`, the `--ansi-*` text steps
+  and `--foreground`); each has a text label in the legend and its number printed on the cell.
