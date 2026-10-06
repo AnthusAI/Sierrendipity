@@ -34,9 +34,10 @@ export function listLessonIds(root: string = LESSONS_ROOT): string[] {
 }
 
 /** Concept ids from lessons/concepts.yaml (`concepts: [{id, title}]`). */
-export function readConcepts(root: string = LESSONS_ROOT): string[] {
+/** Returns undefined when there is no registry file (concepts are then not validated). */
+export function readConcepts(root: string = LESSONS_ROOT): string[] | undefined {
   const file = join(root, "concepts.yaml");
-  if (!existsSync(file)) return [];
+  if (!existsSync(file)) return undefined;
   const doc = parseYaml(readFileSync(file, "utf8")) as { concepts?: { id: string }[] } | null;
   return (doc?.concepts ?? []).map((c) => c.id);
 }

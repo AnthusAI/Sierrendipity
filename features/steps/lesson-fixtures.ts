@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import { assemble } from "@sierrendipity/explorer";
 
+import type { LessonRun } from "@sierrendipity/lesson-core";
+
+/** State shared between the lesson step files. */
+export const world: { run?: LessonRun } = {};
+
 /** Assemble a one-line program where ";" separates lines. */
 export function assembleOrThrow(source: string): number[] {
   const result = assemble(source.replace(/;/g, "\n"));

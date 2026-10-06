@@ -1,18 +1,21 @@
 import { Given, Then, When } from "@cucumber/cucumber";
 import assert from "node:assert/strict";
-import { earnedStars, runChecks, runProgram, type Lesson, type PublishedLesson } from "@sierrendipity/lesson-core";
+import { join } from "node:path";
+import { earnedStars, parseStep, runChecks, runProgram, type Lesson, type PublishedLesson } from "@sierrendipity/lesson-core";
 import { checkLesson, type LessonReport } from "@sierrendipity/lesson-core/check";
-import { crossCheckGherkin } from "@sierrendipity/lesson-core/node";
-import { loadLesson, publishLesson, type LoadResult } from "@sierrendipity/lesson-core/loader";
-import { assembleOrThrow, validTestLesson } from "./lesson-fixtures";
+import { crossCheckGherkin, readConcepts, readLessonDir } from "@sierrendipity/lesson-core/node";
+import { countSentences, loadLesson, publishLesson, type LoadResult } from "@sierrendipity/lesson-core/loader";
+import { assembleOrThrow, validTestLesson, world } from "./lesson-fixtures";
 
 let files: Record<string, string>;
 let concepts: string[] | undefined;
 let result: LoadResult;
 let published: PublishedLesson;
+let dir = "c1/99-test";
 
 Given("a valid test lesson", () => {
   files = validTestLesson();
+  dir = "c1/99-test";
   concepts = undefined;
 });
 Given("the known concepts are {string}", (list: string) => {
@@ -33,7 +36,7 @@ When("I remove the file {string}", (file: string) => {
   delete files[file];
 });
 When("I load the lesson", () => {
-  result = loadLesson(files, { dir: "c1/99-test", ...(concepts ? { knownConcepts: concepts } : {}) });
+  result = loadLesson(files, { dir, ...(concepts ? { knownConcepts: concepts } : {}) });
 });
 
 const lesson = (): Lesson => {
@@ -75,13 +78,62 @@ Then("the published checks run without parsing Gherkin", () => {
   assert.deepEqual(earnedStars(runChecks(published.checks, run)), ["pass", "called-it"]);
 });
 
+// ---- lessons authored on disk
+
+Given("the lesson {string}", (id: string) => {
+  files = readLessonDir(join(process.cwd(), "lessons", id));
+  dir = id;
+  concepts = readConcepts();
+});
+Then("the lesson loads from disk", () => {
+  result = loadLesson(files, { dir, ...(concepts ? { knownConcepts: concepts } : {}) });
+  lesson();
+});
+Then("every scene says at most {int} sentences", (n: number) => {
+  for (const s of lesson().scenes) assert.ok(countSentences(s.say) <= n, `${s.id}: ${s.say}`);
+});
+Then("the starter is the four cards {string}", (hexWords: string) => {
+  assert.deepEqual(lesson().starter.words, hexWords.split(" ").map(Number));
+});
+Then("the lesson introduces {string}", (list: string) => {
+  assert.deepEqual(lesson().concepts.introduces, list.split(/,\s*/));
+});
+Then("the lesson has a ghost for every Show me", () => {
+  const l = lesson();
+  const wanted = l.scenes.flatMap((s) => (s.showMe ? [s.showMe] : []));
+  assert.ok(wanted.length > 0, "at least one scene offers Show me");
+  for (const id of wanted) assert.ok(id in l.ghosts, `no ghost ${id}`);
+});
+When("the starter program runs", () => {
+  world.run = runProgram(lesson().starter.words);
+});
+Then("the scene {string} asks for the number {int} for {string}", (id: string, answer: number, target: string) => {
+  const ask = lesson().scenes.find((s) => s.id === id)?.ask;
+  assert.deepEqual(ask && { kind: ask.kind, answer: "answer" in ask ? ask.answer : undefined, target: "target" in ask ? ask.target : undefined }, { kind: "number", answer, target });
+});
+Then("the scene {string} answers a guess of {int} with a {string} reply that goes to {string}", (id: string, guess: number, word: string, target: string) => {
+  const reply = lesson().scenes.find((s) => s.id === id)?.onWrong.find((o) => o.match === guess);
+  assert.ok(reply, `no reply for ${guess}`);
+  assert.ok(reply.say.toLowerCase().includes(word), reply.say);
+  assert.equal(reply.goto, target);
+});
+Then("every scene condition holds at the end, except {string}", (except: string) => {
+  const phrases = lesson().scenes.flatMap((s) => s.until).filter((p) => p !== except);
+  assert.ok(phrases.length > 0);
+  for (const p of phrases) {
+    const parsed = parseStep(p);
+    assert.ok(parsed.ok);
+    assert.equal(parsed.fn(world.run!).ok, true, p);
+  }
+});
+
 // ---- the checker
 
 let checkProblems: string[];
 let checkReport: LessonReport | undefined;
 
 When("I check the lesson", () => {
-  result = loadLesson(files, { dir: "c1/99-test", ...(concepts ? { knownConcepts: concepts } : {}) });
+  result = loadLesson(files, { dir, ...(concepts ? { knownConcepts: concepts } : {}) });
   if (!result.ok) {
     checkProblems = result.errors;
     checkReport = undefined;

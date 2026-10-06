@@ -7,17 +7,15 @@ import {
   runProgram,
   type CheckReport,
   type LessonEvent,
-  type LessonRun,
   type ParsedStep,
   type RunOptions,
 } from "@sierrendipity/lesson-core";
-import { assembleOrThrow } from "./lesson-fixtures";
+import { assembleOrThrow, world } from "./lesson-fixtures";
 
 let words: number[];
 let options: RunOptions;
 let events: LessonEvent[];
 let predictions: Record<string, number[]>;
-let run: LessonRun;
 let lastCheck: { ok: boolean; message: string };
 let lastParse: ParsedStep;
 let report: CheckReport;
@@ -60,20 +58,20 @@ Given("the starting memory at {int} is {int}", (addr: number, value: number) => 
   options.startMem = { [addr]: [value, 0, 0, 0] };
 });
 Given("the program has run", () => {
-  run = runProgram(words, { ...options, events, predictions });
+  world.run = runProgram(words, { ...options, events, predictions });
 });
 Given("the program has run with a cap of {int} steps", (cap: number) => {
-  run = runProgram(words, { ...options, events, predictions, maxSteps: cap });
+  world.run = runProgram(words, { ...options, events, predictions, maxSteps: cap });
 });
 
 Then("the run was stopped by the step cap", () => {
-  assert.equal(run.hitStepCap, true);
+  assert.equal(world.run!.hitStepCap, true);
 });
 
 When(/^I check the phrase: (.*)$/, (phrase: string) => {
   const parsed = parseStep(phrase);
   assert.ok(parsed.ok, parsed.ok ? "" : parsed.error);
-  lastCheck = parsed.fn(run);
+  lastCheck = parsed.fn(world.run!);
 });
 Then(/^the phrase (passes|fails)$/, (verdict: string) => {
   assert.equal(lastCheck.ok, verdict === "passes", lastCheck.message);
@@ -81,7 +79,7 @@ Then(/^the phrase (passes|fails)$/, (verdict: string) => {
 Then(/^the phrase "(.*)" (passes|fails)$/, (phrase: string, verdict: string) => {
   const parsed = parseStep(phrase.replace(/\\"/g, '"'));
   assert.ok(parsed.ok, parsed.ok ? "" : parsed.error);
-  const result = parsed.fn(run);
+  const result = parsed.fn(world.run!);
   assert.equal(result.ok, verdict === "passes", `${phrase}: ${result.message}`);
 });
 
@@ -98,7 +96,7 @@ Then("the parse error suggests {string}", (phrase: string) => {
 });
 
 When("I run the checks:", (feature: string) => {
-  report = runChecks(feature, run);
+  report = runChecks(feature, world.run!);
 });
 Then("the scenario {string} passed", (name: string) => {
   const s = report.scenarios.find((x) => x.name === name);

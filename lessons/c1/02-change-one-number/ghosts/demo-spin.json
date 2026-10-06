@@ -1,0 +1,8 @@
+{
+  "id": "demo-spin",
+  "events": [
+    { "at": 0, "type": "point", "target": "card:0" },
+    { "at": 900, "type": "spin", "card": 0, "to": 36701459 },
+    { "at": 1800, "type": "press", "control": "run" }
+  ]
+}

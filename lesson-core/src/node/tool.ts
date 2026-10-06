@@ -20,9 +20,9 @@ export function lessonIdFromArg(arg: string, root: string = LESSONS_ROOT): strin
   return arg.replace(/\/+$/, "");
 }
 
-function loadOne(id: string, root: string, concepts: string[]) {
+function loadOne(id: string, root: string, concepts: string[] | undefined) {
   const files = readLessonDir(join(root, id));
-  const loaded = loadLesson(files, { dir: id, knownConcepts: concepts });
+  const loaded = loadLesson(files, { dir: id, ...(concepts ? { knownConcepts: concepts } : {}) });
   const extra: string[] = [];
   if (files["checks.feature"] !== undefined) {
     try {

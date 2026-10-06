@@ -1,0 +1,127 @@
+id: c1/01-wake
+title: Wake the Machine
+minutes: 5
+concepts:
+  introduces: [cards, boxes, add, stop]
+  requires: []
+# Four cards: put 5 in a0, put 7 in a1, add them into a2, stop. Cannot be failed: it is already right.
+starter:
+  hex: ["0x00500513", "0x00700593", "0x00b50633", "0x00100073"]
+tabs: [cards, boxes]
+scenes:
+  - id: meet
+    say: This computer follows a list of cards, one at a time. Here are four of them.
+    show: [cards, boxes, D1]
+
+  - id: first-card
+    say: Press Step. The machine reads the first card and puts 5 in box a0.
+    show: [cards, boxes, D1]
+    spotlight: "button:step"
+    until:
+      - the machine has taken at least 1 step
+    hints:
+      - The Step button is under the cards.
+      - Press Step once and watch box a0.
+      - Press Step. Box a0 will change to 5.
+    showMe: demo-step
+    lock: [edit, drag, toggle]
+
+  - id: second-card
+    say: Press Step again. This card puts 7 in box a1.
+    show: [cards, boxes, D1]
+    spotlight: "button:step"
+    until:
+      - the machine has taken at least 2 steps
+    hints:
+      - Same button as before.
+      - Press Step and watch box a1.
+      - Press Step. Box a1 will change to 7.
+    showMe: demo-step
+    lock: [edit, drag, toggle]
+
+  - id: predict
+    say: The next card adds a0 and a1 into box a2. What will a2 hold?
+    show: [cards, boxes, D1]
+    spotlight: "box:a2"
+    ask:
+      kind: number
+      question: What will box a2 hold after the add card?
+      target: a2
+      answer: 12
+    hints:
+      - Box a0 holds 5 and box a1 holds 7.
+      - Add means the numbers are added, like 2 and 3 make 5.
+      - 5 plus 7 is 12.
+    onWrong:
+      - match: 57
+        say: Close! Adding is not gluing digits together, so let's watch.
+        goto: watch-add
+    lock: [edit, drag, toggle]
+
+  - id: watch-add
+    say: Press Step and watch the two numbers meet in box a2.
+    show: [cards, boxes, D1]
+    spotlight: "button:step"
+    until:
+      - the machine has taken at least 3 steps
+      - box a2 holds 12
+    hints:
+      - Press the Step button again.
+      - Watch box a2 while the add card runs.
+      - Press Step. Box a2 will change to 12.
+    showMe: demo-step
+    lock: [edit, drag, toggle]
+
+  - id: stop-card
+    say: The last card says Stop. Press Step once more to end the program.
+    show: [cards, boxes, D1]
+    spotlight: "button:step"
+    until:
+      - the machine halted normally
+    hints:
+      - One more press of Step.
+      - The Stop card is the last one in the list.
+      - Press Step. The machine will stop.
+    showMe: demo-step
+    lock: [edit, drag, toggle]
+
+  - id: rewind
+    say: The machine can also undo steps. Press Back to travel back in time.
+    show: [cards, boxes, D1]
+    spotlight: "button:back"
+    until:
+      - the student rewound
+    hints:
+      - Look for the Back button next to Step.
+      - Back undoes the last step.
+      - Press Back. The boxes change back.
+    showMe: demo-rewind
+    lock: [edit, drag, toggle]
+    skippable: true
+nowYouCan:
+  - Step a program one card at a time.
+  - Read what a box holds.
+  - Guess a result, then check it.
+  - Rewind and watch again.
+warmups:
+  - id: add-three-four
+    concept: add
+    question: Box a0 holds 3 and box a1 holds 4. After the add card, what does box a2 hold?
+    program:
+      asm: |
+        addi a0, zero, 3
+        addi a1, zero, 4
+        add a2, a0, a1
+        ebreak
+    target: a2
+    expected: 7
+  - id: copy-plus-one
+    concept: boxes
+    question: Card one puts 9 in box a0. Card two puts a0 plus 1 in box a1. What does a1 hold?
+    program:
+      asm: |
+        addi a0, zero, 9
+        addi a1, a0, 1
+        ebreak
+    target: a1
+    expected: 10

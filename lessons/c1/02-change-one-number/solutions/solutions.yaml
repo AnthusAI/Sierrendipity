@@ -1,0 +1,17 @@
+solutions:
+  - file: good.hex
+    earns: [pass]
+    note: The first card's number changed from 5 to 35.
+  - file: another-way.hex
+    earns: [pass, another-way]
+    note: The second card's number changed from 7 to 37 instead.
+  - file: unchanged.hex
+    earns: []
+    note: The starter as it came, so box a2 holds 12.
+  - file: too-big.hex
+    earns: []
+    note: The first card was spun to 42, so box a2 holds 49.
+  - file: forever.s
+    earns: []
+    capped: true
+    note: A card that jumps to itself; only the step cap stops it.

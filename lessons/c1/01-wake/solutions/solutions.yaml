@@ -1,0 +1,26 @@
+solutions:
+  - file: good.hex
+    earns: [pass, called-it]
+    predictions: { a2: [12] }
+    note: The starter itself, with a correct first guess.
+  - file: good-asm.s
+    earns: [pass, called-it]
+    predictions: { a2: [12] }
+    note: The same four cards written as assembly.
+  - file: good-wrong-guess.hex
+    earns: [pass]
+    predictions: { a2: [57, 12] }
+    note: The anticipated wrong guess of 57 first, so no Called it.
+  - file: wrong-sub.hex
+    earns: []
+    note: Subtracts instead of adding, so box a2 holds -2.
+  - file: wrong-no-stop.hex
+    earns: []
+    note: Leaves out the Stop card, so the machine runs off the end and faults.
+  - file: wrong-doubles.hex
+    earns: []
+    note: Adds a0 to itself, so box a2 holds 10.
+  - file: forever.s
+    earns: []
+    capped: true
+    note: A card that jumps to itself; only the step cap stops it.
