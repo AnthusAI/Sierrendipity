@@ -1,6 +1,5 @@
 import { Before, Given, Then, When } from "@cucumber/cucumber";
 import assert from "node:assert/strict";
-import { assemble } from "@sierrendipity/explorer";
 import {
   earnedStars,
   parseStep,
@@ -12,12 +11,7 @@ import {
   type ParsedStep,
   type RunOptions,
 } from "@sierrendipity/lesson-core";
-
-export function assembleOrThrow(source: string): number[] {
-  const result = assemble(source.replace(/;/g, "\n"));
-  assert.deepEqual(result.errors, [], `the program should assemble: ${source}`);
-  return result.words;
-}
+import { assembleOrThrow } from "./lesson-fixtures";
 
 let words: number[];
 let options: RunOptions;
