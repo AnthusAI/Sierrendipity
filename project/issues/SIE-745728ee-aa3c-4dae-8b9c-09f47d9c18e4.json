@@ -19,7 +19,7 @@
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity planning"
   },
-  "right_now_summary": "The target architecture and runner image builds still need decisions and testing.",
-  "right_now_updated_at": "2026-10-06T12:30:48.251856Z",
+  "right_now_summary": "The cloud runner design is undecided, and image builds and session-start races still need fixes.",
+  "right_now_updated_at": "2026-10-06T12:41:32.923659Z",
   "custom": {}
 }

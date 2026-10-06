@@ -1,0 +1,25 @@
+{
+  "id": "SIE-e805af7a-ce25-4341-9540-3408264e55eb",
+  "title": "Enforce the allowlist on every session, not only at first sign-in",
+  "description": "Cognito's pre-sign-up trigger only fires when a federated user is first created, so removing someone from the allowlist later does not block an existing user. Check the allowlist in the control Lambda on POST /session (or delete the user from the pool). Specify with Gherkin first.",
+  "type": "bug",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-6fa4d49f-b503-47d0-8add-206bce187d6c",
+  "labels": [],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-06T12:41:26.383306Z",
+  "updated_at": "2026-10-06T12:41:26.383346Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity orchestrator"
+  },
+  "right_now_summary": "The team must check the allowlist on every session to block removed users.",
+  "right_now_updated_at": "2026-10-06T12:41:27.413816Z",
+  "custom": {}
+}

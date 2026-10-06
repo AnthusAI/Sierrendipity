@@ -31,7 +31,7 @@
     "platform": "claude_code",
     "model": "claude-sonnet-5-5"
   },
-  "right_now_summary": "The tutor is being built; lessons work, but sign-in, cloud runs, and safety limits still need work.",
-  "right_now_updated_at": "2026-10-06T12:31:23.596609Z",
+  "right_now_summary": "Core IDE work awaits sign-in, runner design, resource limits, and session handling.",
+  "right_now_updated_at": "2026-10-06T12:41:34.201164Z",
   "custom": {}
 }
