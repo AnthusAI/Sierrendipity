@@ -71,12 +71,6 @@ export class WebWorld extends World {
     await dialog.waitFor({ state: "detached" });
   }
 
-  /** Open the developer component lab (/lab) and wait for it to render. */
-  async openLab() {
-    await this.page.goto(`${this.appUrl}/lab`);
-    await this.page.getByRole("heading", { name: "Component lab" }).waitFor();
-  }
-
   async open(config: Record<string, unknown>) {
     await this.page.route("**/config.json", (route) => route.fulfill({ json: config }));
     await this.page.goto(this.appUrl);

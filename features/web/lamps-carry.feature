@@ -49,7 +49,7 @@ Feature: Adding in binary with a carry that hops left
   Scenario: A full 32-lamp sum scrolls inside its own box instead of the page
     When the screen is 400 pixels wide
     Then "Carry ripple 4294967295 + 1" scrolls sideways inside itself
-    And the page does not scroll sideways
+    And the lamp lab page does not scroll sideways
 
   Scenario: Numbers that are not whole 32-bit numbers get a friendly message
     Then "Carry ripple of a negative number" asks for whole numbers from 0 to 4294967295

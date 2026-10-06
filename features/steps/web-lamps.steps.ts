@@ -224,7 +224,7 @@ Then("{string} scrolls sideways inside itself", async function (this: WebWorld, 
   assert.ok(sizes[1] > sizes[2], "the table should be wider than its box");
 });
 
-Then("the page does not scroll sideways", async function (this: WebWorld) {
+Then("the lamp lab page does not scroll sideways", async function (this: WebWorld) {
   const wide = await this.page.evaluate(`document.documentElement.scrollWidth > document.documentElement.clientWidth`);
   assert.equal(wide, false);
 });
