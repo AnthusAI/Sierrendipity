@@ -443,6 +443,7 @@ export function loadLesson(files: Record<string, string>, opts: LoadOptions = {}
   const stars = new Set(feature?.scenarios.flatMap((s) => (s.tags.includes("pass") ? ["pass"] : s.tags.filter((t) => t.startsWith("star=")).map((t) => t.slice(5)))) ?? []);
   const solutions = parseSolutions(files, stars, lesson?.hideEnd === true, errors);
   if (lesson) lessonLimits(lesson, solutions, errors);
+  if (lesson) errors.push(...lessonSteProblems(lesson as Lesson));
   if (lesson) {
     const ids = new Set(lesson.scenes.map((s) => s.id));
     for (const sol of solutions) for (const id of sol.scenes ?? []) if (!ids.has(id)) errors.push(`solutions/${sol.file}: scenes names unknown scene "${id}"`);

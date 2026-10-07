@@ -51,7 +51,7 @@ export function steProblems(text: string): string[] {
 export function studentText(lesson: Lesson): { where: string; text: string }[] {
   const out: { where: string; text: string }[] = [];
   const add = (where: string, text: string | undefined) => text && out.push({ where, text });
-  lesson.scenes.forEach((scene, i) => {
+  lesson.scenes.forEach((scene) => {
     const w = `scene "${scene.id}"`;
     add(`${w} say`, scene.say);
     add(`${w} doneSay`, scene.doneSay);
@@ -59,7 +59,7 @@ export function studentText(lesson: Lesson): { where: string; text: string }[] {
     scene.hints.forEach((h, k) => add(`${w} hint ${k + 1}`, h));
     scene.onWrong.forEach((o, k) => add(`${w} onWrong[${k}]`, o.say));
     add(`${w} ask question`, scene.ask?.question);
-    void i;
+    if (scene.ask?.kind === "choice") scene.ask.choices.forEach((c, k) => add(`${w} ask choice ${k + 1}`, c));
   });
   add("onWrongDefault", lesson.onWrongDefault);
   lesson.nowYouCan.forEach((t, k) => add(`nowYouCan[${k}]`, t));
