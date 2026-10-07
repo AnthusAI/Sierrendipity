@@ -1,0 +1,20 @@
+{
+  "id": "SIE-b0e7413e-bf56-46c3-8351-6ed0c749b7e2",
+  "title": "Registers panel: table skin, only and number props, IDE tab swap",
+  "description": "Deferred from SIE-4ef8b4 in PR 39: skin table, number signed/hex/both, and the IDE Registers tab drawn by the same component.",
+  "type": "story",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-fd7b2ee2-94bd-4d3a-aeee-ace3372b3b2e",
+  "labels": [],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T19:59:40.249862Z",
+  "updated_at": "2026-10-07T19:59:40.249893Z",
+  "closed_at": null,
+  "right_now_summary": "Work focuses on table styling, number display options, and a shared component for the IDE Registers tab.",
+  "right_now_updated_at": "2026-10-07T19:59:42.344546Z",
+  "custom": {}
+}
