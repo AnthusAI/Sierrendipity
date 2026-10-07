@@ -1,0 +1,28 @@
+{
+  "id": "SIE-4174f530-3b4c-49d2-8e92-86981ead4301",
+  "title": "M11 Wave 2: c1/08 make-your-own-card, c1/09 use-it-again, c1/10 order-matters, with G3",
+  "description": "Part of M11 (SIE-e8c918). c1/08: select 2 cards, Save as card; custom cards in lessons. c1/09: run on 3,5,7; f(f(2))=26. c1/10: f(g(x)) versus g(f(x)). Engine: G3, which supersedes E14 (SIE-576777).",
+  "type": "epic",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "labels": [
+    "M11",
+    "curriculum"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T11:52:29.329047Z",
+  "updated_at": "2026-10-07T11:52:29.329095Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Curriculum Board Agent"
+  },
+  "right_now_summary": "M11 Wave 2 covers custom cards, repeated functions, and function order using engine G3.",
+  "right_now_updated_at": "2026-10-07T11:52:30.865398Z",
+  "custom": {}
+}

@@ -1,0 +1,28 @@
+{
+  "id": "SIE-9ad60edb-9dd2-456e-aab4-81d03ccec6a6",
+  "title": "M11 Wave 7: Course 4 C, c4/01-03, with G10 and G11",
+  "description": "Part of M11 (SIE-e8c918). c4/01 glass-box (Explorer in lesson). c4/02 write-f-in-c (editor C plus compile harness). c4/03 same-c-more-work (-O0 versus -Og). Engine: G10, G11.",
+  "type": "epic",
+  "status": "open",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "labels": [
+    "M11",
+    "curriculum"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T11:52:46.918957Z",
+  "updated_at": "2026-10-07T11:52:46.918984Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Curriculum Board Agent"
+  },
+  "right_now_summary": "Course 4 covers glass-box exploration, C coding, optimization levels, and engines G10 and G11.",
+  "right_now_updated_at": "2026-10-07T11:52:48.196151Z",
+  "custom": {}
+}

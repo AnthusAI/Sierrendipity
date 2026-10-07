@@ -1,0 +1,28 @@
+{
+  "id": "SIE-fa98902a-d33c-4cba-9f1d-2d1d750085b1",
+  "title": "M11 Wave 8: c6/01 same-bytes-new-name and c7/01 the-compiler-as-coach",
+  "description": "Part of M11 (SIE-e8c918). c6/01 C++ mangling. c7/01 Rust stops overflow (main overflow idea). Needs a second source pane and Rust panic text in STE.",
+  "type": "epic",
+  "status": "open",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "labels": [
+    "M11",
+    "curriculum"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T11:52:50.007871Z",
+  "updated_at": "2026-10-07T11:52:50.007905Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Curriculum Board Agent"
+  },
+  "right_now_summary": "The work covers C++ mangling and Rust overflow handling, plus a second source pane and Rust panic text in STE.",
+  "right_now_updated_at": "2026-10-07T11:52:52.002058Z",
+  "custom": {}
+}

@@ -1,0 +1,28 @@
+{
+  "id": "SIE-d042e0cc-5ca9-4cd9-9c01-f693178d175f",
+  "title": "M11 Wave 5: c1/18 light-a-pixel, c1/19 a-fork, c1/20 round-and-round, c1/21 graph-machine, with G6 (D2, D10, D11), G7, G12",
+  "description": "Part of M11 (SIE-e8c918). c1/19 abs value (D10 fork). c1/20 loop (D11 loop track). c1/21 boss: plot y=2x+1. Engine: G6 views D2, D10, D11; G7 jump cards; G12 alternates and side rooms (placed here as the first wave with a side-room need beyond overflow; adjust if needed).",
+  "type": "epic",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "labels": [
+    "M11",
+    "curriculum"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T11:52:40.346680Z",
+  "updated_at": "2026-10-07T11:52:40.346717Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Curriculum Board Agent"
+  },
+  "right_now_summary": "Wave 5 covers four challenges, with G6, G7, and G12 handling views, jumps, alternates, and side rooms.",
+  "right_now_updated_at": "2026-10-07T11:52:41.412539Z",
+  "custom": {}
+}

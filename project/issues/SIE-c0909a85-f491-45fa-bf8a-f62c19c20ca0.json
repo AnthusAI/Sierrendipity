@@ -1,0 +1,28 @@
+{
+  "id": "SIE-c0909a85-f491-45fa-bf8a-f62c19c20ca0",
+  "title": "M11 Wave 4: c1/14-17 flip the card, counting with lamps, inside the number, make-your-own-instruction, with G5",
+  "description": "Part of M11 (SIE-e8c918). c1/14-16 are the old draft lessons 06-08, renamed in the product repo. c1/17 encodes a word with lamps (D4 word target). Engine: G5. Overflow appears here as a planned surprise (side room).",
+  "type": "epic",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "labels": [
+    "M11",
+    "curriculum"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T11:52:37.666694Z",
+  "updated_at": "2026-10-07T11:52:37.666726Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Curriculum Board Agent"
+  },
+  "right_now_summary": "This G5 lesson wave is being prepared with card flips, lamp counting, and a side-room surprise.",
+  "right_now_updated_at": "2026-10-07T11:52:39.294576Z",
+  "custom": {}
+}

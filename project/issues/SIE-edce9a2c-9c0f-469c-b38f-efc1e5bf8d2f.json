@@ -1,0 +1,28 @@
+{
+  "id": "SIE-edce9a2c-9c0f-469c-b38f-efc1e5bf8d2f",
+  "title": "M11 Wave 6: Course 2 typed assembly, c2/01-05, with G8, G9 and D12",
+  "description": "Part of M11 (SIE-e8c918). c2/01 cards-have-short-names (asm chip on card faces). c2/02 type-one-line (editor slot). c2/03 write-f (label, ret; editor region). c2/04 two-inputs. c2/05 a-function-calls-a-function (save ra; D12 stack view, part of G6 but needed here). Engine: G8, G9.",
+  "type": "epic",
+  "status": "open",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "labels": [
+    "M11",
+    "curriculum"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T11:52:43.760625Z",
+  "updated_at": "2026-10-07T11:52:43.760656Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Curriculum Board Agent"
+  },
+  "right_now_summary": "Building Course 2 typed assembly lessons with card names, editor inputs, function calls, and stack views.",
+  "right_now_updated_at": "2026-10-07T11:52:44.845328Z",
+  "custom": {}
+}

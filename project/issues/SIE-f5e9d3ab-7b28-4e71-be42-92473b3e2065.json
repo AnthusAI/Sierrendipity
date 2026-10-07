@@ -31,7 +31,7 @@
     "platform": "claude_code",
     "model": "claude-sonnet-5-5"
   },
-  "right_now_summary": "The IDE and sign-in work, while lessons, emulator courses, CI, and final runtime checks are still being built.",
-  "right_now_updated_at": "2026-10-07T00:32:01.194780Z",
+  "right_now_summary": "The IDE and lessons are deployed, while sign-in, C++ runs, and deployment automation still need verification.",
+  "right_now_updated_at": "2026-10-07T11:52:53.171431Z",
   "custom": {}
 }
