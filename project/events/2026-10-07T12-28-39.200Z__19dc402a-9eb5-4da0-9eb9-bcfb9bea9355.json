@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "19dc402a-9eb5-4da0-9eb9-bcfb9bea9355",
+  "issue_id": "SIE-30e18acd-519f-4db6-960a-bac11cea8d3b",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T12:28:39.200Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "G10: Compiled-language lesson harness (L)",
+    "description": "A lesson harness that compiles student C with the runner and checks results in lessons.\nAcceptance:\n- Given a C lesson, the harness compiles, runs and checks expected output or registers.\n- npm run lesson -- check runs the reference solution through it.\n- Compile errors reach the student in STE.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 3,
+    "assignee": null,
+    "parent": "SIE-9ad60edb-9dd2-456e-aab4-81d03ccec6a6",
+    "labels": [
+      "engine-gap,curriculum"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Curriculum Board Agent"
+    }
+  }
+}

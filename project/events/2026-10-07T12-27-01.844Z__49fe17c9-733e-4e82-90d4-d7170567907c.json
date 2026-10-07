@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "49fe17c9-733e-4e82-90d4-d7170567907c",
+  "issue_id": "SIE-abddd502-a3c7-4867-99c1-41e17f753cf6",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T12:27:01.844Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "R5: Name the algebra from lesson 4 on (S)",
+    "description": "Effort: S. Do first.\n\n**Problem.** An Algebra 2 student is not told that she already knows this.\n**Evidence.** No lesson text mentions variables, rules or f(x); course-1-design.md says 'move faster on math ideas than on machine ideas'.\n**Change.** One STE line each: lesson 4 'A box is like a variable: it has a name and holds a number'; lesson 5 'This card is the rule a2 = a0 + a1'; lamps lesson 'Each lamp is a power of 2' (flip already prints 2^n).\n**Acceptance.**\n- Given lessons 4, 5 and the lamps lesson, then each contains its algebra line and passes the STE check.\n- After lesson 5, asked 'Where have you seen this before?', the student can answer.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-2f17ee43-d05a-465d-bf60-bd7e58cd141a",
+    "labels": [
+      "curriculum,review"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Curriculum Board Agent"
+    }
+  }
+}

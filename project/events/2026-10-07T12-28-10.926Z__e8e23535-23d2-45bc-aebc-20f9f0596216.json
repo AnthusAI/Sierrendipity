@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "e8e23535-23d2-45bc-aebc-20f9f0596216",
+  "issue_id": "SIE-5f0afe5d-7e46-40a2-bc9b-e5c02b3adf2e",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T12:28:10.926Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "G5: Word target for lamps (S)",
+    "description": "Lamps can target a whole 32-bit word (not only a number): the lesson asks the student to make a given instruction word.\nAcceptance:\n- Given a word target, when the lamps match it, then the scene goal is met.\n- The target is shown as the card text, not hex, unless the lesson asks for hex.\n- Works with the 'number only' lens (R4).",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-c0909a85-f491-45fa-bf8a-f62c19c20ca0",
+    "labels": [
+      "engine-gap,curriculum"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Curriculum Board Agent"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "event_id": "6db4b530-5103-40b5-abcf-23494d26f0c2",
+  "issue_id": "SIE-8d128f1b-5451-4ffe-bd60-dd24f8901bf4",
+  "event_type": "comment_added",
+  "occurred_at": "2026-10-07T12:29:29.292Z",
+  "actor_id": "home",
+  "payload": {
+    "comment_id": "b7f9bf25-2eda-47fb-8c3d-0ab1495ba587",
+    "comment_author": "home",
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Curriculum Board Agent"
+    }
+  }
+}

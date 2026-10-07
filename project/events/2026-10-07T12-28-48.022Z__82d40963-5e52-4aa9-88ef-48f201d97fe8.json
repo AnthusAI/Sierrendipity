@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "82d40963-5e52-4aa9-88ef-48f201d97fe8",
+  "issue_id": "SIE-0eccff60-8e17-406a-9b5c-ffbbf813a5f7",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T12:28:48.022Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "G12: Alternates and side rooms in lesson.yaml (M)",
+    "description": "lesson.yaml can declare alternate paths and optional side rooms (also carries R7 challenges).\nAcceptance:\n- Given an alternate, the loader validates it and the player offers it after the goal.\n- A side room is optional, skippable and does not block the next lesson.\n- Progress records visits.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 3,
+    "assignee": null,
+    "parent": "SIE-d042e0cc-5ca9-4cd9-9c01-f693178d175f",
+    "labels": [
+      "engine-gap,curriculum"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Curriculum Board Agent"
+    }
+  }
+}

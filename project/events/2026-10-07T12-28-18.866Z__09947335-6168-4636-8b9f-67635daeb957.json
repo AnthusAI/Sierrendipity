@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "09947335-6168-4636-8b9f-67635daeb957",
+  "issue_id": "SIE-7063b517-8b2f-4819-a7a5-1bff78efb14b",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T12:28:18.866Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "G6b: View D12 stack (M)",
+    "description": "Stack diagram view for Wave 6 (Course 2).\nAcceptance:\n- Given a program that pushes and pops, D12 shows the stack growing and shrinking.\n- Reduced-motion caption is present; a lesson scene can request D12.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 3,
+    "assignee": null,
+    "parent": "SIE-edce9a2c-9c0f-469c-b38f-efc1e5bf8d2f",
+    "labels": [
+      "engine-gap,curriculum"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Curriculum Board Agent"
+    }
+  }
+}

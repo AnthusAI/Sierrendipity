@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "e8718e54-533f-4929-8227-a1f5740fbf17",
+  "issue_id": "SIE-18b20745-659b-49f3-8271-ef9edf9f2f17",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T12:28:28.732Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "G8: Assembly chip on card faces (S)",
+    "description": "A small chip on each card face shows the assembly line (e.g. addi a0, zero, 5), for Course 2.\nAcceptance:\n- Given a card, a chip shows its assembly; it can be hidden by a lesson ui block.\n- The chip never replaces the English text.\n- Keyboard and screen reader read both.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 3,
+    "assignee": null,
+    "parent": "SIE-edce9a2c-9c0f-469c-b38f-efc1e5bf8d2f",
+    "labels": [
+      "engine-gap,curriculum"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Curriculum Board Agent"
+    }
+  }
+}

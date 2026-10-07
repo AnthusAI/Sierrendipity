@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "6cbd81f3-203f-4460-b41f-a8bae4df0f1b",
+  "issue_id": "SIE-ca62738b-85bc-4556-ab74-fa1ab5b8625d",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T12:28:53.237Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "G13: Guardian report from ProgressStore events (M)",
+    "description": "A guardian report built from ProgressStore events, to answer the Wave 0 playtest questions with evidence.\nAcceptance:\n- Given a progress export, the report lists per lesson: time to first action, Continue-only count, prediction accuracy, rung 3 / Show me share, challenges tried, abandonments.\n- It contains no personal data beyond the local student name.\n- It is available from a settings or guardian page and as an export file.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 1,
+    "assignee": null,
+    "parent": "SIE-e17de114-3890-4bef-ae3f-2b68e49720f8",
+    "labels": [
+      "engine-gap,curriculum"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Curriculum Board Agent"
+    }
+  }
+}
