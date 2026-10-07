@@ -355,12 +355,13 @@ The scene sees all of these through `liveRun`, as today.
 The owner asked for "much, much simpler" first lessons, and the review agrees on one action per lesson. So:
 
 - **c1/01** stays as it is. It has no real component; its simplicity is the point.
-- **c1/02** shows the glass strip for the first time. It is never mentioned in text. One optional "Try this too"
-  line after the goal: "Look at the grey line under the card. Which part changes with the number?" (bonus
-  `spot-it`).
+- **c1/02** shows the glass strip for the first time. One short sentence names it after the goal ("Under the card is the machine's own
+  text for it."; the scene sets `glassNamed`, so a screen reader hears it only from then on). One optional
+  last scene asks her to predict, not to be told: "Which part of that text changes when you change the number?"
+  (scene `spot-it`; no star yet).
 - **c1/04** draws its boxes with the Registers panel in box skin. Nothing changes on screen; this is the first
   real component, invisible.
-- **c1/05** adds one `doneSay` sentence: "The machine's own name for this card is add a2, a0, a1." The log is
+- **c1/05** adds one `doneSay` sentence: "Box a2 now holds 12, so a2 = a0 + a1. The machine's own text for this card is add a2, a0, a1." The log is
   narrated from `Timeline.diff`.
 - The review's quick fixes stand: guess shown beside the result, honest end card, STE in the UI chrome.
 

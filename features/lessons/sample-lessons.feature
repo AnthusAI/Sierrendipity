@@ -19,7 +19,7 @@ Feature: The five sample lessons of Course 1
     Examples:
       | id                       | scenes | cards | boxes      |
       | c1/01-press-the-button   | 2      | 1     | a0         |
-      | c1/02-change-the-number  | 2      | 1     | a0         |
+      | c1/02-change-the-number  | 3      | 1     | a0         |
       | c1/03-last-one-wins      | 2      | 2     | a0         |
       | c1/04-two-boxes          | 2      | 2     | a0, a1     |
       | c1/05-add                | 3      | 3     | a0, a1, a2 |

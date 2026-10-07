@@ -57,3 +57,14 @@ Feature: A lesson chooses which parts of the machine it shows
     When I replace "    say: This is a test. It has two short sentences.\n    show: [cards]" with "    say: This is a test. It has two short sentences.\n    spotlight: \"glass:0\"\n    show: [cards]" in "lesson.yaml"
     And I load the lesson
     Then the lesson fails to load with "needs ui.glass: true"
+
+  Scenario: A scene cannot name the glass line when the glass strip is off
+    When I replace "    say: This is a test. It has two short sentences.\n    show: [cards]" with "    say: This is a test. It has two short sentences.\n    glassNamed: true\n    show: [cards]" in "lesson.yaml"
+    And I load the lesson
+    Then the lesson fails to load with "glassNamed needs ui.glass: true"
+
+  Scenario: A scene may name the glass line when the glass strip is on
+    When I replace "tabs: [cards, boxes]" with "tabs: [cards, boxes]\nui:\n  glass: true" in "lesson.yaml"
+    And I replace "    say: This is a test. It has two short sentences.\n    show: [cards]" with "    say: This is a test. It has two short sentences.\n    glassNamed: true\n    show: [cards]" in "lesson.yaml"
+    And I load the lesson
+    Then the lesson loads

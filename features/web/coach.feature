@@ -43,7 +43,7 @@ Feature: The coach plays the lessons
     Given the coach lab shows lesson "c1/02-change-the-number"
     When I set the number on card 1 to 9
     And I select Run
-    And I press Continue
+    And I press Continue 2 times
     Then the Now you can card shows what I made, "Put 9 in the box"
 
   Scenario: The end card shows the stars the student earned

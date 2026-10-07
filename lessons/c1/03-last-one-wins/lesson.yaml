@@ -19,12 +19,14 @@ ui:
   deskTitle: false
   endMarker: false
   boxNames: false
+  glass: true
   spotlight: ring
 onWrongDefault:
   say: Watch the box.
   goto: watch
 scenes:
   - id: predict
+    glassNamed: true
     say: Two cards put a number in the same box, one after the other. What does the box hold at the end?
     show: [cards, boxes]
     spotlight: "box:a0"

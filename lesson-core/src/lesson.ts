@@ -66,6 +66,8 @@ export interface Scene {
   showMe?: string;
   lock: string[];
   skippable: boolean;
+  /** From this scene on, a screen reader is told about the glass line (needs ui.glass). Until then it is hidden from assistive tools. */
+  glassNamed?: boolean;
   /** D4 bit lamps on a card. */
   lamps?: LampSpec;
   /** D8 field bands on a card (the bands carry their lamps). */

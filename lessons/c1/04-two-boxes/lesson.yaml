@@ -24,6 +24,7 @@ ui:
   spotlightAfterHint: true
 scenes:
   - id: run
+    glassNamed: true
     say: "A box is like a variable: it has a name and holds a number. Make box a0 hold 4 and box a1 hold 6."
     show: [cards, boxes]
     spotlight: "button:step"

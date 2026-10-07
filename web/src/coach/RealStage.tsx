@@ -2,7 +2,7 @@ import { describe } from "@sierrendipity/explorer";
 import type { ReactNode } from "react";
 import { CardFace } from "../cards/CardFace";
 import { cardToWord, wordToCard } from "../cards/model";
-import { GlassStrip } from "../machine";
+import { GlassStrip, wordHex as hex } from "../machine";
 import { HeartbeatView, MachineView, PixelDisplay, PointerWalk, useMachineTimeline } from "../diagrams";
 import { PlayerControls } from "./PlayerControls";
 import { plainBoxes } from "./plain";
@@ -12,11 +12,10 @@ import type { Stage, StageProps } from "./types";
 /** The scene `show` ids that draw their own widget. The machine view (D1) is on unless a scene shows only these. */
 const WIDGETS = ["D3", "D4", "D5", "D6", "D7", "D8", "D9", "builder"];
 
-const hex = (word: number) => `0x${(word >>> 0).toString(16).padStart(8, "0")}`;
 
 /** One card of the list: a real face with a number spinner, or a plain face for a word that is not a Course 1 card. */
-function Face({ word, index, count, current, locked, plain, glass, onEdit }: { word: number; index: number; count: number; current: boolean; locked: boolean; plain: boolean; glass: boolean; onEdit: (card: number, word: number) => void }) {
-  const strip = glass ? <GlassStrip word={word} index={index} /> : null;
+function Face({ word, index, count, current, locked, plain, glass, glassNamed, registerNames, onEdit }: { word: number; index: number; count: number; current: boolean; locked: boolean; plain: boolean; glass: boolean; glassNamed: boolean; registerNames: boolean; onEdit: (card: number, word: number) => void }) {
+  const strip = glass ? <GlassStrip word={word} index={index} named={glassNamed} registerNames={registerNames} /> : null;
   const card = wordToCard(word);
   const highlight = current ? "border-foreground ring-2 ring-foreground" : "";
   if (!card) {
@@ -59,6 +58,8 @@ function Face({ word, index, count, current, locked, plain, glass, onEdit }: { w
 export function RealStage({ lesson, live, scene, onEditStarter, onReplaceCards, controls }: StageProps) {
   const timeline = useMachineTimeline(live.cards, { session: live.session, boxes: lesson.boxes, pointer: lesson.pointer });
 
+  const sceneIndex = lesson.scenes.findIndex((s) => s.id === scene.id);
+  const glassNamed = lesson.scenes.some((s, i) => s.glassNamed && i <= sceneIndex);
   const show = new Set(scene.show);
   const widgets = WIDGETS.filter((w) => show.has(w));
   const machine = show.has("D1") || widgets.length === 0;
@@ -76,7 +77,7 @@ export function RealStage({ lesson, live, scene, onEditStarter, onReplaceCards, 
         coachIds
         stacked
         quiet={{ log: lesson.ui?.log, deskTitle: lesson.ui?.deskTitle, endMarker: lesson.ui?.endMarker, boxNames: lesson.ui?.boxNames }}
-        renderCard={(word, i, state) => <Face word={word} index={i} count={live.cards.length} current={state.current} locked={editLocked} plain={lesson.ui?.boxNames === false} glass={lesson.ui?.glass === true} onEdit={edit} />}
+        renderCard={(word, i, state) => <Face word={word} index={i} count={live.cards.length} current={state.current} locked={editLocked} plain={lesson.ui?.boxNames === false} glass={lesson.ui?.glass === true} glassNamed={glassNamed} registerNames={lesson.ui?.boxNames !== false} onEdit={edit} />}
       />,
     );
   }

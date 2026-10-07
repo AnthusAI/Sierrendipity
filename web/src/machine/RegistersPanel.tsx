@@ -19,7 +19,7 @@ export interface RegistersPanelProps {
 export function RegistersPanel({ timeline: tl, only = tl.boxes, format = "signed", coachIds = false, names = true, holdOld = null }: RegistersPanelProps) {
   const lastRd = tl.lastStep?.rd ?? null;
   return (
-    <div role="group" aria-label="Registers" data-panel="registers" className="flex min-w-0 flex-wrap gap-3">
+    <div role="group" aria-label={names ? "Registers" : "Boxes"} data-panel="registers" className="flex min-w-0 flex-wrap gap-3">
       {only.map((name) => {
         const reg = registerIndex(name);
         const written = tl.written.has(reg);

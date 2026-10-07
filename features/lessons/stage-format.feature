@@ -120,6 +120,11 @@ Feature: Lesson fields for the real stage
       | a made-up band | band:fog   |
       | lamp 40       | lamp:40    |
 
+  Scenario: A ghost cannot point at a glass line when the glass strip is off
+    When I replace "\"target\": \"button:step\"" with "\"target\": \"glass:0\"" in "ghosts/demo.json"
+    And I load the lesson
+    Then the lesson fails to load with "needs ui.glass: true"
+
   Scenario: A ghost may drag a card within the list, but a tray drag must name a tray card
     When I replace "{\"at\": 500, \"type\": \"press\", \"control\": \"back\"}" with "{\"at\": 500, \"type\": \"drag\", \"tray\": 0, \"to\": 0}" in "ghosts/demo.json"
     And I load the lesson
