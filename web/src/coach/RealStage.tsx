@@ -81,6 +81,7 @@ export function RealStage({ lesson, live, scene, onEditStarter, onReplaceCards, 
         key="D1"
         timeline={timeline}
         coachIds
+        stacked
         renderCard={(word, i, state) => <Face word={word} index={i} count={live.cards.length} current={state.current} locked={editLocked} onEdit={edit} />}
       />,
     );

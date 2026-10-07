@@ -16,10 +16,12 @@ interface Props {
   renderCard?: ComponentProps<typeof CardList>["renderCard"];
   /** Give the diagram, the cards and the boxes `data-coach-id`s (`diagram:D1`, `card:<n>`, `tab:cards`, `box:<name>`, `tab:boxes`). */
   coachIds?: boolean;
+  /** Put the desk under the cards at every width (the lesson stage is only about 30rem wide next to the coach). */
+  stacked?: boolean;
 }
 
 /** D1, the clerk and boxes: cards on the left, boxes on a desk on the right, a log of what just happened. */
-export function MachineView({ timeline: tl, boxes = tl.boxes, pointer = tl.pointer, format = "signed", renderCard, coachIds = false }: Props) {
+export function MachineView({ timeline: tl, boxes = tl.boxes, pointer = tl.pointer, format = "signed", renderCard, coachIds = false, stacked = false }: Props) {
   const surface = useRef<HTMLDivElement>(null);
   const cards = useRef<HTMLOListElement>(null);
   const desk = useRef<HTMLDivElement>(null);
@@ -51,8 +53,8 @@ export function MachineView({ timeline: tl, boxes = tl.boxes, pointer = tl.point
       data-animation-t={TEST_CLOCK ? tl.t : undefined}
       className="relative space-y-4 rounded-lg border bg-card p-4 text-card-foreground"
     >
-      <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
-        <div data-coach-id={coachIds ? "tab:cards" : undefined} className="min-w-0 sm:w-[26rem] sm:max-w-full sm:shrink-0">
+      <div className={stacked ? "flex flex-col gap-4" : "flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8"}>
+        <div data-coach-id={coachIds ? "tab:cards" : undefined} className={stacked ? "min-w-0" : "min-w-0 sm:w-[26rem] sm:max-w-full sm:shrink-0"}>
           <CardList ref={cards} timeline={tl} hand={pointer} renderCard={renderCard} coachIds={coachIds} />
         </div>
         <div ref={desk} data-coach-id={coachIds ? "tab:boxes" : undefined} className="flex min-w-0 flex-col gap-3">

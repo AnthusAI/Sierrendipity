@@ -42,7 +42,7 @@ function Action({ control, label, idleWhy, can, locked, primary = false, icon, r
     <div className="relative flex flex-col items-start gap-1">
       <Button
         data-coach-id={coachId.button(control)}
-        variant={primary && !idle ? "default" : "outline"}
+        variant={primary && !idle && !locked ? "default" : "outline"}
         aria-disabled={locked || idle || undefined}
         aria-describedby={locked ? tip : idle && idleWhy ? `${tip}-why` : undefined}
         className={cn("peer", (locked || idle) && "cursor-not-allowed border-dashed text-muted-foreground")}

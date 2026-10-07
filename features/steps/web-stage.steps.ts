@@ -374,12 +374,12 @@ Then("every button and spinner of the stage has an accessible name", async funct
 
 // ---------------------------------------------------------------- contrast and layout
 
-async function paint(w: WebWorld, selector: string) {
-  return w.page.locator(selector).evaluateAll((els) =>
+async function paint(w: WebWorld, selector: string, withLocked = false) {
+  return w.page.locator(selector).evaluateAll((els, locked) =>
     els
       .filter((el) => {
         const r = el.getBoundingClientRect();
-        return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== "hidden" && !el.closest(".sr-only") && !el.closest("[aria-disabled='true']");
+        return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== "hidden" && !el.closest(".sr-only") && (locked || !el.closest("[aria-disabled='true']"));
       })
       .map((el) => {
         const layers: string[] = [];
@@ -387,6 +387,7 @@ async function paint(w: WebWorld, selector: string) {
         const s = getComputedStyle(el);
         return { color: s.color, border: s.borderTopColor, borderWidth: parseFloat(s.borderTopWidth), layers, text: (el.textContent ?? "").trim().slice(0, 30), size: parseFloat(s.fontSize), weight: Number(s.fontWeight) };
       }),
+    withLocked,
   );
 }
 function ratioOf(color: string, layers: string[]): number {
@@ -417,9 +418,10 @@ Then("the stage text meets {float}:1 contrast", async function (this: WebWorld, 
   assert.deepEqual(failures, []);
 });
 Then("the stage controls meet {float}:1 contrast", async function (this: WebWorld, min: number) {
-  const items = await paint(this, "[data-lesson-player] section button, [data-lesson-player] section input[role='spinbutton']");
+  const items = await paint(this, "[data-lesson-player] section button, [data-lesson-player] section input[role='spinbutton']", true);
   assert.ok(items.length >= 3);
-  const failures = items.filter((i) => ratioOf(i.border, behind(i.layers)) < min && ratioOf(i.color, i.layers) < 4.5).map((i) => `"${i.text}"`);
+  // A control is readable when its text meets 4.5:1 (even a locked one) or its outline meets the non-text minimum.
+  const failures = items.filter((i) => ratioOf(i.color, i.layers) < 4.5 && ratioOf(i.border, behind(i.layers)) < min).map((i) => `"${i.text}"`);
   assert.deepEqual(failures, []);
 });
 Then("the lamps meet {float}:1 contrast", async function (this: WebWorld, min: number) {
