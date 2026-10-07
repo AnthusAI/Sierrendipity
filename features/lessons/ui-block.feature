@@ -32,6 +32,7 @@ Feature: A lesson chooses which parts of the machine it shows
       | resetLabel: ""                        | resetLabel must be a short phrase         |
       | log: sometimes                        | log must be true or false                 |
       | boxNames: 1                           | boxNames must be true or false            |
+      | glass: 1                              | glass must be true or false               |
       | spotlightAfterHint: soon              | spotlightAfterHint must be true or false  |
       | spotlight: glow                       | spotlight must be ring or dim             |
       | colour: red                           | unknown key "colour"                      |
@@ -46,3 +47,13 @@ Feature: A lesson chooses which parts of the machine it shows
     And I replace "    say: This is a test. It has two short sentences.\n    show: [cards]" with "    say: This is a test. It has two short sentences.\n    spotlight: \"button:back\"\n    show: [cards]" in "lesson.yaml"
     And I load the lesson
     Then the lesson fails to load with "points at a button that ui.controls hides"
+
+  Scenario: A ui block may turn on the glass strip
+    When I replace "tabs: [cards, boxes]" with "tabs: [cards, boxes]\nui:\n  glass: true" in "lesson.yaml"
+    And I load the lesson
+    Then the lesson loads
+
+  Scenario: A scene cannot point at a glass line when the glass strip is off
+    When I replace "    say: This is a test. It has two short sentences.\n    show: [cards]" with "    say: This is a test. It has two short sentences.\n    spotlight: \"glass:0\"\n    show: [cards]" in "lesson.yaml"
+    And I load the lesson
+    Then the lesson fails to load with "needs ui.glass: true"

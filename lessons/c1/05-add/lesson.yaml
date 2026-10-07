@@ -19,6 +19,7 @@ ui:
   deskTitle: false
   endMarker: false
   boxNames: true
+  glass: true
   spotlight: ring
   spotlightAfterHint: true
 onWrongDefault:
@@ -68,7 +69,7 @@ scenes:
       - The add card reads a0 and a1. It writes box a2.
       - Select Run. Box a2 changes to 12.
     showMe: demo-step
-    doneSay: Box a2 now holds 12. The add card is the rule a2 = a0 + a1.
+    doneSay: Box a2 now holds 12. The machine's own name for this card is add a2, a0, a1.
     lock: [edit, drag, toggle]
 nowYouCan:
   - Add two boxes into a third.

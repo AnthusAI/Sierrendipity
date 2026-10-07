@@ -98,3 +98,36 @@ Then("the token starts with the number {int} at the number on card {int}", async
   const gap = Math.hypot(from.x + from.width / 2 - (at.x + at.width / 2), from.y + from.height / 2 - (at.y + at.height / 2));
   assert.ok(gap < 30, `the token starts ${gap.toFixed(0)} pixels from the number on card ${card}`);
 });
+
+const glassLine = (w: WebWorld, card: number) => player(w).locator(`[data-glass][data-coach-id="glass:${card - 1}"]`);
+
+Then("the glass line under card {int} says {string}", async function (this: WebWorld, card: number, text: string) {
+  await settleFrames(this);
+  const line = glassLine(this, card);
+  await line.waitFor();
+  assert.equal((await line.innerText()).replace(/\s+/g, " ").trim().replace(/^The RISC-V machine writes this card as:\s*/, ""), text);
+});
+Then("the lesson shows no glass line", async function (this: WebWorld) {
+  await settleFrames(this);
+  assert.equal(await player(this).locator("[data-glass]").count(), 0);
+});
+Then("the glass line under card {int} is on one line", async function (this: WebWorld, card: number) {
+  const box = await glassLine(this, card).boundingBox();
+  assert.ok(box && box.height < 24, `the glass line is ${box?.height}px tall`);
+});
+Then("the glass line under card {int} is read to a screen reader as {string}", async function (this: WebWorld, card: number, text: string) {
+  const spoken = await glassLine(this, card).evaluate((el) => el.textContent ?? "");
+  assert.ok(spoken.replace(/\s+/g, " ").includes(text), spoken);
+});
+Then("the registers panel is named {string} and holds {int} boxes", async function (this: WebWorld, name: string, count: number) {
+  const panel = player(this).getByRole("group", { name, exact: true });
+  assert.equal(await panel.count(), 1);
+  assert.equal(await panel.locator("[data-box]").count(), count);
+});
+Then("the glass line has no animation", async function (this: WebWorld) {
+  const motion = await glassLine(this, 1).evaluate((el) => {
+    const style = getComputedStyle(el);
+    return `${style.transitionDuration}|${style.animationName}`;
+  });
+  assert.ok(/^(0s|1e-06s)\|none$/.test(motion), motion);
+});

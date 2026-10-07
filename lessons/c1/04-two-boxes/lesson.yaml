@@ -19,6 +19,7 @@ ui:
   deskTitle: false
   endMarker: false
   boxNames: true
+  glass: true
   spotlight: ring
   spotlightAfterHint: true
 scenes:

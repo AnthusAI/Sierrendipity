@@ -19,6 +19,7 @@ ui:
   deskTitle: false
   endMarker: false
   boxNames: false
+  glass: true
   spotlight: ring
 scenes:
   - id: change
@@ -39,7 +40,7 @@ scenes:
     lock: [drag, toggle]
 
   - id: another
-    say: You changed what the machine does with one number. Try a different number, then select Run.
+    say: Try a different number, then select Run. The grey line is the name the RISC-V machine gives the card.
     show: [cards, boxes]
     skippable: true
 nowYouCan:

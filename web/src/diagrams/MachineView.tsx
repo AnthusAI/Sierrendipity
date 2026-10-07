@@ -1,7 +1,8 @@
 import { useRef, type ComponentProps } from "react";
 import { CardList } from "./CardList";
 import { ease } from "./ease";
-import { BLANK, formatValue, narrate, stopNotice, type NumberFormat } from "./narrate";
+import { RegistersPanel } from "../machine/RegistersPanel";
+import { formatValue, narrate, stopNotice, type NumberFormat } from "./narrate";
 import { Notice } from "./Notice";
 import { TEST_CLOCK, registerIndex, type MachineTimeline } from "./useMachineTimeline";
 
@@ -76,36 +77,7 @@ export function MachineView({ timeline: tl, boxes = tl.boxes, pointer = tl.point
         </div>
         <div ref={desk} data-coach-id={coachIds ? "tab:boxes" : undefined} className="flex min-w-0 flex-col gap-3">
           {quiet?.deskTitle !== false && <p className="text-sm font-medium">The desk</p>}
-          <div className="flex flex-wrap gap-3">
-            {boxes.map((name) => {
-              const reg = registerIndex(name);
-              const written = tl.written.has(reg);
-              const changed = lastRd === reg && reg !== 0;
-              return (
-                <div
-                  key={name}
-                  role="group"
-                  aria-label={quiet?.boxNames === false ? "The box" : `Box ${name}`}
-                  aria-current={changed ? "true" : undefined}
-                  data-box
-                  data-box-name={name}
-                  data-coach-id={coachIds ? `box:${name}` : undefined}
-                  data-changed={String(changed)}
-                  className={`flex h-24 w-28 flex-col items-center justify-between rounded-md border-2 px-2 py-2 ${
-                    changed ? "border-foreground bg-changed text-changed-foreground" : "border-border bg-background text-foreground"
-                  }`}
-                >
-                  <span data-box-label className="font-mono text-sm text-muted-foreground">
-                    {quiet?.boxNames === false ? "box" : name}
-                  </span>
-                  <span data-value aria-hidden={written ? undefined : true} className="text-3xl font-semibold tabular-nums">
-                    {holdOld !== null && changed ? formatValue(holdOld, format) : written ? formatValue(tl.snapshot.regs[reg], format) : BLANK}
-                  </span>
-                  {!written && <span className="sr-only">empty</span>}
-                </div>
-              );
-            })}
-          </div>
+          <RegistersPanel timeline={tl} only={boxes} format={format} coachIds={coachIds} names={quiet?.boxNames !== false} holdOld={holdOld} />
         </div>
       </div>
       <Notice timeline={tl} />
