@@ -1,5 +1,5 @@
 id: c1/01-press-the-button
-title: Press the Button
+title: Your First Instruction
 minutes: 3
 concepts:
   introduces: [cards]
@@ -12,43 +12,68 @@ hideEnd: true
 starter:
   hex: ["0x00500513"]   # put 5 in box a0
 tabs: [cards]
+# The first lesson shows only what its one idea needs: a card, a box and one button. Back, Reset, the log,
+# the end marker and the box's register name arrive in later lessons, when they matter.
+ui:
+  controls: [step]
+  stepLabel: Run
+  log: false
+  deskTitle: false
+  endMarker: false
+  boxNames: false
+  spotlight: ring
 scenes:
   - id: meet
-    say: This tiny machine has one card and one box. Press Continue when you are ready.
+    say: A computer follows instructions. It does exactly what each one says, one at a time.
     show: [cards, boxes]
+    lock: [step, edit, drag, toggle]
+
+  - id: the-card
+    say: This is one instruction. It says, put 5 in the box.
+    show: [cards, boxes]
+    spotlight: "card:0"
+    lock: [step, edit, drag, toggle]
+
+  - id: the-box
+    say: This is the box. Right now it is empty.
+    show: [cards, boxes]
+    spotlight: "box:a0"
+    lock: [step, edit, drag, toggle]
 
   - id: press-step
-    say: Press Step to make the machine do what the card says.
+    say: Press Run to make the computer follow the instruction.
     show: [cards, boxes]
     spotlight: "button:step"
     until:
       - the machine has taken at least 1 step
     hints:
-      - Do you see the Step button under the card?
-      - A card is an instruction, and Step makes the machine follow it.
-      - Click Step once. The box will change.
+      - Look for the blue Run button above the instruction.
+      - The card is an instruction, and Run makes the computer follow it.
+      - Click Run once, then watch the box.
     showMe: demo-step
-    doneSay: "There it is: the box holds 5."
+    doneSay: "Look: the box now holds 5."
     lock: [edit, drag, toggle]
 
   - id: did-it
-    say: It did what the card said, and the box shows 5. Press Continue.
+    say: The computer did exactly what the card said. It put 5 in the box.
     show: [cards, boxes]
     spotlight: "box:a0"
+    lock: [step, edit, drag, toggle]
 
-  - id: names
-    say: The small letters on the box, a0, are just its name. Press Continue to finish.
+  - id: big-idea
+    say: That is all a program is, a list of instructions the computer follows. This one has just one.
     show: [cards, boxes]
-    spotlight: "box:a0"
+    lock: [step, edit, drag, toggle]
 nowYouCan:
-  - Make the machine follow a card.
-  - See what a box shows.
+  - Make a computer follow an instruction.
+  - See what an instruction does to a box.
 warmups:
   - id: one-card
     concept: cards
-    question: The card says put 5 in the box. After you press Step, what does the box show?
+    question: The card says put 5 in the box. After you run it, what does the box show?
     program:
       asm: |
         addi a0, zero, 5
     target: a0
     expected: 5
+

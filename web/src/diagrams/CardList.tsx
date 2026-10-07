@@ -14,6 +14,8 @@ interface Props {
   renderCard?: (word: number, index: number, state: { current: boolean }) => ReactNode;
   /** Give the rows `data-coach-id="card:<n>"` so a lesson can point at them. */
   coachIds?: boolean;
+  /** Show the "end of the list" row when the Stop card is hidden. Default true. */
+  endMarker?: boolean;
 }
 
 interface Row {
@@ -29,7 +31,7 @@ const sameRows = (a: Row[], b: Row[]) => a.length === b.length && a.every((row, 
  * the end is hidden, the "end of the list" marker. Cards wrap their text; the hand follows the measured
  * rows. A hidden end is never drawn as a Stop card.
  */
-export const CardList = forwardRef<HTMLOListElement, Props>(function CardList({ timeline: tl, addresses = false, hand = false, renderCard, coachIds = false }, forwarded) {
+export const CardList = forwardRef<HTMLOListElement, Props>(function CardList({ timeline: tl, addresses = false, hand = false, renderCard, coachIds = false, endMarker = true }, forwarded) {
   const list = useRef<HTMLOListElement | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
   const measure = useCallback(() => {
@@ -89,7 +91,7 @@ export const CardList = forwardRef<HTMLOListElement, Props>(function CardList({ 
           {renderCard ? <span className="min-w-0 flex-1">{renderCard(word, i, { current: i === lastRun })}</span> : <span className="min-w-0 break-words">{cardText(word)}</span>}
         </li>
       ))}
-      {tl.hideEnd && (
+      {tl.hideEnd && endMarker && (
         <li
           data-row
           data-end-marker

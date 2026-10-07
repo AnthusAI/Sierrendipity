@@ -17,6 +17,7 @@ import {
 } from "@sierrendipity/lesson-core";
 import { cardsUsed, describe } from "@sierrendipity/explorer";
 import { numberSpec, wordToCard } from "../cards/model";
+import { plainBoxes } from "./plain";
 import { markStopShown, sessionInfo, type Clock } from "./clock";
 import { STUCK, StuckDetector, type StuckReason } from "./stuck";
 import type { EditVia, LiveView, StageControl } from "./types";
@@ -58,6 +59,8 @@ export interface PlayerState {
   /** The machine cannot reach the goal by stepping: the coach points at Back. */
   stranded: boolean;
   reply: string | null;
+  /** The scene's `ifMissed` text, while the machine has finished without meeting the goal. */
+  missed: string | null;
   hint: { rung: 1 | 2 | 3; text: string } | null;
   canHint: boolean;
   canShowMe: boolean;
@@ -101,6 +104,7 @@ export class LessonEngine {
   private doneLine: string | null = null;
   private announce: string | null = null;
   private reply: string | null = null;
+  private missed: string | null = null;
   private hintRung = 0;
   private yourTurn = false;
   private nudgeOffer = false;
@@ -116,6 +120,11 @@ export class LessonEngine {
   private sessionTimer: number | null = null;
   private started = false;
   private snapshot!: PlayerState;
+
+  /** Say "the box" when the lesson does not show register names. */
+  private plain(text: string): string {
+    return this.lesson.ui?.boxNames === false ? plainBoxes(text) : text;
+  }
 
   constructor(lesson: PublishedLesson, opts: EngineOptions) {
     this.lesson = lesson;
@@ -220,6 +229,14 @@ export class LessonEngine {
     const worked = this.snapshot.view.steps > 0;
     this.live = this.build(this.cards, this.live.facts);
     if (worked) this.trigger(this.detector.undone(this.clock.now()));
+    this.refresh();
+  }
+
+  /** [Try again] after a missed goal: back to the start with the cards as they are (even when the Reset button is hidden). */
+  tryAgain(): void {
+    if (this.phase !== "scene" || !this.missed) return;
+    this.touch();
+    this.live = this.build(this.cards, this.live.facts);
     this.refresh();
   }
 
@@ -455,12 +472,16 @@ export class LessonEngine {
     const over = finished(this.live);
     if (over) this.recordRun(run);
     const scene = this.scene();
+    this.missed = null;
     if (scene && this.phase === "scene" && this.waiting(scene) === "until") {
       if (this.holds(scene.until, run)) {
         this.complete(scene);
         return;
       }
-      if (over && countFailure) this.trigger(this.detector.failedCheck());
+      if (over && countFailure) {
+        this.missed = scene.ifMissed ?? null;
+        this.trigger(this.detector.failedCheck());
+      }
     }
     this.refresh();
   }
@@ -504,6 +525,7 @@ export class LessonEngine {
     this.sceneKey++;
     this.hintRung = 0;
     this.reply = null;
+    this.missed = null;
     this.nudgeOffer = false;
     this.skipTourAsk = false;
     this.detector.newGoal(this.clock.now());
@@ -661,6 +683,7 @@ export class LessonEngine {
       announce: this.announce,
       stranded,
       reply: this.reply,
+      missed: this.phase === "scene" && finished(this.live) ? this.plain(this.missed ?? "") || null : null,
       hint: rung > 0 && showing ? { rung: rung as 1 | 2 | 3, text: showing.hints[rung - 1] ?? "" } : null,
       canHint: !!showing && showing.hints.length >= 3 && rung < 3,
       canShowMe: !!showing && !!showing.showMe && !!this.lesson.ghosts[showing.showMe],
@@ -678,8 +701,8 @@ export class LessonEngine {
   private endCard(): NonNullable<PlayerState["end"]> {
     const m = this.live.machine;
     return {
-      made: this.cards.map((w) => describe(w).text),
-      values: this.lesson.boxes.map((name) => `Box ${name} holds ${m.regs[registerNumber(name) ?? 0]! | 0}`),
+      made: this.cards.map((w) => this.plain(describe(w).text)),
+      values: this.lesson.boxes.map((name) => this.plain(`Box ${name} holds ${m.regs[registerNumber(name) ?? 0]! | 0}`)),
       nowYouCan: this.lesson.nowYouCan,
     };
   }

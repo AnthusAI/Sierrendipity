@@ -98,12 +98,14 @@ function Lesson({ lessonId }: { lessonId: string }) {
   const room = params.get("room");
   const roomOpen = room === null || model.state.sideRooms.some((r) => r.id === room && r.lessonId === lessonId && r.open);
   if (!(canOpen(model, lessonId, unlockAll) || replayable) || !roomOpen) return <NotOpen title={lesson.title} />;
-  const upcoming = model.target ? lessons.find((l) => l.id === model.target!.id) : undefined;
+  // After this lesson comes the one that follows it, when it is open (replaying an earlier lesson); else the path's target.
+  const after = lessons[lessons.findIndex((l) => l.id === lessonId) + 1];
+  const upcoming = after && canOpen(model, after.id, unlockAll) ? after : model.target ? lessons.find((l) => l.id === model.target!.id) : undefined;
   const nextInfo = upcoming && upcoming.id !== lessonId ? { id: upcoming.id, title: upcoming.title, minutes: upcoming.minutes } : null;
   return (
     <>
       <Title text={lesson.title} />
-      <LessonRoute lesson={lesson} userId={userId} progress={progress} gallery={gallery} search={search} onExit={() => navigate("/learn")} onNext={() => navigate(model.target ? `/learn/${model.target.id}` : "/learn")} next={nextInfo} />
+      <LessonRoute lesson={lesson} userId={userId} progress={progress} gallery={gallery} search={search} onExit={() => navigate("/learn")} onNext={() => navigate(nextInfo ? `/learn/${nextInfo.id}` : "/learn")} next={nextInfo} />
     </>
   );
 }

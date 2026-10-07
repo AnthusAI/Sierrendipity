@@ -239,6 +239,15 @@ export function CoachPanel({ state, engine, next, onNext, onStop }: Props) {
         )}
       </div>
 
+      {phase === "scene" && state.missed && (
+        <div data-coach-missed role="status" className="space-y-2 rounded-md border-2 border-foreground p-3">
+          <p>{state.missed}</p>
+          <Button size="sm" data-coach-primary onClick={() => engine.tryAgain()}>
+            Try again
+          </Button>
+        </div>
+      )}
+
       {phase === "scene" && <AskUi state={state} engine={engine} />}
 
       {phase === "scene" && state.waiting === "continue" && (

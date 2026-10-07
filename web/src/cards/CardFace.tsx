@@ -4,6 +4,7 @@ import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { NumberSpinner } from "./NumberSpinner";
+import { plainBoxes } from "../coach/plain";
 import {
   DEFAULT_BOXES,
   boxKeys,
@@ -48,6 +49,10 @@ export interface CardContentProps {
   numberLabel?: string;
   /** The spin button is switched off for now (it says "Not yet"). */
   locked?: boolean;
+  /** Say "the box" instead of "box a0" (a lesson that does not show register names yet). */
+  plainBoxes?: boolean;
+  /** Show minus and plus buttons beside each number. */
+  spinnerButtons?: boolean;
 }
 
 /** The coloured sentence of a card, without any frame or role (the tray and the face both use it). */
@@ -62,6 +67,8 @@ export function CardContent({
   position,
   numberLabel,
   locked = false,
+  plainBoxes: plain = false,
+  spinnerButtons = false,
 }: CardContentProps) {
   const { parts } = cardText(card, { pc, customCards });
   if (card.kind === "custom") {
@@ -117,6 +124,7 @@ export function CardContent({
               max={spec.max}
               step={spec.step}
               locked={locked}
+              buttons={spinnerButtons}
               {...(numberLabel ? { label: numberLabel } : {})}
               onChange={(shown) => onChange(spec.apply(shown))}
             />
@@ -124,7 +132,7 @@ export function CardContent({
         }
         return (
           <span key={i} data-part={part.role} className={PART_CLASS[part.role]}>
-            {part.text}
+            {plain && part.role === "box" ? "the box" : part.text}
           </span>
         );
       })}
@@ -144,7 +152,8 @@ export interface CardFaceProps extends CardContentProps {
  * and a "Peek inside" control that lists its cards (read-only, same faces).
  */
 export function CardFace({ card, showAssembly = false, customCards, className, editable, ...content }: CardFaceProps) {
-  const { text } = cardText(card, { pc: content.pc, customCards });
+  const { text: fullText } = cardText(card, { pc: content.pc, customCards });
+  const text = content.plainBoxes ? plainBoxes(fullText) : fullText;
   const [open, setOpen] = useState(false);
   const peekId = useId();
   const definition = card.kind === "custom" ? customCards?.find((c) => c.name === card.params.name) : undefined;

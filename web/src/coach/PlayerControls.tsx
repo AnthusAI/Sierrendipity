@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { coachId } from "./ids";
 import type { LiveView, StageControl, StageControls } from "./types";
+import type { LessonUi } from "@sierrendipity/lesson-core";
 
 /** How long Run waits between cards, the same beat as one animated Step. */
 export const RUN_BEAT_MS = 900;
@@ -69,13 +70,15 @@ interface Props {
   timeline?: boolean;
   /** How many steps the scrubber spans (the length of the recorded run). */
   length: number;
+  /** Which buttons the lesson shows, and what it calls Step (a lesson's `ui` block). */
+  ui?: LessonUi;
 }
 
 /**
  * Step, Back and Reset for the player's one live machine, and with `timeline` also Run, Pause and a scrubber.
  * They all call the player (`controls.step/back/reset`); the diagram follows the player, never the other way.
  */
-export function PlayerControls({ live, controls, timeline = false, length }: Props) {
+export function PlayerControls({ live, controls, timeline = false, length, ui }: Props) {
   const locked = (c: StageControl) => controls.isLocked(c);
   const [running, setRunning] = useState(false);
   const latest = useRef({ live, controls });
@@ -102,18 +105,19 @@ export function PlayerControls({ live, controls, timeline = false, length }: Pro
     for (let i = now.steps; i > to; i--) c.back();
   };
   const scrubLocked = locked("step") || locked("back");
+  const shown = (control: "back" | "reset") => !ui?.controls || ui.controls.includes(control);
 
   return (
     <div role="group" aria-label="Machine controls" className="flex flex-wrap items-start gap-2">
-      <Action control="step" label="Step" icon="right" primary can={live.canStep} locked={locked("step")} idleWhy="Press Back first" run={controls.step} />
-      <Action control="back" label="Back" icon="left" can={live.canBack} locked={locked("back")} idleWhy="Nothing to undo yet" run={controls.back} />
+      <Action control="step" label={ui?.stepLabel ?? "Step"} icon="right" primary can={live.canStep} locked={locked("step")} idleWhy={ui?.controls && !ui.controls.includes("back") ? "All done" : "Press Back first"} run={controls.step} />
+      {shown("back") && <Action control="back" label="Back" icon="left" can={live.canBack} locked={locked("back")} idleWhy="Nothing to undo yet" run={controls.back} />}
       {timeline &&
         (running ? (
           <Action control="pause" label="Pause" icon="pause" can locked={false} run={() => setRunning(false)} />
         ) : (
           <Action control="run" label="Run" icon="play" can={live.canStep} locked={locked("run")} idleWhy="Press Reset first" run={() => setRunning(true)} />
         ))}
-      <Action control="reset" label="Reset" icon="reset" can locked={locked("reset")} run={controls.reset} />
+      {shown("reset") && <Action control="reset" label={ui?.resetLabel ?? "Reset"} icon="reset" can={live.steps > 0} idleWhy="Nothing to start again yet" locked={locked("reset")} run={controls.reset} />}
       {timeline && (
         <div className="flex min-w-48 flex-1 items-center gap-2">
           <input

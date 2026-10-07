@@ -142,7 +142,7 @@ export function LessonPlayer({ lesson, store = null, userId = "local", clock = r
       <section ref={stageRef} aria-label={`${lesson.title}: the machine`} className="min-w-0 rounded-lg border bg-background p-4 md:col-start-1 md:row-start-1">
         {stage({ lesson, live: state.view, scene: stageScene, onEditStarter, onReplaceCards, controls })}
       </section>
-      {state.spotlight && state.phase === "scene" && <Spotlight target={state.spotlight} reduced={reduced} />}
+      {state.spotlight && state.phase === "scene" && <Spotlight target={state.spotlight} reduced={reduced} mode={lesson.ui?.spotlight ?? "ring"} />}
       {state.phase === "ghost" && <GhostPointer target={state.ghost?.pointer ?? null} fallback={fallback} reduced={reduced} />}
     </div>
   );

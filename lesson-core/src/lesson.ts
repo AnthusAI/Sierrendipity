@@ -48,6 +48,11 @@ export interface Scene {
   say: string;
   /** Said when the scene's goal is met (same limits as `say`); without it the player only announces quietly. */
   doneSay?: string;
+  /**
+   * Said when the machine finishes and the goal is not met (same limits as `say`), with a [Try again] button.
+   * It tells the student what the machine did and what to change, so a run that misses never ends in silence.
+   */
+  ifMissed?: string;
   show: string[];
   spotlight?: string;
   ask?: Ask;
@@ -127,6 +132,8 @@ export interface Lesson {
   onWrongDefault?: string;
   /** Where any other wrong answer goes: the scene that reveals the answer. Required unless the next scene waits on the machine. */
   onWrongDefaultGoto?: string;
+  /** What the stage shows. Early lessons show only what the idea needs; every field defaults to the full machine. */
+  ui?: LessonUi;
   /** A draft is playable only with `?draft=1` in dev and test builds and is left out of the catalog and the path. */
   draft: boolean;
   /** False opts a hidden-end, pointer-less lesson out of the early-lesson caps. */
@@ -143,6 +150,26 @@ export interface Lesson {
 }
 
 /** What the browser loads: the lesson with Gherkin precompiled to data and no solutions. */
+/** Which parts of the machine a lesson shows. A part a lesson leaves out appears in a later lesson that needs it. */
+export interface LessonUi {
+  /** The buttons shown under the title. Default: step, back and reset. */
+  controls?: ("step" | "back" | "reset")[];
+  /** The text on the Step button, for a lesson that calls it something friendlier (for example "Run"). */
+  stepLabel?: string;
+  /** The text on the Reset button (for example "Start again"). */
+  resetLabel?: string;
+  /** The "What just happened" log. Default true. */
+  log?: boolean;
+  /** The "The desk" heading above the boxes. Default true. */
+  deskTitle?: boolean;
+  /** The "end of the list" row. Default true. */
+  endMarker?: boolean;
+  /** The small register name (a0) on each box. Default true. */
+  boxNames?: boolean;
+  /** How a scene's spotlight points: a ring that does not dim the page, or the dimming spotlight. Default ring. */
+  spotlight?: "ring" | "dim";
+}
+
 export type PublishedLesson = Omit<Lesson, "solutions"> & { format: 1 };
 
 export const TABS = ["cards", "lamps", "hex", "assembly", "boxes", "shelves", "screen", "output"] as const;
