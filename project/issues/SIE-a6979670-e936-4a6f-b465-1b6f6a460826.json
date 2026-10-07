@@ -3,7 +3,7 @@
   "title": "Session over Timeline in explorer/src/session.ts",
   "description": "Acceptance:\n- features/explorer/session.feature passes\n- narrate, rowAt and fromWords are pure\n- lesson-core startLive uses Session\n- every features/lessons and features/web/stage-* spec stays green\n- useFollow is deleted",
   "type": "story",
-  "status": "open",
+  "status": "in_progress",
   "priority": 1,
   "assignee": null,
   "creator": null,
@@ -12,16 +12,29 @@
     "real-machine"
   ],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "9085c465-d9ca-4905-a37c-adc1622b0d4b",
+      "author": "home",
+      "text": "Step A landed in PR #38 (feature/rm-w1a-session, 848cacb): explorer Session; lesson Live (startLive/pressStep/pressBack) and RealStage use it; useFollow and the shadow timeline removed (useMachineTimeline takes {session}). Spec: features/explorer/session.feature (14 scenarios, incl. equivalence with the checker on c1/01-05). Full npm test 1755/1755, tsc web/lesson-core/explorer clean, lesson check --all ok. Left for step B: pure narrate move, Row/fromExplain move, frames/heap, IDE Emulator (W8).",
+      "created_at": "2026-10-07T17:34:54.570633Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Real Machine Board Agent"
+      }
+    }
+  ],
   "created_at": "2026-10-07T15:46:36.490546Z",
-  "updated_at": "2026-10-07T15:46:36.490589Z",
+  "updated_at": "2026-10-07T17:34:54.570657Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "Claude Sonnet 5.5",
     "name": "Real Machine Board Agent"
   },
-  "right_now_summary": "No recent activity is reported for this Session change.",
-  "right_now_updated_at": "2026-10-07T15:46:37.720006Z",
+  "right_now_summary": "The session work landed, and next are pure narrate, row/fromExplain, frames/heap, and the IDE Emulator.",
+  "right_now_updated_at": "2026-10-07T17:34:57.821199Z",
   "custom": {}
 }
