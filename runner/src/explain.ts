@@ -1,14 +1,18 @@
-import { lstat, mkdir, mkdtemp, readFile, realpath } from "node:fs/promises";
+import { lstat, mkdir, mkdtemp, readdir, readFile, realpath } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { ElfError, ElfLimitError, indexSequences, parseElf, parseLineTable, rowAt, type Elf, type Sequence } from "./elf.ts";
-import { cleanUpRun, exec, RequestError, scrub, validate, writeFiles, type Exec } from "./run-project.ts";
+import { cleanUpRun, exec, RequestError, RUSTC, scrub, validate, writeFiles, type Exec } from "./run-project.ts";
+import { demangleRust, parseRustSymbol } from "./rust-demangle.ts";
+import { friendlyRustErrors } from "./rust-errors.ts";
 import { compilerCommand } from "./sandbox.ts";
 
 export interface ExplainRequest {
-  language: "c";
+  language: "c" | "rust";
   files: { path: string; content: string }[];
   optLevel?: "O0" | "Og";
+  /** Rust only: keep the overflow and bounds checks (default false: the beginner-level output is cleaner). */
+  checks?: boolean;
 }
 
 export interface ExplainInstruction {
@@ -43,20 +47,38 @@ const MAX_PATH_CHARS = 200;
 // crt0.o and libruntime.o are built from runner/riscv when the image is built (see the Dockerfile).
 const RUNTIME_SOURCES = path.join(__dirname, "..", "riscv");
 const RUNTIME_OBJECTS = process.env.RISCV_RUNTIME_DIR ?? "/opt/riscv-runtime";
+// libstd.rlib is the `sier` crate (runner/riscv/rust/sier), built once when the image is built; the
+// student's crate is compiled against it as `std`.
+const SIER_DIR = process.env.SIER_DIR ?? path.join(RUNTIME_OBJECTS, "rust");
+const RUST_TARGET = "riscv32im-unknown-none-elf";
+// rustc is much slower than gcc on the small task.
+const RUST_COMPILE_TIME_LIMIT_MS = 30_000;
 const GCC = "riscv64-unknown-elf-gcc";
+const LD = "riscv64-unknown-elf-ld";
 const TARGET = ["-march=rv32im", "-mabi=ilp32"];
 
-export function validateExplain(request: ExplainRequest): { files: ExplainRequest["files"]; optLevel: "O0" | "Og" } {
-  if (request?.language !== "c") throw new RequestError("only C is supported");
-  validate({ language: "c", files: request.files }); // shape and path checks shared with /run
+export function validateExplain(request: ExplainRequest): {
+  language: "c" | "rust";
+  files: ExplainRequest["files"];
+  optLevel: "O0" | "Og";
+  checks: boolean;
+} {
+  const language = request?.language;
+  if (language !== "c" && language !== "rust") throw new RequestError("only C and Rust are supported");
+  validate({ language, files: request.files }); // shape and path checks shared with /run
   const optLevel = request.optLevel ?? "O0";
   if (optLevel !== "O0" && optLevel !== "Og") throw new RequestError("optLevel must be O0 or Og");
+  if (request.checks !== undefined && typeof request.checks !== "boolean") throw new RequestError("checks must be true or false");
   for (const file of request.files) {
     if (file.path.length > MAX_PATH_CHARS) throw new RequestError(`path too long: ${file.path.slice(0, 40)}...`);
-    if (!file.path.endsWith(".c") && !file.path.endsWith(".h")) throw new RequestError(`only .c and .h files are accepted: ${file.path}`);
+    if (language === "c" && !file.path.endsWith(".c") && !file.path.endsWith(".h")) {
+      throw new RequestError(`only .c and .h files are accepted: ${file.path}`);
+    }
+    if (language === "rust" && !file.path.endsWith(".rs")) throw new RequestError(`only .rs files are accepted: ${file.path}`);
   }
-  if (!request.files.some((f) => f.path.endsWith(".c"))) throw new RequestError("no .c files");
-  return { files: request.files, optLevel };
+  if (language === "c" && !request.files.some((f) => f.path.endsWith(".c"))) throw new RequestError("no .c files");
+  if (language === "rust" && !request.files.some((f) => f.path === "main.rs")) throw new RequestError("no main.rs");
+  return { language, files: request.files, optLevel, checks: request.checks ?? false };
 }
 
 export interface BuildResult {
@@ -69,7 +91,7 @@ export interface BuildResult {
 // The compiler ran out of memory or address space on something endless (an #include of /dev/zero ...).
 // Also a program that does not fit the 1 MiB RAM region (the linker's own wording), or a file too big.
 const RESOURCE_EXHAUSTED =
-  /virtual memory exhausted|out of memory|Cannot allocate memory|memory exhausted|cannot move location counter backwards|region `?\w+'? overflowed|program too large|File size limit exceeded/i;
+  /virtual memory exhausted|out of memory|memory allocation of \d+ bytes failed|Cannot allocate memory|memory exhausted|cannot move location counter backwards|region `?\w+'? overflowed|program too large|File size limit exceeded/i;
 
 function failure(run: Exec, fallback: "compile_error" | "link_error"): BuildResult["status"] {
   if (run.timedOut) return "time_limit_exceeded";
@@ -146,13 +168,96 @@ export async function buildProgram(
   return { status: "ok", output: clean(output), elf };
 }
 
+/**
+ * Compile the student's Rust crate (`main.rs` is the root; `mod` pulls in the other files) against the
+ * precompiled `sier` crate, which plays `std`. The same sandbox, link script and crt0 as C; fixed flags only.
+ * The build is bare metal: `-C panic=abort`, no unwinding, no libc.
+ */
+export async function buildRust(
+  files: ExplainRequest["files"],
+  optLevel: "O0" | "Og",
+  checks: boolean,
+  dir: string,
+  uid?: number,
+  opts: { linkScript?: string } = {},
+): Promise<BuildResult> {
+  const src = path.join(dir, "src");
+  const out = path.join(dir, "out");
+  await mkdir(src);
+  await mkdir(out);
+  await writeFiles(files, src, uid, dir);
+  const object = path.join(out, "main.o");
+  const elf = path.join(out, "prog.elf");
+
+  const deadline = Date.now() + RUST_COMPILE_TIME_LIMIT_MS;
+  const step = (command: string[]) =>
+    exec(uid === undefined ? command : compilerCommand(command, uid, { seccomp: true }), src, {
+      timeoutMs: Math.max(1, deadline - Date.now()),
+      maxOutputBytes: MAX_COMPILER_OUTPUT_BYTES,
+      uid,
+    });
+  const clean = (text: string, rust: boolean) => {
+    let t = scrub(scrub(text, src), dir);
+    t = t.replace(/(^|[\s'"`(])\.\/(?=[\w.-])/g, "$1").replace(/\/(?:var\/)?tmp\/\S+/g, "<temporary file>");
+    // The linker names our object file; show the student's crate root. Symbols read as Rust paths.
+    t = t.split("out/main.o").join("main.rs").replace(/_R[A-Za-z0-9_]+/g, (symbol) => demangleRust(symbol));
+    // The linker prints the line table's directory in front of the file: `src/main.rs:2` is `main.rs:2`.
+    t = t.replace(/(^|[\s'`(])src\/(?=[\w./-]+\.rs:\d)/g, "$1");
+    if (rust) t = friendlyRustErrors(t);
+    return t.length > MAX_COMPILE_OUTPUT_CHARS ? t.slice(0, MAX_COMPILE_OUTPUT_CHARS) + "\n[output truncated]\n" : t;
+  };
+
+  // rustc stops at the object file: its own linker step spawns rust-lld through a socketpair, which the
+  // sandbox's seccomp filter denies. The same GNU linker, link script and crt0 as C do the link.
+  const compile = [
+    RUSTC, "--edition", "2021", "--target", RUST_TARGET, "--crate-type", "bin", "--crate-name", "main",
+    "-C", `opt-level=${optLevel === "O0" ? 0 : 1}`, "-C", "debuginfo=2", "-C", "panic=abort",
+    "-C", "relocation-model=static", "-C", `overflow-checks=${checks ? "on" : "off"}`, "-C", "codegen-units=1",
+    `--remap-path-prefix=${src}=.`, `--remap-path-prefix=${dir}=.`,
+    "-L", SIER_DIR, "--extern", `std=${path.join(SIER_DIR, "libstd.rlib")}`,
+    "--color", "never", "--error-format=human", "--emit=obj", "-o", object, "main.rs",
+  ];
+  const compiled = await step(compile);
+  if (compiled.exitCode !== 0 || compiled.timedOut) {
+    return { status: failure(compiled, "compile_error"), output: clean(compiled.stdout + compiled.stderr, true) };
+  }
+
+  // The runtime crates: sier (as std), then the prebuilt alloc, core and compiler_builtins of the target.
+  const libs = [path.join(SIER_DIR, "libstd.rlib"), ...(await sysrootRlibs())];
+  const link = [
+    LD, "-m", "elf32lriscv", "-T", opts.linkScript ?? path.join(RUNTIME_SOURCES, "link.ld"),
+    "--gc-sections", "--build-id=none", "--no-warn-rwx-segments", "-o", elf,
+    path.join(RUNTIME_OBJECTS, "crt0.o"), object, ...libs,
+  ];
+  const linked = await step(link);
+  const output = clean(compiled.stdout + compiled.stderr + linked.stdout + linked.stderr, true);
+  if (linked.exitCode !== 0 || linked.timedOut) return { status: failure(linked, "link_error"), output };
+  return { status: "ok", output, elf };
+}
+
+let rlibs: Promise<string[]> | undefined;
+/** alloc, core and compiler_builtins of the pinned toolchain (their file names carry a hash). */
+function sysrootRlibs(): Promise<string[]> {
+  rlibs ??= (async () => {
+    const dir = process.env.RUST_TARGET_LIB ?? path.join(path.dirname(RUSTC), "..", "lib", "rustlib", RUST_TARGET, "lib");
+    const names = await readdir(dir);
+    return ["liballoc-", "libcore-", "libcompiler_builtins-"].map((prefix) => {
+      const found = names.find((n) => n.startsWith(prefix) && n.endsWith(".rlib"));
+      if (!found) throw new Error(`no ${prefix}*.rlib in ${dir}`);
+      return path.join(dir, found);
+    });
+  })();
+  return rlibs;
+}
+
 export async function explainProject(request: ExplainRequest, uid?: number): Promise<ExplainResponse> {
-  const { files, optLevel } = validateExplain(request);
+  const { language, files, optLevel, checks } = validateExplain(request);
   const dir = await realpath(await mkdtemp(path.join(tmpdir(), "sierrendipity-")));
   try {
-    const built = await buildProgram(files, optLevel, dir, uid);
+    const built =
+      language === "rust" ? await buildRust(files, optLevel, checks, dir, uid) : await buildProgram(files, optLevel, dir, uid);
     if (built.status !== "ok") return { status: built.status, compileOutput: built.output };
-    return await describe(built.elf!, built.output, files.map((f) => f.path));
+    return await describe(built.elf!, built.output, files.map((f) => f.path), language);
   } catch (error) {
     if (error instanceof RequestError) throw error;
     console.error(error);
@@ -165,7 +270,12 @@ export async function explainProject(request: ExplainRequest, uid?: number): Pro
 const tooBig = (compileOutput: string): ExplainResponse => ({ status: "output_limit_exceeded", compileOutput });
 
 /** Turn the linked ELF into the program image, the instruction list and the line map. */
-async function describe(elfPath: string, compileOutput: string, studentPaths: string[]): Promise<ExplainResponse> {
+async function describe(
+  elfPath: string,
+  compileOutput: string,
+  studentPaths: string[],
+  language: "c" | "rust" = "c",
+): Promise<ExplainResponse> {
   const deadline = Date.now() + ANALYSIS_BUDGET_MS;
   const info = await lstat(elfPath);
   if (!info.isFile() || info.size > MAX_ELF_BYTES) return tooBig(compileOutput);
@@ -188,7 +298,8 @@ async function describe(elfPath: string, compileOutput: string, studentPaths: st
   const memorySize = elf.symbols.get("__memory_size");
   const userStart = elf.symbols.get("__user_text_start");
   const userEnd = elf.symbols.get("__user_text_end");
-  if (stackTop === undefined || memorySize === undefined || userStart === undefined || userEnd === undefined) {
+  // Rust is classified by symbol (the student's crate is `main`), so it does not need the C text markers.
+  if (stackTop === undefined || memorySize === undefined || (language === "c" && (userStart === undefined || userEnd === undefined))) {
     console.error("the linked program lacks the runtime's symbols");
     return { status: "internal_error", compileOutput };
   }
@@ -234,12 +345,25 @@ async function describe(elfPath: string, compileOutput: string, studentPaths: st
   const lineMap: Record<string, number[]> = {};
   for (const f of listed) {
     if (Date.now() > deadline) return tooBig(compileOutput);
+    // Rust: the name is demangled, and the code is the student's when the item is defined in the crate `main`.
+    // Symbols that are not mangled (`#[no_mangle]`, compiler_builtins, the C entry `main`) are the student's
+    // only when the debug line table puts their first instruction in one of the student's files.
+    const rust = language === "rust" ? parseRustSymbol(f.name) : undefined;
+    const functionName = rust?.name ?? (f.name.length > 200 ? f.name.slice(0, 200) + "..." : f.name);
+    let rustOrigin: "user" | "runtime" = "runtime";
+    if (language === "rust") {
+      if (rust) rustOrigin = rust.crate === "main" ? "user" : "runtime";
+      else if (f.name !== "main" && f.name !== "_start") {
+        const first = rowAt(sequences, f.addr);
+        rustOrigin = first && first.line > 0 && submitted.has(normalizePath(first.file)) ? "user" : "runtime";
+      }
+    }
     for (let addr = f.addr; addr + 4 <= f.end; addr += 4) {
       const offset = addr - loadAddress;
       if (offset < 0 || offset + 4 > image.length) break;
       const index = instructions.length;
-      const origin = addr >= userStart && addr < userEnd ? "user" : "runtime";
-      const instruction: ExplainInstruction = { index, addr, word: image.readUInt32LE(offset), origin, function: f.name };
+      const origin = language === "rust" ? rustOrigin : addr >= userStart! && addr < userEnd! ? "user" : "runtime";
+      const instruction: ExplainInstruction = { index, addr, word: image.readUInt32LE(offset), origin, function: functionName };
       // Rows with line 0 mean "no source line" and rows for files that are not the student's own
       // (the runtime's headers) are left unmapped.
       const row = origin === "user" ? rowAt(sequences, addr) : undefined;

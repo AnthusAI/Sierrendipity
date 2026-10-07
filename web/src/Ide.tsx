@@ -7,6 +7,8 @@ import { useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -25,6 +27,7 @@ import { ASM, MACHINE, decorate, setProblemMarkers } from "./riscvMonaco";
 import {
   deletePath,
   has,
+  isCompiled,
   isRiscv,
   pathConflict,
   pathProblem,
@@ -86,6 +89,7 @@ export function Ide({ config, user, getIdToken, onSignOut, nav }: Props) {
   const [bottomTab, setBottomTab] = useState("registers");
   const [paneWidth, setPaneWidth] = useState(440);
   const [optLevel, setOptLevel] = useState<"O0" | "Og">("O0");
+  const [safetyChecks, setSafetyChecks] = useState(false);
   const [exploring, setExploring] = useState(false);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const decorations = useRef<monaco.editor.IEditorDecorationsCollection | null>(null);
@@ -284,7 +288,7 @@ export function Ide({ config, user, getIdToken, onSignOut, nav }: Props) {
 
   // A RISC-V session belongs to one file; a C session to the whole project, so switching files keeps it.
   const projectKey = `${store.current}|${language}`;
-  const sessionKey = language === "c" ? projectKey : `${projectKey}|${ws.active}`;
+  const sessionKey = isCompiled(language) ? projectKey : `${projectKey}|${ws.active}`;
   const keyRef = useRef(projectKey);
   const filesRef = useRef(ws.files);
   const activeRef = useRef(ws.active);
@@ -331,9 +335,10 @@ export function Ide({ config, user, getIdToken, onSignOut, nav }: Props) {
     try {
       if (status !== "ready") term.writeln(styles.note("Starting your workspace, this can take up to a minute..."));
       const response = await backend.explain({
-        language: "c",
+        language: language as "c" | "rust",
         files: Object.entries(files).map(([path, content]) => ({ path, content })),
         optLevel,
+        ...(language === "rust" && { checks: safetyChecks }),
       });
       if (!current()) return;
       term.reset();
@@ -517,13 +522,19 @@ export function Ide({ config, user, getIdToken, onSignOut, nav }: Props) {
         <Button variant="outline" onClick={stop} disabled={!runId && !emuActive}>
           <Square />Stop
         </Button>
-        {language === "c" && (
+        {isCompiled(language) && (
           <>
             <Separator orientation="vertical" className="mx-1 h-5" />
             <NativeSelect aria-label="Optimization" value={optLevel} onChange={(e) => setOptLevel(e.target.value as "O0" | "Og")}>
               <option value="O0">-O0 (as written)</option>
               <option value="Og">-Og (light optimization)</option>
             </NativeSelect>
+            {language === "rust" && (
+              <span className="flex items-center gap-2">
+                <Checkbox id="safety-checks" checked={safetyChecks} onCheckedChange={(checked) => setSafetyChecks(checked === true)} />
+                <Label htmlFor="safety-checks" className="font-normal">Show safety checks</Label>
+              </span>
+            )}
             <Button variant="secondary" onClick={() => void explore()} disabled={exploring || running}>
               {exploring ? <Loader2 className="animate-spin" /> : <Compass />}Explore
             </Button>

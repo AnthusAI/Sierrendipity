@@ -12,6 +12,9 @@ export const LANGUAGES: { id: Language; label: string; monaco: string }[] = [
 /** True for the languages that run in the in-browser emulator instead of on the backend. */
 export const isRiscv = (language: Language) => language === "asm" || language === "machine";
 
+/** True for the languages the Compilation Explorer compiles on the backend (Explore, then run in the emulator). */
+export const isCompiled = (language: Language) => language === "c" || language === "rust";
+
 export interface Workspace {
   files: Record<string, string>;
   folders: string[];

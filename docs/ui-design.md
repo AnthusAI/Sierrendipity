@@ -80,6 +80,18 @@ transitions of 150 ms. `prefers-reduced-motion` turns every animation and transi
 use `outline` with the `--ring` color (3:1 against the page, header, cards and dialogs). The layout works down to about
 1024px: the toolbar wraps and the right pane is resizable (260-900px).
 
+## Explore in the IDE (C and Rust)
+
+The toolbar offers Explore, Optimization and Run in emulator for both compiled languages (`isCompiled` in
+`projects.ts`); the panes, linking and emulator are the same for C and Rust (the session kind stays `"c"`:
+it means "compiled on the backend"). Rust adds a "Show safety checks" checkbox beside Explore: it is sent as
+`checks` in `POST /explain` (default off: overflow and bounds checks are left out so the beginner view stays
+close to the C one; on, the extra branches appear on the student's own line). Runtime rows (`core::fmt::...`,
+`std::io::...`) are origin `runtime`, so they stay hidden until "Show runtime" is on, and their chips show the
+demangled names. A compile error is written to the terminal as rustc prints it (`main.rs:2:18`), with the
+friendly "This is not available in the emulator yet: std::collections::HashMap" for std items the emulator lacks.
+The mock backend answers `/explain` for Rust with a canned program (`explainRequests` records what was sent).
+
 ## Lessons, the coach and the component lab
 
 - **Loading lessons.** The browser consumes the precompiled lesson JSON, never YAML or Gherkin.

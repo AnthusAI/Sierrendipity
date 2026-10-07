@@ -13,8 +13,8 @@ const explained = () => getResponse().body as ExplainResponse;
 const instructions = () => explained().instructions ?? [];
 
 function explainBody() {
-  const { language, files, optLevel } = currentRequest() as unknown as Record<string, unknown>;
-  return { language, files, optLevel };
+  const { language, files, optLevel, checks } = currentRequest() as unknown as Record<string, unknown>;
+  return { language, files, optLevel, checks };
 }
 
 async function postExplain(body: unknown) {
