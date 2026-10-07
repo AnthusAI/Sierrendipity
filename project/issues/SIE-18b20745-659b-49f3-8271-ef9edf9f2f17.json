@@ -3,7 +3,7 @@
   "title": "G8: Assembly chip on card faces (S)",
   "description": "A small chip on each card face shows the assembly line (e.g. addi a0, zero, 5), for Course 2.\nAcceptance:\n- Given a card, a chip shows its assembly; it can be hidden by a lesson ui block.\n- The chip never replaces the English text.\n- Keyboard and screen reader read both.",
   "type": "story",
-  "status": "open",
+  "status": "closed",
   "priority": 3,
   "assignee": null,
   "creator": null,
@@ -12,16 +12,29 @@
     "engine-gap,curriculum"
   ],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "77b92a3c-2de0-4e07-a790-5d25d320d67c",
+      "author": "home",
+      "text": "superseded by SIE-a87d49. G8 assembly chip on card faces is replaced by the glass strip (SIE-f548a6) from W1.",
+      "created_at": "2026-10-07T15:53:40.292609Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Real Machine Board Agent"
+      }
+    }
+  ],
   "created_at": "2026-10-07T12:28:28.732627Z",
-  "updated_at": "2026-10-07T12:28:28.732657Z",
-  "closed_at": null,
+  "updated_at": "2026-10-07T15:53:43.991256Z",
+  "closed_at": "2026-10-07T15:53:43.991219Z",
   "agent": {
     "platform": "claude_code",
     "model": "Claude Sonnet 5.5",
     "name": "Curriculum Board Agent"
   },
-  "right_now_summary": "The Course 2 assembly chip feature is defined with accessibility and lesson-hiding requirements.",
-  "right_now_updated_at": "2026-10-07T12:28:30.428232Z",
+  "right_now_summary": "The assembly chip was replaced by a glass strip on card faces.",
+  "right_now_updated_at": "2026-10-07T15:53:45.024692Z",
   "custom": {}
 }

@@ -1,0 +1,27 @@
+{
+  "id": "SIE-7b407dfb-4256-42c8-bd08-d178bc62be05",
+  "title": "Lessons c1/06-09 (in order, multiply, make your own card, use it again)",
+  "description": "Re-cut of R1 (SIE-148870). Acceptance: npm run lesson -- check --all is green, STE clean, at most one new control each, every ask needs one inference, and each lesson takes at most 4 minutes.",
+  "type": "story",
+  "status": "open",
+  "priority": 1,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-eb52a088-3bf6-4cef-9715-d718f6636911",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:47:12.232419Z",
+  "updated_at": "2026-10-07T15:47:12.232459Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The lesson re-cut has no recent activity or reported validation results.",
+  "right_now_updated_at": "2026-10-07T15:47:14.248637Z",
+  "custom": {}
+}

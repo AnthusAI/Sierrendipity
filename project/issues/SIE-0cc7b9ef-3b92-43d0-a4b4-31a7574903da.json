@@ -1,0 +1,27 @@
+{
+  "id": "SIE-0cc7b9ef-3b92-43d0-a4b4-31a7574903da",
+  "title": "Gallery item with all levels (cards, words, screen)",
+  "description": "Acceptance: capstone 1 saves cards, words and screen to the Gallery.",
+  "type": "story",
+  "status": "open",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-22eed3d9-8089-4c6f-bf82-4c3befef4aad",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:48:32.307494Z",
+  "updated_at": "2026-10-07T15:48:32.307547Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The capstone must save cards, words, and the screen to the Gallery.",
+  "right_now_updated_at": "2026-10-07T15:48:33.788769Z",
+  "custom": {}
+}

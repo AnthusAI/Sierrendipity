@@ -1,0 +1,27 @@
+{
+  "id": "SIE-2e6e1d4c-9fe7-42e6-9f70-43ce526d17a1",
+  "title": "reg:ra and the call lesson",
+  "description": "Acceptance: reg:ra id resolves; register ra holds N phrase specified in Gherkin.",
+  "type": "story",
+  "status": "open",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-22eed3d9-8089-4c6f-bf82-4c3befef4aad",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:48:12.586404Z",
+  "updated_at": "2026-10-07T15:48:12.586435Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The acceptance criteria are recorded, but no recent activity shows work on reg:ra or the call lesson.",
+  "right_now_updated_at": "2026-10-07T15:48:14.270693Z",
+  "custom": {}
+}

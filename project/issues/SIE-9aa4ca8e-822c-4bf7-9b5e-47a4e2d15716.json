@@ -1,0 +1,40 @@
+{
+  "id": "SIE-9aa4ca8e-822c-4bf7-9b5e-47a4e2d15716",
+  "title": "RM W0 Pilot: quick fixes merged, play c1/01-05, keep the progress export",
+  "description": "Real-machine plan (docs/real-machine-curriculum.md section 6). Ships alone: the review's quick fixes are merged; play c1/01-05 once and keep the progress export. Riskiest assumption: the first lessons are not too easy for an Algebra 2 student. Guardian playtest question: At which lesson does she first look interested, and does she read the coach?",
+  "type": "epic",
+  "status": "open",
+  "priority": 1,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "d0bf42da-13ab-4cec-ad42-4f9f4a379a77",
+      "author": "home",
+      "text": "Guardian decisions (all eight recommended answers accepted), from docs/real-machine-curriculum.md section 8:\n1. She may see one line of read-only C in Course 1 (c1/10). It is the bridge the arc stands on and costs no typing.\n2. In lesson text the two machines are called 'the RISC-V machine' (emulator; an exact model, not a toy) and 'the cloud computer' (Fargate). Never 'simulator', 'fake' or 'practice'.\n3. Assume a laptop with a keyboard from Course 2 on. Course 1 works on a tablet; no touch editor is built.\n4. A pre-warmed cloud task for up to 20 idle minutes before a cloud lesson is acceptable (the cost is cents).\n5. No hard daily cap on cloud hours while there is one student and an allowlist; revisit if a second student joins.\n6. Capstones allow any rule she chooses, including overflow or off the 16 x 16 screen; overflow and clipping become exhibits with a plain note, not an error.\n7. No Rust lessons in this span; offer one side room after c4/05, 'f in Rust' (/explain already supports it).\n8. ESP32-C3 comes after Course 4. Start with a one-day spike on a small board flashable from Chrome over Web Serial; the spike also measures build image size and decides whether to add compressed-instruction decoding to the explorer (the C3 runs 16-bit instructions by default).",
+      "created_at": "2026-10-07T15:50:46.030925Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Real Machine Board Agent"
+      }
+    }
+  ],
+  "created_at": "2026-10-07T15:45:13.931521Z",
+  "updated_at": "2026-10-07T15:50:46.031001Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The student is testing lessons 1–4 while the team tracks learning and keeps the progress export.",
+  "right_now_updated_at": "2026-10-07T15:51:18.915313Z",
+  "custom": {}
+}

@@ -3,7 +3,7 @@
   "title": "G1: Box pickers in lessons (S)",
   "description": "Lesson steps can ask the student to pick a box (a0..a7) from a picker instead of typing a name.\nAcceptance:\n- Given a scene with a box picker, when the student picks a box, then the pick is recorded and checked by the scene.\n- The picker is keyboard operable and labelled in STE.\n- A lesson.yaml can declare it and npm run lesson -- check accepts it.",
   "type": "story",
-  "status": "open",
+  "status": "closed",
   "priority": 2,
   "assignee": null,
   "creator": null,
@@ -12,16 +12,29 @@
     "engine-gap,curriculum"
   ],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "b8cf320e-addd-47db-b867-ab820fe57fc5",
+      "author": "home",
+      "text": "superseded by SIE-eb52a0. G1 box pickers are not needed by the re-planned c1/06-09 (c1/06 uses the existing builder); close under YAGNI.",
+      "created_at": "2026-10-07T15:51:37.262806Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Real Machine Board Agent"
+      }
+    }
+  ],
   "created_at": "2026-10-07T12:27:51.494376Z",
-  "updated_at": "2026-10-07T12:27:51.494402Z",
-  "closed_at": null,
+  "updated_at": "2026-10-07T15:51:42.397688Z",
+  "closed_at": "2026-10-07T15:51:42.397637Z",
   "agent": {
     "platform": "claude_code",
     "model": "Claude Sonnet 5.5",
     "name": "Curriculum Board Agent"
   },
-  "right_now_summary": "The lesson system is adding keyboard-accessible box pickers with scene checks and lesson.yaml support.",
-  "right_now_updated_at": "2026-10-07T12:27:53.470381Z",
+  "right_now_summary": "The box picker work is superseded because the replanned lessons use the existing builder.",
+  "right_now_updated_at": "2026-10-07T15:51:43.945372Z",
   "custom": {}
 }

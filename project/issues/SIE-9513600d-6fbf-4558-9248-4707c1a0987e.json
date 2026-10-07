@@ -1,0 +1,27 @@
+{
+  "id": "SIE-9513600d-6fbf-4558-9248-4707c1a0987e",
+  "title": "RM W7 The stack: Session.frames, Stack panel, c3/01-02",
+  "description": "Real-machine plan (docs/real-machine-curriculum.md section 6). Each wave ships alone and ends with lessons on the path. Contents: Session.frames, the Stack panel, frame phrases; c3/01-02. Riskiest assumption: a shadow call stack is a correct model for all our programs (hand asm and -O0/-Og). Guardian playtest question: Can she say why the program faulted when ra was not saved?",
+  "type": "epic",
+  "status": "open",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:46:01.336209Z",
+  "updated_at": "2026-10-07T15:46:01.336237Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The team is building the stack panel, checking frame traces, and reviewing acceptance checks and the fault exhibit.",
+  "right_now_updated_at": "2026-10-07T15:49:22.652361Z",
+  "custom": {}
+}

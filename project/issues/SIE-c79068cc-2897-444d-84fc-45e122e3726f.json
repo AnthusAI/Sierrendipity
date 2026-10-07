@@ -1,0 +1,27 @@
+{
+  "id": "SIE-c79068cc-2897-444d-84fc-45e122e3726f",
+  "title": "Session.frames",
+  "description": "Acceptance: hand asm, -O0 and -Og fixtures give the same frame list as a reference trace.",
+  "type": "story",
+  "status": "open",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-9513600d-6fbf-4558-9248-4707c1a0987e",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:49:08.209623Z",
+  "updated_at": "2026-10-07T15:49:08.209649Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The team is checking that frame lists match the reference trace across all fixtures.",
+  "right_now_updated_at": "2026-10-07T15:49:09.943548Z",
+  "custom": {}
+}

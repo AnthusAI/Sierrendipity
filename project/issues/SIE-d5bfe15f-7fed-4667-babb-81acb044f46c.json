@@ -1,0 +1,27 @@
+{
+  "id": "SIE-d5bfe15f-7fed-4667-babb-81acb044f46c",
+  "title": "Editor stage (lazy Monaco or plain textbox)",
+  "description": "Carries G9 (SIE-d36ef6) in simplified form. Acceptance: one-line editor in a lesson; lazy loaded; assembler errors shown in STE.",
+  "type": "story",
+  "status": "open",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-a87d494d-a3dd-4c75-8cfe-354d5075fdd9",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:48:48.793187Z",
+  "updated_at": "2026-10-07T15:48:48.793220Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The team is building a one-line lesson editor with lazy loading and assembler error feedback.",
+  "right_now_updated_at": "2026-10-07T15:48:50.783813Z",
+  "custom": {}
+}

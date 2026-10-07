@@ -3,7 +3,7 @@
   "title": "M11 Wave 4: c1/14-17 flip the card, counting with lamps, inside the number, make-your-own-instruction, with G5",
   "description": "Part of M11 (SIE-e8c918). c1/14-16 are the old draft lessons 06-08, renamed in the product repo. c1/17 encodes a word with lamps (D4 word target). Engine: G5. Overflow appears here as a planned surprise (side room).",
   "type": "epic",
-  "status": "open",
+  "status": "closed",
   "priority": 2,
   "assignee": null,
   "creator": null,
@@ -25,17 +25,29 @@
         "model": "Claude Sonnet 5.5",
         "name": "Curriculum Board Agent"
       }
+    },
+    {
+      "id": "aa6c8f35-7264-44ec-a049-fa8fd93ce49d",
+      "author": "home",
+      "text": "superseded by SIE-fd3dd9. Old M11 Wave 4 (c1/14-17) maps to RM W4 (c1/12-16, drafts re-cut); G5 moved.",
+      "created_at": "2026-10-07T15:52:49.500324Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Real Machine Board Agent"
+      }
     }
   ],
   "created_at": "2026-10-07T11:52:37.666694Z",
-  "updated_at": "2026-10-07T12:29:39.956035Z",
-  "closed_at": null,
+  "updated_at": "2026-10-07T15:52:53.148297Z",
+  "closed_at": "2026-10-07T15:52:53.148250Z",
   "agent": {
     "platform": "claude_code",
     "model": "Claude Sonnet 5.5",
     "name": "Curriculum Board Agent"
   },
-  "right_now_summary": "Wave 4 is being revised to teach binary counting and flipping before showing full instruction words.",
-  "right_now_updated_at": "2026-10-07T12:29:41.154428Z",
+  "right_now_summary": "Educator review is recutting Wave 4 into new binary lessons, while G5 moves elsewhere.",
+  "right_now_updated_at": "2026-10-07T15:52:55.731960Z",
   "custom": {}
 }

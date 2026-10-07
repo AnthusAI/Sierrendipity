@@ -1,0 +1,27 @@
+{
+  "id": "SIE-20ab9f0e-aacc-4556-bbf9-5b98f9647f8e",
+  "title": "Source (read-only) and Program-with-captions panels, line: and row: coach ids",
+  "description": "Acceptance: lesson density panels render one visible line of C and Program rows with card captions; line: and row: ids resolve in the coach; word-by-word 'same' marks; accessible table with headers.",
+  "type": "story",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-043aea98-36fa-41f4-bbb8-aab7b39c3961",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:47:37.428322Z",
+  "updated_at": "2026-10-07T15:47:37.428361Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The work focuses on captioned C and Program panels with coach IDs and accessible tables.",
+  "right_now_updated_at": "2026-10-07T15:47:39.526960Z",
+  "custom": {}
+}

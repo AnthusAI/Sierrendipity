@@ -1,0 +1,27 @@
+{
+  "id": "SIE-4ef8b460-2324-49f4-8d56-8249c3d9d5a9",
+  "title": "Registers panel with only, names, number and skin",
+  "description": "Acceptance:\n- c1/04 looks the same in all six theme and mode combinations (screenshot spec)\n- box:a0 and reg:a0 both resolve\n- the IDE Registers tab is drawn by the same component",
+  "type": "story",
+  "status": "open",
+  "priority": 1,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-fd7b2ee2-94bd-4d3a-aeee-ace3372b3b2e",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:46:40.544435Z",
+  "updated_at": "2026-10-07T15:46:40.544459Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The team is aligning the Registers panel across themes and modes and wiring both register forms to one IDE component.",
+  "right_now_updated_at": "2026-10-07T15:46:42.238263Z",
+  "custom": {}
+}

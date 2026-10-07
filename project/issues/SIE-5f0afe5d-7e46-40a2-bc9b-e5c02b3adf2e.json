@@ -4,24 +4,37 @@
   "description": "Lamps can target a whole 32-bit word (not only a number): the lesson asks the student to make a given instruction word.\nAcceptance:\n- Given a word target, when the lamps match it, then the scene goal is met.\n- The target is shown as the card text, not hex, unless the lesson asks for hex.\n- Works with the 'number only' lens (R4).",
   "type": "story",
   "status": "open",
-  "priority": 2,
+  "priority": 3,
   "assignee": null,
   "creator": null,
-  "parent": "SIE-c0909a85-f491-45fa-bf8a-f62c19c20ca0",
+  "parent": "SIE-fd3dd9b2-bdbf-4e23-bbf1-44d7cad3c537",
   "labels": [
     "engine-gap,curriculum"
   ],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "d64516e7-edad-4957-a28a-7788befb3a82",
+      "author": "home",
+      "text": "Kept and re-parented to RM W4 (SIE-fd3dd9): a word target for lamps may be needed by the InstructionPanel lamps lens (SIE-2c1fb1) in c1/12-13; close if the lens makes it redundant.",
+      "created_at": "2026-10-07T15:52:36.763134Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Real Machine Board Agent"
+      }
+    }
+  ],
   "created_at": "2026-10-07T12:28:10.926002Z",
-  "updated_at": "2026-10-07T12:28:10.926043Z",
+  "updated_at": "2026-10-07T15:52:36.763156Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "Claude Sonnet 5.5",
     "name": "Curriculum Board Agent"
   },
-  "right_now_summary": "Work is needed to let lamps target full instruction words and show them as card text.",
-  "right_now_updated_at": "2026-10-07T12:28:12.100053Z",
+  "right_now_summary": "The word target remains tied to the InstructionPanel lamps lens and may be removed if that lens makes it unnecessary.",
+  "right_now_updated_at": "2026-10-07T15:52:45.459948Z",
   "custom": {}
 }

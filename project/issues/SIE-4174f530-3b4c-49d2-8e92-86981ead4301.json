@@ -3,7 +3,7 @@
   "title": "M11 Wave 2: c1/08 make-your-own-card, c1/09 use-it-again, c1/10 order-matters, with G3",
   "description": "Part of M11 (SIE-e8c918). c1/08: select 2 cards, Save as card; custom cards in lessons. c1/09: run on 3,5,7; f(f(2))=26. c1/10: f(g(x)) versus g(f(x)). Engine: G3, which supersedes E14 (SIE-576777).",
   "type": "epic",
-  "status": "open",
+  "status": "closed",
   "priority": 1,
   "assignee": null,
   "creator": null,
@@ -25,17 +25,29 @@
         "model": "Claude Sonnet 5.5",
         "name": "Curriculum Board Agent"
       }
+    },
+    {
+      "id": "5165bdd5-ff26-4d5f-936e-edd036db73d6",
+      "author": "home",
+      "text": "superseded by SIE-eb52a0. Old M11 Wave 2 (c1/08-10, G3) maps to RM W2 (c1/08-09, G3) and RM W3 (c1/10, SIE-043aea).",
+      "created_at": "2026-10-07T15:52:04.000864Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Real Machine Board Agent"
+      }
     }
   ],
   "created_at": "2026-10-07T11:52:29.329047Z",
-  "updated_at": "2026-10-07T12:29:32.904018Z",
-  "closed_at": null,
+  "updated_at": "2026-10-07T15:52:08.055112Z",
+  "closed_at": "2026-10-07T15:52:08.055063Z",
   "agent": {
     "platform": "claude_code",
     "model": "Claude Sonnet 5.5",
     "name": "Curriculum Board Agent"
   },
-  "right_now_summary": "Custom cards are being added to lessons, and buildProgram is moving into lesson-core.",
-  "right_now_updated_at": "2026-10-07T12:29:34.561875Z",
+  "right_now_summary": "The work moved to RM W2 and W3: c1/08–09 in W2 and c1/10 in W3, using G3.",
+  "right_now_updated_at": "2026-10-07T15:52:12.162215Z",
   "custom": {}
 }

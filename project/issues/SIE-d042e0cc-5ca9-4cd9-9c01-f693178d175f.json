@@ -3,7 +3,7 @@
   "title": "M11 Wave 5: c1/18 light-a-pixel, c1/19 a-fork, c1/20 round-and-round, c1/21 graph-machine, with G6 (D2, D10, D11), G7, G12",
   "description": "Part of M11 (SIE-e8c918). c1/19 abs value (D10 fork). c1/20 loop (D11 loop track). c1/21 boss: plot y=2x+1. Engine: G6 views D2, D10, D11; G7 jump cards; G12 alternates and side rooms (placed here as the first wave with a side-room need beyond overflow; adjust if needed).",
   "type": "epic",
-  "status": "open",
+  "status": "closed",
   "priority": 3,
   "assignee": null,
   "creator": null,
@@ -25,17 +25,29 @@
         "model": "Claude Sonnet 5.5",
         "name": "Curriculum Board Agent"
       }
+    },
+    {
+      "id": "4509db7e-9737-410c-a871-16a5c1e62183",
+      "author": "home",
+      "text": "superseded by SIE-22eed3. Old M11 Wave 5 (c1/18-21, G6, G7, G12) maps to RM W5 (c1/17-22); G7 moved to W5, G12 to W8, G6a closed.",
+      "created_at": "2026-10-07T15:53:34.117984Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Real Machine Board Agent"
+      }
     }
   ],
   "created_at": "2026-10-07T11:52:40.346680Z",
-  "updated_at": "2026-10-07T12:29:43.165333Z",
-  "closed_at": null,
+  "updated_at": "2026-10-07T15:53:36.698477Z",
+  "closed_at": "2026-10-07T15:53:36.698441Z",
   "agent": {
     "platform": "claude_code",
     "model": "Claude Sonnet 5.5",
     "name": "Curriculum Board Agent"
   },
-  "right_now_summary": "Wave 5 scope was reduced, with diagram views being defined and jump cards and side rooms still needing work.",
-  "right_now_updated_at": "2026-10-07T12:29:44.255337Z",
+  "right_now_summary": "This wave was replaced by SIE-22eed3, with G7 moved to W5, G12 to W8, and G6a closed.",
+  "right_now_updated_at": "2026-10-07T15:53:38.800404Z",
   "custom": {}
 }

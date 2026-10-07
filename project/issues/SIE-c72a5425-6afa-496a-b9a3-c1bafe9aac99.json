@@ -1,0 +1,27 @@
+{
+  "id": "SIE-c72a5425-6afa-496a-b9a3-c1bafe9aac99",
+  "title": "RM W9 Board (later): ESP32-C3 spike after Course 4",
+  "description": "Real-machine plan (docs/real-machine-curriculum.md section 6). Each wave ships alone and ends with lessons on the path. Contents: ESP32-C3 spike: build image size, Web Serial flashing, C-extension decode. Riskiest assumption: the toolchain fits in the runner image, or a second task image is acceptable. Guardian playtest question: Not before W8.",
+  "type": "epic",
+  "status": "open",
+  "priority": 4,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:46:08.780402Z",
+  "updated_at": "2026-10-07T15:46:08.780422Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The team is preparing a one-day ESP32-C3 spike to measure image size and test compressed decoding.",
+  "right_now_updated_at": "2026-10-07T15:50:53.567444Z",
+  "custom": {}
+}

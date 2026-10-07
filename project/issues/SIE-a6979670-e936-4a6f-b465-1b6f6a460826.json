@@ -1,0 +1,27 @@
+{
+  "id": "SIE-a6979670-e936-4a6f-b465-1b6f6a460826",
+  "title": "Session over Timeline in explorer/src/session.ts",
+  "description": "Acceptance:\n- features/explorer/session.feature passes\n- narrate, rowAt and fromWords are pure\n- lesson-core startLive uses Session\n- every features/lessons and features/web/stage-* spec stays green\n- useFollow is deleted",
+  "type": "story",
+  "status": "open",
+  "priority": 1,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-fd7b2ee2-94bd-4d3a-aeee-ace3372b3b2e",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:46:36.490546Z",
+  "updated_at": "2026-10-07T15:46:36.490589Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "No recent activity is reported for this Session change.",
+  "right_now_updated_at": "2026-10-07T15:46:37.720006Z",
+  "custom": {}
+}

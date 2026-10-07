@@ -3,7 +3,7 @@
   "title": "M11 Wave 6: Course 2 typed assembly, c2/01-05, with G8, G9 and D12",
   "description": "Part of M11 (SIE-e8c918). c2/01 cards-have-short-names (asm chip on card faces). c2/02 type-one-line (editor slot). c2/03 write-f (label, ret; editor region). c2/04 two-inputs. c2/05 a-function-calls-a-function (save ra; D12 stack view, part of G6 but needed here). Engine: G8, G9.",
   "type": "epic",
-  "status": "open",
+  "status": "closed",
   "priority": 3,
   "assignee": null,
   "creator": null,
@@ -25,17 +25,29 @@
         "model": "Claude Sonnet 5.5",
         "name": "Curriculum Board Agent"
       }
+    },
+    {
+      "id": "f93e0cb3-c907-4ffb-826a-687f708a8680",
+      "author": "home",
+      "text": "superseded by SIE-a87d49. Old M11 Wave 6 (Course 2 typed assembly) maps to RM W6 (c2/01-03) and RM W7 (stack, c3).",
+      "created_at": "2026-10-07T15:54:18.247964Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Real Machine Board Agent"
+      }
     }
   ],
   "created_at": "2026-10-07T11:52:43.760625Z",
-  "updated_at": "2026-10-07T12:29:46.087388Z",
-  "closed_at": null,
+  "updated_at": "2026-10-07T15:54:22.540725Z",
+  "closed_at": "2026-10-07T15:54:22.540687Z",
   "agent": {
     "platform": "claude_code",
     "model": "Claude Sonnet 5.5",
     "name": "Curriculum Board Agent"
   },
-  "right_now_summary": "Wave 6 Course 2 assembly work is being defined, including chips, the editor, stack view, accessibility, and errors.",
-  "right_now_updated_at": "2026-10-07T12:29:47.485695Z",
+  "right_now_summary": "This work was superseded; its assembly, stack, and editor pieces were replaced or dropped.",
+  "right_now_updated_at": "2026-10-07T15:54:24.472317Z",
   "custom": {}
 }

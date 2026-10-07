@@ -1,0 +1,27 @@
+{
+  "id": "SIE-3a0fe363-c943-46bc-b5ae-dd5f81d2c8e2",
+  "title": "Lessons c1/17-22 (call, pixel, save/fetch, fork, loop, graph machine)",
+  "description": "Acceptance: check --all green, STE clean; capstone may take up to 6 minutes.",
+  "type": "story",
+  "status": "open",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-22eed3d9-8089-4c6f-bf82-4c3befef4aad",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:48:37.903878Z",
+  "updated_at": "2026-10-07T15:48:37.903902Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The lessons await green checks and a clean STE run.",
+  "right_now_updated_at": "2026-10-07T15:48:39.358279Z",
+  "custom": {}
+}

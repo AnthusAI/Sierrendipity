@@ -1,0 +1,27 @@
+{
+  "id": "SIE-9b2e5d07-0ecb-46f1-85b3-475144478b5c",
+  "title": "Table widget: x, f(x) fills as she runs, plus 'N cards, M steps' line",
+  "description": "Acceptance: the stage fills a table of x and f(x); the Timeline shows 'N cards, M steps'; specified in Gherkin first.",
+  "type": "story",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-eb52a088-3bf6-4cef-9715-d718f6636911",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:47:07.958621Z",
+  "updated_at": "2026-10-07T15:47:07.958654Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "No recent activity is provided for this table widget request.",
+  "right_now_updated_at": "2026-10-07T15:47:09.387125Z",
+  "custom": {}
+}

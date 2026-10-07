@@ -1,0 +1,27 @@
+{
+  "id": "SIE-18f0f7f1-2d1b-47e0-9efd-d670436a1af0",
+  "title": "Lessons c1/10-11 (a computer writes cards; the cloud computer)",
+  "description": "Acceptance: check --all green, STE clean; c1/10 shows one line of read-only C and the compiler's assembly; c1/11 predicts f(4)=17 and runs on the cloud computer.",
+  "type": "story",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-043aea98-36fa-41f4-bbb8-aab7b39c3961",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:47:47.890597Z",
+  "updated_at": "2026-10-07T15:47:47.890620Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The lesson work covers compiler output and predicts f(4)=17 on a cloud computer.",
+  "right_now_updated_at": "2026-10-07T15:47:49.312080Z",
+  "custom": {}
+}

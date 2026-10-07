@@ -4,24 +4,37 @@
   "description": "Jump and branch cards show where they land.\nAcceptance:\n- Given a jump card, then its target card is highlighted in the card list.\n- When it runs, the highlight moves with the pc.\n- The card text names the target in STE.",
   "type": "story",
   "status": "open",
-  "priority": 2,
+  "priority": 3,
   "assignee": null,
   "creator": null,
-  "parent": "SIE-d042e0cc-5ca9-4cd9-9c01-f693178d175f",
+  "parent": "SIE-22eed3d9-8089-4c6f-bf82-4c3befef4aad",
   "labels": [
     "engine-gap,curriculum"
   ],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "1ab958fb-4474-43ef-bbba-09e33b958aff",
+      "author": "home",
+      "text": "Kept and re-parented to RM W5 (SIE-22eed3): jump cards with a visible target may be needed by the branch lesson c1/20 at card level; close if the branch arrow covers it.",
+      "created_at": "2026-10-07T15:53:20.967244Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Real Machine Board Agent"
+      }
+    }
+  ],
   "created_at": "2026-10-07T12:28:23.858205Z",
-  "updated_at": "2026-10-07T12:28:23.858235Z",
+  "updated_at": "2026-10-07T15:53:20.967284Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "Claude Sonnet 5.5",
     "name": "Curriculum Board Agent"
   },
-  "right_now_summary": "Jump and branch cards need to highlight their targets and name them in STE.",
-  "right_now_updated_at": "2026-10-07T12:28:25.463889Z",
+  "right_now_summary": "The issue was kept and re-parented to RM W5 for review in the branch lesson.",
+  "right_now_updated_at": "2026-10-07T15:53:22.877639Z",
   "custom": {}
 }

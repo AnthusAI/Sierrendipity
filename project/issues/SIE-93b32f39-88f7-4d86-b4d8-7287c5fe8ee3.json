@@ -7,7 +7,7 @@
   "priority": 1,
   "assignee": null,
   "creator": null,
-  "parent": "SIE-e8c91813-9ff5-4d5a-9ac2-ccef5abae556",
+  "parent": "SIE-9aa4ca8e-822c-4bf7-9b5e-47a4e2d15716",
   "labels": [],
   "dependencies": [],
   "comments": [
@@ -22,17 +22,29 @@
         "model": "Claude Sonnet 5.5",
         "name": "Curriculum Board Agent"
       }
+    },
+    {
+      "id": "7d070553-e010-4bda-9793-052e380c3d1f",
+      "author": "home",
+      "text": "Re-parented to new W0 (SIE-9aa4ca); it gates all later authoring.",
+      "created_at": "2026-10-07T15:51:13.391781Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Real Machine Board Agent"
+      }
     }
   ],
   "created_at": "2026-10-06T19:11:56.789278Z",
-  "updated_at": "2026-10-07T12:30:00.113051Z",
+  "updated_at": "2026-10-07T15:51:13.391821Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity-orchestrator"
   },
-  "right_now_summary": "The team is preparing a solo playtest of lessons 1–5 and defining measures before writing more lessons.",
-  "right_now_updated_at": "2026-10-07T12:30:02.008736Z",
+  "right_now_summary": "A student is testing lessons 1–4 alone while the team measures learning behavior before writing the rest.",
+  "right_now_updated_at": "2026-10-07T15:51:16.416114Z",
   "custom": {}
 }

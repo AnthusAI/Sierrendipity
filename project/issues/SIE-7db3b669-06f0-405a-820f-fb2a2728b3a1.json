@@ -1,0 +1,27 @@
+{
+  "id": "SIE-7db3b669-06f0-405a-820f-fb2a2728b3a1",
+  "title": "Screen panel link (pixel to memory row)",
+  "description": "Acceptance: selecting a pixel selects its Memory row and the reverse; D9 becomes the Screen panel.",
+  "type": "story",
+  "status": "open",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-22eed3d9-8089-4c6f-bf82-4c3befef4aad",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:48:27.628420Z",
+  "updated_at": "2026-10-07T15:48:27.628451Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "No recent activity is recorded for linking pixels to Memory rows and making D9 the Screen panel.",
+  "right_now_updated_at": "2026-10-07T15:48:29.885593Z",
+  "custom": {}
+}

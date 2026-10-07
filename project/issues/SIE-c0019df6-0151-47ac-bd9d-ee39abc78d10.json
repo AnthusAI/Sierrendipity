@@ -1,0 +1,27 @@
+{
+  "id": "SIE-c0019df6-0151-47ac-bd9d-ee39abc78d10",
+  "title": "Lessons c2/01-03 (type a card, write f, say a number)",
+  "description": "Acceptance: check --all green, STE clean; function check 'the function f gives 50 for 7'; Registers switch to register words.",
+  "type": "story",
+  "status": "open",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-a87d494d-a3dd-4c75-8cfe-354d5075fdd9",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:49:03.552768Z",
+  "updated_at": "2026-10-07T15:49:03.552794Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The lesson needs checks for card input, function f, and register words.",
+  "right_now_updated_at": "2026-10-07T15:49:05.398801Z",
+  "custom": {}
+}

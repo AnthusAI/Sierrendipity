@@ -3,7 +3,7 @@
   "title": "M11 Wave 3: c1/11 the-pointing-hand, c1/12 a-call-is-a-bookmark, c1/13 the-stop-card, with G4",
   "description": "Part of M11 (SIE-e8c918). c1/11 program counter (cut if needed, fold into 12). c1/12 uses diagram D13. c1/13 the stop card. Engine: G4. No jargon (call, register, stack) before the picture exists.",
   "type": "epic",
-  "status": "open",
+  "status": "closed",
   "priority": 2,
   "assignee": null,
   "creator": null,
@@ -25,17 +25,29 @@
         "model": "Claude Sonnet 5.5",
         "name": "Curriculum Board Agent"
       }
+    },
+    {
+      "id": "6db9efdd-6898-4272-97be-cf8a53091fc8",
+      "author": "home",
+      "text": "superseded by SIE-22eed3. Old M11 Wave 3 (c1/11-13) maps to RM W5 c1/17 (a call is a bookmark) and W3 c1/10-11.",
+      "created_at": "2026-10-07T15:52:24.214389Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Real Machine Board Agent"
+      }
     }
   ],
   "created_at": "2026-10-07T11:52:33.167018Z",
-  "updated_at": "2026-10-07T12:29:36.139762Z",
-  "closed_at": null,
+  "updated_at": "2026-10-07T15:52:27.554118Z",
+  "closed_at": "2026-10-07T15:52:27.554066Z",
   "agent": {
     "platform": "claude_code",
     "model": "Claude Sonnet 5.5",
     "name": "Curriculum Board Agent"
   },
-  "right_now_summary": "This lesson follows the function lessons and must wait for R1; the D13 diagram has no recent updates.",
-  "right_now_updated_at": "2026-10-07T12:29:37.254326Z",
+  "right_now_summary": "This work moved to SIE-22eed3, and its call-bookmark diagram became a Registers panel.",
+  "right_now_updated_at": "2026-10-07T15:52:29.736715Z",
   "custom": {}
 }

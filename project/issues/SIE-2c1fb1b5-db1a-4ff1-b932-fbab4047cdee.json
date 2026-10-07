@@ -1,0 +1,27 @@
+{
+  "id": "SIE-2c1fb1b5-db1a-4ff1-b932-fbab4047cdee",
+  "title": "InstructionPanel (lenses, fields, lamps) replacing D5 and D8 as configs",
+  "description": "Acceptance: card, lamps, hex and fields lenses; fields named rd, rs1, rs2, funct7 with exact-job names; switchable lamps; total hidden when asked; D5 and D8 reproduced as panel configs.",
+  "type": "story",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-fd3dd9b2-bdbf-4e23-bbf1-44d7cad3c537",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:47:52.663032Z",
+  "updated_at": "2026-10-07T15:47:52.663076Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The panel design is being defined to replace D5 and D8 with configurable lenses, fields, and lamps.",
+  "right_now_updated_at": "2026-10-07T15:47:54.469403Z",
+  "custom": {}
+}

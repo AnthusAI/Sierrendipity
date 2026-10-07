@@ -1,0 +1,27 @@
+{
+  "id": "SIE-ca057aad-64b3-41ac-976a-24d67bbdeb6b",
+  "title": "CloudProvider in Shell.tsx with a lesson status line",
+  "description": "Acceptance:\n- one Backend per signed-in user, shared by Learn and the Workspace\n- the IDE behaviour is unchanged\n- status line text such as 'The cloud computer is starting (12 s).' is polite, one line, STE clean, no spinner under reduced motion",
+  "type": "story",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-043aea98-36fa-41f4-bbb8-aab7b39c3961",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:47:18.696363Z",
+  "updated_at": "2026-10-07T15:47:18.696393Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The CloudProvider and lesson status line are being added without changing IDE behavior.",
+  "right_now_updated_at": "2026-10-07T15:47:20.768002Z",
+  "custom": {}
+}

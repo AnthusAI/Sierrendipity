@@ -7,21 +7,34 @@
   "priority": 1,
   "assignee": null,
   "creator": null,
-  "parent": "SIE-e17de114-3890-4bef-ae3f-2b68e49720f8",
+  "parent": "SIE-9aa4ca8e-822c-4bf7-9b5e-47a4e2d15716",
   "labels": [
     "engine-gap,curriculum"
   ],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "04630694-b15f-4084-b1c5-ee5bf0a48f38",
+      "author": "home",
+      "text": "Re-parented to new W0 (SIE-9aa4ca). Real-machine plan: guardian report stays; it reads ProgressStore events during the pilot.",
+      "created_at": "2026-10-07T15:51:09.441949Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Real Machine Board Agent"
+      }
+    }
+  ],
   "created_at": "2026-10-07T12:28:53.237438Z",
-  "updated_at": "2026-10-07T12:28:53.237463Z",
+  "updated_at": "2026-10-07T15:51:09.441971Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "Claude Sonnet 5.5",
     "name": "Curriculum Board Agent"
   },
-  "right_now_summary": "The team is defining a guardian report with lesson metrics, privacy limits, and export support.",
-  "right_now_updated_at": "2026-10-07T12:28:55.283914Z",
+  "right_now_summary": "The guardian report will read ProgressStore events and remain available in the pilot.",
+  "right_now_updated_at": "2026-10-07T15:51:10.448782Z",
   "custom": {}
 }
