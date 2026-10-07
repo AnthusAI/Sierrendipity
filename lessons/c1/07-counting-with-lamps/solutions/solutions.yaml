@@ -1,0 +1,23 @@
+solutions:
+  - file: good.hex
+    earns: [pass]
+    note: The lamps worth 32, 8 and 2 make 42.
+  - file: step-five.hex
+    earns: []
+    scenes: [make-five]
+    note: A step on the way, 4 plus 1 makes 5.
+  - file: step-seven.hex
+    earns: []
+    scenes: [make-seven]
+    note: A step on the way, 4 plus 2 plus 1 makes 7.
+  - file: step-twelve.hex
+    earns: []
+    scenes: [make-twelve]
+    note: A step on the way, 8 plus 4 makes 12.
+  - file: wrong-forty-three.hex
+    earns: []
+    note: The lamp worth 1 was left on, so the box shows 43 instead of 42.
+  - file: forever.s
+    earns: []
+    capped: true
+    note: A card that jumps to itself; only the step cap stops it.

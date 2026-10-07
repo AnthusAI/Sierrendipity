@@ -1,0 +1,6 @@
+{
+  "id": "demo-click",
+  "events": [
+    { "at": 0, "type": "point", "target": "band:rd" }
+  ]
+}

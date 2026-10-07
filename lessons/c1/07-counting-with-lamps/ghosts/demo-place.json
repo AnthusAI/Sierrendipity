@@ -1,0 +1,8 @@
+{
+  "id": "demo-place",
+  "events": [
+    { "at": 0, "type": "point", "target": "lamp:0" },
+    { "at": 900, "type": "point", "target": "lamp:1" },
+    { "at": 1800, "type": "point", "target": "lamp:2" }
+  ]
+}

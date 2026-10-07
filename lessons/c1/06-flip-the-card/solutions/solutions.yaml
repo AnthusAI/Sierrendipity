@@ -1,0 +1,14 @@
+solutions:
+  - file: good.hex
+    earns: [pass]
+    note: The starter itself.
+  - file: wrong-swapped.hex
+    earns: []
+    note: The cards in the other order, so the box ends on 1.
+  - file: wrong-two.hex
+    earns: []
+    note: The last card puts 2, so the box ends on 2.
+  - file: forever.s
+    earns: []
+    capped: true
+    note: A card that jumps to itself; only the step cap stops it.

@@ -35,6 +35,7 @@ concepts: { introduces: [cards], requires: [] }   # ids from lessons/concepts.ya
 boxes: [a0]                 # the only boxes (registers) the machine shows; more appear when a lesson needs them
 pointer: false              # show the arrow at the card being run (the program counter); default false
 hideEnd: true               # hide the Stop card, see below; default false
+draft: true                 # optional, default false: a draft lesson, see "Draft lessons" below
 starter: { hex: ["0x00500513"] }                  # or { asm: "addi a0, zero, 5" }
 tabs: [cards]               # cards lamps hex assembly boxes shelves screen output
 scenes: [ ... ]
@@ -76,7 +77,9 @@ exact count would be overshot by one extra press, scenes may not use exact step 
 **Boxes are enforced.** Every register named by the starter, solutions, warm-ups, `until`, `ask.target` and
 `spotlight: box:` must be in `boxes`; duplicates are rejected; `show` entries that are tabs (`screen`, `hex`, ...)
 must be in `tabs`. Spotlight targets and ghost `point` targets must be real UI targets: `button:step|back|run|pause|reset`,
-`card:<n>` (an existing card), `box:<one of boxes>`, `tab:<one of tabs>`, `diagram:D1`..`D14`.
+`card:<n>` (an existing card), `box:<one of boxes>`, `tab:<one of tabs>`, `diagram:D1`..`D14`, and the parts of the
+real stage: `band:<field>` (`opcode rd rs1 rs2 funct3 funct7 imm shamt special`), `lamp:<0-31>`, `flip` (the card flip)
+and `tray` (the builder's tray). The real stage gives each of them a `data-coach-id` (see `docs/ui-design.md`).
 
 **Wrong answers.** `onWrong.match` must not be the correct answer, must be a number for a number ask, and
 must not repeat. Any lesson with an `ask` needs a lesson-level `onWrongDefault` reply
@@ -96,7 +99,7 @@ most 80. Sentences are counted by terminators followed by a capital letter, digi
 ```yaml
 - id: predict                       # lowercase slug, unique in the lesson
   say: The next card adds a0 and a1 into box a2. What will a2 hold?   # <= 2 sentences, <= 30 words
-  show: [cards, boxes, D1]          # tabs/panels and diagram ids D1..D14
+  show: [cards, boxes, D1]          # tabs/panels, diagram ids D1..D14, `timeline`, `builder` (see "What a scene shows")
   spotlight: "box:a2"               # dims everything else; "kind:name"
   ask:                              # number | choice | click-target | machine-query
     { kind: number, question: "...", target: a2, answer: 12 }
@@ -125,6 +128,52 @@ most 80. Sentences are counted by terminators followed by a capital letter, digi
   A prediction made after the machine has finished is not a prediction: it is not recorded and cannot earn `called-it`.
 - `onWrong.match` is the wrong answer to react to (a number, or text for choices); `goto` names a scene.
 - `showMe` must name an existing ghost; `goto` must name an existing scene.
+
+### What a scene shows
+
+`show` lists what the real stage draws. The machine view (D1, the clerk and boxes with real card faces and number
+spinners, driven by the lesson's `boxes`, `pointer` and `hideEnd`) is on when the scene shows `D1` or shows none of the
+pictures below; a scene that shows only one picture gets just that picture, so it is the only thing to look at. Step,
+Back and Reset are always there. `cards` and `boxes` are tabs of the machine view and need no other setting.
+
+| `show` id | Draws | Scene field |
+| --- | --- | --- |
+| `D1` | the clerk and boxes (the machine view) | none |
+| `D3` | the heartbeat: fetch, do, move on | none |
+| `D4` | bit lamps on one card, switchable | `lamps: { card, of?, width?, allowedBits?, lockedBits?, target? }` |
+| `D5` | one card that flips through its views | `flip: { card, lenses? }` (`card lamps hex assembly`) |
+| `D6` | the program counter walk, with addresses | none |
+| `D7` | adding two numbers in lamps, with the carry | `carry: { a, b }` |
+| `D8` | field bands on one card, each a button; its lamps switch | `bands: { card, allowedBits?, lockedBits? }` |
+| `D9` | the 16 by 16 pixel screen (needs `screen` in `tabs`) | none |
+| `timeline` | Run, Pause and a scrubber, wired to the player | none |
+| `builder` | drag cards from a tray into the program | `tray: [asm, ...]` |
+
+A scene field needs its `show` id (`lamps` needs `D4`, `bands` `D8`, `flip` `D5`, `carry` `D7`, `tray` `builder`); the loader
+rejects the field without it, a card that is not in the starter, bits outside 0 to 31, unknown keys and a tray line that
+does not assemble to one instruction. Notes:
+
+- **`lamps`** shows all 32 lamps of the card (`of: word`, the default) or, with `of: number`, just the number of a put or
+  add-a-number card as `width` lamps (1 to 11, default 8) worth 1, 2, 4 ... with a running total. `allowedBits` and
+  `lockedBits` count the lamps as shown. `target` adds "Make the lamps add up to N" next to the lamps. A lamp toggle
+  replaces the whole 32-bit word of the card (`onEditStarter(card, word, "toggle")`), so the card text and the machine
+  follow. The lamps are read-only when the scene locks `toggle`; they are a different lock from the number spinner (`edit`).
+- **`bands`** is how a `click-target` question is asked about a card: `ask: { kind: click-target, target: "band:rd" }`
+  is answered by clicking (or focusing and pressing Enter on) a band. A click counts as an answer only when it lands on
+  a part of the same kind as the target (a band for `band:rd`, a card for `card:2`); any other click is just a click.
+  A wrong band is answered by `onWrong: [{ match: "band:rs1", say, goto }]`; `goto` the scene's own id keeps the question open.
+- **`tray`** lists the cards the builder offers as lines of assembly (`addi a0, zero, 5`); each must be a Course 1 card.
+  The program the student builds replaces the player's cards (`onReplaceCards`), so `until: the program has 3 cards`
+  works. `lock: [drag]` closes the builder.
+- Switching a lamp or dropping a card is a real edit: it restarts the machine and counts for `the student edited a card`
+  and `the program differs from the starter by exactly N bits`.
+
+### Draft lessons
+
+`draft: true` marks a lesson that is not ready to ship. `npm run lessons:build` still builds it (into `lessons/dist/drafts/`,
+and `npm run lesson -- check --all` checks it), but it is left out of `web/public/catalog.json`, so it is not on the Learn
+path, the Deck or "Next lesson". It plays only at `/learn/<id>?draft=1` (and in the component lab) in a dev build or a build
+with `VITE_DEV_TOOLS=1`; a production bundle does not contain it at all. The stage fixtures (`lessons/x1/`) are drafts too.
 
 ### Warm-ups
 
@@ -176,8 +225,11 @@ solutions:
 ```
 
 Each solution declares the exact set of stars it must earn. Optional: `predictions` (recorded student
-predictions by target), `stdin`, `maxSteps` (default 10,000), `capped`, `note`. Every file in
-`solutions/` must be declared.
+predictions by target), `stdin`, `maxSteps` (default 10,000), `capped`, `note` and `scenes`. Every file in
+`solutions/` must be declared. `scenes: [make-five]` names the scenes whose `until` this solution is the way to finish
+even though it does not pass the lesson: a lesson with several goals in a row (lesson 07 makes 5, 7, 12 and then 42)
+declares one such solution per goal, and the checker accepts a scene's `until` when a pass solution, the starter or a solution
+that names the scene satisfies it.
 
 ### ghosts/*.json (Show me)
 
@@ -189,8 +241,13 @@ predictions by target), `stdin`, `maxSteps` (default 10,000), `capped`, `note`. 
 
 `at` is milliseconds from the start (non-decreasing, at most 60,000; at most 200 events). Event types
 (`GhostEvent` in `lesson-core/src/ghost.ts`): `point {target}`, `press {control: step|back|run|pause|reset}`,
-`spin {card, to}` (card index, new 32-bit word), `toggle {card, bit 0-31}`, `drag {from, to}`,
-`type {text}`. The file name (without `.json`) must equal `id`. Validated by `validateGhost`.
+`spin {card, to}` (card index, new 32-bit word), `toggle {card, bit 0-31}` (flips that bit of the card's 32-bit word, so
+the number field of a put card is bits 20 to 31), `drag {from, to}` (move a card within the list) or
+`drag {tray, to}` (drag tray card `tray` into the list at position `to`; the scene needs a `tray`),
+`type {text}` (types a whole number into the number spinner of the card the ghost last pointed at with
+`point card:<n>`). During Show me all of these act on a COPY of the machine, drawn by the same real components; the
+student's own cards, boxes and progress are untouched until control is handed back. The file name (without `.json`)
+must equal `id`. Validated by `validateGhost`.
 
 ## The step vocabulary (E2)
 
@@ -265,7 +322,7 @@ minified and is only needed when loading raw lesson files rather than published 
 `checks.feature` with the official `@cucumber/gherkin` as well and fails if the two parsers disagree on
 scenario names, tags or step texts, so our subset cannot drift from real Gherkin.
 
-## The five sample lessons
+## The sample lessons
 
 `lessons/c1/` holds five complete sample lessons, each with one new idea, one student action and at most three
 cards (all with `hideEnd: true`, no pointer arrow, no hex):
@@ -279,6 +336,19 @@ cards (all with `hideEnd: true`, no pointer arrow, no hex):
 | `05-add` | a card can add two boxes; predict 12 (wrong guess 57) | put 5, put 7, add into a2 | a0, a1, a2 | pass, called-it |
 
 Each has solutions including deliberately wrong ones and a never-ending one that proves the step cap.
+
+Three more lessons are **drafts** (`draft: true`, not on the path; play them at `/learn/c1/06-flip-the-card?draft=1`
+in a dev or test build) and prove the new visuals. They follow the same rules (one idea, one action, at most three
+cards, at most two short sentences per scene, three free hints, a friendly `doneSay`):
+
+| Lesson | Idea and action | Cards | Uses |
+| --- | --- | --- | --- |
+| `06-flip-the-card` | a card is one big number; flip it to its lamps, then click the card that matches each lamp pattern | put 1, put 2, put 3 in a0 | `D5` flip, `D4` lamps, `click-target` on cards |
+| `07-counting-with-lamps` | lamps are switches worth 1, 2, 4 ...; make 5, 7, 12 and 42 with `of: number` lamps, with an optional carry peek | put 1 in a0 | `D4` with `allowedBits` and `target`, `D7` carry |
+| `08-inside-the-number` | the lamps of a card are bands with jobs; click the band that names the answer box, predict, then flip lamp 30 to turn add into subtract (a2 becomes 7); bonus `below-zero` shows -2 | put 9, put 2, add into a2 | `D8` bands, `click-target` on `band:rd`, `bands.allowedBits` |
+
+`lessons/x1/` holds three more drafts that are test fixtures for the real stage: one scene for every picture
+(`01-diagrams`), the lamps, flip, bands and carry (`02-lamps`), and the builder with its Show me ghost (`03-builder`).
 
 ## Authoring CLI and CI gate
 

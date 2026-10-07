@@ -44,6 +44,24 @@ Feature: The lesson checker runs every reference solution
       | lesson.yaml | - the machine has taken at least 1 step | - the machine has taken at least 50 steps | no pass solution (or the starter) satisfies |
       | lesson.yaml | skippable: true                         | skippable: true\n  - id: after\n    say: All done.\n    show: [cards] | needs a goto to the scene that reveals the answer |
 
+  Scenario: A solution may reach an earlier scene's goal without passing the lesson
+    When I replace "- the machine has taken at least 1 step" with "- box a0 holds 6" in "lesson.yaml"
+    And I check the lesson
+    Then the check fails with "no pass solution (or the starter) satisfies"
+    When I replace "{file: wrong.s, earns: []}" with "{file: wrong.s, earns: [], scenes: [step]}" in "solutions/solutions.yaml"
+    And I check the lesson
+    Then the check passes
+
+  Scenario Outline: A solution's scenes must name real scenes
+    When I replace "{file: wrong.s, earns: []}" with "{file: wrong.s, earns: [], scenes: <scenes>}" in "solutions/solutions.yaml"
+    And I load the lesson
+    Then the lesson fails to load with "<message>"
+
+    Examples:
+      | scenes   | message                    |
+      | [nowhere] | unknown scene "nowhere"   |
+      | step     | scenes must be a list      |
+
   Scenario: The step cap is per solution
     When I replace "{file: forever.s, earns: [], capped: true}" with "{file: forever.s, earns: [], capped: true, maxSteps: 7}" in "solutions/solutions.yaml"
     And I check the lesson

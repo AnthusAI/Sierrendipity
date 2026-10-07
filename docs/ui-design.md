@@ -116,12 +116,45 @@ The mock backend answers `/explain` for Rust with a canned program (`explainRequ
   intercepts the pointer or traps the keyboard; Escape asks "Skip the tour?") and the ghost pointer.
   Reduced motion makes the spotlight and the ghost pointer instant (`data-motion="reduced"`).
 - **Stage slot.** The machine is drawn by a `stage` render prop receiving `StageProps`
-  (`web/src/coach/types.ts`: `lesson`, `live`, `scene`, `onEditStarter(card, word)`,
-  `controls { step, back, reset, isLocked }`). The default stage is a plain accessible list of cards (number
-  spinners are native inputs), labelled boxes and Step, Back and Reset buttons. Every element a scene may
-  spotlight carries a `data-coach-id` from the set lesson-core defines (`knownTarget`): `button:step|back|run|pause|reset`,
-  `card:<n>`, `box:<register>`, `tab:<name>`, `diagram:D1`..`D14` (`coach/ids.ts`). A locked control is
-  `aria-disabled` with the explanation "Not yet".
+  (`web/src/coach/types.ts`: `lesson`, `live`, `scene`, `onEditStarter(card, word, via?)`, `onReplaceCards(words)`,
+  `controls { step, back, reset, isLocked }`). `onEditStarter` takes the FULL new 32-bit word of a card; `via` is
+  `"edit"` (a spinner, the default) or `"toggle"` (a lamp), because a scene may lock one and not the other.
+  `onReplaceCards` hands back the whole list (the program builder) and is locked by `drag`. `scene` also carries the
+  scene's `lamps`, `bands`, `flip`, `carry` and `tray` settings.
+  The default stage is `RealStage` (`web/src/coach/RealStage.tsx`, see "The real stage" below); `DefaultStage`, a plain
+  accessible list of cards (number spinners are native inputs), labelled boxes and Step, Back and Reset buttons, stays only
+  as a stand-in for tests. Every element a scene may spotlight carries a `data-coach-id` from the set lesson-core defines
+  (`knownTarget`): `button:step|back|run|pause|reset`, `card:<n>`, `box:<register>`, `tab:<name>`, `diagram:D1`..`D14`,
+  `band:<field>`, `lamp:<bit>`, `flip` and `tray` (`coach/ids.ts`). A locked control is `aria-disabled` with the
+  explanation "Not yet".
+
+## The real stage (`web/src/coach/RealStage.tsx`)
+
+The lesson player draws the real visuals. The player owns the one live machine (lesson-core `startLive`, `pressStep`, ...);
+the stage never has a second opinion.
+
+- **One source of truth.** `RealStage` builds a timeline from `live.cards` with `useMachineTimeline` and follows `live.steps`:
+  a forward step of the player replays as an animated step (the token flies from the card to the box; `?testclock` and
+  `window.__diagramClock` freeze it mid-flight), Back, Reset and an edit just move the timeline (an edit starts it over).
+  The stage root carries `data-live-steps`, `data-live-boxes`, `data-live-words`, `data-live-pc` (the player's numbers) next
+  to `data-timeline-position`, so a spec can compare what is drawn with what the player holds.
+- **Controls** (`PlayerControls`): Step, Back and Reset call `controls.step/back/reset`; with `show: [timeline]` also Run, Pause
+  and a scrubber that presses the player's own Step or Back. Locked or idle controls stay in place, are `aria-disabled` and
+  explain themselves. They come first in the stage, so the Tab order is the coach panel, the controls, the cards, the boxes.
+- **Machine view (D1)**: `MachineView` with `renderCard`, so every card is a real `CardFace` with a number spinner
+  (`Number on card <n>`; signed, -2048 to 2047 on a put card). A spinner edit calls `onEditStarter(card, cardToWord(next))`.
+  Box pickers stay off in Course 1. The hidden end shows as "the end of the list".
+- **Other pictures**: heartbeat D3, bit lamps D4 (`BitLamps`, on the whole word or just a put card's number), card flip D5
+  (`CardFlip`), pointer walk D6, carry ripple D7, field bands D8 (`FieldBands`, each band a button) and the pixel screen D9
+  are drawn when the scene's `show` lists them; the program builder (lazy loaded) and the timeline too. See
+  `docs/lesson-format.md` ("What a scene shows") for the scene fields.
+- **Clicking is answering.** For a `click-target` question a click on a part of the same kind as the target (`band:*`, `card:*`,
+  `box:*`) is the answer; clicks on other parts are only clicks.
+- **Layout.** In the page the coach panel comes first, then the stage (side by side from 768px). The diagrams wrap down to
+  400px. Reduced motion: no token, instant flips and highlights. All surfaces use theme tokens; specs read the computed
+  colours in the six theme and mode combinations (`features/web/stage-a11y.feature`).
+- **Draft lessons** (`draft: true`) are built into `lessons/dist/drafts/`, left out of the catalog and the path, and play only
+  with `?draft=1` in a dev or test build (`DRAFTS_ENABLED` in `web/src/lessons/index.ts`; a production build drops them).
 
 ## Learn and Workspace
 

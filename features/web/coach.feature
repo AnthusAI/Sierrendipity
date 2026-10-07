@@ -156,23 +156,24 @@ Feature: The coach plays the lessons
     Given the coach lab shows lesson "c1/02-change-the-number"
     When I press Continue
     And I clear the number on card 1 with the keyboard
-    Then the card hint says "a number from 0 to 2047"
+    Then the card hint says "a whole number from -2048 to 2047"
     When I type "9" into the number on card 1
     Then the number on card 1 is 9
     When I press Step
     Then box "a0" shows 9
 
-  Scenario Outline: A number that cannot be used is explained, not silently reverted
+  Scenario Outline: A number that cannot be used is explained and the card keeps its number
     Given the coach lab shows lesson "c1/02-change-the-number"
     When I press Continue
-    And I type "<text>" into the number on card 1 and leave it
+    And I type "<text>" into the number on card 1
+    Then the card hint says "Use a whole number from -2048 to 2047"
+    When I type "<text>" into the number on card 1 and leave it
     Then the number on card 1 is 5
-    And the card hint says "The card keeps 5"
 
     Examples:
       | text |
-      | -3   |
       | 5000 |
+      | -5000 |
       | abc  |
 
   Scenario: The prediction is made before the machine moves

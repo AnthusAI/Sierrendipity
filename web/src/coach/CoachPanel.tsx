@@ -145,7 +145,7 @@ export function CoachPanel({ state, engine, next, onNext, onStop }: Props) {
   useFocusOnAppear(state.skipTourAsk, "[data-coach-skip-tour] [data-coach-primary]");
   useFocusOnAppear(suggestStop, "[data-coach-stop-suggestion] button");
   return (
-    <aside data-coach-panel aria-label="Coach" className="relative z-50 flex flex-col gap-3 rounded-lg border bg-card p-4 text-card-foreground shadow-sm max-md:order-first">
+    <aside data-coach-panel aria-label="Coach" className="relative z-50 flex flex-col gap-3 rounded-lg border bg-card p-4 text-card-foreground shadow-sm md:col-start-2 md:row-start-1">
       {/* Everything the coach says or asks lives in one polite live region, so a screen reader hears it. */}
       <div aria-live="polite" data-coach-live className="space-y-2">
         {state.ghost && <p data-coach-narration>{state.ghost.narration}</p>}

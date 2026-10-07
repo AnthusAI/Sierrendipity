@@ -80,6 +80,8 @@ export interface ProgramBuilderProps {
   /** Let the student change boxes with pickers (numbers are always editable). */
   editableBoxes?: boolean;
   boxes?: string[];
+  /** Give the tray `data-coach-id="tray"` and the rows `card:<n>`, so a lesson can point at them. */
+  coachIds?: boolean;
   className?: string;
 }
 
@@ -132,6 +134,7 @@ function TrayCard({ card, index, label, customCards }: { card: Card; index: numb
 
 interface RowProps {
   id: string;
+  coachId?: string | undefined;
   card: Card;
   index: number;
   count: number;
@@ -149,7 +152,7 @@ interface RowProps {
   onRemove: () => void;
 }
 
-function Row({ id, card, index, count, selecting, selected, warnings, onSelect, onEdit, onMove, onDuplicate, onRemove, ...face }: RowProps) {
+function Row({ id, coachId, card, index, count, selecting, selected, warnings, onSelect, onEdit, onMove, onDuplicate, onRemove, ...face }: RowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: `row:${id}` });
   const n = index + 1;
   return (
@@ -157,6 +160,7 @@ function Row({ id, card, index, count, selecting, selected, warnings, onSelect, 
       ref={setNodeRef}
       data-testid="program-card"
       data-row-id={id}
+      data-coach-id={coachId}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn("flex items-start gap-1", isDragging && "relative z-10 opacity-80")}
     >
@@ -308,6 +312,7 @@ export function ProgramBuilder({
   showAssembly = false,
   editableBoxes = false,
   boxes = DEFAULT_BOXES,
+  coachIds = false,
   className,
 }: ProgramBuilderProps) {
   const limit = Math.min(maxCards, MAX_CARDS);
@@ -536,7 +541,7 @@ export function ProgramBuilder({
         onDragEnd={onDragEnd}
         onDragCancel={() => setDragging(null)}
       >
-        <section aria-label="Card tray" className="min-w-0 space-y-2">
+        <section aria-label="Card tray" data-coach-id={coachIds ? "tray" : undefined} className="min-w-0 space-y-2">
           <h3 className="text-sm font-medium">Cards</h3>
           <p className="text-xs text-muted-foreground">Drag a card to the list, or focus it and press Enter.</p>
           <ul data-testid="tray" className="space-y-2">
@@ -593,6 +598,7 @@ export function ProgramBuilder({
               {cards.map((card, i) => (
                 <Row
                   key={rowIds[i]}
+                  coachId={coachIds ? `card:${i}` : undefined}
                   id={rowIds[i]!}
                   card={card}
                   index={i}

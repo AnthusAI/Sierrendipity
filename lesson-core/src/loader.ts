@@ -4,6 +4,9 @@ import { parseFeature, GherkinError, type Feature } from "./gherkin/parse";
 import { TARGET_PATTERN, validateGhost, type Ghost } from "./ghost";
 import {
   ASK_KINDS,
+  LENSES,
+  type FlipSpec,
+  type LampSpec,
   EARLY_MAX_CARDS,
   EARLY_MAX_MINUTES,
   LOCKS,
@@ -96,13 +99,72 @@ function controlNeeded(phrase: string): { control: string; label: string } | und
 
 const boxesIn = (phrase: string): string[] => [...phrase.matchAll(/\bbox (?!zero\b)([a-z]\w*)/gi)].map((m) => m[1]!).filter((b) => registerNumber(b) !== undefined);
 
+const isWholeIn = (v: unknown, min: number, max: number): v is number => typeof v === "number" && Number.isInteger(v) && v >= min && v <= max;
+
+/** `lamps` (D4) or `bands` (D8): a card, and optionally which lamps may be switched. */
+function parseLampSpec(raw: unknown, key: "lamps" | "bands", w: string, ctx: SceneCtx, errors: string[]): LampSpec | undefined {
+  const where = `${w}: ${key}`;
+  if (!isObj(raw)) return void errors.push(`${where} must be a mapping like { card: 0 }`);
+  unknownKeys(raw, key === "lamps" ? ["card", "of", "width", "allowedBits", "lockedBits", "target"] : ["card", "allowedBits", "lockedBits"], where, errors);
+  const n = errors.length;
+  if (!isWholeIn(raw.card, 0, 1_000_000) || raw.card >= Math.max(ctx.cards, 1)) errors.push(`${where} card ${String(raw.card)} is not a card of this lesson (0 to ${Math.max(ctx.cards, 1) - 1})`);
+  const spec: LampSpec = { card: raw.card as number };
+  for (const bits of ["allowedBits", "lockedBits"] as const) {
+    const v = raw[bits];
+    if (v === undefined) continue;
+    if (!Array.isArray(v) || !v.every((b) => isWholeIn(b, 0, 31))) errors.push(`${where} ${bits}: bits must be whole numbers from 0 to 31`);
+    else spec[bits] = v as number[];
+  }
+  if (key === "lamps") {
+    if (raw.of !== undefined && raw.of !== "word" && raw.of !== "number") errors.push(`${where} of must be word or number`);
+    else if (raw.of !== undefined) spec.of = raw.of;
+    if (raw.width !== undefined) {
+      if (raw.of !== "number") errors.push(`${where} width only applies with of: number`);
+      else if (!isWholeIn(raw.width, 1, 11)) errors.push(`${where} width must be a whole number from 1 to 11`);
+      else spec.width = raw.width;
+    }
+    if (raw.target !== undefined) {
+      if (!isWholeIn(raw.target, 0, 0xffffffff)) errors.push(`${where} target must be a whole number`);
+      else spec.target = raw.target;
+    }
+  }
+  return errors.length > n ? undefined : spec;
+}
+
+function parseFlip(raw: unknown, w: string, ctx: SceneCtx, errors: string[]): FlipSpec | undefined {
+  if (!isObj(raw)) return void errors.push(`${w}: flip must be a mapping like { card: 0 }`);
+  unknownKeys(raw, ["card", "lenses"], `${w}: flip`, errors);
+  const n = errors.length;
+  if (!isWholeIn(raw.card, 0, 1_000_000) || raw.card >= Math.max(ctx.cards, 1)) errors.push(`${w}: flip card ${String(raw.card)} is not a card of this lesson (0 to ${Math.max(ctx.cards, 1) - 1})`);
+  let lenses: string[] | undefined;
+  if (raw.lenses !== undefined) {
+    if (!isStrList(raw.lenses) || raw.lenses.length === 0) errors.push(`${w}: flip lenses must be a list of ${LENSES.join(", ")}`);
+    else {
+      for (const l of raw.lenses) if (!(LENSES as readonly string[]).includes(l)) errors.push(`${w}: flip has unknown lens "${l}" (use ${LENSES.join(", ")})`);
+      lenses = raw.lenses;
+    }
+  }
+  return errors.length > n ? undefined : { card: raw.card as number, ...(lenses ? { lenses } : {}) };
+}
+
+function parseTray(raw: unknown, w: string, errors: string[]): number[] | undefined {
+  if (!isStrList(raw) || raw.length === 0) return void errors.push(`${w}: tray must list at least one card, each as a line of assembly`);
+  const words: number[] = [];
+  raw.forEach((line, k) => {
+    const r = assemble(line);
+    if (r.errors.length !== 0 || r.words.length !== 1) errors.push(`${w}: tray[${k}] must be one instruction that assembles${r.errors[0] ? ` (${r.errors[0].message})` : ""}`);
+    else words.push(r.words[0]!);
+  });
+  return words.length === raw.length ? words : undefined;
+}
+
 function parseScene(raw: unknown, i: number, ctx: SceneCtx, errors: string[]): Scene | undefined {
   if (!isObj(raw)) return void errors.push(`scenes[${i}] must be a mapping`);
   const id = raw.id;
   if (typeof id !== "string" || !/^[a-z0-9-]+$/.test(id)) return void errors.push(`scenes[${i}]: id must be a lowercase slug`);
   const w = `scene "${id}"`;
   const n = errors.length;
-  unknownKeys(raw, ["id", "say", "doneSay", "show", "spotlight", "ask", "until", "onWrong", "hints", "showMe", "lock", "skippable"], w, errors);
+  unknownKeys(raw, ["id", "say", "doneSay", "show", "spotlight", "ask", "until", "onWrong", "hints", "showMe", "lock", "skippable", "lamps", "bands", "flip", "carry", "tray"], w, errors);
 
   const say = raw.say;
   if (!isStr(say)) errors.push(`${w}: say must be non-empty text`);
@@ -127,8 +189,27 @@ function parseScene(raw: unknown, i: number, ctx: SceneCtx, errors: string[]): S
       else if ((TABS as readonly string[]).includes(s) && s !== "boxes" && !ctx.tabs.includes(s)) errors.push(`${w}: shows "${s}" but tabs does not include it`);
     }
   if (raw.spotlight !== undefined && !(typeof raw.spotlight === "string" && TARGET_PATTERN.test(raw.spotlight) && knownTarget(raw.spotlight, ctx))) {
-    errors.push(`${w}: spotlight ${JSON.stringify(raw.spotlight)} is not a known UI target (button:step, card:<n> of this lesson, box:<one of boxes>, tab:<one of tabs>, diagram:D1)`);
+    errors.push(`${w}: spotlight ${JSON.stringify(raw.spotlight)} is not a known UI target (button:step, card:<n> of this lesson, box:<one of boxes>, tab:<one of tabs>, diagram:D1, band:<field>, lamp:<0-31>, flip, tray)`);
   }
+  const shows = isStrList(show) ? show : [];
+  const needs = (field: string, id: string): boolean => {
+    if (raw[field] === undefined) return false;
+    if (!shows.includes(id)) errors.push(`${w}: ${field} needs ${id} in show`);
+    return shows.includes(id);
+  };
+  const lamps = needs("lamps", "D4") ? parseLampSpec(raw.lamps, "lamps", w, ctx, errors) : undefined;
+  const bands = needs("bands", "D8") ? parseLampSpec(raw.bands, "bands", w, ctx, errors) : undefined;
+  const flip = needs("flip", "D5") ? parseFlip(raw.flip, w, ctx, errors) : undefined;
+  let carry: { a: number; b: number } | undefined;
+  if (needs("carry", "D7")) {
+    const c = raw.carry;
+    if (!isObj(c) || !isWholeIn(c.a, 0, 0xffffffff) || !isWholeIn(c.b, 0, 0xffffffff)) errors.push(`${w}: carry a and b must be whole numbers like { a: 5, b: 7 }`);
+    else {
+      unknownKeys(c, ["a", "b"], `${w}: carry`, errors);
+      carry = { a: c.a, b: c.b };
+    }
+  }
+  const tray = needs("tray", "builder") ? parseTray(raw.tray, w, errors) : undefined;
   let ask: Ask | undefined;
   if (raw.ask !== undefined) {
     ask = parseAsk(raw.ask, w, errors);
@@ -210,6 +291,11 @@ function parseScene(raw: unknown, i: number, ctx: SceneCtx, errors: string[]): S
     ...(raw.showMe ? { showMe: raw.showMe as string } : {}),
     lock: lock as string[],
     skippable: raw.skippable === true,
+    ...(lamps ? { lamps } : {}),
+    ...(bands ? { bands } : {}),
+    ...(flip ? { flip } : {}),
+    ...(carry ? { carry } : {}),
+    ...(tray ? { tray } : {}),
   };
 }
 
@@ -307,6 +393,10 @@ export function loadLesson(files: Record<string, string>, opts: LoadOptions = {}
   const stars = new Set(feature?.scenarios.flatMap((s) => (s.tags.includes("pass") ? ["pass"] : s.tags.filter((t) => t.startsWith("star=")).map((t) => t.slice(5)))) ?? []);
   const solutions = parseSolutions(files, stars, lesson?.hideEnd === true, errors);
   if (lesson) lessonLimits(lesson, solutions, errors);
+  if (lesson) {
+    const ids = new Set(lesson.scenes.map((s) => s.id));
+    for (const sol of solutions) for (const id of sol.scenes ?? []) if (!ids.has(id)) errors.push(`solutions/${sol.file}: scenes names unknown scene "${id}"`);
+  }
 
   if (errors.length || !lesson || !feature) return { ok: false, errors };
   return { ok: true, lesson: { ...lesson, checks: feature, solutions } };
@@ -315,7 +405,7 @@ export function loadLesson(files: Record<string, string>, opts: LoadOptions = {}
 function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set<string> | undefined, dir: string | undefined, errors: string[]): Omit<Lesson, "solutions" | "checks"> | undefined {
   const n = errors.length;
   if (!isObj(raw)) return void errors.push("lesson.yaml: must be a mapping");
-  unknownKeys(raw, ["id", "title", "minutes", "concepts", "boxes", "pointer", "hideEnd", "earlyLesson", "onWrongDefault", "starter", "tabs", "scenes", "nowYouCan", "warmups", "sideRooms"], "lesson.yaml", errors);
+  unknownKeys(raw, ["id", "title", "minutes", "concepts", "boxes", "pointer", "hideEnd", "earlyLesson", "draft", "onWrongDefault", "starter", "tabs", "scenes", "nowYouCan", "warmups", "sideRooms"], "lesson.yaml", errors);
 
   if (!isStr(raw.id) || !/^[a-z0-9]+\/[a-z0-9-]+$/.test(raw.id)) errors.push('lesson.yaml: id must look like "c1/01-press-the-button"');
   else if (dir !== undefined && raw.id !== dir) errors.push(`lesson.yaml: id "${raw.id}" does not match the directory "${dir}"`);
@@ -340,7 +430,7 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
   const boxes = raw.boxes;
   if (!(isStrList(boxes) && boxes.length > 0 && boxes.every((b) => registerNumber(b) !== undefined))) errors.push("lesson.yaml: boxes must be a non-empty list of box names (like a0, a1)");
   if (isStrList(boxes)) boxes.forEach((b, i) => { if (boxes.indexOf(b) !== i) errors.push(`lesson.yaml: duplicate box "${b}" in boxes`); });
-  for (const key of ["pointer", "hideEnd", "earlyLesson"] as const) if (raw[key] !== undefined && typeof raw[key] !== "boolean") errors.push(`lesson.yaml: ${key} must be true or false`);
+  for (const key of ["pointer", "hideEnd", "earlyLesson", "draft"] as const) if (raw[key] !== undefined && typeof raw[key] !== "boolean") errors.push(`lesson.yaml: ${key} must be true or false`);
   const hideEnd = raw.hideEnd === true;
   const endProblem = (p: Program | undefined, where: string): void => {
     if (hideEnd && p && p.words.at(-1) === STOP_WORD) errors.push(`${where}: with hideEnd the end marker is added for you; remove the final Stop card (ebreak)`);
@@ -372,6 +462,11 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
       if (s.showMe !== undefined && !(s.showMe in ghosts)) errors.push(`scene "${s.id}": showMe: no ghost "${s.showMe}" in ghosts/`);
       s.onWrong.forEach((o, k) => {
         if (o.goto !== undefined && !ids.has(o.goto)) errors.push(`scene "${s.id}": onWrong[${k}].goto unknown scene "${o.goto}"`);
+      });
+      // A tray drag in a ghost needs the scene to have that tray card.
+      const ghost = s.showMe !== undefined ? ghosts[s.showMe] : undefined;
+      ghost?.events.forEach((e, k) => {
+        if (e.type === "drag" && "tray" in e && e.tray >= (s.tray?.length ?? 0)) errors.push(`ghost "${s.showMe}": events[${k}] drags tray card ${e.tray} but scene "${s.id}" needs a tray with that card`);
       });
     }
   }
@@ -449,6 +544,7 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
     pointer: raw.pointer === true,
     hideEnd,
     earlyLesson: raw.earlyLesson !== false,
+    draft: raw.draft === true,
     ...(onWrongDefault ? { onWrongDefault } : {}),
     ...(onWrongDefaultGoto ? { onWrongDefaultGoto } : {}),
     starter,
@@ -503,7 +599,8 @@ function parseSolutions(files: Record<string, string>, stars: Set<string>, hideE
   list.forEach((s, i) => {
     const where = `solutions/solutions.yaml: solutions[${i}]`;
     if (!isObj(s) || !isStr(s.file)) return void errors.push(`${where}: needs a file`);
-    unknownKeys(s, ["file", "earns", "predictions", "stdin", "maxSteps", "capped", "note"], where, errors);
+    unknownKeys(s, ["file", "earns", "predictions", "stdin", "maxSteps", "capped", "note", "scenes"], where, errors);
+    if (s.scenes !== undefined && !(isStrList(s.scenes) && s.scenes.length > 0)) errors.push(`${where}: scenes must be a list of scene ids`);
     const text = files[`solutions/${s.file}`];
     if (text === undefined) return void errors.push(`${where}: ${s.file} not found in solutions/`);
     declared.add(s.file);
@@ -529,6 +626,7 @@ function parseSolutions(files: Record<string, string>, stars: Set<string>, hideE
       ...(typeof s.stdin === "string" ? { stdin: s.stdin } : {}),
       ...(typeof s.maxSteps === "number" ? { maxSteps: s.maxSteps } : {}),
       capped: s.capped === true,
+      ...(isStrList(s.scenes) && s.scenes.length > 0 ? { scenes: s.scenes } : {}),
       ...(isStr(s.note) ? { note: s.note } : {}),
     });
   });

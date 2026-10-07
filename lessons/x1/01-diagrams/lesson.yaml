@@ -1,0 +1,45 @@
+id: x1/01-diagrams
+title: Stage fixture, the diagrams
+minutes: 5
+draft: true
+# A test fixture for the real stage (draft: never listed in the course). It has a pointing hand, two boxes
+# and a card that paints a pixel, and one scene for each diagram the stage can show.
+concepts:
+  introduces: [cards]
+  requires: []
+boxes: [a0, t0]
+pointer: true
+hideEnd: true
+earlyLesson: false
+starter:
+  asm: |
+    addi a0, zero, 5
+    addi t0, zero, 3
+    sb t0, 1024(zero)
+tabs: [cards, boxes, screen]
+scenes:
+  - id: machine
+    say: The clerk, the cards, the boxes and the pointing hand.
+    show: [D1]
+
+  - id: heartbeat
+    say: The heartbeat, fetch, do and move on.
+    show: [D3]
+
+  - id: walk
+    say: The arrow walks along the list of cards.
+    show: [D6]
+
+  - id: screen
+    say: The pixel screen.
+    show: [D9, screen]
+
+  - id: timeline
+    say: The machine with a timeline scrubber.
+    show: [D1, timeline]
+
+  - id: last
+    say: That is all of them.
+    show: [D1]
+nowYouCan:
+  - Look at the machine in many ways.

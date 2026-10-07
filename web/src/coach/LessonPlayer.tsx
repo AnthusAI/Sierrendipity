@@ -3,9 +3,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { LessonInfo } from "../lessons";
 import { realClock, type Clock } from "./clock";
 import { CoachPanel } from "./CoachPanel";
-import { DefaultStage } from "./DefaultStage";
 import { GhostPointer, Spotlight } from "./overlays";
-import type { Stage, StageControl, StageProps } from "./types";
+import { realStage } from "./RealStage";
+import type { EditVia, Stage, StageControl } from "./types";
 import { useLessonPlayer } from "./useLessonPlayer";
 
 export interface LessonPlayerProps {
@@ -15,7 +15,7 @@ export interface LessonPlayerProps {
   /** The signed-in student's id (the Cognito sub), or "local". */
   userId?: string;
   clock?: Clock;
-  /** Draws the machine. Defaults to a simple accessible stage. */
+  /** Draws the machine. Defaults to the real stage (`RealStage`); `DefaultStage` is a plain stand-in for tests. */
   stage?: Stage;
   /** The lesson that follows, for the end card's [Next lesson]. */
   next?: LessonInfo | null;
@@ -24,8 +24,6 @@ export interface LessonPlayerProps {
   /** Move focus to the primary action when the lesson opens. Off by default: the page decides where focus starts. */
   focusOnStart?: boolean;
 }
-
-const defaultStage: Stage = (props: StageProps) => <DefaultStage {...props} />;
 
 function useReducedMotion(): boolean {
   const [reduced, setReduced] = useState(() => matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -44,7 +42,7 @@ const TYPING = new Set(["INPUT", "TEXTAREA", "SELECT"]);
  * The coach and lesson player: a stage (the machine) beside the coach panel, with the spotlight and the
  * ghost pointer drawn on top. The tool is the tutor.
  */
-export function LessonPlayer({ lesson, store = null, userId = "local", clock = realClock, stage = defaultStage, next = null, onNext, onStop, focusOnStart = false }: LessonPlayerProps) {
+export function LessonPlayer({ lesson, store = null, userId = "local", clock = realClock, stage = realStage, next = null, onNext, onStop, focusOnStart = false }: LessonPlayerProps) {
   const { state, engine } = useLessonPlayer(lesson, { store, userId, clock });
   const reduced = useReducedMotion();
   const stageRef = useRef<HTMLElement>(null);
@@ -71,13 +69,18 @@ export function LessonPlayer({ lesson, store = null, userId = "local", clock = r
     };
   }, [engine]);
 
-  // A click-target prediction: whatever the student clicks with a coach id is their answer.
+  // A click-target prediction: clicking a part of the same kind as the answer (a card, a band, a box) is the student's
+  // answer. A click on something of another kind, such as a lamp or the Step button, is just a click.
   useEffect(() => {
     if (state.ask?.kind !== "click-target") return;
     const root = stageRef.current;
+    const kindOf = (id: string) => id.split(":")[0];
+    const wanted = kindOf(state.ask.target);
     const click = (e: MouseEvent) => {
-      const hit = (e.target as Element | null)?.closest("[data-coach-id]");
-      const id = hit?.getAttribute("data-coach-id");
+      let node = (e.target as Element | null)?.closest("[data-coach-id]") ?? null;
+      // The nearest part of the answer's kind (a card holds a spinner; a band holds labels).
+      while (node && kindOf(node.getAttribute("data-coach-id") ?? "") !== wanted) node = node.parentElement?.closest("[data-coach-id]") ?? null;
+      const id = node?.getAttribute("data-coach-id");
       if (id) engine.answerTarget(id);
     };
     root?.addEventListener("click", click);
@@ -94,7 +97,10 @@ export function LessonPlayer({ lesson, store = null, userId = "local", clock = r
     const active = document.activeElement as HTMLElement | null;
     if (active && TYPING.has(active.tagName) && stageRef.current?.contains(active)) return;
     const primary = document.querySelector<HTMLElement>("[data-coach-panel] [data-coach-primary]");
-    const target = primary ?? (state.spotlight ? document.querySelector<HTMLElement>(`[data-coach-id="${state.spotlight}"]`) : null) ?? (state.waiting === "until" ? document.querySelector<HTMLElement>('[data-coach-id="button:step"]') : null);
+    let spot = state.spotlight ? document.querySelector<HTMLElement>(`[data-coach-id="${state.spotlight}"]`) : null;
+    // Lamps, bands and the flip are widgets made of buttons: a keyboard student lands on the first one.
+    if (spot && /^(lamp:|band:|flip$|tab:lamps$|diagram:D[458]$)/.test(state.spotlight ?? "")) spot = spot.querySelector<HTMLElement>("button") ?? spot;
+    const target = primary ?? spot ?? (state.waiting === "until" ? document.querySelector<HTMLElement>('[data-coach-id="button:step"]') : null);
     if (target && (target.tagName === "BUTTON" || target.tagName === "INPUT")) target.focus({ preventScroll: true });
     // Only when the scene or phase changes (or the ghost hands control back), never on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -109,9 +115,21 @@ export function LessonPlayer({ lesson, store = null, userId = "local", clock = r
     }),
     [engine],
   );
-  const onEditStarter = useCallback((card: number, word: number) => engine.edit(card, word), [engine]);
+  const onEditStarter = useCallback((card: number, word: number, via?: EditVia) => engine.edit(card, word, via), [engine]);
+  const onReplaceCards = useCallback((words: number[]) => engine.replaceCards(words), [engine]);
 
-  const stageScene = { id: state.scene?.id ?? "", show: state.scene?.show ?? [], spotlight: state.spotlight, locked: state.locked };
+  const scene = state.scene;
+  const stageScene = {
+    id: scene?.id ?? "",
+    show: scene?.show ?? [],
+    spotlight: state.spotlight,
+    locked: state.locked,
+    ...(scene?.lamps ? { lamps: scene.lamps } : {}),
+    ...(scene?.bands ? { bands: scene.bands } : {}),
+    ...(scene?.flip ? { flip: scene.flip } : {}),
+    ...(scene?.carry ? { carry: scene.carry } : {}),
+    ...(scene?.tray ? { tray: scene.tray } : {}),
+  };
   const fallback = () => {
     const r = stageRef.current?.getBoundingClientRect();
     return r ? { x: r.x + 24, y: r.y + 24, width: 0, height: 0 } : null;
@@ -119,10 +137,11 @@ export function LessonPlayer({ lesson, store = null, userId = "local", clock = r
 
   return (
     <div data-lesson-player data-lesson={lesson.id} className="grid gap-4 md:grid-cols-[minmax(0,1fr)_20rem]">
-      <section ref={stageRef} aria-label={`${lesson.title}: the machine`} className="min-w-0 rounded-lg border bg-background p-4">
-        {stage({ lesson, live: state.view, scene: stageScene, onEditStarter, controls })}
-      </section>
+      {/* The coach comes first in the page order, so a keyboard or screen reader meets it before the machine. */}
       <CoachPanel state={state} engine={engine} next={next} onNext={onNext} onStop={onStop} />
+      <section ref={stageRef} aria-label={`${lesson.title}: the machine`} className="min-w-0 rounded-lg border bg-background p-4 md:col-start-1 md:row-start-1">
+        {stage({ lesson, live: state.view, scene: stageScene, onEditStarter, onReplaceCards, controls })}
+      </section>
       {state.spotlight && state.phase === "scene" && <Spotlight target={state.spotlight} reduced={reduced} />}
       {state.phase === "ghost" && <GhostPointer target={state.ghost?.pointer ?? null} fallback={fallback} reduced={reduced} />}
     </div>

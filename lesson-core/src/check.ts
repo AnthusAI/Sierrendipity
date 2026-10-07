@@ -97,19 +97,22 @@ function sceneProblems(lesson: Lesson, problems: string[]): void {
   }
 
   const passing = lesson.solutions.filter((d) => d.earns.includes("pass"));
-  const runs = passing.map((d) => {
+  const runOf = (d: (typeof lesson.solutions)[number]) => {
     // The student's edits are the cards that differ from the starter.
     const events = d.words.flatMap((w, card) => (w !== lesson.starter.words[card] ? [{ type: "edit" as const, card, to: w }] : []));
     return runProgram(d.words, { predictions: d.predictions, hideEnd: lesson.hideEnd, starter: lesson.starter.words, events, maxSteps: d.maxSteps ?? DEFAULT_MAX_STEPS });
-  });
+  };
+  const runs = passing.map(runOf);
   // A scene may also describe the machine before the student has changed anything: the starter itself.
   runs.push(starterRun);
   for (const sc of lesson.scenes) {
+    // Solutions that name this scene (`scenes:` in solutions.yaml) are a way to finish it without passing the lesson.
+    const own = lesson.solutions.filter((d) => d.scenes?.includes(sc.id)).map(runOf);
     for (const phrase of sc.until) {
       if (UI_ONLY.test(phrase)) continue;
       const parsed = parseStep(phrase);
       if (!parsed.ok) continue;
-      if (!runs.some((r) => parsed.fn(r).ok)) problems.push(`scene "${sc.id}": no pass solution (or the starter) satisfies "${phrase}", so the scene could never finish`);
+      if (![...runs, ...own].some((r) => parsed.fn(r).ok)) problems.push(`scene "${sc.id}": no pass solution (or the starter) satisfies "${phrase}", so the scene could never finish`);
     }
   }
 }

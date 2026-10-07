@@ -1,0 +1,17 @@
+solutions:
+  - file: good.hex
+    earns: [pass]
+    note: Lamp 30 switched on, so the add card subtracts and box a2 holds 7.
+  - file: below-zero.hex
+    earns: [below-zero]
+    note: Put 0 in box a0 as well, so box a2 holds -2.
+  - file: wrong-still-add.hex
+    earns: []
+    note: The starter itself, so box a2 holds 11.
+  - file: wrong-multiply.hex
+    earns: []
+    note: A different job, multiply, so box a2 holds 18.
+  - file: forever.s
+    earns: []
+    capped: true
+    note: A card that jumps to itself; only the step cap stops it.

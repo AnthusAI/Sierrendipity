@@ -68,7 +68,7 @@ export function formatResult(result: ToolResult): string[] {
   return out;
 }
 
-/** Write each valid lesson as lessons/dist/<course>-<slug>.json for the browser. */
+/** Write each valid lesson as lessons/dist/<course>-<slug>.json for the browser (drafts: lessons/dist/drafts/). */
 export function buildLessons(ids: string[], root: string = LESSONS_ROOT): { written: string[]; errors: string[] } {
   const concepts = readConcepts(root);
   const dist = join(root, "dist");
@@ -86,12 +86,43 @@ export function buildLessons(ids: string[], root: string = LESSONS_ROOT): { writ
       errors.push(...loaded.errors.map((e) => `${id}: ${e}`));
       continue;
     }
-    mkdirSync(dist, { recursive: true });
-    const file = join(dist, `${id.replace("/", "-")}.json`);
+    // Drafts go to dist/drafts/, which the web build only reads in dev and test builds.
+    const dir = loaded.lesson.draft ? join(dist, "drafts") : dist;
+    mkdirSync(dir, { recursive: true });
+    const file = join(dir, `${id.replace("/", "-")}.json`);
     writeFileSync(file, JSON.stringify(publishLesson(loaded.lesson)));
     written.push(file);
   }
   return { written, errors };
+}
+
+/** What the course path needs to know about one shipping lesson. */
+export interface CatalogEntry {
+  id: string;
+  title: string;
+  minutes: number;
+  concepts: { introduces: string[]; requires: string[] };
+  nowYouCan: string[];
+  warmups: unknown[];
+  sideRooms: unknown[];
+}
+
+/** The shipping catalog: every valid lesson that is not a draft. Drafts are built for the player but never listed. */
+export function buildCatalog(root: string = LESSONS_ROOT): { lessons: CatalogEntry[]; errors: string[] } {
+  const concepts = readConcepts(root);
+  const lessons: CatalogEntry[] = [];
+  const errors: string[] = [];
+  for (const id of listLessonIds(root)) {
+    const { loaded } = loadOne(id, root, concepts);
+    if (!loaded.ok) {
+      errors.push(...loaded.errors.map((e) => `${id}: ${e}`));
+      continue;
+    }
+    const l = loaded.lesson;
+    if (l.draft) continue;
+    lessons.push({ id: l.id, title: l.title, minutes: l.minutes, concepts: l.concepts, nowYouCan: l.nowYouCan, warmups: l.warmups, sideRooms: l.sideRooms });
+  }
+  return { lessons, errors };
 }
 
 export { listLessonIds };

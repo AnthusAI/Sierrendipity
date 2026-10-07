@@ -44,6 +44,10 @@ export interface CardContentProps {
   customCards?: CustomCard[];
   /** Where the card sits in its list; a jump's spinner stays inside the list. */
   position?: Position;
+  /** The spoken name of the number's spin button (default "number"), such as "Number on card 1". */
+  numberLabel?: string;
+  /** The spin button is switched off for now (it says "Not yet"). */
+  locked?: boolean;
 }
 
 /** The coloured sentence of a card, without any frame or role (the tray and the face both use it). */
@@ -56,6 +60,8 @@ export function CardContent({
   pc,
   customCards,
   position,
+  numberLabel,
+  locked = false,
 }: CardContentProps) {
   const { parts } = cardText(card, { pc, customCards });
   if (card.kind === "custom") {
@@ -110,6 +116,8 @@ export function CardContent({
               min={spec.min}
               max={spec.max}
               step={spec.step}
+              locked={locked}
+              {...(numberLabel ? { label: numberLabel } : {})}
               onChange={(shown) => onChange(spec.apply(shown))}
             />
           );

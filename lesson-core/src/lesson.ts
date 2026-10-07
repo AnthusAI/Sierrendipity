@@ -21,6 +21,28 @@ export interface OnWrong {
   goto?: string;
 }
 
+/** Bit lamps (D4) or field bands (D8) on one card of the list. */
+export interface LampSpec {
+  /** The card (0-based) whose word the lamps show and edit. */
+  card: number;
+  /** `word` (default): all 32 lamps of the card. `number`: only the number of a put or add-a-number card, as place values 1, 2, 4. */
+  of?: "word" | "number";
+  /** Lamps shown with `of: number`, 1 to 11 (default 8). */
+  width?: number;
+  /** When given, only these lamps can be switched (bit numbers as shown). */
+  allowedBits?: number[];
+  /** Lamps that cannot be switched. */
+  lockedBits?: number[];
+  /** A number the student is asked to make; the stage shows it beside the lamps. */
+  target?: number;
+}
+
+/** The card flip (D5): one card seen through its lenses. */
+export interface FlipSpec {
+  card: number;
+  lenses?: string[];
+}
+
 export interface Scene {
   id: string;
   say: string;
@@ -37,6 +59,16 @@ export interface Scene {
   showMe?: string;
   lock: string[];
   skippable: boolean;
+  /** D4 bit lamps on a card. */
+  lamps?: LampSpec;
+  /** D8 field bands on a card (the bands carry their lamps). */
+  bands?: LampSpec;
+  /** D5 card flip. */
+  flip?: FlipSpec;
+  /** D7 carry ripple: add a and b in binary. */
+  carry?: { a: number; b: number };
+  /** The builder's tray: the card words a student may drag into the list. */
+  tray?: number[];
 }
 
 /** A small predict-the-result question: run the program, ask what `target` holds. */
@@ -68,6 +100,8 @@ export interface SolutionDecl {
   maxSteps?: number;
   /** True when it never stops by itself and must be cut off by the step cap. */
   capped: boolean;
+  /** Scenes whose `until` this solution is the way to meet, even though it does not pass the lesson (a step on the way). */
+  scenes?: string[];
   note?: string;
 }
 
@@ -93,6 +127,8 @@ export interface Lesson {
   onWrongDefault?: string;
   /** Where any other wrong answer goes: the scene that reveals the answer. Required unless the next scene waits on the machine. */
   onWrongDefaultGoto?: string;
+  /** A draft is playable only with `?draft=1` in dev and test builds and is left out of the catalog and the path. */
+  draft: boolean;
   /** False opts a hidden-end, pointer-less lesson out of the early-lesson caps. */
   earlyLesson: boolean;
   starter: Program;
@@ -110,7 +146,11 @@ export interface Lesson {
 export type PublishedLesson = Omit<Lesson, "solutions"> & { format: 1 };
 
 export const TABS = ["cards", "lamps", "hex", "assembly", "boxes", "shelves", "screen", "output"] as const;
-export const SHOWABLE = [...TABS, ...Array.from({ length: 14 }, (_, i) => `D${i + 1}`)];
+/** Diagrams D1 to D14 plus the `timeline` scrubber and the program `builder`. */
+export const SHOWABLE = [...TABS, ...Array.from({ length: 14 }, (_, i) => `D${i + 1}`), "timeline", "builder"];
+export const LENSES = ["card", "lamps", "hex", "assembly"] as const;
+/** The field bands a card can show (`band:<field>` targets). */
+export const BAND_FIELDS = ["opcode", "rd", "rs1", "rs2", "funct3", "funct7", "imm", "shamt", "special"] as const;
 export const LOCKS = ["edit", "step", "back", "run", "reset", "drag", "toggle"] as const;
 export const ASK_KINDS = ["number", "choice", "click-target", "machine-query"] as const;
 export const MAX_WORDS_PER_SCENE = 30;
@@ -132,6 +172,8 @@ export const UI_BUTTONS = ["step", "back", "run", "pause", "reset"] as const;
 
 /** Is this a UI target the player really has, given the lesson's boxes, tabs and card count? */
 export function knownTarget(target: string, ctx: { boxes: string[]; tabs: string[]; cards: number }): boolean {
+  // `flip` and `tray` are whole widgets: they take no name.
+  if (target === "flip" || target === "tray") return true;
   const [kind, name = ""] = target.split(":");
   switch (kind) {
     case "button":
@@ -144,6 +186,10 @@ export function knownTarget(target: string, ctx: { boxes: string[]; tabs: string
       return ctx.tabs.includes(name);
     case "diagram":
       return /^D([1-9]|1[0-4])$/.test(name);
+    case "band":
+      return (BAND_FIELDS as readonly string[]).includes(name);
+    case "lamp":
+      return /^(\d|[12]\d|3[01])$/.test(name);
     default:
       return false;
   }
@@ -162,6 +208,7 @@ export function isPublishedLesson(value: unknown): string | null {
   for (const key of ["id", "title"]) if (typeof value[key] !== "string") return `${key} must be text`;
   if (typeof value.minutes !== "number") return "minutes must be a number";
   if (!strings(value.boxes) || (value.boxes as string[]).length === 0) return "boxes must be a list of names";
+  if (value.draft !== undefined && typeof value.draft !== "boolean") return "draft must be true or false";
   if (typeof value.hideEnd !== "boolean" || typeof value.pointer !== "boolean") return "hideEnd and pointer must be true or false";
   if (!isObject(value.starter) || !Array.isArray(value.starter.words) || !value.starter.words.every((w) => typeof w === "number")) return "starter.words must be a list of numbers";
   if (!isObject(value.concepts) || !strings(value.concepts.introduces)) return "concepts.introduces must be a list";

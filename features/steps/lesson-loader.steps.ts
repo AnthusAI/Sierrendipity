@@ -224,3 +224,20 @@ Then("every scene that waits on the machine says something when it is done", () 
     assert.ok(!/\b(machine has taken|student edited|at least \d)/.test(sc.doneSay), `scene "${sc.id}" doneSay reads like a test log`);
   }
 });
+
+// The real stage's scene fields and draft lessons
+
+const sceneOf = (id: string) => {
+  const scene = lesson().scenes.find((s) => s.id === id);
+  assert.ok(scene, `no scene ${id}`);
+  return scene;
+};
+Then("the scene {string} has lamps on card {int} with target {int}", (id: string, card: number, target: number) => {
+  const lamps = sceneOf(id).lamps;
+  assert.equal(lamps?.card, card);
+  assert.equal(lamps?.target, target);
+});
+Then("the scene {string} has a tray of {int} cards", (id: string, n: number) => assert.equal(sceneOf(id).tray?.length, n));
+Then("the lesson is a draft", () => assert.equal(lesson().draft, true));
+Then("the lesson is not a draft", () => assert.equal(lesson().draft, false));
+Then("the published lesson is a draft", () => assert.equal(published.draft, true));

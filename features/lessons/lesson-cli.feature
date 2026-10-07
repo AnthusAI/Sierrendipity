@@ -42,6 +42,32 @@ Feature: The lesson authoring CLI and the CI gate
     Then the CLI exits with 1
     And the CLI output mentions "not supported in lesson checks"
 
+  Scenario: A draft lesson is built for the player but left out of the shipping catalog
+    Given a scratch lessons folder holding the valid test lesson as "c1/99-test"
+    And in the scratch lesson "lesson.yaml" is replaced "minutes: 5" with "minutes: 5\ndraft: true"
+    When I build the scratch lessons
+    Then the file "dist/drafts/c1-99-test.json" exists in the scratch folder
+    And the file "dist/c1-99-test.json" does not exist in the scratch folder
+    And that draft file is a published lesson that is a draft
+    When I build the catalog of the scratch lessons
+    Then the catalog lists no lessons
+    And the catalog build reports no errors
+
+  Scenario: A finished lesson is listed in the catalog
+    Given a scratch lessons folder holding the valid test lesson as "c1/99-test"
+    When I build the catalog of the scratch lessons
+    Then the catalog lists the lesson "c1/99-test"
+
+  Scenario: The authored draft lessons are checked and kept out of the catalog
+    When I run the lesson CLI with "check --all"
+    Then the CLI exits with 0
+    And the CLI output mentions "ok   c1/06-flip-the-card"
+    And the CLI output mentions "ok   c1/07-counting-with-lamps"
+    And the CLI output mentions "ok   c1/08-inside-the-number"
+    When I build the catalog of the real lessons
+    Then the catalog lists the lesson "c1/05-add"
+    And the catalog does not list the lesson "c1/06-flip-the-card"
+
   Scenario: Building a lesson that does not exist fails cleanly
     Given a scratch lessons folder holding the valid test lesson as "c1/99-test"
     When I run the lesson CLI on the scratch folder with "build c1/98-missing"
