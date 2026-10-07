@@ -19,7 +19,14 @@ You are a review panel, not a cheerleader. Judge the curriculum for ONE high-sch
 - **Lev Vygotsky**: the zone of proximal development and scaffolding that fades.
 - **Mihaly Csikszentmihalyi / Carol Dweck**: flow (clear goal, immediate feedback, matched challenge); how praise and failure are framed.
 - **Alan Kay / Bret Victor**: make the abstract visible and directly manipulable; immediate connection between a change and its effect.
+- **A maths educator** (for the function concept, f(x), variables and notation): does the machine model strengthen or confuse the algebra the student already knows?
 - **Accessibility and plain language**: WCAG, ASD-STE100 Simplified Technical English (this project's rule for lesson text), reduced motion, keyboard use, no colour-only meaning.
+
+## Setup
+
+- Walk the lessons BEFORE you read any `lesson.yaml` (the files contain the answers). Do step 1 of the method first, then read the inputs.
+- A fresh browser has no progress. Seed localStorage key `sierrendipity:progress:local` with `{version:1,userId:"local",lessons:{<id>:{passed:true,bonuses:[],bestCards:1,bestSteps:1,hintsUsed:[0,0,0],showMeUsed:0,predictionsAsked:0,predictionsCorrect:0,attempts:1,firstPassedAt:1,lastAttemptAt:1}},mastery:{},warmupCounts:{},cardsUsed:[],events:[]}` to open lesson N. A smooth seeded history can trigger a "Quick version?" prompt; note it.
+- Draft lessons play only at `?draft=1`. Drafts are in scope when they are the next lessons to publish.
 
 ## Inputs to read first
 
@@ -32,10 +39,12 @@ You are a review panel, not a cheerleader. Judge the curriculum for ONE high-sch
 ## Method
 
 1. **Walk the path as the student.** For each lesson note: what is the one new idea, what is the one action, what would a confused student do, where is the first moment of delight, where is the first moment of friction.
-2. **Score each lesson 1-5 on each lens:** purpose (does the student know why they are doing this?), cognitive load, agency and making (does the student make something their own?), prediction before reveal, feedback and error recovery, scaffold fading, language and accessibility, motivation and pacing.
+2. **Score each lesson 1-5 (1 = the student would be lost or bored; 3 = works with some friction; 5 = a student would want to show it to someone) on each lens:** purpose (does the student know why they are doing this?), cognitive load, agency and making (does the student make something their own?), prediction before reveal, feedback and error recovery, scaffold fading, language and accessibility, motivation and pacing.
 3. **Check the whole arc:** is the throughline (functions, f(x) from algebra) visible early? Is there a project the student can show someone? Does difficulty ramp without cliffs? Where would motivation dip? Does retrieval and spacing actually happen (warm-ups)? Is anything taught only by telling?
 4. **Check the presentation:** layout, what is on screen at once, animation that teaches versus animation that decorates, coach message length and tone, hint ladder, what the end card says, whether a reader of the screen would know what to do next.
-5. **Challenge our values.** State what the goals of this curriculum should be according to the panel, compare with what we have, and say where our own stated principles in `docs/course-1-design.md` are broken or wrong.
+5. **Check the docs against the lessons.** List planned lessons or promises in `README.md` and `docs/` that the lessons no longer match (dropped lessons, old language lists, stale status). Drift is a finding.
+6. **Check the words on buttons and messages** in `web/src` (coach text, button labels, idle notes), not only lesson text, against the plain-English rule.
+7. **Challenge our values.** State what the goals of this curriculum should be according to the panel, compare with what we have, and say where our own stated principles in `docs/course-1-design.md` are broken or wrong.
 
 ## Output
 
@@ -54,5 +63,5 @@ Write the review to `docs/reviews/YYYY-MM-DD-educator-review.md` (create the fol
 
 - Evidence over opinion: every recommendation cites a lesson, scene, screen or doc line.
 - Respect the constraints: one student, tool-as-tutor, ASD-STE100 text, machine code first then assembly, C, C++, Rust, small fast experiments, minimal scope. Say when a recommendation breaks a constraint and why it is worth it.
-- Do not edit lessons, code or the board. Do not put real people's email addresses anywhere.
+- Do not edit lessons, code or the board, and do not file Kanbus issues; list proposed issues in the report instead. Do not put real people's email addresses anywhere.
 - Say plainly what you could not verify.
