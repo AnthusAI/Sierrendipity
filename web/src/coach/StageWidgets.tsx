@@ -66,8 +66,8 @@ export function LampsPanel({ spec, cards, readOnly, onEdit }: WidgetProps & { sp
           label={`Lamps of card ${spec.card + 1}`}
           value={view.value}
           width={view.width}
-          labels={view.number}
-          showTotal={view.number}
+          labels={view.number && !spec.hide?.includes("worth")}
+          showTotal={view.number && !spec.hide?.includes("total")}
           coachIds
           readOnly={readOnly}
           {...(spec.lockedBits ? { lockedBits: spec.lockedBits } : {})}

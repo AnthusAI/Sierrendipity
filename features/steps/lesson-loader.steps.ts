@@ -1,6 +1,6 @@
 import { Given, Then, When } from "@cucumber/cucumber";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { earnedStars, liveRunOf, parseStep, pressStep, runChecks, runProgram, startLive, type Lesson, type PublishedLesson } from "@sierrendipity/lesson-core";
 import { checkLesson, type LessonReport } from "@sierrendipity/lesson-core/check";
@@ -268,4 +268,21 @@ Then("the text {string} has the Simplified Technical English problem {string}", 
 });
 Then("the text {string} has no Simplified Technical English problem", (text: string) => {
   assert.deepEqual(steProblems(text), []);
+});
+
+const sourceFilesUnder = (path: string): string[] =>
+  statSync(path).isDirectory()
+    ? readdirSync(path).flatMap((name) => sourceFilesUnder(join(path, name)))
+    : /\.tsx?$/.test(path)
+      ? [path]
+      : [];
+
+Then("the interface text in {string} and {string} has no contraction", (first: string, second: string) => {
+  const found = [first, second]
+    .flatMap((path) => sourceFilesUnder(join(process.cwd(), path)))
+    .flatMap((file) => {
+      const withoutComments = readFileSync(file, "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+      return steProblems(withoutComments).filter((problem) => problem.includes("contraction")).map((problem) => `${file}: ${problem}`);
+    });
+  assert.deepEqual(found, []);
 });

@@ -13,6 +13,11 @@ Feature: A lesson chooses which parts of the machine it shows
     And the lesson ui shows the controls "step, reset" with the step label "Run"
     And the lesson ui says the spotlight is "dim" and the reset label is "Start again"
 
+  Scenario: A ui block may fade the spotlight until the first hint
+    When I replace "tabs: [cards, boxes]" with "tabs: [cards, boxes]\nui:\n  spotlightAfterHint: true" in "lesson.yaml"
+    And I load the lesson
+    Then the lesson loads
+
   Scenario Outline: A bad ui block is rejected
     When I replace "tabs: [cards, boxes]" with "tabs: [cards, boxes]\nui:\n  <line>" in "lesson.yaml"
     And I load the lesson
@@ -27,6 +32,7 @@ Feature: A lesson chooses which parts of the machine it shows
       | resetLabel: ""                        | resetLabel must be a short phrase         |
       | log: sometimes                        | log must be true or false                 |
       | boxNames: 1                           | boxNames must be true or false            |
+      | spotlightAfterHint: soon              | spotlightAfterHint must be true or false  |
       | spotlight: glow                       | spotlight must be ring or dim             |
       | colour: red                           | unknown key "colour"                      |
 

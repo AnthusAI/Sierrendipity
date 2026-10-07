@@ -150,7 +150,7 @@ export function CoachPanel({ state, engine, next, onNext, onStop }: Props) {
       {/* Everything the coach says or asks lives in one polite live region, so a screen reader hears it. */}
       <div aria-live="polite" data-coach-live className="space-y-2">
         {state.ghost && <p data-coach-narration>{state.ghost.narration}</p>}
-        {state.doneLine && phase === "scene" && (
+        {state.doneLine && (phase === "scene" || phase === "done") && (
           <p data-coach-done className="text-sm text-muted-foreground">
             {state.doneLine}
           </p>
@@ -169,7 +169,7 @@ export function CoachPanel({ state, engine, next, onNext, onStop }: Props) {
         )}
         {state.reply && phase === "scene" && (
           <div data-coach-reply className="rounded-md bg-secondary p-2 text-secondary-foreground">
-            <p className="text-sm font-semibold">Let's watch</p>
+            <p className="text-sm font-semibold">Watch why</p>
             <p>{state.reply}</p>
           </div>
         )}
@@ -220,7 +220,7 @@ export function CoachPanel({ state, engine, next, onNext, onStop }: Props) {
 
         {state.nudgeOffer && (
           <div data-coach-nudge className="space-y-2 rounded-md border p-2">
-            <p className="font-medium">Want a nudge?</p>
+            <p className="font-medium">Do you want a hint?</p>
             <div className="flex flex-wrap gap-2">
               {state.canHint && (
                 <Button size="sm" onClick={() => engine.nudge()}>
@@ -233,7 +233,7 @@ export function CoachPanel({ state, engine, next, onNext, onStop }: Props) {
                 </Button>
               )}
               <Button size="sm" variant="outline" onClick={() => engine.imFine()}>
-                I'm fine
+                I am fine
               </Button>
             </div>
           </div>
@@ -297,8 +297,9 @@ export function CoachPanel({ state, engine, next, onNext, onStop }: Props) {
             ))}
           </ul>
           <p data-coach-made>
-            You made: {state.end.made.join(", ")}. {state.end.values.join(", ")}.
+            You {state.end.verb}: {state.end.made.join(", ")}. {state.end.values.join(", ")}.
           </p>
+          {state.end.stars.length > 0 && <p data-coach-stars>Stars: {state.end.stars.join(", ")}.</p>}
           {state.stopSuggested && <p>You have been at this a while, so this is a good place to stop.</p>}
           <div className="flex flex-wrap gap-2">
             {next && (

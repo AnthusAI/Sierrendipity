@@ -1,12 +1,13 @@
 import { decode } from "@sierrendipity/explorer";
 import { CardFace, FRIENDLY_FALLBACK } from "./CardFace";
+import { BitLamps } from "./BitLamps";
 import { FieldBands, type FieldBandsProps } from "./FieldBands";
 import { hex32 } from "./bits";
 
 /** The ways to look at one 32-bit word. */
-export type Lens = "card" | "lamps" | "hex" | "assembly";
+export type Lens = "card" | "lamps" | "number" | "hex" | "assembly";
 export const ALL_LENSES: readonly Lens[] = ["card", "lamps", "hex", "assembly"];
-export const LENS_LABELS: Record<Lens, string> = { card: "Card", lamps: "Lamps", hex: "Hex", assembly: "Assembly" };
+export const LENS_LABELS: Record<Lens, string> = { card: "Card", lamps: "Lamps", number: "Number lamps", hex: "Hex", assembly: "Assembly" };
 
 export interface LensFaceProps extends Pick<FieldBandsProps, "lockedBits" | "allowedBits" | "readOnly" | "signed"> {
   word: number;
@@ -36,6 +37,12 @@ export function LensFace({ word, lens, onWordChange, highlight, onHoverField, on
           onFieldClick={onFieldClick}
           {...rest}
         />
+      );
+    case "number":
+      return (word & 0x7f) === 0x13 ? (
+        <BitLamps label="Lamps of the number" value={(word >>> 20) & 0x3f} width={6} readOnly />
+      ) : (
+        <CardFace word={word} highlight={highlight} />
       );
     case "hex":
       return (
