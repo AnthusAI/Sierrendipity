@@ -3,23 +3,31 @@
   "title": "Run Rust projects as a fourth practice language (rustc in the shared runner image)",
   "description": "Feature: Rust practice runs\n  Scenario: Compile and run a Rust program with stdin\n    Given a Rust project that reads a name and greets it\n    When the project is run\n    Then the output is the greeting\n  Scenario: A panic is reported as a runtime error with exit code 101\n  Scenario: A compile error shows file and line",
   "type": "story",
-  "status": "open",
+  "status": "closed",
   "priority": 2,
   "assignee": null,
   "creator": null,
   "parent": "SIE-02cf3a13-ae09-41de-8847-e601c543c706",
   "labels": [],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "9a790f92-27b3-40e1-b72c-dc52ba785368",
+      "author": "home",
+      "text": "Merged (PR #31): rustc 1.99 in the shared runner image, 166 Linux scenarios incl. hostile cases, overflow checks on. Deploy and live verification pending.",
+      "created_at": "2026-10-07T00:12:15.705667Z",
+      "comment_type": "default"
+    }
+  ],
   "created_at": "2026-10-06T22:28:46.510763Z",
-  "updated_at": "2026-10-06T22:28:46.510792Z",
-  "closed_at": null,
+  "updated_at": "2026-10-07T00:12:23.954489Z",
+  "closed_at": "2026-10-07T00:12:23.954457Z",
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity-orchestrator"
   },
-  "right_now_summary": "The shared runner is being updated to compile and run Rust projects.",
-  "right_now_updated_at": "2026-10-06T22:28:47.596259Z",
+  "right_now_summary": "Rust support is merged into the runner image; deployment and live checks are still pending.",
+  "right_now_updated_at": "2026-10-07T00:12:26.194650Z",
   "custom": {}
 }
