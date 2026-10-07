@@ -85,7 +85,6 @@ scenes:
     show: [D7]
     carry: { a: 5, b: 7 }
     skippable: true
-    lock: [edit, drag, toggle]
 
   - id: make-twelve
     say: Make 12 with the lamps, then press Step.
