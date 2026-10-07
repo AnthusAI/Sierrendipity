@@ -12,46 +12,46 @@ starter:
   hex: ["0x00300513", "0x00800513"]   # put 3 in box a0, then put 8 in box a0
 tabs: [cards]
 onWrongDefault:
-  say: Let's watch what happens.
+  say: Watch what happens.
   goto: watch
 scenes:
   - id: look
-    say: Two cards now, and both put a number in the same box. Press Continue when you are ready.
+    say: There are two cards now, and both put a number in the same box. Select Continue.
     show: [cards, boxes]
 
   - id: predict
-    say: The machine will do both cards, one after the other. What will the box hold at the end?
+    say: The machine follows both cards, one after the other. What does the box hold at the end?
     show: [cards, boxes]
     spotlight: "box:a0"
     ask:
       kind: number
-      question: What will the box hold after both cards?
+      question: What does the box hold after both cards?
       target: a0
       answer: 8
     hints:
       - Which card does the machine follow last?
-      - Each card puts its number in the same box, replacing what was there.
+      - Each card puts its number in the same box. The new number replaces the old number.
       - The last card puts 8 in the box.
     onWrong:
       - match: 3
-        say: That is what the first card put in. The second card runs after it, so let's watch.
+        say: The first card put in that number. The second card runs after it.
         goto: watch
       - match: 11
-        say: You added them, but these cards don't add. Each puts a number in, and the second replaces the first.
+        say: These cards do not add. The second number replaces the first number.
         goto: watch
       - match: 38
-        say: That puts the digits side by side. Each card puts in one number, and the second replaces the first.
+        say: The box holds one number, not two. The second number replaces the first.
         goto: watch
       - match: 5
-        say: That is the difference of the two numbers, but these cards don't subtract. The second card replaces the first.
+        say: These cards do not subtract. The second number replaces the first.
         goto: watch
       - match: 0
-        say: The box does not end up empty. Each card puts a number in, so let's watch.
+        say: The box is not empty at the end. Each card puts in a number.
         goto: watch
     lock: [edit, drag, toggle]
 
   - id: watch
-    say: Press Step twice and watch the box.
+    say: Select Step two times. Look at the box.
     show: [cards, boxes]
     spotlight: "button:step"
     until:
@@ -59,14 +59,14 @@ scenes:
       - the box shows 8
     hints:
       - Which button follows the next card?
-      - Each press follows one card, and the second card comes after the first.
-      - After two presses the box shows 8.
+      - Each selection follows one card. The second card comes after the first card.
+      - After two selections, the box shows 8.
     showMe: demo-step-twice
-    doneSay: Both cards ran, and the box ended on 8.
+    doneSay: Both cards ran. The box ends with 8.
     lock: [edit, drag, toggle]
 
   - id: done
-    say: When cards put numbers in the same box, the last one wins. Press Continue to finish.
+    say: When cards put numbers in the same box, the last card wins. Select Continue to finish.
     show: [cards, boxes]
 nowYouCan:
   - Guess what a list of cards will do.
@@ -74,7 +74,7 @@ nowYouCan:
 warmups:
   - id: two-puts
     concept: last-wins
-    question: The cards say put 2 in the box, then put 9 in the box. What does the box show at the end?
+    question: "The cards say: put 2 in the box. Then put 9 in the box. What does the box show at the end?"
     program:
       asm: |
         addi a0, zero, 2

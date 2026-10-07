@@ -24,12 +24,12 @@ ui:
   spotlight: ring
 scenes:
   - id: meet
-    say: A computer follows instructions. It does exactly what each one says, one at a time.
+    say: A computer does exactly what each instruction says, one at a time. Select Continue.
     show: [cards, boxes]
     lock: [step, edit, drag, toggle]
 
   - id: the-card
-    say: This is one instruction. It says, put 5 in the box.
+    say: "This card is one instruction. It says: put 5 in the box."
     show: [cards, boxes]
     spotlight: "card:0"
     lock: [step, edit, drag, toggle]
@@ -41,27 +41,27 @@ scenes:
     lock: [step, edit, drag, toggle]
 
   - id: press-step
-    say: Press Run to make the computer follow the instruction.
+    say: Select Run. The computer follows the instruction.
     show: [cards, boxes]
     spotlight: "button:step"
     until:
       - the machine has taken at least 1 step
     hints:
-      - Look for the blue Run button above the instruction.
-      - The card is an instruction, and Run makes the computer follow it.
-      - Click Run once, then watch the box.
+      - Find the blue Run button above the card.
+      - The card is an instruction. The Run button makes the computer follow it.
+      - Select Run one time. Then look at the box.
     showMe: demo-step
-    doneSay: "Look: the box now holds 5."
+    doneSay: The box now holds 5.
     lock: [edit, drag, toggle]
 
   - id: did-it
-    say: The computer did exactly what the card said. It put 5 in the box.
+    say: The computer did what the card says. It put 5 in the box.
     show: [cards, boxes]
     spotlight: "box:a0"
     lock: [step, edit, drag, toggle]
 
   - id: big-idea
-    say: That is all a program is, a list of instructions the computer follows. This one has just one.
+    say: A program is a list of instructions that the computer follows. This program has only one instruction.
     show: [cards, boxes]
     lock: [step, edit, drag, toggle]
 nowYouCan:
@@ -70,7 +70,7 @@ nowYouCan:
 warmups:
   - id: one-card
     concept: cards
-    question: The card says put 5 in the box. After you run it, what does the box show?
+    question: "The card says: put 5 in the box. After you select Run, what does the box show?"
     program:
       asm: |
         addi a0, zero, 5

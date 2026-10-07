@@ -39,7 +39,7 @@ scenes:
     show: [D1, timeline]
 
   - id: last
-    say: That is all of them.
+    say: These are all of them.
     show: [D1]
 nowYouCan:
   - Look at the machine in many ways.

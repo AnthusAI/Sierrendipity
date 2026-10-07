@@ -13,28 +13,28 @@ starter:
   hex: ["0x00900513", "0x00200593", "0x00b50633"]   # put 9 in a0, put 2 in a1, add a0 and a1 into a2
 tabs: [cards, lamps]
 onWrongDefault:
-  say: Let's look at the bands again.
+  say: Look at the bands again.
   goto: look
 scenes:
   - id: look
-    say: The add card is one big number too. Its lamps are split into coloured bands, and each band has a job.
+    say: The add card is one big number too. Its lamps have colored bands, and each band has a job.
     show: [D8]
     bands: { card: 2 }
     spotlight: "diagram:D8"
     lock: [edit, drag, toggle]
 
   - id: find-answer
-    say: Each band has a label. Which band says which box gets the answer?
+    say: Each band has a label. Which band names the box for the answer?
     show: [D8]
     bands: { card: 2 }
     ask:
       kind: click-target
-      question: Click the band that names the box for the answer.
+      question: Select the band that names the box for the answer.
       target: "band:rd"
     hints:
       - Read the labels on the bands. One of them is about the answer.
       - One band says "answer goes in box". It names box a2.
-      - Click the band that says "answer goes in box".
+      - Select the band that says "answer goes in box".
     onWrong:
       - match: "band:rs1"
         say: That band names the first box to read. The answer goes in a different box.
@@ -43,7 +43,7 @@ scenes:
         say: That band names the second box to read. The answer goes in a different box.
         goto: find-answer
       - match: "band:opcode"
-        say: That band says what kind of job this is. Look for the band about the answer box.
+        say: That band says which type of job this is. Look for the band about the answer box.
         goto: find-answer
       - match: "band:funct3"
         say: That band picks the exact job. Look for the band that names the answer box.
@@ -68,22 +68,22 @@ scenes:
       - Nine minus 2 is 7.
     onWrong:
       - match: 11
-        say: That is what Add gives. Lamp 30 turns it into Subtract, so let's try it.
+        say: That is what Add gives. Lamp 30 turns it into Subtract, so try it.
         goto: flip
       - match: 9
-        say: That is what box a0 holds. The card puts a new number in box a2, so let's try it.
+        say: That is what box a0 holds. The card puts a new number in box a2, so try it.
         goto: flip
       - match: 2
-        say: That is what box a1 holds. The card puts a new number in box a2, so let's try it.
+        say: That is what box a1 holds. The card puts a new number in box a2, so try it.
         goto: flip
       - match: -7
-        say: Close, but Subtract is 9 minus 2, not 2 minus 9. Let's try it.
+        say: Subtract is 9 minus 2, not 2 minus 9. Try it.
         goto: flip
     showMe: demo-flip-bit
     lock: [edit, drag, toggle]
 
   - id: flip
-    say: Switch on lamp 30 of the add card, then press Step three times. Watch box a2.
+    say: Switch on lamp 30 of the add card, then select Step three times.
     show: [D1, D8]
     bands: { card: 2, allowedBits: [30] }
     spotlight: "lamp:30"
@@ -94,13 +94,13 @@ scenes:
     hints:
       - Which lamp turns Add into Subtract?
       - Lamp 30 is in the band called exact job. Only that lamp can be switched.
-      - Switch on lamp 30, then press Step three times.
+      - Switch on lamp 30, then select Step three times.
     showMe: demo-flip-bit
     doneSay: One lamp turned Add into Subtract, and box a2 holds 7.
     lock: [edit, drag]
 
   - id: below-zero
-    say: "Bonus: can a box go below zero? Change the 9 on card 1 to 0 and press Step three times."
+    say: "Bonus question: can a box go below zero? Change the 9 on card 1 to 0, then select Step three times."
     show: [D1]
     lock: [drag, toggle]
 nowYouCan:

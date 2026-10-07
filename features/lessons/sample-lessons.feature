@@ -18,7 +18,7 @@ Feature: The five sample lessons of Course 1
 
     Examples:
       | id                       | scenes | cards | boxes      |
-      | c1/01-press-the-button   | 4      | 1     | a0         |
+      | c1/01-press-the-button   | 6      | 1     | a0         |
       | c1/02-change-the-number  | 3      | 1     | a0         |
       | c1/03-last-one-wins      | 4      | 2     | a0         |
       | c1/04-two-boxes          | 4      | 2     | a0, a1     |
@@ -65,7 +65,7 @@ Feature: The five sample lessons of Course 1
     And the scene "predict" asks for the number <answer> for "<box>"
     And the scene "predict" has a reply for each wrong guess "<guesses>"
     And no reply says "Close"
-    And the lesson has the fallback reply "Let's watch what happens."
+    And the lesson has the fallback reply "Watch what happens."
 
     Examples:
       | id                  | answer | box | guesses          |
@@ -168,5 +168,7 @@ Feature: The five sample lessons of Course 1
     Given the lesson "c1/01-press-the-button"
     Then the lesson loads from disk
     And the scene "meet" says "Continue"
-    And the scene "names" says "name"
+    Given the lesson "c1/04-two-boxes"
+    Then the lesson loads from disk
+    And the scene "look" says "name"
     And the lesson doc says that last one wins holds for put cards, not for add
