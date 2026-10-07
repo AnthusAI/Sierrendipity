@@ -58,9 +58,33 @@ Feature: One session drives every view of the machine
     When I step the session until it stops
     Then the session machine is "faulted"
     And the session has 1 steps
+    And the session is at position 2
     When I step the session back 1 times
     Then the session machine is "running"
     And the session register t0 is 1
+
+  Scenario: A run that never ends stops at the step limit
+    Given a session limited to 5 steps for the program
+      """
+      loop: jal zero, loop
+      """
+    When I step the session until it stops
+    Then the session is at position 5 with 5 steps
+    And the session hit the step limit
+    And the session cannot step
+    When I step the session back 1 times
+    Then the session can step
+
+  Scenario: Recording ahead does not move the position
+    When I step the session 2 times
+    And I record the whole session ahead
+    Then the session is at position 2 with 2 steps
+    And the session recorded 13 steps
+    When I step the session 1 times
+    Then the session register t1 is 2
+
+  Scenario: A live lesson machine at its step limit counts as over
+    Then a live machine on a program that never ends stops after 2000 steps and reports the cap
 
   Scenario: Reset starts over and the run is the same again
     When I step the session until it stops
@@ -88,13 +112,5 @@ Feature: One session drives every view of the machine
     And the row at address 4 is the word 0x00100073
     And there is no row at address 6
 
-  Scenario Outline: The session agrees with running straight through on every Course 1 solution
-    Then the session agrees with the checker on every solution of <lesson>
-
-    Examples:
-      | lesson                  |
-      | c1/01-press-the-button  |
-      | c1/02-change-the-number |
-      | c1/03-last-one-wins     |
-      | c1/04-two-boxes         |
-      | c1/05-add               |
+  Scenario: The session agrees with running straight through on every Course 1 and x1 solution
+    Then the session agrees with the checker on every solution of every Course 1 and x1 lesson

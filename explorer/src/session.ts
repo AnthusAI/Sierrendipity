@@ -92,9 +92,14 @@ export class Session {
     return this.snapshot().steps - (this.markerRan() ? 1 : 0);
   }
 
+  /** True when the recording stopped at `maxSteps` and the position is at its end: the machine could go on but will not. */
+  get hitStepLimit(): boolean {
+    return this.timeline.hitStepLimit && this.timeline.position === this.timeline.length;
+  }
+
   get canStep(): boolean {
     const state = this.snapshot().state;
-    return state === "ready" || state === "running";
+    return (state === "ready" || state === "running") && !this.hitStepLimit;
   }
 
   /** One student step: runs the next card, then the hidden end marker if that was the last card. Null when the machine cannot step. */

@@ -1,10 +1,10 @@
 import { Given, Then, When } from "@cucumber/cucumber";
 import assert from "node:assert/strict";
 import { join } from "node:path";
-import { assemble, fromWords, registerName, rowAt, Session } from "@sierrendipity/explorer";
-import { DEFAULT_MAX_STEPS, earnedStars, liveRunOf, pressStep, runChecks, runProgram, startLive } from "@sierrendipity/lesson-core";
+import { assemble, fromWords, Machine, registerName, rowAt, Session } from "@sierrendipity/explorer";
+import { DEFAULT_MAX_STEPS, earnedStars, LIVE_MAX_STEPS, liveRunOf, pressBack, pressStep, runChecks, runProgram, startLive } from "@sierrendipity/lesson-core";
 import { loadLesson } from "@sierrendipity/lesson-core/loader";
-import { LESSONS_ROOT, readConcepts, readLessonDir } from "@sierrendipity/lesson-core/node";
+import { LESSONS_ROOT, listLessonIds, readConcepts, readLessonDir } from "@sierrendipity/lesson-core/node";
 
 let session: Session;
 let image: ReturnType<typeof fromWords>;
@@ -25,6 +25,9 @@ function wordsOf(source: string): number[] {
 Given("a session for the program", (source: string) => {
   session = new Session(fromWords(wordsOf(source)));
 });
+Given("a session limited to {int} steps for the program", (maxSteps: number, source: string) => {
+  session = new Session(fromWords(wordsOf(source)), { maxSteps });
+});
 Given("a session with a hidden end for the program", (source: string) => {
   session = new Session(fromWords([...wordsOf(source), 0x00100073]), { hideEnd: true });
 });
@@ -38,6 +41,7 @@ When("I step the session back {int} times", (count: number) => {
 When("I step the session until it stops", () => {
   while (session.stepForward());
 });
+When("I record the whole session ahead", () => session.recordAll());
 When("I reset the session", () => session.reset());
 
 Then("the session is at position {int} with {int} steps", (position: number, steps: number) => {
@@ -57,6 +61,21 @@ Then("the session register {word} is {int} and register {word} is {int}", (a: st
 });
 Then("the session byte at {int} is {int}", (addr: number, value: number) => assert.equal(session.machine.readMem(addr, 1)[0], value));
 Then("the session history has {int} steps", (count: number) => assert.equal(session.history().length, count));
+Then("the session is at position {int}", (position: number) => assert.equal(session.position, position));
+Then("the session hit the step limit", () => assert.equal(session.hitStepLimit, true));
+Then("the session can step", () => assert.equal(session.canStep, true));
+Then("the session recorded {int} steps", (count: number) => assert.equal(session.timeline.length, count));
+Then("a live machine on a program that never ends stops after 2000 steps and reports the cap", () => {
+  const live = startLive(wordsOf("loop: jal zero, loop"), { hideEnd: true });
+  for (let i = 0; i < LIVE_MAX_STEPS; i++) assert.ok(pressStep(live), `step ${i + 1} should run`);
+  assert.equal(pressStep(live), null);
+  assert.equal(live.session.canStep, false);
+  const run = liveRunOf(live);
+  assert.equal(run.hitStepCap, true);
+  assert.equal(run.steps, LIVE_MAX_STEPS);
+  assert.ok(pressBack(live));
+  assert.equal(live.session.canStep, true);
+});
 Then("the session cannot step", () => assert.equal(session.canStep, false));
 Then("stepping the session forward is refused", () => {
   stepRefused = session.stepForward() === null;
@@ -75,22 +94,57 @@ Then("the program image of the words {word} and {word} has {int} rows and {int} 
 Then("the row at address {int} is the word {word}", (addr: number, word: string) => assert.equal(rowAt(image, addr)?.word, Number(word)));
 Then("there is no row at address {int}", (addr: number) => assert.equal(rowAt(image, addr), undefined));
 
-Then("the session agrees with the checker on every solution of {word}", (id: string) => {
-  const loaded = loadLesson(readLessonDir(join(LESSONS_ROOT, id)), { dir: id, knownConcepts: readConcepts() });
-  assert.ok(loaded.ok, loaded.ok ? "" : loaded.errors.join("\n"));
-  const lesson = loaded.lesson;
-  assert.ok(lesson.solutions.length > 0);
-  for (const decl of lesson.solutions) {
-    const cap = decl.maxSteps ?? DEFAULT_MAX_STEPS;
-    const direct = runProgram(decl.words, { maxSteps: cap, predictions: decl.predictions, starter: lesson.starter.words, hideEnd: lesson.hideEnd });
-    const live = startLive(decl.words, { hideEnd: lesson.hideEnd, maxSteps: cap + 1 });
-    live.facts = { predictions: decl.predictions, starter: lesson.starter.words };
-    for (let i = 0; i < cap && pressStep(live); i++);
-    const through = liveRunOf(live);
-    assert.equal(through.machine.state, direct.machine.state, `${decl.file}: state`);
-    assert.equal(through.steps, direct.steps, `${decl.file}: steps`);
-    assert.deepEqual(Array.from(through.machine.regs), Array.from(direct.machine.regs), `${decl.file}: registers`);
-    assert.deepEqual(earnedStars(runChecks(lesson.checks, through)), earnedStars(runChecks(lesson.checks, { ...direct, hitStepCap: through.hitStepCap })), `${decl.file}: earned stars`);
-    assert.deepEqual(earnedStars(runChecks(lesson.checks, through)).sort(), [...decl.earns].sort(), `${decl.file}: declared stars`);
+const memoryOf = (view: { memorySize: number; readMem(addr: number, length: number): Uint8Array }) => Array.from(view.readMem(0, view.memorySize));
+
+Then("the session agrees with the checker on every solution of every Course 1 and x1 lesson", () => {
+  const ids = listLessonIds().filter((id) => id.startsWith("c1/") || id.startsWith("x1/"));
+  assert.ok(ids.length >= 12, `expected the c1 and x1 lessons, found ${ids.length}`);
+  for (const id of ids) {
+    const loaded = loadLesson(readLessonDir(join(LESSONS_ROOT, id)), { dir: id, knownConcepts: readConcepts() });
+    assert.ok(loaded.ok, loaded.ok ? "" : loaded.errors.join("\n"));
+    const lesson = loaded.lesson;
+    for (const decl of lesson.solutions) {
+      const where = `${id} ${decl.file}`;
+      const cap = decl.maxSteps ?? DEFAULT_MAX_STEPS;
+      const direct = runProgram(decl.words, { maxSteps: cap, predictions: decl.predictions, starter: lesson.starter.words, hideEnd: lesson.hideEnd });
+      const live = startLive(decl.words, { hideEnd: lesson.hideEnd });
+      live.facts = { predictions: decl.predictions, starter: lesson.starter.words };
+      const startState = live.machine.state;
+      while (pressStep(live));
+      const through = liveRunOf(live);
+      if (decl.capped) {
+        assert.equal(through.hitStepCap, true, `${where}: capped solution reaches the live limit`);
+        assert.equal(through.steps, LIVE_MAX_STEPS, `${where}: steps at the live limit`);
+        continue;
+      }
+      assert.equal(through.hitStepCap, direct.hitStepCap, `${where}: hitStepCap`);
+      assert.equal(through.machine.state, direct.machine.state, `${where}: state`);
+      assert.equal(through.machine.pc, direct.machine.pc, `${where}: pc`);
+      assert.equal(through.machine.exitCode, direct.machine.exitCode, `${where}: exit code`);
+      assert.equal(through.machine.fault, direct.machine.fault, `${where}: fault`);
+      assert.equal(through.steps, direct.steps, `${where}: steps`);
+      assert.deepEqual(Array.from(through.machine.regs), Array.from(direct.machine.regs), `${where}: registers`);
+      assert.deepEqual(memoryOf(through.machine), memoryOf(direct.machine), `${where}: memory`);
+      assert.deepEqual(earnedStars(runChecks(lesson.checks, through)), earnedStars(runChecks(lesson.checks, direct)), `${where}: earned stars`);
+      assert.deepEqual(earnedStars(runChecks(lesson.checks, through)).sort(), [...decl.earns].sort(), `${where}: declared stars`);
+
+      const reference = new Machine({ memorySize: 65536 });
+      reference.load(fromWords(live.words).image, 0, 0);
+      const history = live.session.history();
+      for (const [i, step] of history.entries()) {
+        const expected = reference.step();
+        assert.equal(step.pc, expected.pc, `${where}: step ${i + 1} pc`);
+        assert.equal(step.word, expected.word, `${where}: step ${i + 1} word`);
+        assert.equal(step.state, expected.state, `${where}: step ${i + 1} state`);
+        assert.deepEqual(step.changedRegs, expected.changedRegs, `${where}: step ${i + 1} registers changed`);
+      }
+
+      while (pressBack(live));
+      assert.equal(live.session.steps, 0, `${where}: Back reaches the start`);
+      assert.equal(live.machine.state, startState, `${where}: state at the start`);
+      while (pressStep(live));
+      assert.deepEqual(Array.from(live.machine.regs), Array.from(direct.machine.regs), `${where}: registers after Back and replay`);
+      assert.deepEqual(memoryOf(live.machine), memoryOf(direct.machine), `${where}: memory after Back and replay`);
+    }
   }
 });

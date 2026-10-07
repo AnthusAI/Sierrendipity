@@ -84,7 +84,7 @@ export interface PlayerState {
 /** A prediction is made before the reveal: while it is asked, the machine does not move. */
 const ASK_LOCKED: StageControl[] = ["step", "back", "reset", "edit"];
 
-const finished = (live: Live): boolean => live.machine.state !== "ready" && live.machine.state !== "running";
+const finished = (live: Live): boolean => !live.session.canStep;
 
 /** One lesson being played: scenes, the live machine, help, stuck rules and progress. No DOM, no React. */
 export class LessonEngine {

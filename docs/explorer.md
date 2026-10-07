@@ -192,3 +192,9 @@ reset, history, and the registers, memory and pc at the current position (`sessi
 session through `useMachineTimeline({ session })`, so there is no shadow timeline and no `useFollow`. Lesson
 programs use 64 KiB of memory and record at most 2,000 steps. The IDE `Emulator` still has its own driver; moving
 it onto `Session` is a follow-up (wave W8).
+
+A lesson machine stops recording after 2,000 steps. At that point the session cannot step (`canStep` is false,
+`hitStepLimit` is true) and the lesson run reports `hitStepCap`, so the player treats the run as over and offers
+Reset. When a step faults, the session position includes the faulting step: the stage draws it and shows the
+stop notice, while the student's step count (`steps`) does not count it. Back from there returns to the state
+before the fault, as it did before the Session existed.
