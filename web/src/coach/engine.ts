@@ -22,6 +22,12 @@ import { markStopShown, sessionInfo, type Clock } from "./clock";
 import { STUCK, StuckDetector, type StuckReason } from "./stuck";
 import type { EditVia, LiveView, StageControl } from "./types";
 
+/** Plain-English names for the bonus stars the end card lists. */
+const STAR_NAMES: Record<string, string> = {
+  "called-it": "right on the first guess",
+  "another-way": "another way to do it",
+  "below-zero": "a box below zero",
+};
 export const DEFAULT_WRONG = "Watch what happens.";
 /** The most cards the builder may hand back (the same ceiling as the cards model). */
 const MAX_REPLACED_CARDS = 200;
@@ -500,7 +506,7 @@ export class LessonEngine {
     const scene = this.scene()!;
     if (genuine) this.safe(() => this.store?.recordEvent(this.userId, { type: "prediction", lessonId: this.lesson.id, correct, concepts: this.lesson.concepts.introduces }));
     if (correct) {
-      if (genuine) this.complete({ ...scene, doneSay: ["You called it.", scene.doneSay].filter(Boolean).join(" ") });
+      if (genuine && (scene.ask?.kind === "number" || scene.ask?.kind === "choice")) this.complete({ ...scene, doneSay: ["You called it.", scene.doneSay].filter(Boolean).join(" ") });
       else this.complete(scene);
       return;
     }
@@ -716,7 +722,7 @@ export class LessonEngine {
     const m = this.live.machine;
     return {
       verb: this.cards.every((w, k) => w === this.lesson.starter.words[k]) && this.cards.length === this.lesson.starter.words.length ? "ran" : "made",
-      stars: [...this.bonusSeen].filter((s) => s !== "pass"),
+      stars: [...this.bonusSeen].filter((s) => s !== "pass").map((s) => STAR_NAMES[s] ?? s.replace(/-/g, " ")),
       made: this.cards.map((w) => this.plain(describe(w).text)),
       values: this.lesson.boxes.map((name) => this.plain(`Box ${name} holds ${m.regs[registerNumber(name) ?? 0]! | 0}`)),
       nowYouCan: this.lesson.nowYouCan,

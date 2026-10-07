@@ -31,7 +31,7 @@ scenes:
     show: [D1, D4]
     lamps: { card: 0, of: number, width: 6 }
     spotlight: "tab:lamps"
-    lock: [edit, drag, toggle]
+    lock: [step, edit, drag, toggle]
 
   - id: place
     say: The far right lamp is worth 1 and the next lamp is worth 2. The labels are hidden now.
@@ -59,7 +59,7 @@ scenes:
     lock: [edit, drag, toggle]
 
   - id: make-five
-    say: Switch lamps on until they make 5.
+    say: Switch lamps on until they make 5. Then select Run.
     show: [D1, D4]
     lamps: { card: 0, of: number, width: 6, allowedBits: [0, 1, 2], target: 5 }
     spotlight: "tab:lamps"
@@ -75,7 +75,7 @@ scenes:
     lock: [edit, drag]
 
   - id: make-seven
-    say: Now make 7 with the lamps.
+    say: Now make 7 with the lamps. Then select Run.
     show: [D1, D4]
     lamps: { card: 0, of: number, width: 6, allowedBits: [0, 1, 2], target: 7 }
     spotlight: "tab:lamps"
@@ -97,7 +97,7 @@ scenes:
     skippable: true
 
   - id: make-twelve
-    say: Make 12 with the lamps.
+    say: Make 12 with the lamps. Then select Run.
     show: [D1, D4]
     lamps: { card: 0, of: number, width: 6, allowedBits: [0, 1, 2, 3], target: 12 }
     spotlight: "tab:lamps"
@@ -113,7 +113,7 @@ scenes:
     lock: [drag]
 
   - id: make-forty-two
-    say: Make 42 with the lamps.
+    say: Make 42 with the lamps. Then select Run.
     show: [D1, D4]
     lamps: { card: 0, of: number, width: 6, target: 42 }
     spotlight: "tab:lamps"

@@ -27,10 +27,10 @@ onWrongDefault:
   goto: flip
 scenes:
   - id: look
-    say: Every card is one big number. Select Continue to flip a card.
+    say: Every card hides a number. Select Continue to flip a card.
     show: [D1]
     spotlight: "card:0"
-    lock: [edit, drag, toggle]
+    lock: [step, edit, drag, toggle]
 
   - id: flip
     say: Flip the card to see its number as lamps. A lit lamp is a 1 and a dark lamp is a 0.
@@ -38,7 +38,7 @@ scenes:
     flip: { card: 0, lenses: [card, number] }
     spotlight: flip
     showMe: demo-flip
-    lock: [edit, drag, toggle]
+    lock: [step, edit, drag, toggle]
 
   - id: match-one
     say: These lamps show the number on one card. Which card is it?

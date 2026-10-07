@@ -123,6 +123,11 @@ export default function LampsSection() {
         <CardFlip word={ADDI} label="Early card flip demo" lenses={["card", "lamps"]} />
       </Demo>
 
+      <Demo name="Card flip with only the number lamps of a put card">
+        <CardFlip word={ADDI} label="Number view demo" lenses={["number"]} />
+        <CardFlip word={0x00a50533} label="Number view fallback demo" lenses={["number"]} />
+      </Demo>
+
       <Demo name="Word editor: flip lamps to turn add into sub">
         <WordEditor word={word} onChange={setWord} label="Word editor demo" />
       </Demo>

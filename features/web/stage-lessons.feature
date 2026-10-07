@@ -130,8 +130,9 @@ Feature: Lessons 06 to 08 prove the new visuals
     When I press Continue
     Then the coach says "Which band names the box for the answer?"
     When I click the band "rd"
-    Then the coach says "Lamp 30 is in the band called exact job"
-    When I answer 7
+    Then the coach says "Lamp 30 is in the exact job band"
+    And the coach shows no confirmation
+    When I choose "Subtract"
     Then the coach says "Switch on lamp 30"
     And there is no spotlight
     When I ask for a hint
@@ -159,19 +160,16 @@ Feature: Lessons 06 to 08 prove the new visuals
       | funct3 | picks the exact job                     |
       | funct7 | picks the exact job too                 |
 
-  Scenario Outline: Lesson 08 answers the prediction <guess> and lets the machine show the truth
+  Scenario Outline: Lesson 08 answers the wrong choice <choice> and lets the machine show the truth
     Given the coach lab shows lesson "c1/08-inside-the-number" at the scene "predict"
-    When I answer <guess>
-    Then the coach replies "<reply>"
-    And the coach is on the scene "<scene>"
+    When I choose "<choice>"
+    Then the coach replies "Try it"
+    And the coach is on the scene "flip"
 
     Examples:
-      | guess | reply                         | scene |
-      | 11    | You said 11. Try it           | flip  |
-      | 9     | You said 9. Try it            | flip  |
-      | 2     | You said 2. Try it            | flip  |
-      | -7    | You said -7. Try it           | flip  |
-      | 40    | You said 40. Try it           | flip  |
+      | choice   |
+      | Add      |
+      | Multiply |
 
   Scenario: Lesson 08 allows only lamp 30 to be switched
     Given the coach lab shows lesson "c1/08-inside-the-number" at the scene "flip"

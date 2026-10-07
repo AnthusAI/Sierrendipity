@@ -27,11 +27,11 @@ onWrongDefault:
   goto: flip
 scenes:
   - id: look
-    say: The add card is one big number too. Its lamps have colored bands, and each band has a job.
+    say: A whole card is 32 lamps, not only a small number. Colored bands split the lamps into jobs.
     show: [D8]
     bands: { card: 2 }
     spotlight: "diagram:D8"
-    lock: [edit, drag, toggle]
+    lock: [step, edit, drag, toggle]
 
   - id: find-answer
     say: Each band has a label. Which band names the box for the answer?
@@ -65,17 +65,18 @@ scenes:
     lock: [edit, drag, toggle]
 
   - id: predict
-    say: Lamp 30 is in the band called exact job. Think about what the card does when that lamp is on.
+    say: Lamp 30 is in the exact job band. It picks between add and its opposite.
     show: [D1, D8]
     bands: { card: 2 }
     ask:
-      kind: number
-      question: With lamp 30 on, what will box a2 hold after all three cards?
-      answer: 7
+      kind: choice
+      question: With lamp 30 on, what will the card say?
+      choices: [Add, Subtract, Multiply]
+      answer: 1
     hints:
-      - Box a0 holds 9 and box a1 holds 2.
-      - Subtract takes the second box away from the first box.
-      - Nine minus 2 is 7.
+      - Which job is the opposite of add?
+      - The opposite of add is subtract.
+      - With lamp 30 on, the card says Subtract.
     showMe: demo-flip-bit
     lock: [edit, drag, toggle]
 

@@ -48,11 +48,10 @@ nowYouCan:
 warmups:
   - id: one-card
     concept: cards
-    question: One card puts 4 in the box. A second card puts 6 in the box. After both cards run, what does the box show?
+    question: The number on the card is 2 less than 9. After you select Run, what does the box show?
     program:
       asm: |
-        addi a0, zero, 4
-        addi a0, zero, 6
+        addi a0, zero, 7
     target: a0
-    expected: 6
+    expected: 7
 

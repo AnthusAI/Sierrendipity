@@ -63,3 +63,10 @@ Feature: One card, several ways to look at it
   Scenario: A card with no other views shows just the card face
     Then "Card only demo" has no view buttons
     And "Card only demo" shows the "card" view with the text "Put 5 in box a0"
+
+  Scenario: The number view shows only the lamps of a put card's number
+    Then "Number view demo" shows the "number" view with the text "Lit lamps add up to 5"
+    And "Number view demo" has the lamps named "Lamps of the number"
+
+  Scenario: The number view of a card that is not a put card falls back to the card face
+    Then "Number view fallback demo" shows the "number" view with the text "Add box a0 and box a0"

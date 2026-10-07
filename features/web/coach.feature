@@ -51,7 +51,7 @@ Feature: The coach plays the lessons
     When I answer 8
     And I press Step
     And I press Step
-    Then the Now you can card shows the stars "called-it"
+    Then the Now you can card shows the stars "right on the first guess"
 
   Scenario Outline: Lesson 03 shows the wrong guess <guess> and sends the student to watch
     Given the coach lab shows lesson "c1/03-last-one-wins"

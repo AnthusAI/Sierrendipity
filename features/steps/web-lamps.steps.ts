@@ -683,3 +683,7 @@ Then("lit lamps look different from unlit lamps in {string}", async function (th
   // Not by fill alone: lit lamps say 1, unlit say 0.
   assert.ok(looks.every((l) => l[2] === (l[0] === "true" ? "1" : "0")));
 });
+
+Then("{string} has the lamps named {string}", async function (this: WebWorld, name: string, lampsName: string) {
+  await group(this, name).getByRole("group", { name: lampsName, exact: true }).waitFor({ timeout: 5000 });
+});

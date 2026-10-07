@@ -1,0 +1,6 @@
+solutions:
+  - file: good.hex
+    earns: [pass, called-it]
+    predictions: { a0: [5] }
+  - file: wrong.hex
+    earns: []
