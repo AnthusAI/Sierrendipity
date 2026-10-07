@@ -31,7 +31,7 @@
     "platform": "claude_code",
     "model": "claude-sonnet-5-5"
   },
-  "right_now_summary": "The tutor is being built, with core pieces deployed while sign-in, runs, lessons, and checks need verification.",
-  "right_now_updated_at": "2026-10-07T00:12:53.953399Z",
+  "right_now_summary": "The IDE and sign-in work, while lessons, emulator courses, CI, and final runtime checks are still being built.",
+  "right_now_updated_at": "2026-10-07T00:32:01.194780Z",
   "custom": {}
 }
