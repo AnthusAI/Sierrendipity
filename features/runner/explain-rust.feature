@@ -664,7 +664,9 @@ Feature: Explain a Rust program as RISC-V machine code
       fn main() {}
       """
     When the project is explained
-    Then the status is one of "compile_error, link_error"
+    Then the status is "link_error"
+    And the compile output mentions "multiple definition of `_start'"
+    And the compile output mentions "main.rs:2"
     And the compile output has no temporary paths
 
   @linux-only

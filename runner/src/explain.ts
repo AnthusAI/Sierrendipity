@@ -201,6 +201,8 @@ export async function buildRust(
     t = t.replace(/(^|[\s'"`(])\.\/(?=[\w.-])/g, "$1").replace(/\/(?:var\/)?tmp\/\S+/g, "<temporary file>");
     // The linker names our object file; show the student's crate root. Symbols read as Rust paths.
     t = t.split("out/main.o").join("main.rs").replace(/_R[A-Za-z0-9_]+/g, (symbol) => demangleRust(symbol));
+    // The linker prints the line table's directory in front of the file: `src/main.rs:2` is `main.rs:2`.
+    t = t.replace(/(^|[\s'`(])src\/(?=[\w./-]+\.rs:\d)/g, "$1");
     if (rust) t = friendlyRustErrors(t);
     return t.length > MAX_COMPILE_OUTPUT_CHARS ? t.slice(0, MAX_COMPILE_OUTPUT_CHARS) + "\n[output truncated]\n" : t;
   };
