@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "4af931d6-8bb0-491e-9d0d-0bff7c111871",
+  "issue_id": "SIE-3ec9b3df-c5d3-4a81-a3f5-b44b80c6b0cf",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T15:50:55.475Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Merge the educator-review quick fixes before the pilot",
+    "description": "Acceptance: R2, R3, R5, R6, R8, R9 and R11 (children of SIE-2f17ee) are merged to develop; the pilot SIE-93b32f can then run on c1/01-05 and the progress export is kept.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 1,
+    "assignee": null,
+    "parent": "SIE-9aa4ca8e-822c-4bf7-9b5e-47a4e2d15716",
+    "labels": [
+      "real-machine"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Real Machine Board Agent"
+    }
+  }
+}

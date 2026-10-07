@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "49569c5b-4793-4e6a-ba74-fbeda28dce31",
+  "issue_id": "SIE-039916a1-f329-429f-a9a3-3fda37c25b91",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T15:49:45.217Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Lessons c4/01-05 including capstone 2 (Rosetta page)",
+    "description": "Acceptance: check --all green, STE clean; Gallery Rosetta page; capstone may take up to 8 minutes.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 3,
+    "assignee": null,
+    "parent": "SIE-8c5f31f9-75f3-4856-9f19-029fe9d0397d",
+    "labels": [
+      "real-machine"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Real Machine Board Agent"
+    }
+  }
+}

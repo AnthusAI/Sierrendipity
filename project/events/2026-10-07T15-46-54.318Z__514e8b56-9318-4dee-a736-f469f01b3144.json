@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "514e8b56-9318-4dee-a736-f469f01b3144",
+  "issue_id": "SIE-e7123a35-1823-4365-9e22-1168dff80353",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T15:46:54.318Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Update lessons c1/02, c1/04, c1/05 for the real components",
+    "description": "Acceptance:\n- c1/02 has the optional 'Try this too' line after the goal (bonus spot-it)\n- c1/04 draws its boxes with the Registers panel in box skin\n- c1/05 has one doneSay sentence naming 'add a2, a0, a1', log narrated from Timeline.diff\n- npm run lesson -- check --all is green, STE clean",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 1,
+    "assignee": null,
+    "parent": "SIE-fd7b2ee2-94bd-4d3a-aeee-ace3372b3b2e",
+    "labels": [
+      "real-machine"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Real Machine Board Agent"
+    }
+  }
+}

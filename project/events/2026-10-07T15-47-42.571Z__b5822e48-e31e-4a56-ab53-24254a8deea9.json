@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "b5822e48-e31e-4a56-ab53-24254a8deea9",
+  "issue_id": "SIE-dea30205-0c61-4f4f-8299-71cda4a28e21",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T15:47:42.571Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Cloud terminal panel in lessons",
+    "description": "Acceptance: a program run on the cloud computer shows its output in a terminal panel with a where-it-ran label; keyboard operable; STE clean.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-043aea98-36fa-41f4-bbb8-aab7b39c3961",
+    "labels": [
+      "real-machine"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Real Machine Board Agent"
+    }
+  }
+}

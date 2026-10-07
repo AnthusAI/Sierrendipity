@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "423f4317-3284-4da5-9aab-7b3a3cf0e291",
+  "issue_id": "SIE-31b7b91d-6cef-45e5-8792-6c6cf5e9f2b2",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T15:47:24.262Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Recorded compile results: lesson compile harness",
+    "description": "Acceptance:\n- npm run lesson -- compile <id> writes lessons/<id>/compiled/*.json with the /explain response and a hash of source, flags and toolchain version\n- lesson check fails on a stale hash\n- the player shows the recorded answer at once and the live answer when ready\n- browser caches /explain answers by source hash",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-043aea98-36fa-41f4-bbb8-aab7b39c3961",
+    "labels": [
+      "real-machine"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Real Machine Board Agent"
+    }
+  }
+}

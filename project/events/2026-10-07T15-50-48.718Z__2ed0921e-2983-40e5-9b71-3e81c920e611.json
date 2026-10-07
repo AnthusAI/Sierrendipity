@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "2ed0921e-2983-40e5-9b71-3e81c920e611",
+  "issue_id": "SIE-83aeae46-6d65-4759-8fec-6b73691f66cc",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T15:50:48.718Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Spike: ESP32-C3 board and compressed-instruction decoding",
+    "description": "One-day spike, after Course 4 (not before W8). Pick a small ESP32-C3 board flashable from Chrome over Web Serial; measure the build image size (does the toolchain fit the runner image, or is a second task image acceptable); decide whether to add compressed (16-bit, C extension) decoding to the explorer. Related: M12 SIE-0ad8dc, SIE-60b608, SIE-4916e4.\n\nAcceptance:\n- a written decision recorded as a Kanbus comment: board chosen, image size measured, compressed decoding yes or no\n- a flash of a bare-metal image from the browser demonstrated or ruled out\n- no lesson work starts before this decision\n\nGuardian decisions (all eight recommended answers accepted), from docs/real-machine-curriculum.md section 8:\n1. She may see one line of read-only C in Course 1 (c1/10). It is the bridge the arc stands on and costs no typing.\n2. In lesson text the two machines are called 'the RISC-V machine' (emulator; an exact model, not a toy) and 'the cloud computer' (Fargate). Never 'simulator', 'fake' or 'practice'.\n3. Assume a laptop with a keyboard from Course 2 on. Course 1 works on a tablet; no touch editor is built.\n4. A pre-warmed cloud task for up to 20 idle minutes before a cloud lesson is acceptable (the cost is cents).\n5. No hard daily cap on cloud hours while there is one student and an allowlist; revisit if a second student joins.\n6. Capstones allow any rule she chooses, including overflow or off the 16 x 16 screen; overflow and clipping become exhibits with a plain note, not an error.\n7. No Rust lessons in this span; offer one side room after c4/05, 'f in Rust' (/explain already supports it).\n8. ESP32-C3 comes after Course 4. Start with a one-day spike on a small board flashable from Chrome over Web Serial; the spike also measures build image size and decides whether to add compressed-instruction decoding to the explorer (the C3 runs 16-bit instructions by default).",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 4,
+    "assignee": null,
+    "parent": "SIE-c72a5425-6afa-496a-b9a3-c1bafe9aac99",
+    "labels": [
+      "real-machine"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Real Machine Board Agent"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "29827fa8-1249-4236-8ba5-359cddc9ed57",
+  "issue_id": "SIE-ab6a3dac-5e7c-43fa-ad53-a2b6cb6268f4",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T15:48:18.113Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Branch arrow in the Program panel",
+    "description": "Acceptance: taken or not-taken arrow for branches; spec for taken and not taken.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 3,
+    "assignee": null,
+    "parent": "SIE-22eed3d9-8089-4c6f-bf82-4c3befef4aad",
+    "labels": [
+      "real-machine"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Real Machine Board Agent"
+    }
+  }
+}

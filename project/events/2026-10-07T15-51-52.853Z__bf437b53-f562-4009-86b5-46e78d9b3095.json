@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "event_id": "bf437b53-f562-4009-86b5-46e78d9b3095",
+  "issue_id": "SIE-974c7488-07c1-4285-9a28-e94551cb9940",
+  "event_type": "field_updated",
+  "occurred_at": "2026-10-07T15:51:52.853Z",
+  "actor_id": "home",
+  "payload": {
+    "changes": {
+      "parent": {
+        "from": "SIE-4174f530-3b4c-49d2-8e92-86981ead4301",
+        "to": "SIE-eb52a088-3bf6-4cef-9715-d718f6636911"
+      }
+    }
+  }
+}

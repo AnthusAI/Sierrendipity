@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "82854377-0de4-403d-80a2-5c11028a27fe",
+  "issue_id": "SIE-fd3dd9b2-bdbf-4e23-bbf1-44d7cad3c537",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T15:45:37.709Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "RM W4 Glass: InstructionPanel, Memory panel, reg:pc, retires, c1/12-16",
+    "description": "Real-machine plan (docs/real-machine-curriculum.md section 6). Each wave ships alone and ends with lessons on the path. Contents: InstructionPanel (lenses, fields, lamps); Memory panel in lesson density; reg:pc; retires; c1/12-16 (drafts 06-08 re-cut). Riskiest assumption: hex and 4-byte shelves do not create a new cliff like the old lesson 06. Guardian playtest question: Can she say, with no total shown, which card a lamp pattern is, and where the second card of f starts?",
+    "issue_type": "epic",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+    "labels": [
+      "real-machine"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Real Machine Board Agent"
+    }
+  }
+}

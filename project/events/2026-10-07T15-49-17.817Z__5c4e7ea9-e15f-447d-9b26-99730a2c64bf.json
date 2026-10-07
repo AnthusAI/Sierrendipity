@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "5c4e7ea9-e15f-447d-9b26-99730a2c64bf",
+  "issue_id": "SIE-ea9233ef-538d-4b28-8243-bd1daa780c9e",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T15:49:17.817Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Lessons c3/01-02 (f of g, deeper)",
+    "description": "Acceptance: check --all green, STE clean; a fault exhibit when ra is not saved.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 3,
+    "assignee": null,
+    "parent": "SIE-9513600d-6fbf-4558-9248-4707c1a0987e",
+    "labels": [
+      "real-machine"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Real Machine Board Agent"
+    }
+  }
+}
