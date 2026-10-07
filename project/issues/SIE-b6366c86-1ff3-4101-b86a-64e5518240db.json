@@ -1,0 +1,27 @@
+{
+  "id": "SIE-b6366c86-1ff3-4101-b86a-64e5518240db",
+  "title": "R2: Questions that need thought: hide the answer, warm-ups with one inference, 'You said N' (S)",
+  "description": "Effort: S. Do first.\n\n**Problem.** Predictions and warm-ups can be answered by reading the screen.\n**Evidence.** Lesson 7 place (labels 32 16 8 4 2 1 visible); lesson 6 match-one ('Lit lamps add up to 3'); lesson 8 predict says 'the card subtracts'; warm-ups one-card, change-the-six, lamps-six, lamps-five contain the answer.\n**Change.** Hide the label or total the question is about; warm-ups need one inference (two cards, another box, an add); replies show 'You said N' and move the explanation after the watch; add a short line for a correct guess ('You called it').\n**Acceptance.**\n- Given a prediction scene, when the student answers, then the coach shows 'You said N' before the run and explains after.\n- Given a correct guess, then the coach acknowledges it.\n- Given each warm-up, then the answer is not in its own prompt.\n- Progress-store prediction accuracy lands near 60-85 percent in the pilot.",
+  "type": "story",
+  "status": "open",
+  "priority": 1,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-2f17ee43-d05a-465d-bf60-bd7e58cd141a",
+  "labels": [
+    "curriculum,review"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T12:26:46.252295Z",
+  "updated_at": "2026-10-07T12:26:46.252329Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Curriculum Board Agent"
+  },
+  "right_now_summary": "The team is refining predictions and warm-ups to hide answers and add clearer feedback.",
+  "right_now_updated_at": "2026-10-07T12:26:47.515375Z",
+  "custom": {}
+}

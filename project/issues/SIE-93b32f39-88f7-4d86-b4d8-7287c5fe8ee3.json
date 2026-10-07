@@ -4,22 +4,35 @@
   "description": "Instrument time per scene, idle over 60 s, hint rung and Show me use, prediction accuracy, resets, quit points, Next versus Stop, and an in-app too-easy/just-right/too-hard prompt plus one explain-back per lesson. Rule: if more than 20 percent of goals need rung 3 or Show me, or a lesson is abandoned twice, rewrite it first.",
   "type": "task",
   "status": "open",
-  "priority": 2,
+  "priority": 1,
   "assignee": null,
   "creator": null,
   "parent": "SIE-e8c91813-9ff5-4d5a-9ac2-ccef5abae556",
   "labels": [],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "72d2d89e-e427-423a-a7f1-fb4a15f217a3",
+      "author": "home",
+      "text": "Wave 0 playtest questions from the educator review (guardian section). One 15-minute session on lessons 01-05; keep the progress export. Settles the review's open disagreements (simplicity against challenge). Questions:\n1. In lessons 1 to 4, does she read the coach text, or select Continue without reading?\n2. Is she bored by lessons 1 to 5? At which lesson does she first look interested?\n3. Does she guess 57 for 5 + 7, or anything like it? (If not, the misconception list targets younger learners.)\n4. Does she type numbers in the card spinner, use plus and minus, or not find either?\n5. In lesson 6, what does she say the lamps are? Does she use the total line to answer?\n6. Does she try any bonus without being told it exists?\n7. Does she want to make something to show you? What would she want to make?\n8. Does she notice that Run became Step in lesson 6, and does it confuse her?\n9. Does she say f(x) or function by herself at any point?\n10. After how many minutes does she want to stop?\nEvidence to also pull from G13 (SIE-ca6273) once built: prediction accuracy (target 60-85 percent), rung 3 / Show me share (under 20 percent), time to first action (under 20 s). Questions 5 and 8 apply to the drafts only at ?draft=1.",
+      "created_at": "2026-10-07T12:30:00.113026Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Curriculum Board Agent"
+      }
+    }
+  ],
   "created_at": "2026-10-06T19:11:56.789278Z",
-  "updated_at": "2026-10-06T19:11:56.789322Z",
+  "updated_at": "2026-10-07T12:30:00.113051Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity-orchestrator"
   },
-  "right_now_summary": "Lessons 1–4 are being tested with one student while timing, help use, accuracy, resets, and quit points are tracked.",
-  "right_now_updated_at": "2026-10-06T19:11:59.280306Z",
+  "right_now_summary": "The team is preparing a solo playtest of lessons 1–5 and defining measures before writing more lessons.",
+  "right_now_updated_at": "2026-10-07T12:30:02.008736Z",
   "custom": {}
 }

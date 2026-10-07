@@ -4,7 +4,7 @@
   "description": "Part of M11 (SIE-e8c918). c1/19 abs value (D10 fork). c1/20 loop (D11 loop track). c1/21 boss: plot y=2x+1. Engine: G6 views D2, D10, D11; G7 jump cards; G12 alternates and side rooms (placed here as the first wave with a side-room need beyond overflow; adjust if needed).",
   "type": "epic",
   "status": "open",
-  "priority": 2,
+  "priority": 3,
   "assignee": null,
   "creator": null,
   "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
@@ -13,16 +13,29 @@
     "curriculum"
   ],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "c7f7f1c6-14e1-4b34-b532-5f486e4734f6",
+      "author": "home",
+      "text": "Scope change from the educator review. Source: docs/reviews/2026-10-07-educator-review.md; follow-up epic SIE-2f17ee. Priority lowered to P3: no new lessons before the pilot and the function lessons. G6a D2/D10/D11 (SIE-ec0165), G7 (SIE-0d46eb), G12 (SIE-0eccff) live here; G12 also carries the R7 optional challenges.",
+      "created_at": "2026-10-07T12:29:43.165305Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Curriculum Board Agent"
+      }
+    }
+  ],
   "created_at": "2026-10-07T11:52:40.346680Z",
-  "updated_at": "2026-10-07T11:52:40.346717Z",
+  "updated_at": "2026-10-07T12:29:43.165333Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "Claude Sonnet 5.5",
     "name": "Curriculum Board Agent"
   },
-  "right_now_summary": "Wave 5 covers four challenges, with G6, G7, and G12 handling views, jumps, alternates, and side rooms.",
-  "right_now_updated_at": "2026-10-07T11:52:41.412539Z",
+  "right_now_summary": "Wave 5 scope was reduced, with diagram views being defined and jump cards and side rooms still needing work.",
+  "right_now_updated_at": "2026-10-07T12:29:44.255337Z",
   "custom": {}
 }

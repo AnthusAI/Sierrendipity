@@ -13,16 +13,29 @@
     "curriculum"
   ],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "6ab0b375-ec33-42fc-a750-08435bc48647",
+      "author": "home",
+      "text": "Scope change from the educator review. Source: docs/reviews/2026-10-07-educator-review.md; follow-up epic SIE-2f17ee. Wave 0 now includes the S-effort follow-ups (SIE-b6366c R2, SIE-e8b3f1 R3, SIE-abddd5 R5, SIE-f3a064 R6, SIE-0da803 R8, SIE-ea3c06 R9, SIE-fb30b4 R11) before more lessons are authored, and the pilot (SIE-93b32f) gates new authoring. G13 guardian report is SIE-ca6273.",
+      "created_at": "2026-10-07T12:29:25.655735Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Curriculum Board Agent"
+      }
+    }
+  ],
   "created_at": "2026-10-07T11:52:21.388146Z",
-  "updated_at": "2026-10-07T11:52:21.388169Z",
+  "updated_at": "2026-10-07T12:29:25.655780Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "Claude Sonnet 5.5",
     "name": "Curriculum Board Agent"
   },
-  "right_now_summary": "The team is preparing lessons 01–05 for a student pilot and a G13 guardian report.",
-  "right_now_updated_at": "2026-10-07T11:52:23.586833Z",
+  "right_now_summary": "Wave 0 now includes educator follow-ups, with pilot lessons gating new authoring and the guardian report being defined.",
+  "right_now_updated_at": "2026-10-07T12:29:27.149605Z",
   "custom": {}
 }

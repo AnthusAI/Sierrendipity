@@ -1,0 +1,27 @@
+{
+  "id": "SIE-974c7488-07c1-4285-9a28-e94551cb9940",
+  "title": "G3: Custom cards in lesson format; move buildProgram into lesson-core (M; supersedes E14 SIE-576777)",
+  "description": "Supersedes E14 (SIE-576777): carry its scope here.\nAcceptance:\n- Given a lesson, a custom (saved) card can be a step input and a goal output in lesson.yaml.\n- buildProgram lives in lesson-core and is shared by CI and the browser.\n- Saved cards round-trip to the Gallery.\n- E14 is closed or linked as superseded.",
+  "type": "story",
+  "status": "open",
+  "priority": 1,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-4174f530-3b4c-49d2-8e92-86981ead4301",
+  "labels": [
+    "engine-gap,curriculum"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T12:28:00.371599Z",
+  "updated_at": "2026-10-07T12:28:00.371625Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Curriculum Board Agent"
+  },
+  "right_now_summary": "Custom cards are being added to lessons, while buildProgram moves into lesson-core.",
+  "right_now_updated_at": "2026-10-07T12:28:02.191172Z",
+  "custom": {}
+}

@@ -1,0 +1,27 @@
+{
+  "id": "SIE-0d46eb64-7283-42f0-8d44-f879c832b1ff",
+  "title": "G7: Jump cards with a visible target (M)",
+  "description": "Jump and branch cards show where they land.\nAcceptance:\n- Given a jump card, then its target card is highlighted in the card list.\n- When it runs, the highlight moves with the pc.\n- The card text names the target in STE.",
+  "type": "story",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-d042e0cc-5ca9-4cd9-9c01-f693178d175f",
+  "labels": [
+    "engine-gap,curriculum"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T12:28:23.858205Z",
+  "updated_at": "2026-10-07T12:28:23.858235Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Curriculum Board Agent"
+  },
+  "right_now_summary": "Jump and branch cards need to highlight their targets and name them in STE.",
+  "right_now_updated_at": "2026-10-07T12:28:25.463889Z",
+  "custom": {}
+}

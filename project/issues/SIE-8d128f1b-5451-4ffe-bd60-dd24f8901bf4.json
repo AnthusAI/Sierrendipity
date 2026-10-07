@@ -13,16 +13,29 @@
     "curriculum"
   ],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "b7f9bf25-2eda-47fb-8c3d-0ab1495ba587",
+      "author": "home",
+      "text": "Scope change from the educator review. Source: docs/reviews/2026-10-07-educator-review.md; follow-up epic SIE-2f17ee. The function lessons come first: c1/06-09 are now In order, Multiply, Make your own card, Use it again (SIE-148870 R1), built first with the existing builder, Save as card and Gallery. G2 (SIE-a18f8d, most important) and G1 (SIE-3d2389) follow. Priority P1.",
+      "created_at": "2026-10-07T12:29:29.292221Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Curriculum Board Agent"
+      }
+    }
+  ],
   "created_at": "2026-10-07T11:52:26.338419Z",
-  "updated_at": "2026-10-07T11:52:26.338443Z",
+  "updated_at": "2026-10-07T12:29:29.292247Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "Claude Sonnet 5.5",
     "name": "Curriculum Board Agent"
   },
-  "right_now_summary": "This issue defines two lessons on multiplication and function rules, prioritizing the G2 and G1 engines.",
-  "right_now_updated_at": "2026-10-07T11:52:27.436472Z",
+  "right_now_summary": "Function lessons are being built first with the existing builder; box pickers and rule checks come next.",
+  "right_now_updated_at": "2026-10-07T12:29:31.131998Z",
   "custom": {}
 }

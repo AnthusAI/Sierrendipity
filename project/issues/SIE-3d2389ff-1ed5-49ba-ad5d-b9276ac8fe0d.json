@@ -1,0 +1,27 @@
+{
+  "id": "SIE-3d2389ff-1ed5-49ba-ad5d-b9276ac8fe0d",
+  "title": "G1: Box pickers in lessons (S)",
+  "description": "Lesson steps can ask the student to pick a box (a0..a7) from a picker instead of typing a name.\nAcceptance:\n- Given a scene with a box picker, when the student picks a box, then the pick is recorded and checked by the scene.\n- The picker is keyboard operable and labelled in STE.\n- A lesson.yaml can declare it and npm run lesson -- check accepts it.",
+  "type": "story",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-8d128f1b-5451-4ffe-bd60-dd24f8901bf4",
+  "labels": [
+    "engine-gap,curriculum"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T12:27:51.494376Z",
+  "updated_at": "2026-10-07T12:27:51.494402Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Curriculum Board Agent"
+  },
+  "right_now_summary": "The lesson system is adding keyboard-accessible box pickers with scene checks and lesson.yaml support.",
+  "right_now_updated_at": "2026-10-07T12:27:53.470381Z",
+  "custom": {}
+}

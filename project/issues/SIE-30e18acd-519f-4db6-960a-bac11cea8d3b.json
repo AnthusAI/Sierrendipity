@@ -1,0 +1,27 @@
+{
+  "id": "SIE-30e18acd-519f-4db6-960a-bac11cea8d3b",
+  "title": "G10: Compiled-language lesson harness (L)",
+  "description": "A lesson harness that compiles student C with the runner and checks results in lessons.\nAcceptance:\n- Given a C lesson, the harness compiles, runs and checks expected output or registers.\n- npm run lesson -- check runs the reference solution through it.\n- Compile errors reach the student in STE.",
+  "type": "story",
+  "status": "open",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-9ad60edb-9dd2-456e-aab4-81d03ccec6a6",
+  "labels": [
+    "engine-gap,curriculum"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T12:28:39.200981Z",
+  "updated_at": "2026-10-07T12:28:39.201004Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Curriculum Board Agent"
+  },
+  "right_now_summary": "The team is building a harness to compile, run, and check C lesson solutions.",
+  "right_now_updated_at": "2026-10-07T12:28:40.984181Z",
+  "custom": {}
+}

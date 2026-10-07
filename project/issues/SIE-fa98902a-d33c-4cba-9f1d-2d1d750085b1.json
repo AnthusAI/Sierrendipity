@@ -13,16 +13,29 @@
     "curriculum"
   ],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "1e37baa8-8afc-49ea-a497-91039080a37a",
+      "author": "home",
+      "text": "Educator review note. Source: docs/reviews/2026-10-07-educator-review.md; follow-up epic SIE-2f17ee. No scope change; remains after Wave 7. Any new lesson here must follow the pilot and use fading (R6) and one optional challenge (R7).",
+      "created_at": "2026-10-07T12:29:51.569100Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Curriculum Board Agent"
+      }
+    }
+  ],
   "created_at": "2026-10-07T11:52:50.007871Z",
-  "updated_at": "2026-10-07T11:52:50.007905Z",
+  "updated_at": "2026-10-07T12:29:51.569122Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "Claude Sonnet 5.5",
     "name": "Curriculum Board Agent"
   },
-  "right_now_summary": "The work covers C++ mangling and Rust overflow handling, plus a second source pane and Rust panic text in STE.",
-  "right_now_updated_at": "2026-10-07T11:52:52.002058Z",
+  "right_now_summary": "Educator review keeps this work after Wave 7, with new lessons following the pilot’s fading approach and one optional",
+  "right_now_updated_at": "2026-10-07T12:29:52.944007Z",
   "custom": {}
 }

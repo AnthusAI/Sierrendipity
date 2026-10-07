@@ -13,16 +13,29 @@
     "curriculum"
   ],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "7442841f-ab6b-446b-96bd-68c302443f5a",
+      "author": "home",
+      "text": "Scope change from the educator review. Source: docs/reviews/2026-10-07-educator-review.md; follow-up epic SIE-2f17ee. No change in order; stays P3. Gaps: G6b D12 (SIE-7063b5), G8 (SIE-18b207), G9 (SIE-d36ef6).",
+      "created_at": "2026-10-07T12:29:46.087343Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Curriculum Board Agent"
+      }
+    }
+  ],
   "created_at": "2026-10-07T11:52:43.760625Z",
-  "updated_at": "2026-10-07T11:52:43.760656Z",
+  "updated_at": "2026-10-07T12:29:46.087388Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "Claude Sonnet 5.5",
     "name": "Curriculum Board Agent"
   },
-  "right_now_summary": "Building Course 2 typed assembly lessons with card names, editor inputs, function calls, and stack views.",
-  "right_now_updated_at": "2026-10-07T11:52:44.845328Z",
+  "right_now_summary": "Wave 6 Course 2 assembly work is being defined, including chips, the editor, stack view, accessibility, and errors.",
+  "right_now_updated_at": "2026-10-07T12:29:47.485695Z",
   "custom": {}
 }

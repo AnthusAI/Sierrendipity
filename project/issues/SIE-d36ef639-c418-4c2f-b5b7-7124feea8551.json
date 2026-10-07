@@ -1,0 +1,27 @@
+{
+  "id": "SIE-d36ef639-c418-4c2f-b5b7-7124feea8551",
+  "title": "G9: Editor stage with light CodeMirror 6, slot/region/file modes, STE error translator (L)",
+  "description": "An editor stage inside lessons using light CodeMirror 6 (not Monaco; see SIE-92f145).\nAcceptance:\n- Lesson scenes can use slot (one line), region (a block) or file modes.\n- Only the allowed range is editable.\n- Assembler errors are translated to STE messages by the error translator.\n- Bundle size stays small.",
+  "type": "story",
+  "status": "open",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-edce9a2c-9c0f-469c-b38f-efc1e5bf8d2f",
+  "labels": [
+    "engine-gap,curriculum"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T12:28:34.580584Z",
+  "updated_at": "2026-10-07T12:28:34.580630Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Curriculum Board Agent"
+  },
+  "right_now_summary": "The team is building a lightweight CodeMirror 6 editor with restricted editing and translated assembler errors.",
+  "right_now_updated_at": "2026-10-07T12:28:36.620324Z",
+  "custom": {}
+}
