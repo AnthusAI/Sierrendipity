@@ -1,10 +1,10 @@
-id: c1/07-counting-with-lamps
+id: c1/06-counting-with-lamps
 title: Counting with Lamps
 minutes: 5
 draft: true
 concepts:
   introduces: [binary-lamps]
-  requires: [card-flip]
+  requires: [numbers-on-cards]
 # One new idea (lamps are switches worth 1, 2, 4, 8 ...), one action (switch lamps to make a number).
 boxes: [a0]
 pointer: false
@@ -12,21 +12,31 @@ hideEnd: true
 starter:
   hex: ["0x00100513"]   # put 1 in box a0
 tabs: [cards, lamps]
+ui:
+  controls: [step, reset]
+  stepLabel: Run
+  resetLabel: Start again
+  log: true
+  deskTitle: false
+  endMarker: false
+  boxNames: false
+  spotlight: ring
+  spotlightAfterHint: true
 onWrongDefault:
   say: Look at the lamps again. Each lamp is worth double the lamp on its right.
   goto: look
 scenes:
   - id: look
-    say: Lamps are switches. Each lamp is worth double the lamp on its right.
+    say: Lamps are switches, and each lamp is a power of 2. Each lamp is worth double the lamp on its right.
     show: [D1, D4]
     lamps: { card: 0, of: number, width: 6 }
     spotlight: "tab:lamps"
-    lock: [edit, drag, toggle]
+    lock: [step, edit, drag, toggle]
 
   - id: place
-    say: The far right lamp is worth 1 and the next lamp is worth 2. What is the third lamp worth?
+    say: The far right lamp is worth 1 and the next lamp is worth 2. The labels are hidden now.
     show: [D4]
-    lamps: { card: 0, of: number, width: 6 }
+    lamps: { card: 0, of: number, width: 6, hide: [worth] }
     ask:
       kind: number
       question: What is the third lamp from the right worth?
@@ -49,7 +59,7 @@ scenes:
     lock: [edit, drag, toggle]
 
   - id: make-five
-    say: Switch lamps on until they make 5. Then select Step.
+    say: Switch lamps on until they make 5. Then select Run.
     show: [D1, D4]
     lamps: { card: 0, of: number, width: 6, allowedBits: [0, 1, 2], target: 5 }
     spotlight: "tab:lamps"
@@ -59,13 +69,13 @@ scenes:
     hints:
       - Which lamps make 5?
       - Five is 4 plus 1. Keep the lamp worth 1 and switch on the lamp worth 4.
-      - Switch on the lamp worth 4. Then select Step.
+      - Switch on the lamp worth 4. Then select Run.
     showMe: demo-five
     doneSay: The lamps worth 4 and 1 make 5. The box shows 5.
     lock: [edit, drag]
 
   - id: make-seven
-    say: Now make 7 with the lamps. Then select Step.
+    say: Now make 7 with the lamps. Then select Run.
     show: [D1, D4]
     lamps: { card: 0, of: number, width: 6, allowedBits: [0, 1, 2], target: 7 }
     spotlight: "tab:lamps"
@@ -75,7 +85,7 @@ scenes:
     hints:
       - Which lamp makes 5 into 7?
       - Seven is 4 plus 2 plus 1. Lamps 4 and 1 are on already.
-      - Switch on the lamp worth 2. Then select Step.
+      - Switch on the lamp worth 2. Then select Run.
     showMe: demo-seven
     doneSay: Lamps 4, 2 and 1 make 7.
     lock: [drag]
@@ -87,7 +97,7 @@ scenes:
     skippable: true
 
   - id: make-twelve
-    say: Make 12 with the lamps. Then select Step.
+    say: Make 12 with the lamps. Then select Run.
     show: [D1, D4]
     lamps: { card: 0, of: number, width: 6, allowedBits: [0, 1, 2, 3], target: 12 }
     spotlight: "tab:lamps"
@@ -97,13 +107,13 @@ scenes:
     hints:
       - Which lamps make 12?
       - Twelve is 8 plus 4. Lamps 2 and 1 must go dark.
-      - Switch on the lamp worth 8. Switch off the lamps worth 2 and 1. Then select Step.
+      - Switch on the lamp worth 8. Switch off the lamps worth 2 and 1. Then select Run.
     showMe: demo-twelve
     doneSay: Lamps 8 and 4 make 12.
     lock: [drag]
 
   - id: make-forty-two
-    say: Make 42 with the lamps. Then select Step.
+    say: Make 42 with the lamps. Then select Run.
     show: [D1, D4]
     lamps: { card: 0, of: number, width: 6, target: 42 }
     spotlight: "tab:lamps"
@@ -113,9 +123,9 @@ scenes:
     hints:
       - Which lamps make 42? Start with the biggest lamp that fits.
       - Forty-two is 32 plus 8 plus 2. The lamp worth 4 must go dark.
-      - Switch on the lamps worth 32 and 2. Switch off the lamp worth 4. Then select Step.
+      - Switch on the lamps worth 32 and 2. Switch off the lamp worth 4. Then select Run.
     showMe: demo-forty-two
-    doneSay: Lamps 32, 8 and 2 make 42. You can make any number this way.
+    doneSay: Lamps 32, 8 and 2 make 42. Six lamps can make any number up to 63.
     lock: [drag]
 nowYouCan:
   - Read lamps as a number.

@@ -110,6 +110,7 @@ full machine. Unknown keys and wrong types are errors.
 | `endMarker` | true or false | true | The "end of the list" row |
 | `boxNames` | true or false | true | The register name (a0) on each box. When false, text says "the box" instead of "box a0" |
 | `spotlight` | `ring` or `dim` | ring | A ring around the target, or a dimming spotlight |
+| `spotlightAfterHint` | boolean | false | Goal and question scenes show their spotlight only after the first hint |
 
 When Back is hidden, a run that misses the goal points at Reset (the `resetLabel`) instead of Back, and the idle Run button says "Select Start again first" until the student starts again. Reset is disabled, with the reason "Nothing to start again yet", until the machine has run something.
 Use the same label for a button in every sentence of the lesson: if `stepLabel` is `Run`, the text says "Run".
@@ -183,8 +184,8 @@ Back and Reset are always there. `cards` and `boxes` are tabs of the machine vie
 | --- | --- | --- |
 | `D1` | the clerk and boxes (the machine view) | none |
 | `D3` | the heartbeat: fetch, do, move on | none |
-| `D4` | bit lamps on one card, switchable | `lamps: { card, of?, width?, allowedBits?, lockedBits?, target? }` |
-| `D5` | one card that flips through its views | `flip: { card, lenses? }` (`card lamps hex assembly`) |
+| `D4` | bit lamps on one card, switchable | `lamps: { card, of?, width?, allowedBits?, lockedBits?, target?, hide? }` (`hide`: `worth`, `total`) |
+| `D5` | one card that flips through its views | `flip: { card, lenses? }` (`card lamps number hex assembly`; `number` is only the lamps of a put card's number) |
 | `D6` | the program counter walk, with addresses | none |
 | `D7` | adding two numbers in lamps, with the carry | `carry: { a, b }` |
 | `D8` | field bands on one card, each a button; its lamps switch | `bands: { card, allowedBits?, lockedBits? }` |
@@ -374,21 +375,21 @@ cards (all with `hideEnd: true`, no pointer arrow, no hex):
 | --- | --- | --- | --- | --- |
 | `01-press-the-button` | a card tells the machine what to do; press Step once (cannot fail) | put 5 in a0 | a0 | pass |
 | `02-change-the-number` | a card carries a number; spin it until the box shows 9 | put N in a0 | a0 | pass, another-way (any other number) |
-| `03-last-one-wins` | a later card replaces the box; predict 8 (wrong guesses 3 and 11 get specific replies) | put 3, put 8 in a0 | a0 | pass, called-it |
+| `03-last-one-wins` | a later card replaces the box; predict 8 (a wrong guess gets "You said N" and a pointer to watch) | put 3, put 8 in a0 | a0 | pass, called-it |
 | `04-two-boxes` | boxes keep their own numbers; change one card so a1 holds 9 | put 4 in a0, put 6 in a1 | a0, a1 | pass |
-| `05-add` | a card can add two boxes; predict 12 (wrong guess 57) | put 5, put 7, add into a2 | a0, a1, a2 | pass, called-it |
+| `05-add` | a card can add two boxes; predict 12 | put 5, put 7, add into a2 | a0, a1, a2 | pass, called-it |
 
 Each has solutions including deliberately wrong ones and a never-ending one that proves the step cap.
 
-Three more lessons are **drafts** (`draft: true`, not on the path; play them at `/learn/c1/06-flip-the-card?draft=1`
+Three more lessons are **drafts** (`draft: true`, not on the path; play them at `/learn/c1/07-flip-the-card?draft=1`
 in a dev or test build) and prove the new visuals. They follow the same rules (one idea, one action, at most three
 cards, at most two short sentences per scene, three free hints, a friendly `doneSay`):
 
 | Lesson | Idea and action | Cards | Uses |
 | --- | --- | --- | --- |
-| `06-flip-the-card` | a card is one big number; flip it to its lamps, then click the card that matches each lamp pattern | put 1, put 2, put 3 in a0 | `D5` flip, `D4` lamps, `click-target` on cards |
-| `07-counting-with-lamps` | lamps are switches worth 1, 2, 4 ...; make 5, 7, 12 and 42 with `of: number` lamps, with an optional carry peek | put 1 in a0 | `D4` with `allowedBits` and `target`, `D7` carry |
-| `08-inside-the-number` | the lamps of a card are bands with jobs; click the band that names the answer box, predict, then flip lamp 30 to turn add into subtract (a2 becomes 7); bonus `below-zero` shows -2 | put 9, put 2, add into a2 | `D8` bands, `click-target` on `band:rd`, `bands.allowedBits` |
+| `06-counting-with-lamps` | lamps are switches worth 1, 2, 4 ...; make 5, 7, 12 and 42 with `of: number` lamps, with an optional carry peek | put 1 in a0 | `D4` with `allowedBits` and `target`, `D7` carry |
+| `07-flip-the-card` | a card is one big number; flip it to its lamps, then click the card that matches each lamp pattern | put 1, put 2, put 3 in a0 | `D5` flip, `D4` lamps, `click-target` on cards |
+| `08-inside-the-number` | the lamps of a card are bands with jobs; click the band that names the answer box, choose what lamp 30 makes the card say, then flip lamp 30 to turn add into subtract (a2 becomes 7); bonus `below-zero` shows -2 | put 9, put 2, add into a2 | `D8` bands, `click-target` on `band:rd`, `bands.allowedBits` |
 
 `lessons/x1/` holds three more drafts that are test fixtures for the real stage: one scene for every picture
 (`01-diagrams`), the lamps, flip, bands and carry (`02-lamps`), and the builder with its Show me ghost (`03-builder`).

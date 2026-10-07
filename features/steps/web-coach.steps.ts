@@ -243,7 +243,13 @@ Then("the Now you can card lists {string}", async function (this: WebWorld, text
   await this.page.locator("[data-coach-end]", { hasText: text }).waitFor();
 });
 Then("the Now you can card shows what I made, {string}", async function (this: WebWorld, text: string) {
-  await this.page.locator("[data-coach-end] [data-coach-made]", { hasText: text }).waitFor();
+  await this.page.locator("[data-coach-end] [data-coach-made]", { hasText: `You made: ${text}` }).waitFor();
+});
+Then("the Now you can card shows what I ran, {string}", async function (this: WebWorld, text: string) {
+  await this.page.locator("[data-coach-end] [data-coach-made]", { hasText: `You ran: ${text}` }).waitFor();
+});
+Then("the Now you can card shows the stars {string}", async function (this: WebWorld, text: string) {
+  await this.page.locator("[data-coach-end] [data-coach-stars]", { hasText: text }).waitFor();
 });
 Then("the Now you can card offers {string} and {string}", async function (this: WebWorld, a: string, b: string) {
   await this.page.locator("[data-coach-end]").getByRole("button", { name: a, exact: true }).waitFor();

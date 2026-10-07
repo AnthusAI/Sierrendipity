@@ -9,8 +9,8 @@ Feature: Draft lessons stay out of the shipping course
   Scenario: The catalog lists the shipping lessons and no draft
     When I read the catalog of the real course
     Then the catalog lists "c1/05-add"
-    And the catalog does not list "c1/06-flip-the-card"
-    And the catalog does not list "c1/07-counting-with-lamps"
+    And the catalog does not list "c1/07-flip-the-card"
+    And the catalog does not list "c1/06-counting-with-lamps"
     And the catalog does not list "c1/08-inside-the-number"
     And the catalog does not list "x1/01-diagrams"
 
@@ -28,13 +28,13 @@ Feature: Draft lessons stay out of the shipping course
 
     Examples:
       | path                              |
-      | /learn/c1/06-flip-the-card        |
-      | /learn/c1/07-counting-with-lamps  |
+      | /learn/c1/07-flip-the-card        |
+      | /learn/c1/06-counting-with-lamps  |
       | /learn/x1/02-lamps                |
-      | /learn/c1/06-flip-the-card?draft=0 |
+      | /learn/c1/07-flip-the-card?draft=0 |
 
   Scenario: With ?draft=1 a draft plays in the real course on the real stage
-    When I open the real course at "/learn/c1/06-flip-the-card?draft=1"
+    When I open the real course at "/learn/c1/07-flip-the-card?draft=1"
     Then I see the heading "Flip the Card"
     And the stage is the real machine view
     When I press Continue

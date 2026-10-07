@@ -12,16 +12,26 @@ hideEnd: true
 starter:
   hex: ["0x00900513", "0x00200593", "0x00b50633"]   # put 9 in a0, put 2 in a1, add a0 and a1 into a2
 tabs: [cards, lamps]
+ui:
+  controls: [step, reset]
+  stepLabel: Run
+  resetLabel: Start again
+  log: true
+  deskTitle: false
+  endMarker: false
+  boxNames: true
+  spotlight: ring
+  spotlightAfterHint: true
 onWrongDefault:
-  say: Look at the bands again.
-  goto: look
+  say: Try it. Watch box a2.
+  goto: flip
 scenes:
   - id: look
-    say: The add card is one big number too. Its lamps have colored bands, and each band has a job.
+    say: A whole card is 32 lamps, not only a small number. Colored bands split the lamps into jobs.
     show: [D8]
     bands: { card: 2 }
     spotlight: "diagram:D8"
-    lock: [edit, drag, toggle]
+    lock: [step, edit, drag, toggle]
 
   - id: find-answer
     say: Each band has a label. Which band names the box for the answer?
@@ -55,35 +65,23 @@ scenes:
     lock: [edit, drag, toggle]
 
   - id: predict
-    say: With lamp 30 switched on, the add card turns into Subtract. What will box a2 hold when all three cards have run?
+    say: Lamp 30 is in the exact job band. It picks between add and its opposite.
     show: [D1, D8]
     bands: { card: 2 }
     ask:
-      kind: number
-      question: With lamp 30 on, the card subtracts. What will box a2 hold after all three cards?
-      answer: 7
+      kind: choice
+      question: With lamp 30 on, what will the card say?
+      choices: [Add, Subtract, Multiply]
+      answer: 1
     hints:
-      - Box a0 holds 9 and box a1 holds 2.
-      - Subtract takes the second box away from the first box.
-      - Nine minus 2 is 7.
-    onWrong:
-      - match: 11
-        say: That is what Add gives. Lamp 30 turns it into Subtract, so try it.
-        goto: flip
-      - match: 9
-        say: That is what box a0 holds. The card puts a new number in box a2, so try it.
-        goto: flip
-      - match: 2
-        say: That is what box a1 holds. The card puts a new number in box a2, so try it.
-        goto: flip
-      - match: -7
-        say: Subtract is 9 minus 2, not 2 minus 9. Try it.
-        goto: flip
+      - Which job is the opposite of add?
+      - The opposite of add is subtract.
+      - With lamp 30 on, the card says Subtract.
     showMe: demo-flip-bit
     lock: [edit, drag, toggle]
 
   - id: flip
-    say: Switch on lamp 30 of the add card, then select Step three times.
+    say: Switch on lamp 30 of the add card. Make box a2 hold 7.
     show: [D1, D8]
     bands: { card: 2, allowedBits: [30] }
     spotlight: "lamp:30"
@@ -94,13 +92,13 @@ scenes:
     hints:
       - Which lamp turns Add into Subtract?
       - Lamp 30 is in the band called exact job. Only that lamp can be switched.
-      - Switch on lamp 30, then select Step three times.
+      - Switch on lamp 30, then select Run three times.
     showMe: demo-flip-bit
     doneSay: One lamp turned Add into Subtract, and box a2 holds 7.
     lock: [edit, drag]
 
   - id: below-zero
-    say: "Bonus question: can a box go below zero? Change the 9 on card 1 to 0, then select Step three times."
+    say: "Bonus question: can a box go below zero? Change the 9 on card 1 to 0, then select Run three times."
     show: [D1]
     lock: [drag, toggle]
 nowYouCan:

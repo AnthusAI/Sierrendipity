@@ -80,7 +80,7 @@ function programOf(raw: unknown, where: string, errors: string[]): Program | und
   return { kind: "hex", text, words: r.words };
 }
 
-const UI_BOOLEANS = ["log", "deskTitle", "endMarker", "boxNames"] as const;
+const UI_BOOLEANS = ["log", "deskTitle", "endMarker", "boxNames", "spotlightAfterHint"] as const;
 
 /** The optional `ui` block: which parts of the machine the lesson shows. */
 function parseUi(input: unknown, errors: string[]): LessonUi | undefined {
@@ -90,7 +90,7 @@ function parseUi(input: unknown, errors: string[]): LessonUi | undefined {
     errors.push("lesson.yaml: ui must be a mapping");
     return undefined;
   }
-  unknownKeys(raw, ["controls", "stepLabel", "resetLabel", "log", "deskTitle", "endMarker", "boxNames", "spotlight"], "lesson.yaml ui", errors);
+  unknownKeys(raw, ["controls", "stepLabel", "resetLabel", "log", "deskTitle", "endMarker", "boxNames", "spotlight", "spotlightAfterHint"], "lesson.yaml ui", errors);
   const ui: LessonUi = {};
   if (raw.controls !== undefined) {
     const ok = Array.isArray(raw.controls) && raw.controls.length > 0 && raw.controls.every((c) => c === "step" || c === "back" || c === "reset");
@@ -145,7 +145,7 @@ const isWholeIn = (v: unknown, min: number, max: number): v is number => typeof 
 function parseLampSpec(raw: unknown, key: "lamps" | "bands", w: string, ctx: SceneCtx, errors: string[]): LampSpec | undefined {
   const where = `${w}: ${key}`;
   if (!isObj(raw)) return void errors.push(`${where} must be a mapping like { card: 0 }`);
-  unknownKeys(raw, key === "lamps" ? ["card", "of", "width", "allowedBits", "lockedBits", "target"] : ["card", "allowedBits", "lockedBits"], where, errors);
+  unknownKeys(raw, key === "lamps" ? ["card", "of", "width", "allowedBits", "lockedBits", "target", "hide"] : ["card", "allowedBits", "lockedBits"], where, errors);
   const n = errors.length;
   if (!isWholeIn(raw.card, 0, 1_000_000) || raw.card >= Math.max(ctx.cards, 1)) errors.push(`${where} card ${String(raw.card)} is not a card of this lesson (0 to ${Math.max(ctx.cards, 1) - 1})`);
   const spec: LampSpec = { card: raw.card as number };
@@ -162,6 +162,10 @@ function parseLampSpec(raw: unknown, key: "lamps" | "bands", w: string, ctx: Sce
       if (raw.of !== "number") errors.push(`${where} width only applies with of: number`);
       else if (!isWholeIn(raw.width, 1, 11)) errors.push(`${where} width must be a whole number from 1 to 11`);
       else spec.width = raw.width;
+    }
+    if (raw.hide !== undefined) {
+      if (!Array.isArray(raw.hide) || !raw.hide.every((h) => h === "worth" || h === "total")) errors.push(`${where} hide must be a list of worth and total`);
+      else spec.hide = raw.hide as ("worth" | "total")[];
     }
     if (raw.target !== undefined) {
       if (!isWholeIn(raw.target, 0, 0xffffffff)) errors.push(`${where} target must be a whole number`);

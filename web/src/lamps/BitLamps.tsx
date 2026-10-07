@@ -101,7 +101,7 @@ export function BitLamps({
               const band = bandOf?.(bit);
               const colours = band ? FIELD_CLASSES[band - 1] : undefined;
               const isLocked = !inert && locked(bit);
-              const name = `bit ${bit}, worth ${placeValue(bit)}`;
+              const name = labels ? `bit ${bit}, worth ${placeValue(bit)}` : `bit ${bit}`;
               return (
                 <div key={bit} data-bit={bit} data-coach-id={coachIds ? `lamp:${bit}` : undefined} className="flex w-6 flex-col items-center gap-0.5">
                   <button

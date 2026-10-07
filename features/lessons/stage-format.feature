@@ -8,6 +8,16 @@ Feature: Lesson fields for the real stage
     Given a valid test lesson
     And the known concepts are "machine, boxes"
 
+  Scenario: Number lamps may hide the worth labels and the total
+    When I replace "show: [cards]" with "show: [D4]\n    lamps: { card: 0, of: number, width: 6, hide: [worth, total] }" in "lesson.yaml"
+    And I load the lesson
+    Then the lesson loads
+
+  Scenario: A flip may offer only the number lamps
+    When I replace "show: [cards]" with "show: [D5]\n    flip: { card: 0, lenses: [card, number] }" in "lesson.yaml"
+    And I load the lesson
+    Then the lesson loads
+
   Scenario Outline: A scene may show <show>
     When I replace "show: [cards]" with "show: [<show>]" in "lesson.yaml"
     And I load the lesson
@@ -73,6 +83,7 @@ Feature: Lesson fields for the real stage
       | lamps unknown key         | show: [D4]\n    lamps: { card: 0, glow: 1 }                | unknown key "glow"                       |
       | lamps target not a number | show: [D4]\n    lamps: { card: 0, target: lots }           | target must be a whole number            |
       | number lamps too wide     | show: [D4]\n    lamps: { card: 0, of: number, width: 12 }  | width must be a whole number from 1 to 11 |
+      | lamps hide unknown part   | show: [D4]\n    lamps: { card: 0, of: number, hide: [glow] } | hide must be a list of worth and total   |
       | number lamps unknown of   | show: [D4]\n    lamps: { card: 0, of: soul }               | of must be word or number                |
       | flip without D5           | show: [cards]\n    flip: { card: 0 }                       | flip needs D5 in show                    |
       | flip unknown lens         | show: [D5]\n    flip: { card: 0, lenses: [card, mist] }    | unknown lens "mist"                      |

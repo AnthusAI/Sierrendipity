@@ -2,10 +2,10 @@
 
 A web-based coding tutor for a high-school student learning to program.
 
-- Languages: Python, C, C++
+- Lessons teach RISC-V machine code and assembly, then C and C++ (there are no Python lessons)
 - Browser IDE with small multi-file projects, usable from anywhere
 - Lessons are added one at a time by the tutor, the student, and Claude
-- Code runs on AWS: Python is executed, C/C++ is compiled and then executed
+- Code runs on AWS: the runner executes Python and compiles then executes C, C++ and Rust (the lessons themselves do not teach Python)
 
 ## What is live today
 

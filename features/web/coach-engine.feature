@@ -16,10 +16,10 @@ Feature: The coach engine never strands a student
       | c1/05-add                  |
 
   Scenario: A prediction made after the reveal is not a prediction
-    Given the engine plays "c1/03-last-one-wins"
-    When the student presses Step twice and then answers 8
+    Given the engine plays "x1/04-reveal"
+    When the student presses Step twice and then answers 5
     And the student presses Reset and Step twice
-    Then the lesson is passed once, without "called-it", and the concept "last-wins" is in box 1
+    Then the lesson is passed once, without "called-it", and the concept "cards" is in box 1
 
   Scenario: Published lessons are validated before the player uses them
     Given the published lesson "c1/01-press-the-button"

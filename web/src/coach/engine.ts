@@ -22,7 +22,13 @@ import { markStopShown, sessionInfo, type Clock } from "./clock";
 import { STUCK, StuckDetector, type StuckReason } from "./stuck";
 import type { EditVia, LiveView, StageControl } from "./types";
 
-export const DEFAULT_WRONG = "Let's watch what happens.";
+/** Plain-English names for the bonus stars the end card lists. */
+const STAR_NAMES: Record<string, string> = {
+  "called-it": "right on the first guess",
+  "another-way": "another way to do it",
+  "below-zero": "a box below zero",
+};
+export const DEFAULT_WRONG = "Watch what happens.";
 /** The most cards the builder may hand back (the same ceiling as the cards model). */
 const MAX_REPLACED_CARDS = 200;
 /** After the last ghost event, hold the picture this long so the student can read it. */
@@ -71,7 +77,7 @@ export interface PlayerState {
   stopSuggested: boolean;
   skipTourAsk: boolean;
   ask: Ask | null;
-  end: { made: string[]; values: string[]; nowYouCan: string[] } | null;
+  end: { verb: "ran" | "made"; made: string[]; values: string[]; stars: string[]; nowYouCan: string[] } | null;
   stopped: boolean;
 }
 
@@ -500,12 +506,14 @@ export class LessonEngine {
     const scene = this.scene()!;
     if (genuine) this.safe(() => this.store?.recordEvent(this.userId, { type: "prediction", lessonId: this.lesson.id, correct, concepts: this.lesson.concepts.introduces }));
     if (correct) {
-      this.complete(scene);
+      if (genuine && (scene.ask?.kind === "number" || scene.ask?.kind === "choice")) this.complete({ ...scene, doneSay: ["You called it.", scene.doneSay].filter(Boolean).join(" ") });
+      else this.complete(scene);
       return;
     }
     this.trigger(this.detector.failedCheck());
     const match = scene.onWrong.find((w) => w.match === given);
-    const reply = match?.say ?? this.lesson.onWrongDefault ?? DEFAULT_WRONG;
+    const explanation = match?.say ?? this.lesson.onWrongDefault ?? DEFAULT_WRONG;
+    const reply = scene.ask?.kind === "number" ? `You said ${given}. ${explanation}` : explanation;
     const gotoId = match ? match.goto : this.lesson.onWrongDefaultGoto;
     const target = gotoId ? this.lesson.scenes.findIndex((x) => x.id === gotoId) : this.sceneIndex + 1;
     if (target >= 0 && target < this.lesson.scenes.length && target !== this.sceneIndex) {
@@ -676,7 +684,8 @@ export class LessonEngine {
     // Stranded: the run is over, the goal does not hold, and no edit can change that. Back (or Reset when Back is hidden) is the way out.
     const stranded = !!showing && wayOut !== null && this.waiting(showing) === "until" && !view.canStep && view.steps > 0 && locked.includes("edit") && !locked.includes(wayOut) && !this.holds(showing.until, liveRunOf(this.live));
     const strandedButton = wayOut === "reset" ? this.lesson.ui?.resetLabel ?? "Reset" : "Back";
-    const spotlight = stranded ? `button:${wayOut}` : showing?.spotlight && (!this.tourSkipped || this.hintRung >= 1) ? showing.spotlight : null;
+    const fadesSpotlight = !!this.lesson.ui?.spotlightAfterHint && !!showing && this.waiting(showing) !== "continue";
+    const spotlight = stranded ? `button:${wayOut}` : showing?.spotlight && (!this.tourSkipped || this.hintRung >= 1) && (!fadesSpotlight || this.hintRung >= 1) ? showing.spotlight : null;
     const rung = this.hintRung;
     this.snapshot = {
       phase: this.phase,
@@ -712,6 +721,8 @@ export class LessonEngine {
   private endCard(): NonNullable<PlayerState["end"]> {
     const m = this.live.machine;
     return {
+      verb: this.cards.every((w, k) => w === this.lesson.starter.words[k]) && this.cards.length === this.lesson.starter.words.length ? "ran" : "made",
+      stars: [...this.bonusSeen].filter((s) => s !== "pass").map((s) => STAR_NAMES[s] ?? s.replace(/-/g, " ")),
       made: this.cards.map((w) => this.plain(describe(w).text)),
       values: this.lesson.boxes.map((name) => this.plain(`Box ${name} holds ${m.regs[registerNumber(name) ?? 0]! | 0}`)),
       nowYouCan: this.lesson.nowYouCan,

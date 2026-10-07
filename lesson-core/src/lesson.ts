@@ -35,6 +35,8 @@ export interface LampSpec {
   lockedBits?: number[];
   /** A number the student is asked to make; the stage shows it beside the lamps. */
   target?: number;
+  /** What to hide: the worth under each lamp, or the line with the total. The student reads the lamps instead. */
+  hide?: ("worth" | "total")[];
 }
 
 /** The card flip (D5): one card seen through its lenses. */
@@ -168,6 +170,8 @@ export interface LessonUi {
   boxNames?: boolean;
   /** How a scene's spotlight points: a ring that does not dim the page, or the dimming spotlight. Default ring. */
   spotlight?: "ring" | "dim";
+  /** Spotlights on goal and question scenes show only after the first hint. Default false. */
+  spotlightAfterHint?: boolean;
 }
 
 export type PublishedLesson = Omit<Lesson, "solutions"> & { format: 1 };
@@ -175,7 +179,7 @@ export type PublishedLesson = Omit<Lesson, "solutions"> & { format: 1 };
 export const TABS = ["cards", "lamps", "hex", "assembly", "boxes", "shelves", "screen", "output"] as const;
 /** Diagrams D1 to D14 plus the `timeline` scrubber and the program `builder`. */
 export const SHOWABLE = [...TABS, ...Array.from({ length: 14 }, (_, i) => `D${i + 1}`), "timeline", "builder"];
-export const LENSES = ["card", "lamps", "hex", "assembly"] as const;
+export const LENSES = ["card", "lamps", "number", "hex", "assembly"] as const;
 /** The field bands a card can show (`band:<field>` targets). */
 export const BAND_FIELDS = ["opcode", "rd", "rs1", "rs2", "funct3", "funct7", "imm", "shamt", "special"] as const;
 export const LOCKS = ["edit", "step", "back", "run", "reset", "drag", "toggle"] as const;

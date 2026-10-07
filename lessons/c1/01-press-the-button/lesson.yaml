@@ -23,21 +23,10 @@ ui:
   boxNames: false
   spotlight: ring
 scenes:
-  - id: meet
-    say: A computer does exactly what each instruction says, one at a time. Select Continue.
-    show: [cards, boxes]
-    lock: [step, edit, drag, toggle]
-
   - id: the-card
-    say: "This card is one instruction. It says: put 5 in the box."
+    say: "A computer does exactly what each instruction says, and this card says: put 5 in the box. Select Continue."
     show: [cards, boxes]
     spotlight: "card:0"
-    lock: [step, edit, drag, toggle]
-
-  - id: the-box
-    say: This is the box. Right now it is empty.
-    show: [cards, boxes]
-    spotlight: "box:a0"
     lock: [step, edit, drag, toggle]
 
   - id: press-step
@@ -51,29 +40,18 @@ scenes:
       - The card is an instruction. The Run button makes the computer follow it.
       - Select Run one time. Then look at the box.
     showMe: demo-step
-    doneSay: The box now holds 5.
+    doneSay: "The box now holds 5. Soon you will make your own card, like f(x) = x squared plus 1."
     lock: [edit, drag, toggle]
-
-  - id: did-it
-    say: The computer did what the card says. It put 5 in the box.
-    show: [cards, boxes]
-    spotlight: "box:a0"
-    lock: [step, edit, drag, toggle]
-
-  - id: big-idea
-    say: A program is a list of instructions that the computer follows. This program has only one instruction.
-    show: [cards, boxes]
-    lock: [step, edit, drag, toggle]
 nowYouCan:
   - Make a computer follow an instruction.
   - See what an instruction does to a box.
 warmups:
   - id: one-card
     concept: cards
-    question: "The card says: put 5 in the box. After you select Run, what does the box show?"
+    question: The number on the card is 2 less than 9. After you select Run, what does the box show?
     program:
       asm: |
-        addi a0, zero, 5
+        addi a0, zero, 7
     target: a0
-    expected: 5
+    expected: 7
 

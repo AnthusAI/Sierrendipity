@@ -31,7 +31,7 @@ Pixel display (proposal): 16x16 screen at addresses 1024 to 1279, one byte per p
 
 ## Revision (2026-10-06): the first lessons are much simpler
 
-Owner feedback: the early assignments must be much, much simpler. Rule for the early lessons: ONE new idea, ONE student action, at most THREE cards, about THREE minutes. The machine starts small (one box visible, no pointing arrow, no hex, no jargon) and parts appear only when a lesson needs them. The program's final `ebreak` is hidden and shown only as "the end of the list" until a later lesson introduces the Stop card.
+Owner feedback: the early assignments must be much, much simpler. Rule for the early lessons: ONE student action (the idea may be as rich as an Algebra 2 student can take), at most THREE cards, about THREE minutes. The machine starts small (one box visible, no pointing arrow, no hex, no jargon) and parts appear only when a lesson needs them. The program's final `ebreak` is hidden and shown only as "the end of the list" until a later lesson introduces the Stop card.
 
 New opening ladder, replacing the old lessons 1 to 3:
 

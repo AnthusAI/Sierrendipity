@@ -32,17 +32,17 @@ const AUTO: Record<string, (w: WebWorld) => Promise<void>> = {
   place: async (w) => answer(w, "4"),
   "find-answer": async (w) => void (await coachId(w, "band:rd").click()),
   bands: async (w) => void (await coachId(w, "band:rd").click()),
-  predict: async (w) => answer(w, "7"),
+  predict: async (w) => void (await w.page.locator("[data-coach-panel]").getByRole("button", { name: "Subtract", exact: true }).click()),
   "match-one": async (w) => void (await coachId(w, "card:2").click()),
   "match-two": async (w) => void (await coachId(w, "card:0").click()),
   "match-three": async (w) => void (await coachId(w, "card:1").click()),
   "make-five": async (w) => {
     await lamp(w, 2).click();
-    await named(w, "Step").click();
+    await named(w, "Run").click();
   },
   "make-seven": async (w) => {
     await lamp(w, 1).click();
-    await named(w, "Step").click();
+    await named(w, "Run").click();
   },
 };
 
@@ -253,6 +253,15 @@ Then("the lamps name the card {string}", async function (this: WebWorld, text: s
 });
 Then("the lamps add up to {int}", async function (this: WebWorld, n: number) {
   await this.page.locator("[data-lesson-player] [data-total]", { hasText: `add up to ${n}` }).waitFor();
+});
+Then("the lamps show no total", async function (this: WebWorld) {
+  await this.page.locator("[data-lesson-player] [data-bit]").first().waitFor();
+  assert.equal(await this.page.locator("[data-lesson-player] [data-total]").count(), 0);
+});
+Then("the lamps show no worth labels", async function (this: WebWorld) {
+  await this.page.locator("[data-lesson-player] [data-bit]").first().waitFor();
+  assert.equal(await this.page.locator("[data-lesson-player] [data-place]").count(), 0);
+  assert.equal(await this.page.locator("[data-lesson-player] [data-bit] button[aria-label*='worth']").count(), 0);
 });
 Then("the lamps ask for a target of {int}", async function (this: WebWorld, n: number) {
   await this.page.locator("[data-lesson-player] [data-lamps-target]", { hasText: String(n) }).waitFor();

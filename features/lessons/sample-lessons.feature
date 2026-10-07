@@ -18,11 +18,11 @@ Feature: The five sample lessons of Course 1
 
     Examples:
       | id                       | scenes | cards | boxes      |
-      | c1/01-press-the-button   | 6      | 1     | a0         |
-      | c1/02-change-the-number  | 3      | 1     | a0         |
-      | c1/03-last-one-wins      | 4      | 2     | a0         |
-      | c1/04-two-boxes          | 4      | 2     | a0, a1     |
-      | c1/05-add                | 5      | 3     | a0, a1, a2 |
+      | c1/01-press-the-button   | 2      | 1     | a0         |
+      | c1/02-change-the-number  | 2      | 1     | a0         |
+      | c1/03-last-one-wins      | 2      | 2     | a0         |
+      | c1/04-two-boxes          | 2      | 2     | a0, a1     |
+      | c1/05-add                | 3      | 3     | a0, a1, a2 |
 
   Scenario: The boxes and ideas appear one at a time
     Given the lesson "c1/04-two-boxes"
@@ -59,18 +59,17 @@ Feature: The five sample lessons of Course 1
     And the solution "wrong-two-cards.hex" earned "nothing" in 2 steps with 2 cards
     And the solution "forever.s" was stopped by the step cap
 
-  Scenario Outline: Anticipated wrong answers get a specific kind reply, and everything else a fallback
+  Scenario Outline: A wrong answer says what the student guessed and sends her to watch the machine
     Given the lesson "<id>"
     Then the lesson loads from disk
     And the scene "predict" asks for the number <answer> for "<box>"
-    And the scene "predict" has a reply for each wrong guess "<guesses>"
     And no reply says "Close"
-    And the lesson has the fallback reply "Watch what happens."
+    And the lesson has the fallback reply "<fallback>"
 
     Examples:
-      | id                  | answer | box | guesses          |
-      | c1/03-last-one-wins | 8      | a0  | 3, 11, 38, 5, 0  |
-      | c1/05-add           | 12     | a2  | 57, 5, 7, 0, 35  |
+      | id                  | answer | box | fallback         |
+      | c1/03-last-one-wins | 8      | a0  | Watch the box.   |
+      | c1/05-add           | 12     | a2  | Watch box a2.    |
 
   Scenario Outline: Goal scenes confirm in friendly words, not in test-log words
     Given the lesson "<id>"
@@ -85,11 +84,9 @@ Feature: The five sample lessons of Course 1
       | c1/04-two-boxes         |
       | c1/05-add               |
 
-  Scenario: Lesson 3 replies to adding and to digits side by side
+  Scenario: Lesson 3 ends with 8 whatever the student guessed
     Given the lesson "c1/03-last-one-wins"
     Then the lesson loads from disk
-    And the scene "predict" answers a guess of 11 with a "replaces" reply that goes to "watch"
-    And the scene "predict" answers a guess of 3 with a "second card" reply that goes to "watch"
     When the starter program runs
     Then the phrase "the box shows 8" passes
     And every scene condition holds at the end
@@ -115,13 +112,11 @@ Feature: The five sample lessons of Course 1
     And the solution "wrong-both.hex" earned "nothing" in 2 steps with 2 cards
     And the solution "forever.s" was stopped by the step cap
 
-  Scenario: Lesson 5 is the add lesson with the anticipated wrong answer 57
+  Scenario: Lesson 5 is the add lesson
     Given the lesson "c1/05-add"
     Then the lesson loads from disk
     And the starter is the cards "0x00500513 0x00700593 0x00b50633"
     And the scene "predict" asks for the number 12 for "a2"
-    And the scene "predict" answers a guess of 57 with a "adds them" reply that goes to "watch-add"
-    And the scene "predict" answers a guess of 35 with a "5 times 7" reply that goes to "watch-add"
     When the starter program runs
     Then the phrase "box a2 holds 12" passes
     And the phrase "the machine has taken 3 steps" passes
@@ -167,8 +162,8 @@ Feature: The five sample lessons of Course 1
   Scenario: The lessons say Continue where a scene waits for it and name the boxes
     Given the lesson "c1/01-press-the-button"
     Then the lesson loads from disk
-    And the scene "meet" says "Continue"
+    And the scene "the-card" says "Continue"
     Given the lesson "c1/04-two-boxes"
     Then the lesson loads from disk
-    And the scene "look" says "name"
+    And the scene "run" says "name"
     And the lesson doc says that last one wins holds for put cards, not for add

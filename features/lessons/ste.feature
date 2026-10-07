@@ -57,3 +57,6 @@ Feature: Lesson text follows Simplified Technical English
 
   Scenario: Every lesson written for students passes
     Then every lesson on disk has no Simplified Technical English problem
+
+  Scenario: The coach and warm-up screens follow the same rule
+    Then the interface text in "web/src/coach" and "web/src/course/WarmupCard.tsx" has no contraction

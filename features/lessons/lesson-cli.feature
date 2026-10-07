@@ -61,12 +61,12 @@ Feature: The lesson authoring CLI and the CI gate
   Scenario: The authored draft lessons are checked and kept out of the catalog
     When I run the lesson CLI with "check --all"
     Then the CLI exits with 0
-    And the CLI output mentions "ok   c1/06-flip-the-card"
-    And the CLI output mentions "ok   c1/07-counting-with-lamps"
+    And the CLI output mentions "ok   c1/07-flip-the-card"
+    And the CLI output mentions "ok   c1/06-counting-with-lamps"
     And the CLI output mentions "ok   c1/08-inside-the-number"
     When I build the catalog of the real lessons
     Then the catalog lists the lesson "c1/05-add"
-    And the catalog does not list the lesson "c1/06-flip-the-card"
+    And the catalog does not list the lesson "c1/07-flip-the-card"
 
   Scenario: Building a lesson that does not exist fails cleanly
     Given a scratch lessons folder holding the valid test lesson as "c1/99-test"

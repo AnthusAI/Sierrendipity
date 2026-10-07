@@ -20,14 +20,10 @@ ui:
   endMarker: false
   boxNames: true
   spotlight: ring
+  spotlightAfterHint: true
 scenes:
-  - id: look
-    say: There are two boxes now, named a0 and a1. Select Continue.
-    show: [cards, boxes]
-    spotlight: "box:a1"
-
   - id: run
-    say: Select Run two times. Each card fills its own box.
+    say: "A box is like a variable: it has a name and holds a number. Make box a0 hold 4 and box a1 hold 6."
     show: [cards, boxes]
     spotlight: "button:step"
     until:
@@ -43,7 +39,7 @@ scenes:
     lock: [edit, drag, toggle]
 
   - id: change
-    say: Change one card so that box a1 holds 9. Then select Run two times.
+    say: Change one card so that box a1 holds 9. Box a0 keeps its number.
     show: [cards, boxes]
     spotlight: "card:1"
     until:
@@ -56,22 +52,19 @@ scenes:
       - Each card fills the box it names. Look at the second card.
       - Change the number on the second card to 9. Then select Run two times.
     showMe: demo-spin-second
-    doneSay: You changed one card. Only one box changed.
+    doneSay: You changed one card, and only one box changed. Each box keeps its own number.
     lock: [drag, toggle]
-
-  - id: done
-    say: Each box keeps its own number, so one card changes only one box. Select Continue.
-    show: [cards, boxes]
 nowYouCan:
   - Tell the boxes apart by their names.
   - Change the card that fills the box you want.
 warmups:
   - id: fill-two
     concept: two-boxes
-    question: "The cards say: put 1 in box a0. Put 2 in box a1. What does box a1 hold at the end?"
+    question: "The cards say: put 1 in box a0. Put 2 in box a1. Put 8 in box a0. What does box a1 hold at the end?"
     program:
       asm: |
         addi a0, zero, 1
         addi a1, zero, 2
+        addi a0, zero, 8
     target: a1
     expected: 2

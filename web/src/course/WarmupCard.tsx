@@ -81,7 +81,7 @@ export function WarmupCard({ picked, onAnswer, onDone, autoFocus = true }: { pic
           )}
           <div>
             <Button ref={done} className="h-9 px-4" variant={result.correct ? "default" : "outline"} onClick={onDone}>
-              {result.correct ? "Done" : "Got it"}
+              {result.correct ? "Done" : "Close"}
             </Button>
           </div>
         </div>

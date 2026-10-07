@@ -5,8 +5,8 @@ Condensed from a learning-design review (2026-10-06). Pedagogy and ISA facts the
 ## Stance
 
 - Order: machine code first, but as a short microworld with a visible effect (a 16x16 pixel display at memory-mapped addresses), so there is a turtle-like payoff. The student unlocks the assembler as a reward after hand-encoding a few instructions.
-- Each course ends with a "window" lesson: the same idea one level up (Python or C next to the instructions the student wrote by hand).
-- A parallel Workshop track of native Python, C and C++ practice problems runs from week one so problem-solving payoff never waits.
+- Each course ends with a "window" lesson: the same idea one level up (C next to the instructions the student wrote by hand). There are no Python lessons (`course-1-design.md`).
+- A parallel Workshop track of native C and C++ practice problems starts with C in Course 4, so problem-solving payoff follows the machine ideas it needs.
 - SICP itself starts in Scheme and reaches register machines in chapter 5; machine-code-first was the instructors' choice. Patt and Patel (LC-3) is the closest published precedent.
 - Run a one or two week pilot with the student before building much beyond lesson 1.1. Measure bonuses attempted without prompting, prediction accuracy, explain-back, and "want another one?". If the C-first contrast session wins, reorder; the lesson format and tools carry over.
 
@@ -20,7 +20,7 @@ Condensed from a learning-design review (2026-10-06). Pedagogy and ISA facts the
 6. C++: Same Machine, More Words (compile-and-show; STL work runs natively).
 7. Rust, the Compiler as Coach (later).
 
-Python is the familiar side of window lessons and the language for tool-building exercises (an `encode_addi` function, then a disassembler).
+Tool-building exercises (an `encode_addi` function, then a disassembler) use C.
 
 ## Gamification
 

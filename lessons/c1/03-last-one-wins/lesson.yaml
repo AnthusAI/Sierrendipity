@@ -21,15 +21,11 @@ ui:
   boxNames: false
   spotlight: ring
 onWrongDefault:
-  say: Watch what happens.
+  say: Watch the box.
   goto: watch
 scenes:
-  - id: look
-    say: There are two cards now, and both put a number in the same box. Select Continue.
-    show: [cards, boxes]
-
   - id: predict
-    say: The machine follows both cards, one after the other. What does the box hold at the end?
+    say: Two cards put a number in the same box, one after the other. What does the box hold at the end?
     show: [cards, boxes]
     spotlight: "box:a0"
     ask:
@@ -41,22 +37,6 @@ scenes:
       - Which card does the machine follow last?
       - Each card puts its number in the same box. The new number replaces the old number.
       - The last card puts 8 in the box.
-    onWrong:
-      - match: 3
-        say: The first card put in that number. The second card runs after it.
-        goto: watch
-      - match: 11
-        say: These cards do not add. The second number replaces the first number.
-        goto: watch
-      - match: 38
-        say: The box holds one number, not two. The second number replaces the first.
-        goto: watch
-      - match: 5
-        say: These cards do not subtract. The second number replaces the first.
-        goto: watch
-      - match: 0
-        say: The box is not empty at the end. Each card puts in a number.
-        goto: watch
     lock: [edit, drag, toggle]
 
   - id: watch
@@ -71,12 +51,8 @@ scenes:
       - Each selection follows one card. The second card comes after the first card.
       - After two selections, the box shows 8.
     showMe: demo-step-twice
-    doneSay: Both cards ran. The box ends with 8.
+    doneSay: Both cards ran, and the box ends with 8. The second number replaced the first, so the last card wins.
     lock: [edit, drag, toggle]
-
-  - id: done
-    say: When cards put numbers in the same box, the last card wins. Select Continue to finish.
-    show: [cards, boxes]
 nowYouCan:
   - Guess what a list of cards will do.
   - Know that the last card to run wins.
