@@ -183,3 +183,12 @@ runs only those. Tagged `@docker` and run with `npm run test:docker` (builds
   (`features/explorer/docker/riscv_test.h`, `link.ld`) and run in `Machine`; pass means `exit(0)`.
   Skipped: `fence_i` (Zifencei and self-modifying code) and `ma_data` (needs a trap handler for
   misaligned accesses; the Machine faults instead).
+
+## Session
+
+`explorer/src/session.ts` wraps a `Timeline` over a `Machine` as the one model behind every view: step, back,
+reset, history, and the registers, memory and pc at the current position (`session.machine`). The lesson `Live`
+(`lesson-core` `startLive`, `pressStep`, `pressBack`) owns a `Session`, and the web `RealStage` draws that same
+session through `useMachineTimeline({ session })`, so there is no shadow timeline and no `useFollow`. Lesson
+programs use 64 KiB of memory and record at most 2,000 steps. The IDE `Emulator` still has its own driver; moving
+it onto `Session` is a follow-up (wave W8).

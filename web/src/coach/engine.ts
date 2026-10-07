@@ -659,6 +659,7 @@ export class LessonEngine {
     const scene = this.phase === "scene" ? this.scene() : null;
     const goalMissed = !demo && !!scene && this.waiting(scene) === "until" && finished(live) && !this.holds(scene.until, liveRunOf(live));
     return {
+      session: live.session,
       cards: live.words.slice(0, live.cards),
       boxes: this.lesson.boxes.map((name) => ({ name, value: m.regs[registerNumber(name) ?? 0]! | 0 })),
       pointer: this.lesson.pointer && !over ? m.pc / 4 : null,

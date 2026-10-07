@@ -1,4 +1,4 @@
-import { decode, Machine, registerName, type StepResult } from "@sierrendipity/explorer";
+import { decode, fromWords, Machine, registerName, Session, type MachineView, type StepResult } from "@sierrendipity/explorer";
 
 /** Something the student did in the UI, recorded as a fact for lesson conditions. */
 export type LessonEvent =
@@ -9,7 +9,7 @@ export type LessonEvent =
 
 /** A machine plus everything recorded about how it got where it is. Plain data: pure and no DOM. */
 export interface LessonRun {
-  machine: Machine;
+  machine: MachineView;
   /** The program loaded at address 0: one word per card, plus the hidden end marker when `hideEnd` was used. */
   words: number[];
   /** How many cards the student sees: `words` without the hidden end marker. */
@@ -195,7 +195,10 @@ export function liveRun(
 
 /** A machine the student is stepping through, for the player and for specs. */
 export interface Live {
-  machine: Machine;
+  /** The one session behind every view: the player, the checker and the stage all read it. */
+  session: Session;
+  /** The session's machine as it stands at the current position. */
+  readonly machine: MachineView;
   cards: number;
   hideEnd: boolean;
   words: number[];
@@ -203,35 +206,50 @@ export interface Live {
   facts: Partial<Omit<LessonRun, "machine" | "steps" | "cards" | "words">>;
 }
 
-export function startLive(cards: number[], opts: { hideEnd?: boolean; memorySize?: number } = {}): Live {
+/** Most steps a live machine records: a runaway program is cut off quickly (the stage's long-standing limit). */
+export const LIVE_MAX_STEPS = 2000;
+
+export function startLive(cards: number[], opts: { hideEnd?: boolean; memorySize?: number; maxSteps?: number } = {}): Live {
   const hideEnd = opts.hideEnd === true;
   const words = hideEnd ? [...cards, STOP_WORD] : [...cards];
-  const machine = new Machine({ memorySize: opts.memorySize ?? 65536 });
-  const image = new Uint8Array(words.length * 4);
-  words.forEach((w, i) => new DataView(image.buffer).setUint32(i * 4, w >>> 0, true));
-  machine.load(image, 0, 0);
-  autoStop(machine, cards.length, hideEnd);
-  return { machine, cards: cards.length, hideEnd, words, facts: {} };
+  const session = new Session(fromWords(words, { memorySize: opts.memorySize ?? 65536 }), { hideEnd, maxSteps: opts.maxSteps ?? LIVE_MAX_STEPS });
+  return {
+    session,
+    get machine() {
+      return session.machine;
+    },
+    cards: cards.length,
+    hideEnd,
+    words,
+    facts: {},
+  };
 }
 
 /** One student Step: runs the next card, then the hidden Stop if that was the last card. Null when the machine cannot step. */
 export function pressStep(live: Live): StepResult | null {
-  const m = live.machine;
-  if (m.state !== "ready" && m.state !== "running") return null;
-  const r = m.step();
-  autoStop(m, live.cards, live.hideEnd);
-  return r;
+  return live.session.stepForward();
 }
 
 /** One student Back: undoes the last visible step (and the hidden Stop with it). False at the start. */
 export function pressBack(live: Live): boolean {
-  const m = live.machine;
-  if (visibleSteps(m, live.cards, live.hideEnd) === 0) return false;
-  if (markerRan(m, live.cards, live.hideEnd)) m.stepBack();
-  return m.stepBack();
+  return live.session.stepBackward();
 }
 
-export const liveRunOf = (live: Live): LessonRun => liveRun(live.machine, { ...live.facts, words: live.words, hideEnd: live.hideEnd });
+export function liveRunOf(live: Live): LessonRun {
+  return {
+    output: "",
+    predictions: {},
+    events: [],
+    executed: [],
+    laps: 0,
+    hitStepCap: false,
+    ...live.facts,
+    words: live.words,
+    cards: live.cards,
+    machine: live.session.machine,
+    steps: live.session.steps,
+  };
+}
 
 /** Static mnemonics of a program; words that are not valid cards are skipped. */
 export function mnemonicsOf(words: number[]): string[] {
