@@ -66,6 +66,8 @@ export interface Scene {
   showMe?: string;
   lock: string[];
   skippable: boolean;
+  /** From this scene on, a screen reader is told about the glass line (needs ui.glass). Until then it is hidden from assistive tools. */
+  glassNamed?: boolean;
   /** D4 bit lamps on a card. */
   lamps?: LampSpec;
   /** D8 field bands on a card (the bands carry their lamps). */
@@ -168,6 +170,8 @@ export interface LessonUi {
   endMarker?: boolean;
   /** The small register name (a0) on each box. Default true. */
   boxNames?: boolean;
+  /** The faint "glass" line under each card: its real assembly and machine word. Default false. */
+  glass?: boolean;
   /** How a scene's spotlight points: a ring that does not dim the page, or the dimming spotlight. Default ring. */
   spotlight?: "ring" | "dim";
   /** Spotlights on goal and question scenes show only after the first hint. Default false. */
@@ -210,6 +214,8 @@ export function knownTarget(target: string, ctx: { boxes: string[]; tabs: string
     case "button":
       return (UI_BUTTONS as readonly string[]).includes(name);
     case "card":
+      return /^\d+$/.test(name) && Number(name) < Math.max(ctx.cards, 1);
+    case "glass":
       return /^\d+$/.test(name) && Number(name) < Math.max(ctx.cards, 1);
     case "box":
       return ctx.boxes.includes(name);

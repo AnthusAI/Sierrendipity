@@ -78,7 +78,7 @@ exact count would be overshot by one extra press, scenes may not use exact step 
 **Boxes are enforced.** Every register named by the starter, solutions, warm-ups, `until`, `ask.target` and
 `spotlight: box:` must be in `boxes`; duplicates are rejected; `show` entries that are tabs (`screen`, `hex`, ...)
 must be in `tabs`. Spotlight targets and ghost `point` targets must be real UI targets: `button:step|back|run|pause|reset`,
-`card:<n>` (an existing card), `box:<one of boxes>`, `tab:<one of tabs>`, `diagram:D1`..`D14`, and the parts of the
+`card:<n>` (an existing card), `glass:<n>` (the glass line under that card; needs `ui.glass: true`, for scene spotlights and for ghost `point` targets), `box:<one of boxes>`, `tab:<one of tabs>`, `diagram:D1`..`D14`, and the parts of the
 real stage: `band:<field>` (`opcode rd rs1 rs2 funct3 funct7 imm shamt special`), `lamp:<0-31>`, `flip` (the card flip)
 and `tray` (the builder's tray). The real stage gives each of them a `data-coach-id` (see `docs/ui-design.md`).
 
@@ -109,6 +109,7 @@ full machine. Unknown keys and wrong types are errors.
 | `deskTitle` | true or false | true | The "The desk" heading |
 | `endMarker` | true or false | true | The "end of the list" row |
 | `boxNames` | true or false | true | The register name (a0) on each box. When false, text says "the box" instead of "box a0" |
+| `glass` | true or false | false | A faint one-line "glass" under each card: the card's real assembly and its machine word in hex (for example `addi a0, zero, 9 · 0x00900513`). It updates when the number changes. The line is hidden from screen readers until a scene sets `glassNamed: true` (see the scene table); introduce it there in one short sentence, with the term "the machine's own text" (c1/02) |
 | `spotlight` | `ring` or `dim` | ring | A ring around the target, or a dimming spotlight |
 | `spotlightAfterHint` | boolean | false | Goal and question scenes show their spotlight only after the first hint |
 
@@ -150,6 +151,7 @@ The checker is in `lesson-core/src/ste.ts`.
   ifMissed: The box shows the number from the card. Change the card, then select Run.   # optional, see below
   lock: [edit, drag, toggle]        # UI controls disabled in this scene
   skippable: true
+  glassNamed: true                  # optional, needs ui.glass: from this scene on, screen readers hear the glass line
 ```
 
 - `ask` kinds: `number` (`answer`, optional `target` box), `choice` (`choices`, `answer` index),

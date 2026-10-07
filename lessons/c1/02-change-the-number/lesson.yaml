@@ -19,6 +19,7 @@ ui:
   deskTitle: false
   endMarker: false
   boxNames: false
+  glass: true
   spotlight: ring
 scenes:
   - id: change
@@ -39,7 +40,13 @@ scenes:
     lock: [drag, toggle]
 
   - id: another
-    say: You changed what the machine does with one number. Try a different number, then select Run.
+    say: Try a different number, then select Run. Under the card is the machine's own text for it.
+    show: [cards, boxes]
+    skippable: true
+    glassNamed: true
+
+  - id: spot-it
+    say: Which part of that text changes when you change the number?
     show: [cards, boxes]
     skippable: true
 nowYouCan:

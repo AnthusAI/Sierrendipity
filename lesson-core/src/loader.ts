@@ -80,7 +80,7 @@ function programOf(raw: unknown, where: string, errors: string[]): Program | und
   return { kind: "hex", text, words: r.words };
 }
 
-const UI_BOOLEANS = ["log", "deskTitle", "endMarker", "boxNames", "spotlightAfterHint"] as const;
+const UI_BOOLEANS = ["log", "deskTitle", "endMarker", "boxNames", "glass", "spotlightAfterHint"] as const;
 
 /** The optional `ui` block: which parts of the machine the lesson shows. */
 function parseUi(input: unknown, errors: string[]): LessonUi | undefined {
@@ -90,7 +90,7 @@ function parseUi(input: unknown, errors: string[]): LessonUi | undefined {
     errors.push("lesson.yaml: ui must be a mapping");
     return undefined;
   }
-  unknownKeys(raw, ["controls", "stepLabel", "resetLabel", "log", "deskTitle", "endMarker", "boxNames", "spotlight", "spotlightAfterHint"], "lesson.yaml ui", errors);
+  unknownKeys(raw, ["controls", "stepLabel", "resetLabel", "log", "deskTitle", "endMarker", "boxNames", "glass", "spotlight", "spotlightAfterHint"], "lesson.yaml ui", errors);
   const ui: LessonUi = {};
   if (raw.controls !== undefined) {
     const ok = Array.isArray(raw.controls) && raw.controls.length > 0 && raw.controls.every((c) => c === "step" || c === "back" || c === "reset");
@@ -208,7 +208,7 @@ function parseScene(raw: unknown, i: number, ctx: SceneCtx, errors: string[]): S
   if (typeof id !== "string" || !/^[a-z0-9-]+$/.test(id)) return void errors.push(`scenes[${i}]: id must be a lowercase slug`);
   const w = `scene "${id}"`;
   const n = errors.length;
-  unknownKeys(raw, ["id", "say", "doneSay", "ifMissed", "show", "spotlight", "ask", "until", "onWrong", "hints", "showMe", "lock", "skippable", "lamps", "bands", "flip", "carry", "tray"], w, errors);
+  unknownKeys(raw, ["id", "say", "doneSay", "ifMissed", "show", "spotlight", "ask", "until", "onWrong", "hints", "showMe", "lock", "skippable", "glassNamed", "lamps", "bands", "flip", "carry", "tray"], w, errors);
 
   const say = raw.say;
   if (!isStr(say)) errors.push(`${w}: say must be non-empty text`);
@@ -244,7 +244,7 @@ function parseScene(raw: unknown, i: number, ctx: SceneCtx, errors: string[]): S
       else if ((TABS as readonly string[]).includes(s) && s !== "boxes" && !ctx.tabs.includes(s)) errors.push(`${w}: shows "${s}" but tabs does not include it`);
     }
   if (raw.spotlight !== undefined && !(typeof raw.spotlight === "string" && TARGET_PATTERN.test(raw.spotlight) && knownTarget(raw.spotlight, ctx))) {
-    errors.push(`${w}: spotlight ${JSON.stringify(raw.spotlight)} is not a known UI target (button:step, card:<n> of this lesson, box:<one of boxes>, tab:<one of tabs>, diagram:D1, band:<field>, lamp:<0-31>, flip, tray)`);
+    errors.push(`${w}: spotlight ${JSON.stringify(raw.spotlight)} is not a known UI target (button:step, card:<n> of this lesson, glass:<n> with ui.glass, box:<one of boxes>, tab:<one of tabs>, diagram:D1, band:<field>, lamp:<0-31>, flip, tray)`);
   }
   const shows = isStrList(show) ? show : [];
   const needs = (field: string, id: string): boolean => {
@@ -302,6 +302,7 @@ function parseScene(raw: unknown, i: number, ctx: SceneCtx, errors: string[]): S
     }
   }
   if (Array.isArray(hints)) for (const h of hints) if (typeof h === "string" && h.length > MAX_HINT_CHARS) errors.push(`${w}: a hint is too long (at most ${MAX_HINT_CHARS} characters)`);
+  if (raw.glassNamed !== undefined && typeof raw.glassNamed !== "boolean") errors.push(`${w}: glassNamed must be true or false`);
   if (raw.skippable !== undefined && typeof raw.skippable !== "boolean") errors.push(`${w}: skippable must be true or false`);
   if (raw.showMe !== undefined && !isStr(raw.showMe)) errors.push(`${w}: showMe must be a ghost id`);
 
@@ -347,6 +348,7 @@ function parseScene(raw: unknown, i: number, ctx: SceneCtx, errors: string[]): S
     ...(raw.showMe ? { showMe: raw.showMe as string } : {}),
     lock: lock as string[],
     skippable: raw.skippable === true,
+    ...(raw.glassNamed === true ? { glassNamed: true } : {}),
     ...(lamps ? { lamps } : {}),
     ...(bands ? { bands } : {}),
     ...(flip ? { flip } : {}),
@@ -517,6 +519,8 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
       if (scene) scenes.push(scene);
     });
     for (const s of scenes) {
+      if (s.glassNamed && ui?.glass !== true) errors.push(`scene "${s.id}": glassNamed needs ui.glass: true`);
+      if (s.spotlight?.startsWith("glass:") && ui?.glass !== true) errors.push(`scene "${s.id}": spotlight ${s.spotlight} needs ui.glass: true`);
       for (const control of ["back", "reset"] as const) {
         if (s.spotlight === `button:${control}` && ui?.controls && !ui.controls.includes(control)) errors.push(`scene "${s.id}": spotlight button:${control} points at a button that ui.controls hides`);
       }
@@ -556,6 +560,7 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
   // Ghost pointing must name real UI targets.
   for (const [id, g] of Object.entries(ghosts)) {
     g.events.forEach((e, k) => {
+      if (e.type === "point" && e.target.startsWith("glass:") && ui?.glass !== true) errors.push(`ghost "${id}": events[${k}].target "${e.target}" needs ui.glass: true`);
       if (e.type === "point" && !knownTarget(e.target, { boxes: boxList, tabs: isStrList(tabs) ? tabs : [], cards: starter?.words.length ?? 0 })) errors.push(`ghost "${id}": events[${k}].target "${e.target}" is not a known UI target`);
     });
   }

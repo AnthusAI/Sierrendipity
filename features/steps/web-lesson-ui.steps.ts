@@ -98,3 +98,48 @@ Then("the token starts with the number {int} at the number on card {int}", async
   const gap = Math.hypot(from.x + from.width / 2 - (at.x + at.width / 2), from.y + from.height / 2 - (at.y + at.height / 2));
   assert.ok(gap < 30, `the token starts ${gap.toFixed(0)} pixels from the number on card ${card}`);
 });
+
+const glassLine = (w: WebWorld, card: number) => player(w).locator(`[data-glass][data-coach-id="glass:${card - 1}"]`);
+
+Then("the glass line under card {int} says {string}", async function (this: WebWorld, card: number, text: string) {
+  await settleFrames(this);
+  const line = glassLine(this, card);
+  await line.waitFor();
+  const shown = await line.evaluate((el) => (el.querySelector("[aria-hidden]")?.textContent ?? "").replace(/\s+/g, " ").trim());
+  assert.equal(shown, text);
+});
+Then("the lesson shows no glass line", async function (this: WebWorld) {
+  await settleFrames(this);
+  assert.equal(await player(this).locator("[data-glass]").count(), 0);
+});
+Then("the glass line under card {int} shows its whole text", async function (this: WebWorld, card: number) {
+  await settleFrames(this);
+  const line = glassLine(this, card);
+  await line.scrollIntoViewIfNeeded();
+  const fit = await line.evaluate((el) => {
+    const box = el.getBoundingClientRect();
+    const word = el.querySelector("[data-glass-word]")!.getBoundingClientRect();
+    const assembly = el.querySelector("[data-glass-assembly]")!.getBoundingClientRect();
+    return { clipped: el.scrollWidth > el.clientWidth, windowWidth: window.innerWidth, box: { l: box.left, r: box.right }, word: { l: word.left, r: word.right, w: word.width }, assembly: { r: assembly.right, w: assembly.width } };
+  });
+  assert.ok(!fit.clipped, "the glass line is wider than its box");
+  assert.ok(fit.word.w > 0 && fit.assembly.w > 0, "a part of the glass line has no width");
+  assert.ok(fit.word.l >= fit.box.l - 1 && fit.word.r <= fit.box.r + 1 && fit.word.r <= fit.windowWidth, `the hex word is cut off: ${JSON.stringify(fit)}`);
+});
+const spokenOf = (w: WebWorld, card: number) => glassLine(w, card).evaluate((el) => [...el.children].filter((c) => c.getAttribute("aria-hidden") !== "true").map((c) => c.textContent ?? "").join(" ").replace(/\s+/g, " ").trim());
+Then("the glass line under card {int} is hidden from a screen reader", async function (this: WebWorld, card: number) {
+  await settleFrames(this);
+  assert.equal(await spokenOf(this, card), "");
+});
+Then("the glass line under card {int} is read to a screen reader as {string}", async function (this: WebWorld, card: number, text: string) {
+  await settleFrames(this);
+  assert.equal(await spokenOf(this, card), text);
+});
+Then("the glass line never gives a screen reader the register name {string}", async function (this: WebWorld, name: string) {
+  assert.equal(new RegExp(`\\b${name}\\b`).test(await spokenOf(this, 1)), false);
+});
+Then("the registers panel is named {string} and holds {int} boxes", async function (this: WebWorld, name: string, count: number) {
+  const panel = player(this).getByRole("group", { name, exact: true });
+  assert.equal(await panel.count(), 1);
+  assert.equal(await panel.locator("[data-box]").count(), count);
+});
