@@ -3,7 +3,7 @@
   "title": "Registers panel with only, names, number and skin",
   "description": "Acceptance:\n- c1/04 looks the same in all six theme and mode combinations (screenshot spec)\n- box:a0 and reg:a0 both resolve\n- the IDE Registers tab is drawn by the same component",
   "type": "story",
-  "status": "open",
+  "status": "in_progress",
   "priority": 1,
   "assignee": null,
   "creator": null,
@@ -12,16 +12,29 @@
     "real-machine"
   ],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "dc40e36a-2ae1-4c36-bc33-ca970f5cf86d",
+      "author": "home",
+      "text": "W1 step B started on feature/rm-w1b-panels: RegistersPanel in web/src/machine (box skin, used by MachineView), ui.glass opt-in glass strip, c1/02 04 05 opted in.",
+      "created_at": "2026-10-07T18:53:47.941160Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "RM W1b Panels"
+      }
+    }
+  ],
   "created_at": "2026-10-07T15:46:40.544435Z",
-  "updated_at": "2026-10-07T15:46:40.544459Z",
+  "updated_at": "2026-10-07T18:53:47.941183Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "Claude Sonnet 5.5",
     "name": "Real Machine Board Agent"
   },
-  "right_now_summary": "The team is aligning the Registers panel across themes and modes and wiring both register forms to one IDE component.",
-  "right_now_updated_at": "2026-10-07T15:46:42.238263Z",
+  "right_now_summary": "The RegistersPanel is being built as a shared component with box styling and glass support.",
+  "right_now_updated_at": "2026-10-07T18:53:49.961878Z",
   "custom": {}
 }
