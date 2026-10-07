@@ -31,7 +31,7 @@ scenes:
     say: This is a test. It has two short sentences.
     show: [cards]
   - id: step
-    say: Press Step.
+    say: Select Step.
     spotlight: "button:step"
     ask:
       kind: number
@@ -43,7 +43,7 @@ scenes:
     hints:
       - Look at the Step button.
       - It is on the right.
-      - Press it once.
+      - Select it once.
     showMe: demo
     onWrong:
       - match: 57

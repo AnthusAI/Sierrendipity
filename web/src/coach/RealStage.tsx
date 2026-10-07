@@ -4,6 +4,7 @@ import { CardFace } from "../cards/CardFace";
 import { cardToWord, wordToCard } from "../cards/model";
 import { HeartbeatView, MachineView, PixelDisplay, PointerWalk, useMachineTimeline, type MachineTimeline } from "../diagrams";
 import { PlayerControls } from "./PlayerControls";
+import { plainBoxes } from "./plain";
 import { BandsPanel, BuilderPanel, CarryPanel, FlipPanel, LampsPanel } from "./StageWidgets";
 import type { Stage, StageProps } from "./types";
 
@@ -30,11 +31,11 @@ function useFollow(timeline: MachineTimeline, steps: number, programKey: string)
 }
 
 /** One card of the list: a real face with a number spinner, or a plain face for a word that is not a Course 1 card. */
-function Face({ word, index, count, current, locked, onEdit }: { word: number; index: number; count: number; current: boolean; locked: boolean; onEdit: (card: number, word: number) => void }) {
+function Face({ word, index, count, current, locked, plain, onEdit }: { word: number; index: number; count: number; current: boolean; locked: boolean; plain: boolean; onEdit: (card: number, word: number) => void }) {
   const card = wordToCard(word);
   const highlight = current ? "border-foreground ring-2 ring-foreground" : "";
   if (!card) {
-    const text = describe(word, { vocabulary: "boxes" }).text;
+    const text = plain ? plainBoxes(describe(word, { vocabulary: "boxes" }).text) : describe(word, { vocabulary: "boxes" }).text;
     return (
       <div role="group" tabIndex={0} aria-label={text} className={`min-w-0 rounded-md border bg-editor px-3 py-2 text-sm text-editor-foreground [overflow-wrap:anywhere] ${highlight}`}>
         {text}
@@ -47,6 +48,8 @@ function Face({ word, index, count, current, locked, onEdit }: { word: number; i
       position={{ index, count }}
       numberLabel={`Number on card ${index + 1}`}
       locked={locked}
+      plainBoxes={plain}
+      spinnerButtons
       className={highlight}
       onChange={(next) => onEdit(index, cardToWord(next))}
     />
@@ -82,7 +85,8 @@ export function RealStage({ lesson, live, scene, onEditStarter, onReplaceCards, 
         timeline={timeline}
         coachIds
         stacked
-        renderCard={(word, i, state) => <Face word={word} index={i} count={live.cards.length} current={state.current} locked={editLocked} onEdit={edit} />}
+        quiet={{ log: lesson.ui?.log, deskTitle: lesson.ui?.deskTitle, endMarker: lesson.ui?.endMarker, boxNames: lesson.ui?.boxNames }}
+        renderCard={(word, i, state) => <Face word={word} index={i} count={live.cards.length} current={state.current} locked={editLocked} plain={lesson.ui?.boxNames === false} onEdit={edit} />}
       />,
     );
   }
@@ -108,7 +112,7 @@ export function RealStage({ lesson, live, scene, onEditStarter, onReplaceCards, 
       data-timeline-position={timeline.position}
       data-timeline-length={timeline.length}
     >
-      <PlayerControls live={live} controls={controls} timeline={show.has("timeline")} length={timeline.length} />
+      <PlayerControls live={live} controls={controls} timeline={show.has("timeline")} length={timeline.length} ui={lesson.ui} />
       {parts}
     </div>
   );

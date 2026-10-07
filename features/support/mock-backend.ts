@@ -165,7 +165,7 @@ export interface MockBackend {
   close(): Promise<void>;
 }
 
-export async function startMockBackend(options: { startDelayMs?: number; port?: number } = {}): Promise<MockBackend> {
+export async function startMockBackend(options: { startDelayMs?: number; port?: number; host?: string } = {}): Promise<MockBackend> {
   const startDelayMs = options.startDelayMs ?? 0;
   let startedAt: number | undefined;
   let controlToken: string | undefined;
@@ -289,7 +289,7 @@ export async function startMockBackend(options: { startDelayMs?: number; port?: 
   const server: Server = createServer((request, response) => {
     handle(request, response).catch((error) => json(response, 500, { error: String(error) }));
   });
-  await new Promise<void>((resolve) => server.listen(options.port ?? 0, "127.0.0.1", resolve));
+  await new Promise<void>((resolve) => server.listen(options.port ?? 0, options.host ?? "127.0.0.1", resolve));
   const address = server.address();
   if (typeof address !== "object" || address === null) throw new Error("no address");
 
@@ -314,7 +314,7 @@ export async function startMockBackend(options: { startDelayMs?: number; port?: 
 
 if (require.main === module) {
   const port = Number(process.argv[2] ?? 8787);
-  startMockBackend({ port, startDelayMs: Number(process.argv[3] ?? 5000) }).then((mock) =>
+  startMockBackend({ port, host: process.env.MOCK_HOST, startDelayMs: Number(process.argv[3] ?? 5000) }).then((mock) =>
     console.log(`mock backend on ${mock.url}`),
   );
 }

@@ -11,17 +11,30 @@ hideEnd: true
 starter:
   hex: ["0x00500513", "0x00700593", "0x00b50633"]   # put 5 in a0, put 7 in a1, add a0 and a1 into a2
 tabs: [cards]
+ui:
+  controls: [step, reset]
+  stepLabel: Run
+  resetLabel: Start again
+  log: true
+  deskTitle: false
+  endMarker: false
+  boxNames: true
+  spotlight: ring
 onWrongDefault:
-  say: Let's watch what happens.
+  say: Watch what happens.
   goto: watch-add
 scenes:
   - id: meet
-    say: A third box, a2, has appeared. Its name is just a label; press Continue.
+    say: A third box, a2, is on the screen, and its name is a label. Select Continue.
     show: [cards, boxes]
     spotlight: "box:a2"
 
+  - id: log
+    say: A log below the boxes lists each change. Select Continue.
+    show: [cards, boxes]
+
   - id: fill
-    say: Press Step twice. The cards put 5 in box a0 and 7 in box a1.
+    say: Select Run two times. The cards put 5 in box a0 and 7 in box a1.
     show: [cards, boxes]
     spotlight: "button:step"
     until:
@@ -30,37 +43,37 @@ scenes:
       - box a1 holds 7
     hints:
       - Which button follows the next card?
-      - Each press follows one card, and the first two cards fill boxes.
-      - Press Step twice. Box a0 gets 5 and box a1 gets 7.
+      - Each selection follows one card. The first two cards fill boxes.
+      - Select Run two times. Box a0 receives 5. Box a1 receives 7.
     showMe: demo-step-twice
-    doneSay: Boxes a0 and a1 are filled.
+    doneSay: Boxes a0 and a1 hold numbers now.
     lock: [edit, drag, toggle]
 
   - id: predict
-    say: The next card adds a0 and a1 into box a2. What will a2 hold?
+    say: The next card adds a0 and a1 into box a2. What does a2 hold after it runs?
     show: [cards, boxes]
     spotlight: "box:a2"
     ask:
       kind: number
-      question: What will box a2 hold after the add card?
+      question: What does box a2 hold after the add card?
       target: a2
       answer: 12
     hints:
       - Which two boxes does the add card use?
-      - Adding puts the two amounts together, like 2 and 3 making 5.
-      - Box a0 holds 5 and box a1 holds 7, so a2 gets 12.
+      - To add is to put two amounts together. For example, 2 and 3 make 5.
+      - Box a0 holds 5 and box a1 holds 7. The total is 12.
     onWrong:
       - match: 57
-        say: That puts the digits side by side. This card adds them, so let's watch.
+        say: The box holds one number. This card adds them.
         goto: watch-add
       - match: 5
-        say: That is what box a0 holds. The add card puts the total in box a2.
+        say: Box a0 holds that number. The add card puts the total in box a2.
         goto: watch-add
       - match: 7
-        say: That is what box a1 holds. The add card puts the total in box a2.
+        say: Box a1 holds that number. The add card puts the total in box a2.
         goto: watch-add
       - match: 0
-        say: Box a2 starts at 0, but the add card changes it. Let's watch.
+        say: Box a2 starts at 0. The add card changes it.
         goto: watch-add
       - match: 35
         say: That is 5 times 7. This card adds.
@@ -68,7 +81,7 @@ scenes:
     lock: [edit, drag, toggle]
 
   - id: watch-add
-    say: Press Step and watch the two numbers meet in box a2.
+    say: Select Run. Watch box a2.
     show: [cards, boxes]
     spotlight: "button:step"
     until:
@@ -76,10 +89,10 @@ scenes:
       - box a2 holds 12
     hints:
       - Which button follows the add card?
-      - The add card reads a0 and a1 and writes box a2.
-      - Press Step. Box a2 will change to 12.
+      - The add card reads a0 and a1. It writes box a2.
+      - Select Run. Box a2 changes to 12.
     showMe: demo-step
-    doneSay: "There it is: box a2 now has 12."
+    doneSay: Box a2 now holds 12.
     lock: [edit, drag, toggle]
 nowYouCan:
   - Add two boxes into a third.

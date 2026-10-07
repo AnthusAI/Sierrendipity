@@ -12,16 +12,16 @@ Feature: Lessons 06 to 08 prove the new visuals
     Then the coach says "Flip the card"
     And the stage shows "flip"
     When I press Continue
-    Then the coach says "These lamps spell"
+    Then the coach says "These lamps show"
     And the lamps add up to 3
     When I click the card 3
-    Then the coach says "Here are different lamps"
+    Then the coach says "These lamps are different"
     And the lamps add up to 1
     When I click the card 1
-    Then the coach says "One more pattern"
+    Then the coach says "This is one more pattern"
     And the lamps add up to 2
     When I click the card 2
-    Then the coach says "Press Step three times"
+    Then the coach says "Select Step three times"
     When I press Step
     And I press Step
     And I press Step
@@ -40,8 +40,8 @@ Feature: Lessons 06 to 08 prove the new visuals
 
     Examples:
       | card | reply                                                |
-      | 1    | That card puts 1, but these lamps add up to 3        |
-      | 2    | That card puts 2, but these lamps add up to 3        |
+      | 1    | That card puts 1. These lamps make 3                 |
+      | 2    | That card puts 2. These lamps make 3                 |
 
   Scenario: Lesson 06 offers three free hints on a match
     Given the coach lab shows lesson "c1/06-flip-the-card" at the scene "match-one"
@@ -49,7 +49,7 @@ Feature: Lessons 06 to 08 prove the new visuals
     Then the hint says "Read the total under the lamps"
     When I ask for a hint
     And I ask for a hint
-    Then the hint says "click the card that puts 3"
+    Then the hint says "Select the card that puts 3"
     And no more hints are offered
 
   # 07 Counting with Lamps
@@ -58,11 +58,11 @@ Feature: Lessons 06 to 08 prove the new visuals
     Given the coach lab shows lesson "c1/07-counting-with-lamps"
     When I press Continue
     And I answer 4
-    Then the coach says "Switch lamps on until they add up to 5"
+    Then the coach says "Switch lamps on until they make 5"
     When I switch lamp 2
     And I press Step
     Then box "a0" shows 5
-    And the coach confirms "make 5, and the box agrees"
+    And the coach confirms "make 5. The box shows 5"
     And the coach says "Now make 7"
     When I switch lamp 1
     And I press Step
@@ -92,10 +92,10 @@ Feature: Lessons 06 to 08 prove the new visuals
 
     Examples:
       | guess | reply                              |
-      | 3     | Three is the lamp's place          |
+      | 3     | Three is the place of the lamp     |
       | 6     | the lamps double                   |
       | 8     | That is the fourth lamp            |
-      | 99    | Let's look at the lamps again      |
+      | 99    | Look at the lamps again            |
 
   Scenario: Lesson 07 only lets the lamps that the scene allows be switched
     Given the coach lab shows lesson "c1/07-counting-with-lamps" at the scene "make-five"
@@ -126,7 +126,7 @@ Feature: Lessons 06 to 08 prove the new visuals
   Scenario: Lesson 08 finds the answer band, predicts, flips lamp 30 and gets 7
     Given the coach lab shows lesson "c1/08-inside-the-number"
     When I press Continue
-    Then the coach says "Which band says which box gets the answer?"
+    Then the coach says "Which band names the box for the answer?"
     When I click the band "rd"
     Then the coach says "With lamp 30 switched on"
     When I answer 7
@@ -151,7 +151,7 @@ Feature: Lessons 06 to 08 prove the new visuals
       | band   | reply                                   |
       | rs1    | names the first box to read             |
       | rs2    | names the second box to read            |
-      | opcode | what kind of job this is                |
+      | opcode | which type of job this is               |
       | funct3 | picks the exact job                     |
       | funct7 | picks the exact job too                 |
 
@@ -167,7 +167,7 @@ Feature: Lessons 06 to 08 prove the new visuals
       | 9     | what box a0 holds         | flip  |
       | 2     | what box a1 holds         | flip  |
       | -7    | not 2 minus 9             | flip  |
-      | 40    | Let's look at the bands   | look  |
+      | 40    | Look at the bands again   | look  |
 
   Scenario: Lesson 08 allows only lamp 30 to be switched
     Given the coach lab shows lesson "c1/08-inside-the-number" at the scene "flip"

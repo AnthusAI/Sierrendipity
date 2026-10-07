@@ -52,13 +52,14 @@ const PAD = 6;
  * it never intercepts the pointer and never traps the keyboard: the target stays clickable and focusable.
  * Instant (no transition) under reduced motion.
  */
-export function Spotlight({ target, reduced }: { target: string; reduced: boolean }) {
+export function Spotlight({ target, reduced, mode = "dim" }: { target: string; reduced: boolean; mode?: "dim" | "ring" }) {
   const rect = useTargetRect(target);
   if (!rect) return null;
   return (
     <div
       data-coach-spotlight
       data-target={target}
+      data-mode={mode}
       data-motion={reduced ? "reduced" : "full"}
       aria-hidden="true"
       className="pointer-events-none fixed z-40 rounded-lg"
@@ -67,7 +68,11 @@ export function Spotlight({ target, reduced }: { target: string; reduced: boolea
         top: rect.y - PAD,
         width: rect.width + 2 * PAD,
         height: rect.height + 2 * PAD,
-        boxShadow: "0 0 0 100vmax color-mix(in srgb, var(--background) 72%, transparent), 0 0 0 2px var(--ring)",
+        // "ring" points without dimming the page: a bold ring and a soft halo around the target.
+        boxShadow:
+          mode === "ring"
+            ? "0 0 0 3px var(--ring), 0 0 0 9px color-mix(in srgb, var(--ring) 25%, transparent)"
+            : "0 0 0 100vmax color-mix(in srgb, var(--background) 72%, transparent), 0 0 0 2px var(--ring)",
         transition: reduced ? "none" : "left 150ms, top 150ms, width 150ms, height 150ms",
       }}
     />

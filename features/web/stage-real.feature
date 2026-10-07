@@ -7,12 +7,12 @@ Feature: The lesson player draws the real machine
   Scenario: Lesson 01 plays on the real stage
     Given the coach lab shows lesson "c1/01-press-the-button"
     Then the stage is the real machine view
-    When I press Continue
+    When I press Continue 3 times
     Then the spotlight surrounds "button:step"
-    When I press Step
+    When I select Run
     Then box "a0" shows 5
     And the diagram agrees with the player
-    And the end of the list is shown as "the end of the list"
+    And the end of the list is not shown
 
   Scenario Outline: Lesson <lesson> is played end to end on the real stage
     Given the coach lab shows lesson "<lesson>"
@@ -27,7 +27,7 @@ Feature: The lesson player draws the real machine
       | c1/03-last-one-wins      | 8      |
       | c1/05-add                | 12     |
 
-  Scenario: The diagram stays in sync after Step, Back and Reset
+  Scenario: The diagram stays in sync after Step and Start again
     Given the coach lab shows lesson "c1/04-two-boxes"
     When I press Continue
     And I press Step
@@ -37,10 +37,6 @@ Feature: The lesson player draws the real machine
     Then box "a1" shows 6
     And the diagram agrees with the player
     And the timeline is at step 2
-    When I press Back
-    Then the diagram agrees with the player
-    And the timeline is at step 1
-    And box "a1" is empty
     When I press Reset
     Then the diagram agrees with the player
     And the timeline is at step 0
@@ -52,7 +48,7 @@ Feature: The lesson player draws the real machine
     And I set the number on card 1 to 9
     Then the player's cards are "0x00900513"
     And the diagram agrees with the player
-    When I press Step
+    When I select Run
     Then box "a0" shows 9
     When I set the number on card 1 to 4
     Then the player's cards are "0x00400513"
@@ -68,14 +64,14 @@ Feature: The lesson player draws the real machine
 
   Scenario: The token flies from the card to the box and replays on every Step
     Given the coach lab shows lesson "c1/05-add"
-    When I press Continue
+    When I press Continue 2 times
     And I press Step
     And the timeline is at step 1
     And the diagram clock is frozen at 0.5
     Then a token carrying 5 is flying
     When the diagram clock is frozen at 1
     Then no token is flying
-    When I press Back
+    When I press Reset
     And the timeline is at step 0
     And I press Step
     And the timeline is at step 1
@@ -83,8 +79,8 @@ Feature: The lesson player draws the real machine
     Then a token carrying 5 is flying
 
   Scenario: Reduced motion shows no token and says what happened in words
-    Given the coach lab shows lesson "c1/01-press-the-button" with reduced motion
-    When I press Continue
+    Given the coach lab shows lesson "c1/05-add" with reduced motion
+    When I press Continue 2 times
     And I press Step
     And the timeline is at step 1
     And the diagram clock is frozen at 0.5
@@ -102,16 +98,15 @@ Feature: The lesson player draws the real machine
 
   Scenario: Locked controls say "Not yet" and the spinner stays put
     Given the coach lab shows lesson "c1/01-press-the-button"
-    When I press Continue
+    When I press Continue 3 times
     Then the number on card 1 is locked with the explanation "Not yet"
 
   Scenario: While a prediction is asked the machine's controls say "Not yet"
     Given the coach lab shows lesson "c1/05-add"
-    When I press Continue
+    When I press Continue 2 times
     And I press Step
     And I press Step
     Then the Step button is locked with the explanation "Not yet"
-    And the Back button is locked with the explanation "Not yet"
     And the Reset button is locked with the explanation "Not yet"
 
   Scenario: The coach panel comes first for the keyboard and on a narrow screen

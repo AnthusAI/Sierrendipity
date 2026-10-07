@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from "re
 import { Button } from "@/components/ui/button";
 import type { LessonEngine, PlayerState } from "./engine";
 import type { LessonInfo } from "../lessons";
+import { coachId, findCoachTarget } from "./ids";
 
 const PAD = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 const TYPING = ["INPUT", "TEXTAREA", "SELECT"];
@@ -120,7 +121,7 @@ function AskUi({ state, engine }: { state: PlayerState; engine: LessonEngine }) 
   return (
     <div data-coach-ask className="space-y-2">
       <p className="font-medium">{ask.question}</p>
-      <p className="text-muted-foreground">Click the part you mean.</p>
+      <p className="text-muted-foreground">Select the part you mean.</p>
     </div>
   );
 }
@@ -163,7 +164,7 @@ export function CoachPanel({ state, engine, next, onNext, onStop }: Props) {
           <p data-coach-say>
             {state.yourTurn && <strong>Your turn. </strong>}
             {state.say}
-            {state.stranded && <strong> Press Back to try the steps again.</strong>}
+            {state.stranded && <strong> Select {state.strandedButton} to try the steps again.</strong>}
           </p>
         )}
         {state.reply && phase === "scene" && (
@@ -238,6 +239,18 @@ export function CoachPanel({ state, engine, next, onNext, onStop }: Props) {
           </div>
         )}
       </div>
+
+      {phase === "scene" && state.missed && (
+        <div data-coach-missed role="status" className="space-y-2 rounded-md border-2 border-foreground p-3">
+          <p>{state.missed}</p>
+          <Button size="sm" data-coach-primary onClick={() => {
+              engine.tryAgain();
+              findCoachTarget(coachId.button("step"))?.focus();
+            }}>
+            Try again
+          </Button>
+        </div>
+      )}
 
       {phase === "scene" && <AskUi state={state} engine={engine} />}
 

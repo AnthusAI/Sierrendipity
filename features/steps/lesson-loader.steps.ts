@@ -4,8 +4,9 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { earnedStars, liveRunOf, parseStep, pressStep, runChecks, runProgram, startLive, type Lesson, type PublishedLesson } from "@sierrendipity/lesson-core";
 import { checkLesson, type LessonReport } from "@sierrendipity/lesson-core/check";
-import { crossCheckGherkin, readConcepts, readLessonDir } from "@sierrendipity/lesson-core/node";
+import { crossCheckGherkin, listLessonIds, readConcepts, readLessonDir } from "@sierrendipity/lesson-core/node";
 import { countSentences, countWords, loadLesson, publishLesson, type LoadResult } from "@sierrendipity/lesson-core/loader";
+import { steProblems } from "../../lesson-core/src/ste";
 import { assembleOrThrow, validTestLesson, world } from "./lesson-fixtures";
 
 let files: Record<string, string>;
@@ -241,3 +242,30 @@ Then("the scene {string} has a tray of {int} cards", (id: string, n: number) => 
 Then("the lesson is a draft", () => assert.equal(lesson().draft, true));
 Then("the lesson is not a draft", () => assert.equal(lesson().draft, false));
 Then("the published lesson is a draft", () => assert.equal(published.draft, true));
+
+Then("the lesson ui shows the controls {string} with the step label {string}", (controls: string, label: string) => {
+  assert.deepEqual(lesson().ui?.controls, list(controls));
+  assert.equal(lesson().ui?.stepLabel, label);
+});
+Then("the lesson ui says the spotlight is {string} and the reset label is {string}", (spotlight: string, label: string) => {
+  assert.equal(lesson().ui?.spotlight, spotlight);
+  assert.equal(lesson().ui?.resetLabel, label);
+});
+Then("the scene {string} says if missed {string}", (id: string, text: string) => {
+  assert.equal(lesson().scenes.find((s) => s.id === id)?.ifMissed, text);
+});
+Then("every lesson on disk has no Simplified Technical English problem", () => {
+  const known = readConcepts();
+  const problems = listLessonIds().flatMap((id) => {
+    const r = loadLesson(readLessonDir(join(process.cwd(), "lessons", id)), { dir: id, ...(known ? { knownConcepts: known } : {}) });
+    return r.ok ? [] : r.errors.map((e) => `${id}: ${e}`);
+  });
+  assert.deepEqual(problems, []);
+});
+Then("the text {string} has the Simplified Technical English problem {string}", (text: string, message: string) => {
+  const problems = steProblems(text);
+  assert.ok(problems.some((p) => p.includes(message)), `expected "${message}" in ${JSON.stringify(problems)}`);
+});
+Then("the text {string} has no Simplified Technical English problem", (text: string) => {
+  assert.deepEqual(steProblems(text), []);
+});

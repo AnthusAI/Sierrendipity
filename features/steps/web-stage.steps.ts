@@ -174,7 +174,7 @@ When("I play the lesson to the end answering {word}", async function (this: WebW
       assert.notEqual(given, "-", "the lesson asked a question but no answer was given");
       await answer(this, given);
     } else {
-      const step = named(this, "Step");
+      const step = this.page.locator('[data-lesson-player] [data-coach-id="button:step"]');
       if ((await step.getAttribute("aria-disabled")) === "true") assert.fail("the lesson is stuck: Step has nothing to do");
       await step.click();
     }
@@ -342,7 +342,7 @@ Then("the first thing the Tab key reaches in the lesson is in the coach panel", 
   }, TABBABLE);
   assert.ok(first, "the first tabbable thing of the lesson is not in the coach panel");
 });
-Then("the tab order of the lesson is the coach panel, then Step, Back and Reset, then the cards", async function (this: WebWorld) {
+Then("the tab order of the lesson is the coach panel, then Run and Start again, then the cards", async function (this: WebWorld) {
   const order = await this.page.evaluate((selector) => {
     const kinds: string[] = [];
     for (const el of document.querySelector("[data-lesson-player]")!.querySelectorAll<HTMLElement>(selector)) {
@@ -353,7 +353,7 @@ Then("the tab order of the lesson is the coach panel, then Step, Back and Reset,
     }
     return kinds;
   }, TABBABLE);
-  assert.deepEqual(order.slice(0, 5), ["coach", "step", "back", "reset", "cards"], `the order is ${order.join(", ")}`);
+  assert.deepEqual(order.slice(0, 4), ["coach", "step", "reset", "cards"], `the order is ${order.join(", ")}`);
 });
 Then("the boxes come after the cards in the page", async function (this: WebWorld) {
   const after = await this.page.evaluate(() => {

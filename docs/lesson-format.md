@@ -36,6 +36,7 @@ boxes: [a0]                 # the only boxes (registers) the machine shows; more
 pointer: false              # show the arrow at the card being run (the program counter); default false
 hideEnd: true               # hide the Stop card, see below; default false
 draft: true                 # optional, default false: a draft lesson, see "Draft lessons" below
+ui: { controls: [step], stepLabel: Run }          # optional, what the stage shows; see "The ui block"
 starter: { hex: ["0x00500513"] }                  # or { asm: "addi a0, zero, 5" }
 tabs: [cards]               # cards lamps hex assembly boxes shelves screen output
 scenes: [ ... ]
@@ -94,6 +95,42 @@ combines two boxes instead of replacing one, so lesson 3 teaches it for put card
 **Length limits.** Hints at most 120 characters, ask and warm-up questions at most 200, `nowYouCan` lines at
 most 80. Sentences are counted by terminators followed by a capital letter, digit or the end of the text.
 
+### The ui block
+
+`ui` is optional. A lesson shows only the parts of the machine its one idea needs; every field defaults to the
+full machine. Unknown keys and wrong types are errors.
+
+| Key | Values | Default | Meaning |
+| --- | --- | --- | --- |
+| `controls` | list of `step`, `back`, `reset` (no repeats; must include `step`) | all three | The buttons under the title. A scene may not spotlight `button:back` or `button:reset` when the list hides it |
+| `stepLabel` | short text, at most 20 characters | Step | The name of the Step button (for example `Run`) |
+| `resetLabel` | short text, at most 20 characters | Reset | The name of the Reset button (for example `Start again`) |
+| `log` | true or false | true | The "What just happened" log |
+| `deskTitle` | true or false | true | The "The desk" heading |
+| `endMarker` | true or false | true | The "end of the list" row |
+| `boxNames` | true or false | true | The register name (a0) on each box. When false, text says "the box" instead of "box a0" |
+| `spotlight` | `ring` or `dim` | ring | A ring around the target, or a dimming spotlight |
+
+When Back is hidden, a run that misses the goal points at Reset (the `resetLabel`) instead of Back, and the idle Run button says "Select Start again first" until the student starts again. Reset is disabled, with the reason "Nothing to start again yet", until the machine has run something.
+Use the same label for a button in every sentence of the lesson: if `stepLabel` is `Run`, the text says "Run".
+
+### Simplified Technical English (STE)
+
+All text the student reads follows ASD-STE100 style: `say`, `doneSay`, `ifMissed`, hints, `onWrong` replies, `ask`
+questions and choices, `onWrongDefault`, `nowYouCan` and warm-up questions. The loader checks what a program can
+check and reports each problem with its scene (`npm run lesson -- check --all` fails on any problem, drafts
+included):
+
+- At most 20 words in a sentence. Aim for 15 or fewer.
+- No contractions: write "do not", "it is", "let us" (or rephrase).
+- Avoid list: spin, tiny, just, simply, easily, quickly, "kind of", "sort of", "pretty much", press, click, tap,
+  basically, obviously, "of course", "that is all", and get, gets, got. Use "select" for a button, "change" for a
+  number, "small" for tiny, and a precise verb such as "receive" or "make" for "get".
+
+The author keeps to the rest by hand: simple present tense, active voice, one idea in a sentence, one word for one
+thing (card, box, number, instruction), the exact button names (Run, Step, Continue), and no idioms or filler words.
+The checker is in `lesson-core/src/ste.ts`.
+
 ### Scenes
 
 ```yaml
@@ -105,10 +142,11 @@ most 80. Sentences are counted by terminators followed by a capital letter, digi
     { kind: number, question: "...", target: a2, answer: 12 }
   until: [ "the machine has taken at least 3 steps", "box a2 holds 12" ]   # step phrases, all must hold
   onWrong:
-    - { match: 57, say: "Close! Adding is not gluing digits together, so let's watch.", goto: watch-add }
+    - { match: 57, say: "Adding is not gluing digits together. Watch the box.", goto: watch-add }
   hints: [ nudge, narrower question, near-answer ]   # exactly 3; required when the scene has until or ask
   showMe: demo-step                 # id of a file in ghosts/
-  doneSay: There it is: the box holds 5.   # optional, same limits as say; said when the goal is met
+  doneSay: The box now holds 5.     # optional, same limits as say; said when the goal is met
+  ifMissed: The box shows the number from the card. Change the card, then select Run.   # optional, see below
   lock: [edit, drag, toggle]        # UI controls disabled in this scene
   skippable: true
 ```
@@ -121,6 +159,11 @@ most 80. Sentences are counted by terminators followed by a capital letter, digi
 - `doneSay` is the only confirmation the player shows when a scene's goal is met (it clears on the student's next
   action). Without it nothing is shown and screen readers hear a quiet "Scene complete."; the player never
   builds a line from the `until` phrases.
+- `ifMissed` (optional, needs `until`) is the help the coach shows when the student runs the machine and the
+  goal is still not met. It says what the machine did and what to change. The coach shows it as
+  `[data-coach-missed]` with a "Try again" button; "Try again" resets the machine to the start and keeps the
+  cards as the student left them, then moves keyboard focus to the Run (Step) button (`engine.tryAgain()`). A scene
+  with `ask` cannot have `ifMissed`. Limits: at most 3 sentences and 45 words.
 - `onWrongDefault` is text, or `{ say, goto }`. `goto` names the scene that reveals the answer; the checker
   requires it when the scene after an `ask` does not wait on the machine (`until`).
 - The player locks Step, Back, Reset and Edit in `ask` scenes (the prediction comes before the reveal), restores the

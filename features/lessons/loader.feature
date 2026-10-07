@@ -18,11 +18,11 @@ Feature: Loading and validating a lesson
 
   Scenario: A scene may say something when it is done, and the default wrong reply may name a scene
     When I replace "showMe: demo" with "showMe: demo\n    doneSay: \"There it is: the box holds 5.\"" in "lesson.yaml"
-    And I replace "onWrongDefault: Not quite yet. Watch what the machine does, then try again.\n" with "onWrongDefault:\n  say: Let's watch what happens.\n  goto: intro\n" in "lesson.yaml"
+    And I replace "onWrongDefault: Not quite yet. Watch what the machine does, then try again.\n" with "onWrongDefault:\n  say: Watch what happens.\n  goto: intro\n" in "lesson.yaml"
     And I load the lesson
     Then the lesson loads
     And the scene "step" says when done "There it is: the box holds 5."
-    And the lesson sends other wrong answers to "intro" saying "Let's watch what happens."
+    And the lesson sends other wrong answers to "intro" saying "Watch what happens."
 
   Scenario: With hideEnd the programs list only the student's cards
     When I make the test lesson hide its end marker
@@ -84,8 +84,8 @@ Feature: Loading and validating a lesson
     Examples: scenes
       | file        | find                              | replace                                  | message                                |
       | lesson.yaml | - id: step                        | - id: intro                              | duplicate scene id "intro"             |
-      | lesson.yaml | say: Press Step.                  | say: One. Two. Three.                    | at most 2 sentences                    |
-      | lesson.yaml | say: Press Step.                  | say: Press the button that is on the right side of the screen right next to the picture of the machine that follows the list of cards all day long and then look closely at it. | at most 30 words |
+      | lesson.yaml | say: Select Step.                  | say: One. Two. Three.                    | at most 2 sentences                    |
+      | lesson.yaml | say: Select Step.                  | say: Press the button that is on the right side of the screen right next to the picture of the machine that follows the list of cards all day long and then look closely at it. | at most 30 words |
       | lesson.yaml | - It is on the right.             | - ""                                     | exactly 3 hints                        |
       | lesson.yaml | showMe: demo                      | showMe: nothing                          | no ghost "nothing"                     |
       | lesson.yaml | goto: intro                       | goto: nowhere                            | goto unknown scene "nowhere"           |

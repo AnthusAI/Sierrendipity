@@ -11,14 +11,23 @@ hideEnd: true
 starter:
   hex: ["0x00400513", "0x00600593"]   # put 4 in box a0, put 6 in box a1
 tabs: [cards]
+ui:
+  controls: [step, reset]
+  stepLabel: Run
+  resetLabel: Start again
+  log: false
+  deskTitle: false
+  endMarker: false
+  boxNames: true
+  spotlight: ring
 scenes:
   - id: look
-    say: A second box, a1, has appeared. Its name is just a label; press Continue.
+    say: There are two boxes now, named a0 and a1. Select Continue.
     show: [cards, boxes]
     spotlight: "box:a1"
 
   - id: run
-    say: Press Step twice. Each card fills its own box.
+    say: Select Run two times. Each card fills its own box.
     show: [cards, boxes]
     spotlight: "button:step"
     until:
@@ -27,14 +36,14 @@ scenes:
       - box a1 holds 6
     hints:
       - Which button makes the machine follow a card?
-      - Each press follows one card, and each card fills its own box.
-      - Press Step twice. Box a0 gets 4 and box a1 gets 6.
+      - Each selection follows one card. Each card fills its own box.
+      - Select Run two times. Box a0 receives 4. Box a1 receives 6.
     showMe: demo-step-twice
     doneSay: Each card filled its own box.
     lock: [edit, drag, toggle]
 
   - id: change
-    say: Change one card so that box a1 holds 9, then press Step twice.
+    say: Change one card so that box a1 holds 9. Then select Run two times.
     show: [cards, boxes]
     spotlight: "card:1"
     until:
@@ -44,14 +53,14 @@ scenes:
       - box a1 holds 9
     hints:
       - Which card fills box a1?
-      - Each card fills the box it names, so look at the second card.
-      - Spin the second card up to 9, then press Step twice.
+      - Each card fills the box it names. Look at the second card.
+      - Change the number on the second card to 9. Then select Run two times.
     showMe: demo-spin-second
-    doneSay: You changed one card, and only one box changed.
+    doneSay: You changed one card. Only one box changed.
     lock: [drag, toggle]
 
   - id: done
-    say: Each box keeps its own number, so one card changes only one box. Press Continue to finish.
+    say: Each box keeps its own number, so one card changes only one box. Select Continue.
     show: [cards, boxes]
 nowYouCan:
   - Tell the boxes apart by their names.
@@ -59,7 +68,7 @@ nowYouCan:
 warmups:
   - id: fill-two
     concept: two-boxes
-    question: The cards say put 1 in box a0 and put 2 in box a1. What does box a1 hold at the end?
+    question: "The cards say: put 1 in box a0. Put 2 in box a1. What does box a1 hold at the end?"
     program:
       asm: |
         addi a0, zero, 1

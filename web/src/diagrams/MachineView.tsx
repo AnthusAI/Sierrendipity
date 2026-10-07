@@ -16,12 +16,14 @@ interface Props {
   renderCard?: ComponentProps<typeof CardList>["renderCard"];
   /** Give the diagram, the cards and the boxes `data-coach-id`s (`diagram:D1`, `card:<n>`, `tab:cards`, `box:<name>`, `tab:boxes`). */
   coachIds?: boolean;
+  /** Leave parts of the machine out until a lesson needs them. Every part is shown unless set to false. */
+  quiet?: { log?: boolean; deskTitle?: boolean; endMarker?: boolean; boxNames?: boolean };
   /** Put the desk under the cards at every width (the lesson stage is only about 30rem wide next to the coach). */
   stacked?: boolean;
 }
 
 /** D1, the clerk and boxes: cards on the left, boxes on a desk on the right, a log of what just happened. */
-export function MachineView({ timeline: tl, boxes = tl.boxes, pointer = tl.pointer, format = "signed", renderCard, coachIds = false, stacked = false }: Props) {
+export function MachineView({ timeline: tl, boxes = tl.boxes, pointer = tl.pointer, format = "signed", renderCard, coachIds = false, stacked = false, quiet }: Props) {
   const surface = useRef<HTMLDivElement>(null);
   const cards = useRef<HTMLOListElement>(null);
   const desk = useRef<HTMLDivElement>(null);
@@ -31,17 +33,32 @@ export function MachineView({ timeline: tl, boxes = tl.boxes, pointer = tl.point
 
   // The token flies from the card that ran to the first visible box it wrote, while the clock runs.
   let token: { x: number; y: number; value: string } | null = null;
+  // When the new value lands on a box that held a value, the old value is knocked out of the box.
+  let holdOld: number | null = null;
+  let knocked: { x: number; y: number; value: string; k: number } | null = null;
   const flying = tl.from !== null && tl.from === tl.position - 1 && !tl.reducedMotion && tl.t < 1;
   const target = tl.lastStep && lastRd !== null && lastRd !== 0 ? boxes.find((name) => registerIndex(name) === lastRd) : undefined;
   if (flying && target && tl.lastStep && surface.current && cards.current && desk.current) {
     const origin = surface.current.getBoundingClientRect();
-    const card = cards.current.querySelector<HTMLElement>(`[data-card-index="${tl.lastStep.pc / 4}"]`)?.getBoundingClientRect();
-    const slot = desk.current.querySelector<HTMLElement>(`[aria-label="Box ${target}"]`)?.getBoundingClientRect();
+    const row = cards.current.querySelector<HTMLElement>(`[data-card-index="${tl.lastStep.pc / 4}"]`);
+    const card = row?.getBoundingClientRect();
+    // The value starts at the number written on the card; a card with no number sends it from its right edge.
+    const number = row?.querySelector<HTMLElement>('[data-part="number"]')?.getBoundingClientRect();
+    const slot = desk.current.querySelector<HTMLElement>(`[data-box-name="${target}"]`)?.getBoundingClientRect();
     if (card && slot) {
       const k = ease(tl.t);
-      const [x0, y0] = [card.right - origin.left, card.top + card.height / 2 - origin.top];
+      const [x0, y0] = number
+        ? [number.left + number.width / 2 - origin.left, number.top + number.height / 2 - origin.top]
+        : [card.right - origin.left, card.top + card.height / 2 - origin.top];
       const [x1, y1] = [slot.left + slot.width / 2 - origin.left, slot.top + slot.height / 2 - origin.top];
       token = { x: x0 + (x1 - x0) * k, y: y0 + (y1 - y0) * k, value: formatValue(tl.lastStep.after[lastRd!], format) };
+      const old = tl.lastStep.before[lastRd!];
+      if (old !== 0 && old !== tl.lastStep.after[lastRd!] && k <= 0.55) holdOld = old;
+      if (old !== 0 && old !== tl.lastStep.after[lastRd!] && k > 0.55) {
+        // The hit lands at k = 0.55; the old value then flies out to the right, spinning and fading.
+        const out = (k - 0.55) / 0.45;
+        knocked = { x: x1 + out * 110, y: y1 - Math.sin(out * Math.PI) * 50 + out * out * 60, value: formatValue(old, format), k: out };
+      }
     }
   }
 
@@ -55,10 +72,10 @@ export function MachineView({ timeline: tl, boxes = tl.boxes, pointer = tl.point
     >
       <div className={stacked ? "flex flex-col gap-4" : "flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8"}>
         <div data-coach-id={coachIds ? "tab:cards" : undefined} className={stacked ? "min-w-0" : "min-w-0 sm:w-[26rem] sm:max-w-full sm:shrink-0"}>
-          <CardList ref={cards} timeline={tl} hand={pointer} renderCard={renderCard} coachIds={coachIds} />
+          <CardList ref={cards} timeline={tl} hand={pointer} renderCard={renderCard} coachIds={coachIds} endMarker={quiet?.endMarker !== false} />
         </div>
         <div ref={desk} data-coach-id={coachIds ? "tab:boxes" : undefined} className="flex min-w-0 flex-col gap-3">
-          <p className="text-sm font-medium">The desk</p>
+          {quiet?.deskTitle !== false && <p className="text-sm font-medium">The desk</p>}
           <div className="flex flex-wrap gap-3">
             {boxes.map((name) => {
               const reg = registerIndex(name);
@@ -68,9 +85,10 @@ export function MachineView({ timeline: tl, boxes = tl.boxes, pointer = tl.point
                 <div
                   key={name}
                   role="group"
-                  aria-label={`Box ${name}`}
+                  aria-label={quiet?.boxNames === false ? "The box" : `Box ${name}`}
                   aria-current={changed ? "true" : undefined}
                   data-box
+                  data-box-name={name}
                   data-coach-id={coachIds ? `box:${name}` : undefined}
                   data-changed={String(changed)}
                   className={`flex h-24 w-28 flex-col items-center justify-between rounded-md border-2 px-2 py-2 ${
@@ -78,10 +96,10 @@ export function MachineView({ timeline: tl, boxes = tl.boxes, pointer = tl.point
                   }`}
                 >
                   <span data-box-label className="font-mono text-sm text-muted-foreground">
-                    {name}
+                    {quiet?.boxNames === false ? "box" : name}
                   </span>
                   <span data-value aria-hidden={written ? undefined : true} className="text-3xl font-semibold tabular-nums">
-                    {written ? formatValue(tl.snapshot.regs[reg], format) : BLANK}
+                    {holdOld !== null && changed ? formatValue(holdOld, format) : written ? formatValue(tl.snapshot.regs[reg], format) : BLANK}
                   </span>
                   {!written && <span className="sr-only">empty</span>}
                 </div>
@@ -91,7 +109,7 @@ export function MachineView({ timeline: tl, boxes = tl.boxes, pointer = tl.point
         </div>
       </div>
       <Notice timeline={tl} />
-      <section role="log" aria-live="polite" aria-relevant="additions" aria-label="What just happened" data-log className="border-t pt-3 text-sm">
+      <section role="log" aria-live="polite" aria-relevant="additions" aria-label="What just happened" data-log hidden={quiet?.log === false} className="border-t pt-3 text-sm">
         <h3 className="mb-1 font-medium">What just happened</h3>
         {entries.length === 0 ? (
           <p>Nothing has happened yet.</p>
@@ -109,9 +127,20 @@ export function MachineView({ timeline: tl, boxes = tl.boxes, pointer = tl.point
       <p role="status" data-announce className="sr-only">
         {tl.announcement}
       </p>
+      {knocked && (
+        <span
+          data-knocked-out
+          aria-hidden="true"
+          className="pointer-events-none absolute left-0 top-0 rounded-md border-2 border-foreground bg-card px-3 py-1 text-2xl font-semibold tabular-nums text-foreground shadow"
+          style={{ transform: `translate(${knocked.x}px, ${knocked.y}px) translate(-50%, -50%) rotate(${knocked.k * 540}deg)`, opacity: 1 - knocked.k * 0.9 }}
+        >
+          {knocked.value}
+        </span>
+      )}
       {token && (
         <span
           data-token
+          aria-hidden="true"
           data-t={tl.t}
           className="pointer-events-none absolute left-0 top-0 rounded-md bg-primary px-3 py-1 text-lg font-semibold tabular-nums text-primary-foreground shadow"
           style={{ transform: `translate(${token.x}px, ${token.y}px) translate(-50%, -50%)` }}

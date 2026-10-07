@@ -31,7 +31,21 @@ Feature: The coach engine never strands a student
 
   Scenario: A scene that cannot be finished by stepping points at Back
     Given the engine plays "c1/01-press-the-button" with the step scene waiting for "box a0 holds 99"
-    When the student continues and presses Step
+    And the lesson shows the controls "step, back, reset"
+    When the student continues to the Run scene and runs
     Then the coach tells the student to press Back and spotlights "button:back"
     When the player presses Back
     Then the coach no longer tells the student to press Back
+
+  Scenario: When Back is hidden a stranded scene points at Start again
+    Given the engine plays "c1/01-press-the-button" with the step scene waiting for "box a0 holds 99"
+    And the lesson shows the controls "step, reset"
+    When the student continues to the Run scene and runs
+    Then the coach tells the student to select "Reset" and spotlights "button:reset"
+    When the player presses Reset
+    Then the coach is not stranded
+
+  Scenario: When Back and Reset are both hidden nothing points at a missing button
+    Given the engine plays "c1/01-press-the-button" with the step scene waiting for "box a0 holds 99"
+    When the student continues to the Run scene and runs
+    Then the coach is not stranded

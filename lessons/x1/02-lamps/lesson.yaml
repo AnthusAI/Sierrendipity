@@ -14,7 +14,7 @@ starter:
   hex: ["0x00500513", "0x00700593", "0x00b50633"]   # put 5 in a0, put 7 in a1, add a0 and a1 into a2
 tabs: [cards, lamps]
 onWrongDefault:
-  say: Let's look at the bands again.
+  say: Look at the bands again.
   goto: bands
 scenes:
   - id: lamps-word
@@ -24,7 +24,7 @@ scenes:
     showMe: demo-toggle
 
   - id: lamps-number
-    say: Just the number of the first card, as place values.
+    say: Only the number of the first card, as place values.
     show: [D4]
     lamps: { card: 0, of: number, width: 6, target: 5 }
 
@@ -35,17 +35,17 @@ scenes:
     spotlight: flip
 
   - id: bands
-    say: Which band says which box gets the answer?
+    say: Which band names the box for the answer?
     show: [D8]
     bands: { card: 2, allowedBits: [30] }
     ask:
       kind: click-target
-      question: Click the band that names the answer box.
+      question: Select the band that names the answer box.
       target: "band:rd"
     hints:
       - Read the labels on the bands.
       - One band says "answer goes in box".
-      - Click the band that says "answer goes in box".
+      - Select the band that says "answer goes in box".
     onWrong:
       - match: "band:rs1"
         say: That band names the first box to read.
@@ -59,7 +59,7 @@ scenes:
     carry: { a: 5, b: 7 }
 
   - id: last
-    say: That is all of them.
+    say: These are all of them.
     show: [D1]
 nowYouCan:
   - Look at the lamps in many ways.

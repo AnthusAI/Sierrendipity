@@ -1,4 +1,5 @@
-import { useId, useState } from "react";
+import { Minus, Plus } from "lucide-react";
+import { useId, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -13,6 +14,8 @@ interface Props {
   className?: string;
   /** The control is switched off for now: it keeps its place, says "Not yet" and changes nothing. */
   locked?: boolean;
+  /** Show a minus and a plus button beside the number, so a beginner can see the number can change. */
+  buttons?: boolean;
 }
 
 const snapUp = (value: number, step: number) => Math.floor(value / step) * step + step;
@@ -24,7 +27,7 @@ const snapDown = (value: number, step: number) => Math.ceil(value / step) * step
  * Home (min) and End (max). A typed number outside the limits is not applied: the box says why, and leaving
  * it shows the real value again.
  */
-export function NumberSpinner({ value, min, max, step = 1, onChange, label = "number", className, locked = false }: Props) {
+export function NumberSpinner({ value, min, max, step = 1, onChange, label = "number", className, locked = false, buttons = false }: Props) {
   const [draft, setDraft] = useState<string | null>(null);
   const errorId = useId();
   const tipId = useId();
@@ -43,8 +46,22 @@ export function NumberSpinner({ value, min, max, step = 1, onChange, label = "nu
     if (clamped !== value) onChange(clamped);
   };
 
+  const nudge = (to: number, name: string, hint: string, icon: ReactNode, disabled: boolean) => (
+    <button
+      type="button"
+      aria-label={name}
+      title={hint}
+      disabled={disabled || locked}
+      onClick={() => commit(to)}
+      className="inline-flex size-6 items-center justify-center rounded border border-input bg-background align-middle text-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40"
+    >
+      {icon}
+    </button>
+  );
+
   return (
-    <span className="relative inline-block">
+    <span className={cn("relative inline-block", buttons && "whitespace-nowrap")}>
+      {buttons ? nudge(snapDown(value, step), "Minus", "Make the number smaller", <Minus className="size-3.5" aria-hidden />, value <= min) : null}
       <input
         role="spinbutton"
         type="text"
@@ -92,6 +109,7 @@ export function NumberSpinner({ value, min, max, step = 1, onChange, label = "nu
           commit(next);
         }}
       />
+      {buttons ? nudge(snapUp(value, step), "Plus", "Make the number bigger", <Plus className="size-3.5" aria-hidden />, value >= max) : null}
       {locked ? (
         <span id={tipId} role="tooltip" className="pointer-events-none absolute -top-7 left-0 z-10 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-xs text-background opacity-0 transition-opacity peer-hover:opacity-100 peer-focus-visible:opacity-100">
           Not yet

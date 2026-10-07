@@ -7,25 +7,31 @@ Feature: The coach plays the lessons
 
   Scenario: Lesson 01 is played with the pointer, with no typing
     Given the coach lab shows lesson "c1/01-press-the-button"
-    Then the coach says "one card and one box"
+    Then the coach says "exactly what each instruction says"
     When I press Continue
-    Then the coach says "Press Step"
-    When I press Step
+    Then the coach says "This card is one instruction"
+    When I press Continue
+    Then the coach says "This is the box"
+    When I press Continue
+    Then the coach says "Select Run"
+    When I select Run
     Then box "a0" shows 5
-    And the coach says "the box shows 5"
-    And the coach confirms "There it is: the box holds 5."
+    And the coach says "did what the card says"
+    And the coach confirms "The box now holds 5."
     When I press Continue
     Then the coach shows no confirmation
-    And I press Continue
-    Then the Now you can card lists "Make the machine follow a card."
-    And the Now you can card shows what I made, "Put 5 in box a0"
+    When I press Continue
+    Then the Now you can card lists "Make a computer follow an instruction."
+    And the Now you can card shows what I made, "Put 5 in the box"
     And the Now you can card offers "Next lesson, about 3 min" and "Stop here"
 
   Scenario: Lesson 01 is playable with the keyboard alone
     Given the coach lab shows lesson "c1/01-press-the-button"
     Then the focus is on "Continue"
     When I press the Enter key
-    Then the focus is on "Step"
+    And I press the Enter key
+    And I press the Enter key
+    Then the focus is on "Run"
     When I press the Enter key
     Then the focus is on "Continue"
     When I press the Enter key
@@ -36,14 +42,14 @@ Feature: The coach plays the lessons
   Scenario: Lesson 02 asks for the number 9 and rewards another way
     Given the coach lab shows lesson "c1/02-change-the-number"
     When I press Continue
-    Then the coach says "Spin the number"
+    Then the coach says "Use the plus button"
     When I set the number on card 1 to 9
-    And I press Step
+    And I select Run
     Then box "a0" shows 9
-    And the coach says "Try a different number"
-    When I press Reset
+    And the coach says "try a different number"
+    When I select Start again
     And I set the number on card 1 to 7
-    And I press Step
+    And I select Run
     Then the stored progress of "c1/02-change-the-number" has passed with the bonus "another-way"
 
   Scenario Outline: Lesson 03 answers the wrong guess <guess> in its own words
@@ -52,7 +58,7 @@ Feature: The coach plays the lessons
     And I answer <guess>
     Then the coach replies "<reply>"
     And the reply is not styled as an error
-    And the coach says "Press Step twice"
+    And the coach says "Select Run two times"
     When I press Step
     And I press Step
     Then box "a0" shows 8
@@ -60,18 +66,18 @@ Feature: The coach plays the lessons
 
     Examples:
       | guess | reply                       |
-      | 3     | what the first card put in  |
-      | 11    | these cards don't add       |
-      | 38    | digits side by side         |
-      | 5     | these cards don't subtract  |
-      | 0     | does not end up empty       |
-      | 99    | Let's watch what happens   |
+      | 3     | The first card put in       |
+      | 11    | These cards do not add      |
+      | 38    | The box holds one number    |
+      | 5     | These cards do not subtract |
+      | 0     | not empty at the end        |
+      | 99    | Watch what happens          |
 
   Scenario: Lesson 03 rewards a correct first prediction
     Given the coach lab shows lesson "c1/03-last-one-wins"
     When I press Continue
     And I answer 8
-    Then the coach says "Press Step twice"
+    Then the coach says "Select Run two times"
     And the coach announces "Scene complete"
     When I press Step
     And I press Step
@@ -93,7 +99,7 @@ Feature: The coach plays the lessons
 
   Scenario Outline: Lesson 05 answers the guess <guess> and then adds
     Given the coach lab shows lesson "c1/05-add"
-    When I press Continue
+    When I press Continue 2 times
     And I press Step
     And I press Step
     And I answer <guess>
@@ -104,12 +110,12 @@ Feature: The coach plays the lessons
 
     Examples:
       | guess | reply               |
-      | 57    | digits side by side |
+      | 57    | The box holds one number |
       | 35    | That is 5 times 7   |
 
   Scenario: Lesson 05 rewards the right guess of 12
     Given the coach lab shows lesson "c1/05-add"
-    When I press Continue
+    When I press Continue 2 times
     And I press Step
     And I press Step
     And I answer 12
@@ -119,15 +125,15 @@ Feature: The coach plays the lessons
 
   Scenario: Controls that a scene locks say "Not yet" and do nothing
     Given the coach lab shows lesson "c1/01-press-the-button"
-    When I press Continue
+    When I press Continue 3 times
     Then the number on card 1 is locked with the explanation "Not yet"
     When I try to set the number on card 1 to 8
     Then the number on card 1 is 5
 
   Scenario: The spotlight dims everything but the target, which stays reachable by keyboard
-    Given the coach lab shows lesson "c1/01-press-the-button"
+    Given the coach lab shows lesson "x1/03-builder"
     When I press Continue
-    Then the spotlight surrounds "button:step"
+    Then the spotlight surrounds "tray"
     And the spotlight dims the rest of the page
     And the spotlight lets clicks through
     When I tab until the focus is on "Step"
@@ -135,19 +141,19 @@ Feature: The coach plays the lessons
 
   Scenario: Escape asks before ending the tour
     Given the coach lab shows lesson "c1/01-press-the-button"
-    When I press Continue
+    When I press Continue 3 times
     And I press the Escape key
     Then the coach asks "Skip the tour?"
     And the spotlight surrounds "button:step"
     When I choose "Keep going"
-    Then the coach says "Press Step"
+    Then the coach says "Select Run"
     When I press the Escape key
     And I choose "Skip the tour"
     Then there is no spotlight
 
   Scenario: Reduced motion makes the spotlight instant and the ghost pointer jump
     Given the coach lab shows lesson "c1/01-press-the-button" with reduced motion
-    When I press Continue
+    When I press Continue 3 times
     Then the spotlight is instant
     When I ask to be shown
     Then the ghost pointer is instant
@@ -159,7 +165,7 @@ Feature: The coach plays the lessons
     Then the card hint says "a whole number from -2048 to 2047"
     When I type "9" into the number on card 1
     Then the number on card 1 is 9
-    When I press Step
+    When I select Run
     Then box "a0" shows 9
 
   Scenario Outline: A number that cannot be used is explained and the card keeps its number
@@ -180,7 +186,6 @@ Feature: The coach plays the lessons
     Given the coach lab shows lesson "c1/03-last-one-wins"
     When I press Continue
     Then the Step button is locked with the explanation "Not yet"
-    And the Back button is locked with the explanation "Not yet"
     And the Reset button is locked with the explanation "Not yet"
 
   Scenario: A goal reached early is not asked for again
@@ -190,7 +195,7 @@ Feature: The coach plays the lessons
     And I press Continue
     And I answer 8
     Then the Now you can card is not shown yet
-    And the coach says "last one wins"
+    And the coach says "the last card wins"
 
   Scenario: A prediction made after the reveal earns nothing, and re-running earns nothing more
     Given the coach lab shows lesson "c1/03-last-one-wins"
@@ -224,7 +229,7 @@ Feature: The coach plays the lessons
     When I press Continue
     And I type "<typed>" as my answer and press Answer
     Then the answer hint says "<hint>"
-    And the coach says "What will the box hold"
+    And the coach says "What does the box hold"
 
     Examples:
       | typed | hint                       |
@@ -237,9 +242,9 @@ Feature: The coach plays the lessons
     Given the coach lab shows lesson "c1/03-last-one-wins"
     When I press Continue
     And I type "<typed>" as my answer and press Answer
-    Then the coach replies "Let's watch"
+    Then the coach replies "Watch what happens"
 
     Examples:
       | typed |
       | -3    |
-      |  11   |
+      |  12   |

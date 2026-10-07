@@ -13,6 +13,8 @@ hideEnd: true
 starter:
   hex: ["0x00100513"]   # put 1 in box a0
 tabs: [cards]
+ui:
+  spotlight: dim
 scenes:
   - id: spin
     say: Type a number on the card.
@@ -34,7 +36,7 @@ scenes:
     doneSay: Three cards in the program.
 
   - id: last
-    say: That is all of them.
+    say: These are all of them.
     show: [D1]
 nowYouCan:
   - Build a program from cards.

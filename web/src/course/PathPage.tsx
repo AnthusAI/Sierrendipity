@@ -163,7 +163,9 @@ export function PathView({
                 className={cn("flex flex-wrap items-center gap-2 rounded-lg border bg-card px-3 text-card-foreground", l === lastDone ? "py-2.5" : "py-1.5 text-sm")}
               >
                 <Star aria-hidden className="size-4 shrink-0 fill-current" />
-                <span className="font-medium">{l.title}</span>
+                <Link to={lessonPath(l.id)} aria-label={`Open ${l.title} again`} className="rounded-sm font-medium underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                  {l.title}
+                </Link>
                 <StarChips stars={starsOf(l.bonuses)} />
               </li>
             ))}
