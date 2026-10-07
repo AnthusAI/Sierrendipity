@@ -3,7 +3,7 @@
   "title": "R8: Honest end card: 'You ran' vs 'You made'; qualify the lamps line (S)",
   "description": "Effort: S. Do first.\n\n**Problem.** The end card claims the student made things she did not.\n**Evidence.** Lesson 1 'You made: Put 5 in the box' (starter card); lesson 7 'You can make any number this way' with six lamps (max 63).\n**Change.** 'You ran' for starter cards, 'You made' only for edited or built cards; qualify the lamps line ('any number up to 63').\n**Acceptance.**\n- Given an unedited starter card, then the end card says 'You ran'.\n- Given an edited or built card, then it says 'You made'.\n- Given six lamps, then the claim says up to 63.",
   "type": "story",
-  "status": "in_progress",
+  "status": "closed",
   "priority": 1,
   "assignee": null,
   "creator": null,
@@ -27,14 +27,14 @@
     }
   ],
   "created_at": "2026-10-07T12:27:15.516844Z",
-  "updated_at": "2026-10-07T13:30:55.037134Z",
-  "closed_at": null,
+  "updated_at": "2026-10-07T13:31:40.946430Z",
+  "closed_at": "2026-10-07T13:31:40.946397Z",
   "agent": {
     "platform": "claude_code",
     "model": "Claude Sonnet 5.5",
     "name": "Curriculum Board Agent"
   },
-  "right_now_summary": "The end card now says “You ran” for starter cards, “You made” after edits, and “up to 63” for six lamps.",
-  "right_now_updated_at": "2026-10-07T13:30:56.047059Z",
+  "right_now_summary": "PR #36 updates end cards to say “You ran” or “You made” and limits the lamps claim to 63.",
+  "right_now_updated_at": "2026-10-07T13:31:42.266661Z",
   "custom": {}
 }

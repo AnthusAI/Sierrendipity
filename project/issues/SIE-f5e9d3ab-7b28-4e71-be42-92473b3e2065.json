@@ -31,7 +31,7 @@
     "platform": "claude_code",
     "model": "claude-sonnet-5-5"
   },
-  "right_now_summary": "The team is expanding lessons, emulators, and language support while verifying sign-in, deployment, and interactive",
-  "right_now_updated_at": "2026-10-07T13:31:12.319630Z",
+  "right_now_summary": "The IDE and Google sign-in are deployed, while multi-file runs, tests, lessons, and automation continue.",
+  "right_now_updated_at": "2026-10-07T13:32:01.612253Z",
   "custom": {}
 }
