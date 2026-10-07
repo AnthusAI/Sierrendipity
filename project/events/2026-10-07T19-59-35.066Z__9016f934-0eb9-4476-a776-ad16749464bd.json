@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "event_id": "9016f934-0eb9-4476-a776-ad16749464bd",
+  "issue_id": "SIE-0d23c8d7-27d6-4f69-bc1b-4dbd6cef8fb1",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T19:59:35.066Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Registers panel: c1/04 six-theme screenshot spec and reg: alias",
+    "description": "Deferred from SIE-4ef8b4 in PR 39: screenshot spec for c1/04 across six theme and mode combinations; reg:<name> alias beside box:<name>.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-fd7b2ee2-94bd-4d3a-aeee-ace3372b3b2e",
+    "labels": []
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "event_id": "2af79cd7-cd84-4dee-8a20-ea9674e283d2",
+  "issue_id": "SIE-b0e7413e-bf56-46c3-8351-6ed0c749b7e2",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T19:59:40.249Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Registers panel: table skin, only and number props, IDE tab swap",
+    "description": "Deferred from SIE-4ef8b4 in PR 39: skin table, number signed/hex/both, and the IDE Registers tab drawn by the same component.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-fd7b2ee2-94bd-4d3a-aeee-ace3372b3b2e",
+    "labels": []
+  }
+}
