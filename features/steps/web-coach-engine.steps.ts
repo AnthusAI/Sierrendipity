@@ -132,8 +132,8 @@ Given("the engine plays {string} with the step scene waiting for {string}", (id:
   w.published = copy;
   fresh();
 });
-When("the student continues and presses Step", () => {
-  w.engine!.continue();
+When("the student continues to the Run scene and runs", () => {
+  for (let i = 0; i < 3; i++) w.engine!.continue();
   w.engine!.step();
 });
 Then("the coach tells the student to press Back and spotlights {string}", (target: string) => {

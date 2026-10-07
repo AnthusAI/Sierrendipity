@@ -92,6 +92,15 @@ const named = (w: WebWorld, name: string) => w.page.locator("[data-lesson-player
 When("I press Continue", async function (this: WebWorld) {
   await named(this, "Continue").click();
 });
+When("I select Start again", async function (this: WebWorld) {
+  await named(this, "Start again").click();
+});
+When("I select Run", async function (this: WebWorld) {
+  await named(this, "Run").click();
+});
+When("I press Continue {int} times", async function (this: WebWorld, times: number) {
+  for (let i = 0; i < times; i++) await named(this, "Continue").click();
+});
 When("I press Step", async function (this: WebWorld) {
   await named(this, "Step").click();
 });
@@ -258,10 +267,20 @@ const rectOf = (w: WebWorld, selector: string) =>
 
 Then("the spotlight surrounds {string}", async function (this: WebWorld, target: string) {
   await this.page.locator(`[data-coach-spotlight][data-target="${target}"]`).waitFor();
-  const [spot, el] = await Promise.all([rectOf(this, "[data-coach-spotlight]"), rectOf(this, `[data-coach-id="${target}"]`)]);
   const slack = 16;
-  assert.ok(spot.x <= el.x + 0.5 && spot.y <= el.y + 0.5 && spot.x + spot.width >= el.x + el.width - 0.5 && spot.y + spot.height >= el.y + el.height - 0.5, `spotlight ${JSON.stringify(spot)} does not cover ${JSON.stringify(el)}`);
-  assert.ok(spot.width <= el.width + 2 * slack && spot.height <= el.height + 2 * slack, "the spotlight is much bigger than its target");
+  const covers = async () => {
+    const [spot, el] = await Promise.all([rectOf(this, "[data-coach-spotlight]"), rectOf(this, `[data-coach-id="${target}"]`)]);
+    const covered = spot.x <= el.x + 0.5 && spot.y <= el.y + 0.5 && spot.x + spot.width >= el.x + el.width - 0.5 && spot.y + spot.height >= el.y + el.height - 0.5;
+    const snug = spot.width <= el.width + 2 * slack && spot.height <= el.height + 2 * slack;
+    return { ok: covered && snug, covered, spot, el };
+  };
+  let seen = await covers();
+  for (let i = 0; i < 40 && !seen.ok; i++) {
+    await this.page.waitForTimeout(50);
+    seen = await covers();
+  }
+  assert.ok(seen.covered, `spotlight ${JSON.stringify(seen.spot)} does not cover ${JSON.stringify(seen.el)}`);
+  assert.ok(seen.ok, "the spotlight is much bigger than its target");
 });
 Then("the spotlight dims the rest of the page", async function (this: WebWorld) {
   const shadow = await this.page.locator("[data-coach-spotlight]").evaluate((el) => getComputedStyle(el).boxShadow);
@@ -454,6 +473,7 @@ Then("the Step button explains {string}", async function (this: WebWorld, text: 
   await this.page.locator("[data-idle-note]", { hasText: text }).waitFor();
 });
 Then("the idle Step button meets {float}:1 contrast", async function (this: WebWorld, min: number) {
+  await this.page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined))));
   const items = await paint(this, '[data-coach-id="button:step"][aria-disabled="true"], [data-idle-note]');
   assert.ok(items.length >= 2);
   for (const { color, layers, text } of items) assert.ok(ratioOf(color, layers) >= min, `"${text}" is ${ratioOf(color, layers).toFixed(2)}:1`);

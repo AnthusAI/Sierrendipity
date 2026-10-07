@@ -120,7 +120,7 @@ function AskUi({ state, engine }: { state: PlayerState; engine: LessonEngine }) 
   return (
     <div data-coach-ask className="space-y-2">
       <p className="font-medium">{ask.question}</p>
-      <p className="text-muted-foreground">Click the part you mean.</p>
+      <p className="text-muted-foreground">Select the part you mean.</p>
     </div>
   );
 }
@@ -163,7 +163,7 @@ export function CoachPanel({ state, engine, next, onNext, onStop }: Props) {
           <p data-coach-say>
             {state.yourTurn && <strong>Your turn. </strong>}
             {state.say}
-            {state.stranded && <strong> Press Back to try the steps again.</strong>}
+            {state.stranded && <strong> Select Back to try the steps again.</strong>}
           </p>
         )}
         {state.reply && phase === "scene" && (

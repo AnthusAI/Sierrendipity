@@ -17,7 +17,7 @@ Feature: Draft lessons stay out of the shipping course
   Scenario: The Learn path shows no draft lesson
     When I open the real course at "/learn"
     Then I see the heading "Course 1"
-    And I see "Press the Button"
+    And I see "Your First Instruction"
     And I do not see "Flip the Card"
     And I do not see "Counting with Lamps"
     And I do not see "Stage fixture"
@@ -54,4 +54,4 @@ Feature: Draft lessons stay out of the shipping course
     Then no file of that build holds "Flip the Card"
     And no file of that build holds "Stage fixture"
     And no file of that build holds "Counting with Lamps"
-    And a file of that build holds "Press the Button"
+    And a file of that build holds "Your First Instruction"

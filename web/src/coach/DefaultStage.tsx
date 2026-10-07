@@ -161,7 +161,7 @@ export function DefaultStage({ live, scene, onEditStarter, controls }: StageProp
       </section>
 
       <div role="group" aria-label="Machine controls" className="flex flex-wrap items-start gap-2">
-        {action("step", live.canStep, "Step", "Press Back first", controls.step)}
+        {action("step", live.canStep, "Step", "Select Back first", controls.step)}
         {action("back", live.canBack, "Back", "Nothing to undo yet", controls.back)}
         {action("reset", true, "Reset", "", controls.reset)}
       </div>

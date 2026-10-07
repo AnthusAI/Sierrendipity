@@ -109,13 +109,13 @@ export function PlayerControls({ live, controls, timeline = false, length, ui }:
 
   return (
     <div role="group" aria-label="Machine controls" className="flex flex-wrap items-start gap-2">
-      <Action control="step" label={ui?.stepLabel ?? "Step"} icon="right" primary can={live.canStep} locked={locked("step")} idleWhy={ui?.controls && !ui.controls.includes("back") ? "All done" : "Press Back first"} run={controls.step} />
+      <Action control="step" label={ui?.stepLabel ?? "Step"} icon="right" primary can={live.canStep} locked={locked("step")} idleWhy={ui?.controls && !ui.controls.includes("back") ? "All done" : "Select Back first"} run={controls.step} />
       {shown("back") && <Action control="back" label="Back" icon="left" can={live.canBack} locked={locked("back")} idleWhy="Nothing to undo yet" run={controls.back} />}
       {timeline &&
         (running ? (
           <Action control="pause" label="Pause" icon="pause" can locked={false} run={() => setRunning(false)} />
         ) : (
-          <Action control="run" label="Run" icon="play" can={live.canStep} locked={locked("run")} idleWhy="Press Reset first" run={() => setRunning(true)} />
+          <Action control="run" label="Run" icon="play" can={live.canStep} locked={locked("run")} idleWhy="Select Reset first" run={() => setRunning(true)} />
         ))}
       {shown("reset") && <Action control="reset" label={ui?.resetLabel ?? "Reset"} icon="reset" can={live.steps > 0} idleWhy="Nothing to start again yet" locked={locked("reset")} run={controls.reset} />}
       {timeline && (

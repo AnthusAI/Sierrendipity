@@ -7,12 +7,12 @@ Feature: The lesson player draws the real machine
   Scenario: Lesson 01 plays on the real stage
     Given the coach lab shows lesson "c1/01-press-the-button"
     Then the stage is the real machine view
-    When I press Continue
+    When I press Continue 3 times
     Then the spotlight surrounds "button:step"
-    When I press Step
+    When I select Run
     Then box "a0" shows 5
     And the diagram agrees with the player
-    And the end of the list is shown as "the end of the list"
+    And the end of the list is not shown
 
   Scenario Outline: Lesson <lesson> is played end to end on the real stage
     Given the coach lab shows lesson "<lesson>"
@@ -52,7 +52,7 @@ Feature: The lesson player draws the real machine
     And I set the number on card 1 to 9
     Then the player's cards are "0x00900513"
     And the diagram agrees with the player
-    When I press Step
+    When I select Run
     Then box "a0" shows 9
     When I set the number on card 1 to 4
     Then the player's cards are "0x00400513"
@@ -83,13 +83,13 @@ Feature: The lesson player draws the real machine
     Then a token carrying 5 is flying
 
   Scenario: Reduced motion shows no token and says what happened in words
-    Given the coach lab shows lesson "c1/01-press-the-button" with reduced motion
+    Given the coach lab shows lesson "c1/04-two-boxes" with reduced motion
     When I press Continue
     And I press Step
     And the timeline is at step 1
     And the diagram clock is frozen at 0.5
     Then no token is flying
-    And the diagram says "Box a0 changed from – to 5."
+    And the diagram says "Box a0 changed from – to 4."
 
   Scenario: The pointing hand follows the player on a lesson that has one
     Given the coach lab shows lesson "x1/01-diagrams"
@@ -102,7 +102,7 @@ Feature: The lesson player draws the real machine
 
   Scenario: Locked controls say "Not yet" and the spinner stays put
     Given the coach lab shows lesson "c1/01-press-the-button"
-    When I press Continue
+    When I press Continue 3 times
     Then the number on card 1 is locked with the explanation "Not yet"
 
   Scenario: While a prediction is asked the machine's controls say "Not yet"

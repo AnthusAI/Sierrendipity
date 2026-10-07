@@ -5,8 +5,8 @@ Feature: The coach records progress and never blocks on storage
 
   Scenario: Progress survives a reload
     Given the coach lab shows lesson "c1/01-press-the-button"
-    When I press Continue
-    And I press Step
+    When I press Continue 3 times
+    And I select Run
     Then the stored progress of "c1/01-press-the-button" has passed
     When I reload the lab
     Then the stored progress of "c1/01-press-the-button" has passed
@@ -25,8 +25,8 @@ Feature: The coach records progress and never blocks on storage
 
   Scenario: A broken browser storage does not break play
     Given the coach lab shows lesson "c1/01-press-the-button" with storage that always fails
-    When I press Continue
-    And I press Step
+    When I press Continue 3 times
+    And I select Run
     Then box "a0" shows 5
     When I press Continue
     And I press Continue
@@ -38,15 +38,15 @@ Feature: The coach records progress and never blocks on storage
     When I choose "Quick version"
     And I press Continue
     And I set the number on card 1 to 9
-    And I press Step
+    And I select Run
     Then the Now you can card is shown
 
   Scenario: Without that history the optional part cannot be skipped
     Given the coach lab shows lesson "c1/02-change-the-number"
     When I press Continue
     And I set the number on card 1 to 9
-    And I press Step
-    Then the coach says "Try a different number"
+    And I select Run
+    Then the coach says "try a different number"
     And the coach has no "Skip" button
 
   Scenario Outline: The coach panel is readable in <theme> <mode> mode
@@ -76,17 +76,26 @@ Feature: The coach records progress and never blocks on storage
       | 1440  | 900    |
 
   Scenario: Forced colors keep the spotlight visible
-    Given the coach lab shows lesson "c1/01-press-the-button" with forced colors
+    Given the coach lab shows lesson "x1/03-builder" with forced colors
     When I press Continue
-    Then the spotlight surrounds "button:step"
+    Then the spotlight surrounds "tray"
     And the spotlight is outlined in a system color
     And the spotlight still dims the rest of the page
 
   Scenario: The step button explains itself when it cannot step
-    Given the coach lab shows lesson "c1/01-press-the-button"
+    Given the coach lab shows lesson "c1/04-two-boxes"
     When I press Continue
     And I press Step
-    Then the Step button explains "Press Back first"
+    And I press Step
+    Then the Step button explains "Select Back first"
+    And the idle Step button meets 4.5:1 contrast
+
+  Scenario: In a lesson without a Back button the idle Run button says all done
+    Given the coach lab shows lesson "c1/02-change-the-number"
+    When I press Continue
+    And I set the number on card 1 to 9
+    And I select Run
+    Then the Step button explains "All done"
     And the idle Step button meets 4.5:1 contrast
 
   Scenario: At 400 by 800 the coach comes first and the number pad is easy to hit
@@ -101,7 +110,7 @@ Feature: The coach records progress and never blocks on storage
     Then the lab says "This lesson couldn't load. Try again, or pick another lesson."
     And the lab shows no technical error text
     When I choose "Back to the path"
-    Then the coach says "one card and one box"
+    Then the coach says "exactly what each instruction says"
 
   Scenario: A lesson file that is damaged is explained kindly
     Given the lesson file of "c1/01-press-the-button" is damaged
@@ -116,7 +125,7 @@ Feature: The coach records progress and never blocks on storage
     And the lab shows no technical error text
     When the lesson file can be fetched again
     And I choose "Try again"
-    Then the coach says "one card and one box"
+    Then the coach says "exactly what each instruction says"
 
   Scenario: Visitors to the app do not download the coach
     Then the main bundle does not contain the coach
@@ -126,10 +135,9 @@ Feature: The coach records progress and never blocks on storage
     And a course of five lessons
     When I open the app at "/learn/c1/01-press-the-button"
     Then I see the heading "Press the Button"
-    And the coach says "one card and one box"
-    When I press Continue
-    And I press Step
-    And I press Continue
-    And I press Continue
+    And the coach says "exactly what each instruction says"
+    When I press Continue 3 times
+    And I select Run
+    And I press Continue 2 times
     Then the Now you can card is shown
     And the stored progress of "c1/01-press-the-button" has passed

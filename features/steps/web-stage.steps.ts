@@ -174,7 +174,7 @@ When("I play the lesson to the end answering {word}", async function (this: WebW
       assert.notEqual(given, "-", "the lesson asked a question but no answer was given");
       await answer(this, given);
     } else {
-      const step = named(this, "Step");
+      const step = this.page.locator('[data-lesson-player] [data-coach-id="button:step"]');
       if ((await step.getAttribute("aria-disabled")) === "true") assert.fail("the lesson is stuck: Step has nothing to do");
       await step.click();
     }

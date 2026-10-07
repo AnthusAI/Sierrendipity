@@ -31,7 +31,7 @@ Feature: The coach engine never strands a student
 
   Scenario: A scene that cannot be finished by stepping points at Back
     Given the engine plays "c1/01-press-the-button" with the step scene waiting for "box a0 holds 99"
-    When the student continues and presses Step
+    When the student continues to the Run scene and runs
     Then the coach tells the student to press Back and spotlights "button:back"
     When the player presses Back
     Then the coach no longer tells the student to press Back

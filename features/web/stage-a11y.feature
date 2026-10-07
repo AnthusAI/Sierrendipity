@@ -7,7 +7,9 @@ Feature: The real stage is keyboard operable, readable and fits every window
     Given the coach lab shows lesson "c1/01-press-the-button"
     Then the focus is on "Continue"
     When I press the Enter key
-    Then the focus is on "Step"
+    And I press the Enter key
+    And I press the Enter key
+    Then the focus is on "Run"
     When I press the Enter key
     Then box "a0" shows 5
     And the focus is on "Continue"
@@ -21,7 +23,7 @@ Feature: The real stage is keyboard operable, readable and fits every window
     Then the focus is on "Continue"
     When I press the Enter key
     And I type "4" in the answer box and press the Enter key
-    Then the coach says "Switch lamps on until they add up to 5"
+    Then the coach says "Switch lamps on until they make 5"
     When I tab until the focus is on "bit 5, worth 32"
     And I press the ArrowRight key 3 times
     Then the focus is on "bit 2, worth 4"
