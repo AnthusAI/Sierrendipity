@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "event_id": "9ebbd2de-94c1-4ccd-a3d9-849e9840ec35",
+  "issue_id": "SIE-9ad60edb-9dd2-456e-aab4-81d03ccec6a6",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T11:52:46.918Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "M11 Wave 7: Course 4 C, c4/01-03, with G10 and G11",
+    "description": "Part of M11 (SIE-e8c918). c4/01 glass-box (Explorer in lesson). c4/02 write-f-in-c (editor C plus compile harness). c4/03 same-c-more-work (-O0 versus -Og). Engine: G10, G11.",
+    "issue_type": "epic",
+    "status": "open",
+    "priority": 3,
+    "assignee": null,
+    "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+    "labels": [
+      "M11",
+      "curriculum"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Curriculum Board Agent"
+    }
+  }
+}
