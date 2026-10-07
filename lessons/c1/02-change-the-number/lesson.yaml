@@ -21,13 +21,8 @@ ui:
   boxNames: false
   spotlight: ring
 scenes:
-  - id: look
-    say: This card has a number on it, and you can change the number. Select Continue.
-    show: [cards, boxes]
-    spotlight: "card:0"
-
   - id: change
-    say: "Use the plus button to change the number on the card to 9. Then select Run."
+    say: "This card has a number you can change. Use the plus button to change it to 9, then select Run."
     show: [cards, boxes]
     spotlight: "card:0"
     until:
@@ -44,7 +39,7 @@ scenes:
     lock: [drag, toggle]
 
   - id: another
-    say: You changed what the machine does with one number. You can try a different number.
+    say: You changed what the machine does with one number. Try a different number, then select Start again.
     show: [cards, boxes]
     skippable: true
 nowYouCan:
@@ -53,9 +48,9 @@ nowYouCan:
 warmups:
   - id: change-the-six
     concept: numbers-on-cards
-    question: "The card says: put 6 in the box. After you select Run, what does the box hold?"
+    question: A card puts 6 in the box. You change the number on the card to 10. After you select Run, what does the box hold?
     program:
       asm: |
-        addi a0, zero, 6
+        addi a0, zero, 10
     target: a0
-    expected: 6
+    expected: 10

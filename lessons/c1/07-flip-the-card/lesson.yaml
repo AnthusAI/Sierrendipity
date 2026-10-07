@@ -1,10 +1,10 @@
-id: c1/06-flip-the-card
+id: c1/07-flip-the-card
 title: Flip the Card
 minutes: 4
 draft: true
 concepts:
   introduces: [card-flip]
-  requires: [cards, numbers-on-cards]
+  requires: [numbers-on-cards, binary-lamps]
 # One new idea (a card is one big number, and its lamps spell that number), one action (flip it, then match lamps to cards).
 boxes: [a0]
 pointer: false
@@ -12,6 +12,16 @@ hideEnd: true
 starter:
   hex: ["0x00100513", "0x00200513", "0x00300513"]   # put 1, put 2, put 3 in box a0
 tabs: [cards, lamps]
+ui:
+  controls: [step, reset]
+  stepLabel: Run
+  resetLabel: Start again
+  log: true
+  deskTitle: false
+  endMarker: false
+  boxNames: false
+  spotlight: ring
+  spotlightAfterHint: true
 onWrongDefault:
   say: Flip a card and look at its lamps again.
   goto: flip
@@ -23,9 +33,9 @@ scenes:
     lock: [edit, drag, toggle]
 
   - id: flip
-    say: Flip the card. A lit lamp is a 1 and a dark lamp is a 0.
+    say: Flip the card to see its number as lamps. A lit lamp is a 1 and a dark lamp is a 0.
     show: [D5]
-    flip: { card: 0, lenses: [card, lamps] }
+    flip: { card: 0, lenses: [card, number] }
     spotlight: flip
     showMe: demo-flip
     lock: [edit, drag, toggle]
@@ -33,21 +43,21 @@ scenes:
   - id: match-one
     say: These lamps show the number on one card. Which card is it?
     show: [D1, D4]
-    lamps: { card: 2, of: number, width: 4 }
+    lamps: { card: 2, of: number, width: 4, hide: [total] }
     ask:
       kind: click-target
       question: Select the card that these lamps show.
       target: "card:2"
     hints:
-      - Read the total under the lamps. Then look at the numbers on the cards.
-      - The lit lamps make a total. Which card puts that total in the box?
+      - Add up the worth of each lit lamp. Then look at the numbers on the cards.
+      - Add up the lit lamps. Which card puts that total in the box?
       - The lamps make 3. Select the card that puts 3 in the box.
     onWrong:
       - match: "card:0"
-        say: That card puts 1. These lamps make 3.
+        say: That card puts 1. Add up the lit lamps again.
         goto: match-one
       - match: "card:1"
-        say: That card puts 2. These lamps make 3.
+        say: That card puts 2. Add up the lit lamps again.
         goto: match-one
     showMe: demo-match-one
     lock: [edit, drag, toggle]
@@ -55,21 +65,21 @@ scenes:
   - id: match-two
     say: These lamps are different. Which card do they show?
     show: [D1, D4]
-    lamps: { card: 0, of: number, width: 4 }
+    lamps: { card: 0, of: number, width: 4, hide: [total] }
     ask:
       kind: click-target
       question: Select the card that these lamps show.
       target: "card:0"
     hints:
-      - Read the total under the lamps. Then look at the numbers on the cards.
+      - Add up the worth of each lit lamp. Then look at the numbers on the cards.
       - Only one lamp is lit. Which card puts a small number in the box?
       - The lamps make 1. Select the card that puts 1 in the box.
     onWrong:
       - match: "card:1"
-        say: That card puts 2. These lamps make 1.
+        say: That card puts 2. Add up the lit lamps again.
         goto: match-two
       - match: "card:2"
-        say: That card puts 3. These lamps make 1.
+        say: That card puts 3. Add up the lit lamps again.
         goto: match-two
     showMe: demo-match-two
     lock: [edit, drag, toggle]
@@ -77,27 +87,27 @@ scenes:
   - id: match-three
     say: This is one more pattern. Which card do these lamps show?
     show: [D1, D4]
-    lamps: { card: 1, of: number, width: 4 }
+    lamps: { card: 1, of: number, width: 4, hide: [total] }
     ask:
       kind: click-target
       question: Select the card that these lamps show.
       target: "card:1"
     hints:
-      - Read the total under the lamps. Then look at the numbers on the cards.
+      - Add up the worth of each lit lamp. Then look at the numbers on the cards.
       - The lit lamp is not the lamp that is worth 1. Which card puts a different number in the box?
       - The lamps make 2. Select the card that puts 2 in the box.
     onWrong:
       - match: "card:0"
-        say: That card puts 1. These lamps make 2.
+        say: That card puts 1. Add up the lit lamps again.
         goto: match-three
       - match: "card:2"
-        say: That card puts 3. These lamps make 2.
+        say: That card puts 3. Add up the lit lamps again.
         goto: match-three
     showMe: demo-match-three
     lock: [edit, drag, toggle]
 
   - id: run
-    say: Select Step three times. Each card puts its number in the box.
+    say: Make the box end with 3.
     show: [D1]
     spotlight: "button:step"
     until:
@@ -116,7 +126,7 @@ nowYouCan:
 warmups:
   - id: lamps-six
     concept: card-flip
-    question: The lamps on a card make 6. After the card runs, what does the box hold?
+    question: The lamps worth 4 and 2 are lit on a put card. After the card runs, what does the box hold?
     program:
       asm: |
         addi a0, zero, 6
@@ -124,7 +134,7 @@ warmups:
     expected: 6
   - id: lamps-five
     concept: card-flip
-    question: The lamps on a card make 5. After the card runs, what does the box hold?
+    question: The lamps worth 4 and 1 are lit on a put card. After the card runs, what does the box hold?
     program:
       asm: |
         addi a0, zero, 5

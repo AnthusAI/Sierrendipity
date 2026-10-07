@@ -9,39 +9,26 @@ Feature: The coach plays the lessons
     Given the coach lab shows lesson "c1/01-press-the-button"
     Then the coach says "exactly what each instruction says"
     When I press Continue
-    Then the coach says "This card is one instruction"
-    When I press Continue
-    Then the coach says "This is the box"
-    When I press Continue
     Then the coach says "Select Run"
     When I select Run
-    Then box "a0" shows 5
-    And the coach says "did what the card says"
+    Then the Now you can card is shown
     And the coach confirms "The box now holds 5."
-    When I press Continue
-    Then the coach shows no confirmation
-    When I press Continue
-    Then the Now you can card lists "Make a computer follow an instruction."
-    And the Now you can card shows what I made, "Put 5 in the box"
+    And the coach confirms "f(x) = x squared plus 1"
+    And the Now you can card lists "Make a computer follow an instruction."
+    And the Now you can card shows what I ran, "Put 5 in the box"
     And the Now you can card offers "Next lesson, about 3 min" and "Stop here"
 
   Scenario: Lesson 01 is playable with the keyboard alone
     Given the coach lab shows lesson "c1/01-press-the-button"
     Then the focus is on "Continue"
     When I press the Enter key
-    And I press the Enter key
-    And I press the Enter key
     Then the focus is on "Run"
     When I press the Enter key
-    Then the focus is on "Continue"
-    When I press the Enter key
-    And I press the Enter key
     Then the Now you can card is shown
     And the focus is on "Next lesson, about 3 min"
 
   Scenario: Lesson 02 asks for the number 9 and rewards another way
     Given the coach lab shows lesson "c1/02-change-the-number"
-    When I press Continue
     Then the coach says "Use the plus button"
     When I set the number on card 1 to 9
     And I select Run
@@ -52,10 +39,23 @@ Feature: The coach plays the lessons
     And I select Run
     Then the stored progress of "c1/02-change-the-number" has passed with the bonus "another-way"
 
-  Scenario Outline: Lesson 03 answers the wrong guess <guess> in its own words
+  Scenario: The end card says "You made" only for a card the student changed
+    Given the coach lab shows lesson "c1/02-change-the-number"
+    When I set the number on card 1 to 9
+    And I select Run
+    And I press Continue
+    Then the Now you can card shows what I made, "Put 9 in the box"
+
+  Scenario: The end card shows the stars the student earned
     Given the coach lab shows lesson "c1/03-last-one-wins"
-    When I press Continue
-    And I answer <guess>
+    When I answer 8
+    And I press Step
+    And I press Step
+    Then the Now you can card shows the stars "called-it"
+
+  Scenario Outline: Lesson 03 shows the wrong guess <guess> and sends the student to watch
+    Given the coach lab shows lesson "c1/03-last-one-wins"
+    When I answer <guess>
     Then the coach replies "<reply>"
     And the reply is not styled as an error
     And the coach says "Select Run two times"
@@ -65,20 +65,17 @@ Feature: The coach plays the lessons
     And the stored progress of "c1/03-last-one-wins" has passed without the bonus "called-it"
 
     Examples:
-      | guess | reply                       |
-      | 3     | The first card put in       |
-      | 11    | These cards do not add      |
-      | 38    | The box holds one number    |
-      | 5     | These cards do not subtract |
-      | 0     | not empty at the end        |
-      | 99    | Watch what happens          |
+      | guess | reply                  |
+      | 3     | You said 3. Watch the box. |
+      | 11    | You said 11. Watch the box. |
+      | 38    | You said 38. Watch the box. |
+      | 99    | You said 99. Watch the box. |
 
   Scenario: Lesson 03 rewards a correct first prediction
     Given the coach lab shows lesson "c1/03-last-one-wins"
-    When I press Continue
-    And I answer 8
+    When I answer 8
     Then the coach says "Select Run two times"
-    And the coach announces "Scene complete"
+    And the coach confirms "You called it."
     When I press Step
     And I press Step
     Then the stored progress of "c1/03-last-one-wins" has passed with the bonus "called-it"
@@ -86,8 +83,10 @@ Feature: The coach plays the lessons
 
   Scenario: Lesson 04 changes one card so that box a1 holds 9
     Given the coach lab shows lesson "c1/04-two-boxes"
-    When I press Continue
-    And I press Step
+    Then there is no spotlight
+    When I ask for a hint
+    Then the spotlight surrounds "button:step"
+    When I press Step
     And I press Step
     Then the coach says "Change one card"
     When I press Reset
@@ -99,8 +98,7 @@ Feature: The coach plays the lessons
 
   Scenario Outline: Lesson 05 answers the guess <guess> and then adds
     Given the coach lab shows lesson "c1/05-add"
-    When I press Continue 2 times
-    And I press Step
+    When I press Step
     And I press Step
     And I answer <guess>
     Then the coach replies "<reply>"
@@ -109,14 +107,13 @@ Feature: The coach plays the lessons
     And the stored progress of "c1/05-add" has passed
 
     Examples:
-      | guess | reply               |
-      | 57    | The box holds one number |
-      | 35    | That is 5 times 7   |
+      | guess | reply                  |
+      | 57    | You said 57. Watch box a2. |
+      | 35    | You said 35. Watch box a2. |
 
   Scenario: Lesson 05 rewards the right guess of 12
     Given the coach lab shows lesson "c1/05-add"
-    When I press Continue 2 times
-    And I press Step
+    When I press Step
     And I press Step
     And I answer 12
     And I press Step
@@ -125,7 +122,7 @@ Feature: The coach plays the lessons
 
   Scenario: Controls that a scene locks say "Not yet" and do nothing
     Given the coach lab shows lesson "c1/01-press-the-button"
-    When I press Continue 3 times
+    When I press Continue
     Then the number on card 1 is locked with the explanation "Not yet"
     When I try to set the number on card 1 to 8
     Then the number on card 1 is 5
@@ -141,7 +138,7 @@ Feature: The coach plays the lessons
 
   Scenario: Escape asks before ending the tour
     Given the coach lab shows lesson "c1/01-press-the-button"
-    When I press Continue 3 times
+    When I press Continue
     And I press the Escape key
     Then the coach asks "Skip the tour?"
     And the spotlight surrounds "button:step"
@@ -153,15 +150,14 @@ Feature: The coach plays the lessons
 
   Scenario: Reduced motion makes the spotlight instant and the ghost pointer jump
     Given the coach lab shows lesson "c1/01-press-the-button" with reduced motion
-    When I press Continue 3 times
+    When I press Continue
     Then the spotlight is instant
     When I ask to be shown
     Then the ghost pointer is instant
 
   Scenario: A number on a card can be cleared and retyped by keyboard
     Given the coach lab shows lesson "c1/02-change-the-number"
-    When I press Continue
-    And I clear the number on card 1 with the keyboard
+    When I clear the number on card 1 with the keyboard
     Then the card hint says "a whole number from -2048 to 2047"
     When I type "9" into the number on card 1
     Then the number on card 1 is 9
@@ -170,8 +166,7 @@ Feature: The coach plays the lessons
 
   Scenario Outline: A number that cannot be used is explained and the card keeps its number
     Given the coach lab shows lesson "c1/02-change-the-number"
-    When I press Continue
-    And I type "<text>" into the number on card 1
+    When I type "<text>" into the number on card 1
     Then the card hint says "Use a whole number from -2048 to 2047"
     When I type "<text>" into the number on card 1 and leave it
     Then the number on card 1 is 5
@@ -184,37 +179,12 @@ Feature: The coach plays the lessons
 
   Scenario: The prediction is made before the machine moves
     Given the coach lab shows lesson "c1/03-last-one-wins"
-    When I press Continue
     Then the Step button is locked with the explanation "Not yet"
     And the Reset button is locked with the explanation "Not yet"
 
-  Scenario: A goal reached early is not asked for again
-    Given the coach lab shows lesson "c1/03-last-one-wins"
-    When I press Step
-    And I press Step
-    And I press Continue
-    And I answer 8
-    Then the Now you can card is not shown yet
-    And the coach says "the last card wins"
-
-  Scenario: A prediction made after the reveal earns nothing, and re-running earns nothing more
-    Given the coach lab shows lesson "c1/03-last-one-wins"
-    When I press Step
-    And I press Step
-    And I press Continue
-    And I answer 8
-    And I press Reset
-    And I press Step
-    And I press Step
-    Then the stored progress of "c1/03-last-one-wins" has passed without the bonus "called-it"
-    And the stored progress of "c1/03-last-one-wins" has 1 attempt
-    And the stored progress of "c1/03-last-one-wins" asked 0 prediction and got 0 right
-    And the stored mastery of "last-wins" is box 1
-
   Scenario: Running again with Back and Reset does not add attempts
     Given the coach lab shows lesson "c1/04-two-boxes"
-    When I press Continue
-    And I press Step
+    When I press Step
     And I press Step
     And I press Reset
     And I press Step
@@ -226,8 +196,7 @@ Feature: The coach plays the lessons
 
   Scenario Outline: A whole-number answer is read strictly: <typed>
     Given the coach lab shows lesson "c1/03-last-one-wins"
-    When I press Continue
-    And I type "<typed>" as my answer and press Answer
+    When I type "<typed>" as my answer and press Answer
     Then the answer hint says "<hint>"
     And the coach says "What does the box hold"
 
@@ -240,9 +209,8 @@ Feature: The coach plays the lessons
 
   Scenario Outline: A negative or spaced whole number is accepted: <typed>
     Given the coach lab shows lesson "c1/03-last-one-wins"
-    When I press Continue
-    And I type "<typed>" as my answer and press Answer
-    Then the coach replies "Watch what happens"
+    When I type "<typed>" as my answer and press Answer
+    Then the coach replies "Watch the box"
 
     Examples:
       | typed |

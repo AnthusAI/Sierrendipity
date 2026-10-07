@@ -7,19 +7,14 @@ Feature: The real stage is keyboard operable, readable and fits every window
     Given the coach lab shows lesson "c1/01-press-the-button"
     Then the focus is on "Continue"
     When I press the Enter key
-    And I press the Enter key
-    And I press the Enter key
     Then the focus is on "Run"
     When I press the Enter key
     Then box "a0" shows 5
-    And the focus is on "Continue"
-    When I press the Enter key
-    And I press the Enter key
-    Then the Now you can card is shown
+    And the Now you can card is shown
     And the focus is on "Next lesson, about 3 min"
 
-  Scenario: Lesson 07 is played with the keyboard alone
-    Given the coach lab shows lesson "c1/07-counting-with-lamps"
+  Scenario: Lesson 06 is played with the keyboard alone
+    Given the coach lab shows lesson "c1/06-counting-with-lamps"
     Then the focus is on "Continue"
     When I press the Enter key
     And I type "4" in the answer box and press the Enter key
@@ -28,7 +23,7 @@ Feature: The real stage is keyboard operable, readable and fits every window
     And I press the ArrowRight key 3 times
     Then the focus is on "bit 2, worth 4"
     When I press the Space key
-    And I shift-tab until the focus is on "Step"
+    And I shift-tab until the focus is on "Run"
     And I press the Enter key
     Then box "a0" shows 5
     And the coach says "Now make 7"
@@ -48,8 +43,7 @@ Feature: The real stage is keyboard operable, readable and fits every window
 
   Scenario: Reduced motion draws no token on the real stage
     Given the coach lab shows lesson "c1/05-add" with reduced motion
-    When I press Continue
-    And I press Step
+    When I press Step
     And the timeline is at step 1
     And the diagram clock is frozen at 0.5
     Then no token is flying
@@ -57,8 +51,7 @@ Feature: The real stage is keyboard operable, readable and fits every window
 
   Scenario Outline: The stage is readable in the <theme> theme and <mode> mode
     Given the coach lab shows lesson "c1/04-two-boxes" in the "<theme>" theme and <mode> mode
-    When I press Continue
-    And I press Step
+    When I press Step
     Then the stage text meets 4.5:1 contrast
     And the stage controls meet 3:1 contrast
 
@@ -87,8 +80,7 @@ Feature: The real stage is keyboard operable, readable and fits every window
 
   Scenario Outline: The stage fits a window of <width> by <height>
     Given the coach lab shows lesson "c1/05-add" at <width> by <height>
-    When I press Continue
-    And I press Step
+    When I press Step
     And I press Step
     Then the lab page does not scroll sideways
     And the stage has nothing wider than the window

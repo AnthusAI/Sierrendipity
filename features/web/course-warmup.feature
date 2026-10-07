@@ -38,7 +38,7 @@ Feature: The session warm-up
     And the warm-up shows the answer "7" and the cards in plain English
     And the warm-up does not say "wrong" or "incorrect"
     And the concept "add" is in box 0
-    When I press "Got it"
+    When I press "Close"
     Then there is no warm-up
 
   Scenario: Skipping is free

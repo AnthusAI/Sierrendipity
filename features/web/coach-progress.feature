@@ -5,7 +5,7 @@ Feature: The coach records progress and never blocks on storage
 
   Scenario: Progress survives a reload
     Given the coach lab shows lesson "c1/01-press-the-button"
-    When I press Continue 3 times
+    When I press Continue
     And I select Run
     Then the stored progress of "c1/01-press-the-button" has passed
     When I reload the lab
@@ -14,8 +14,7 @@ Feature: The coach records progress and never blocks on storage
 
   Scenario: Stepping a lesson without reaching its goal is not a pass
     Given the coach lab shows lesson "c1/04-two-boxes"
-    When I press Continue
-    And I press Step
+    When I press Step
     And I press Step
     And I press Reset
     And I press Step
@@ -25,34 +24,29 @@ Feature: The coach records progress and never blocks on storage
 
   Scenario: A broken browser storage does not break play
     Given the coach lab shows lesson "c1/01-press-the-button" with storage that always fails
-    When I press Continue 3 times
+    When I press Continue
     And I select Run
     Then box "a0" shows 5
-    When I press Continue
-    And I press Continue
-    Then the Now you can card is shown
+    And the Now you can card is shown
 
   Scenario: A student with two clean lessons is offered a quick version
     Given the coach lab shows lesson "c1/02-change-the-number" after two clean lessons
     Then the coach asks "Quick version?"
     When I choose "Quick version"
-    And I press Continue
     And I set the number on card 1 to 9
     And I select Run
     Then the Now you can card is shown
 
   Scenario: Without that history the optional part cannot be skipped
     Given the coach lab shows lesson "c1/02-change-the-number"
-    When I press Continue
-    And I set the number on card 1 to 9
+    When I set the number on card 1 to 9
     And I select Run
     Then the coach says "try a different number"
     And the coach has no "Skip" button
 
   Scenario Outline: The coach panel is readable in <theme> <mode> mode
     Given the coach lab shows lesson "c1/03-last-one-wins" in the "<theme>" theme and <mode> mode
-    When I press Continue
-    And I answer 3
+    When I answer 3
     Then the coach text meets 4.5:1 contrast on the panel
     And the coach buttons meet 4.5:1 contrast
 
@@ -84,23 +78,20 @@ Feature: The coach records progress and never blocks on storage
 
   Scenario: The step button explains itself when it cannot step
     Given the coach lab shows lesson "c1/04-two-boxes"
-    When I press Continue
-    And I press Step
+    When I press Step
     And I press Step
     Then the Step button explains "Select Start again first"
     And the idle Step button meets 4.5:1 contrast
 
   Scenario: In a lesson without a Back button the idle Run button says all done
     Given the coach lab shows lesson "c1/02-change-the-number"
-    When I press Continue
-    And I set the number on card 1 to 9
+    When I set the number on card 1 to 9
     And I select Run
     Then the Step button explains "All done"
     And the idle Step button meets 4.5:1 contrast
 
   Scenario: At 400 by 800 the coach comes first and the number pad is easy to hit
     Given the coach lab shows lesson "c1/03-last-one-wins" at 400 by 800
-    When I press Continue
     Then the coach panel comes before the machine
     And the number pad buttons are at least 44px tall
     And the lab page does not scroll sideways
@@ -136,8 +127,7 @@ Feature: The coach records progress and never blocks on storage
     When I open the app at "/learn/c1/01-press-the-button"
     Then I see the heading "Press the Button"
     And the coach says "exactly what each instruction says"
-    When I press Continue 3 times
+    When I press Continue
     And I select Run
-    And I press Continue 2 times
     Then the Now you can card is shown
     And the stored progress of "c1/01-press-the-button" has passed

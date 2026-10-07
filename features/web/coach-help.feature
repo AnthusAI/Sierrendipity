@@ -6,7 +6,7 @@ Feature: The coach helps without penalty
 
   Scenario: The hint ladder goes from a nudge to a near-answer and is free
     Given the coach lab shows lesson "c1/01-press-the-button"
-    When I press Continue 3 times
+    When I press Continue
     And I ask for a hint
     Then the hint says "Find the Run button above the card."
     When I ask for a hint
@@ -15,15 +15,12 @@ Feature: The coach helps without penalty
     Then the hint says "Select Run one time."
     And no more hints are offered
     When I select Run
-    And I press Continue
-    And I press Continue
     Then the stored progress of "c1/01-press-the-button" has passed
     And the stored progress of "c1/01-press-the-button" used the hints 1, 1 and 1 and no Show me
 
   Scenario: Show me replays the ghost on a copy and hands control back
     Given the coach lab shows lesson "c1/02-change-the-number"
-    When I press Continue
-    And I ask to be shown
+    When I ask to be shown
     Then the ghost pointer is visible
     And the coach announces "Show me"
     When the clock advances 3 seconds
@@ -41,8 +38,7 @@ Feature: The coach helps without penalty
 
   Scenario: Two failed checks on the same goal offer a nudge
     Given the coach lab shows lesson "c1/04-two-boxes"
-    When I press Continue
-    And I press Step
+    When I press Step
     And I press Step
     And I press Reset
     And I press Step
@@ -51,40 +47,37 @@ Feature: The coach helps without penalty
     When I press Reset
     And I press Step
     And I press Step
-    Then the coach offers "Want a nudge?"
+    Then the coach offers "Do you want a hint?"
 
   Scenario: Seventy-five seconds without input offer a nudge
     Given the coach lab shows lesson "c1/01-press-the-button"
-    When I press Continue 3 times
+    When I press Continue
     And the clock advances 74 seconds
     Then no nudge is offered
     When the clock advances 2 seconds
-    Then the coach offers "Want a nudge?"
+    Then the coach offers "Do you want a hint?"
 
   Scenario: Input restarts the idle timer
     Given the coach lab shows lesson "c1/04-two-boxes"
-    When I press Continue
-    And the clock advances 60 seconds
+    When the clock advances 60 seconds
     And I press Step
     And the clock advances 60 seconds
     Then no nudge is offered
 
   Scenario: Three resets within two minutes offer a nudge
     Given the coach lab shows lesson "c1/04-two-boxes"
-    When I press Continue
-    And I press Step
+    When I press Step
     And I press Reset
     And I press Step
     And I press Reset
     Then no nudge is offered
     When I press Step
     And I press Reset
-    Then the coach offers "Want a nudge?"
+    Then the coach offers "Do you want a hint?"
 
   Scenario: Resets spread over more than two minutes do not
     Given the coach lab shows lesson "c1/04-two-boxes"
-    When I press Continue
-    And I press Step
+    When I press Step
     And I press Reset
     And the clock advances 70 seconds
     And I press Step
@@ -96,55 +89,54 @@ Feature: The coach helps without penalty
 
   Scenario: The same edit toggled back and forth three times offers a nudge
     Given the coach lab shows lesson "c1/02-change-the-number"
-    When I press Continue
-    And I set the number on card 1 to 6
+    When I set the number on card 1 to 6
     And I set the number on card 1 to 5
     And I set the number on card 1 to 6
     Then no nudge is offered
     When I set the number on card 1 to 5
-    Then the coach offers "Want a nudge?"
+    Then the coach offers "Do you want a hint?"
 
   Scenario: The nudge gives the next rung and Show me is on offer
     Given the coach lab shows lesson "c1/01-press-the-button"
-    When I press Continue 3 times
+    When I press Continue
     And the clock advances 76 seconds
-    Then the coach offers "Want a nudge?"
+    Then the coach offers "Do you want a hint?"
     When I choose "Nudge"
     Then the hint says "Find the Run button above the card."
     And no nudge is offered
 
   Scenario: Choosing Show me from the nudge plays the ghost
     Given the coach lab shows lesson "c1/01-press-the-button"
-    When I press Continue 3 times
+    When I press Continue
     And the clock advances 76 seconds
     And I choose "Show me"
     Then the ghost pointer is visible
 
-  Scenario: "I'm fine" silences the nudge for two minutes
+  Scenario: "I am fine" silences the nudge for two minutes
     Given the coach lab shows lesson "c1/01-press-the-button"
-    When I press Continue 3 times
+    When I press Continue
     And the clock advances 76 seconds
-    And I choose "I'm fine"
+    And I choose "I am fine"
     Then no nudge is offered
     When the clock advances 100 seconds
     Then no nudge is offered
     When the clock advances 60 seconds
-    Then the coach offers "Want a nudge?"
+    Then the coach offers "Do you want a hint?"
 
   Scenario: After twelve minutes the coach suggests stopping after the current goal
     Given the coach lab shows lesson "c1/01-press-the-button"
-    When I press Continue 3 times
+    When I press Continue
     And the clock advances 12 minutes
     Then the coach suggests stopping after this goal
 
   Scenario: The 12-minute suggestion is made once per session, not again in the next lesson
     Given the coach lab shows lesson "c1/01-press-the-button"
-    When I press Continue 3 times
+    When I press Continue
     And the clock advances 12 minutes
     Then the coach suggests stopping after this goal
     When I choose "Okay"
     And I reload the lab
-    And I press Continue 3 times
+    And I press Continue
     And the clock advances 13 minutes
     Then the coach does not suggest stopping
 
@@ -153,9 +145,8 @@ Feature: The coach helps without penalty
     When the clock advances 12 minutes
     Then the coach suggests stopping after this goal
     When I choose "Okay"
-    And I press Continue 3 times
+    And I press Continue
     And I select Run
-    And I press Continue 2 times
     And I choose "Next lesson, about 3 min"
     And the clock advances 13 minutes
     Then the coach does not suggest stopping
@@ -163,24 +154,24 @@ Feature: The coach helps without penalty
   Scenario: Double-clicking Continue does not spend a hint
     Given the coach lab shows lesson "c1/01-press-the-button"
     When I double-click Continue
-    Then the coach says "This card is one instruction"
+    Then the coach says "Select Run"
     And no hint is shown
     And the stored progress of "c1/01-press-the-button" has used no hints
 
   Scenario: A nudge is announced politely and takes focus, which returns when it is dismissed
     Given the coach lab shows lesson "c1/01-press-the-button"
-    When I press Continue 3 times
+    When I press Continue
     Then the focus is on "Run"
     When the clock advances 76 seconds
-    Then the coach offers "Want a nudge?"
+    Then the coach offers "Do you want a hint?"
     And the coach question is inside the polite live region
     And the focus is on "Nudge"
-    When I choose "I'm fine"
+    When I choose "I am fine"
     Then the focus is on "Run"
 
   Scenario: "Skip the tour?" is announced politely and takes focus, which returns when it is dismissed
     Given the coach lab shows lesson "c1/01-press-the-button"
-    When I press Continue 3 times
+    When I press Continue
     And I press the Escape key
     Then the coach question is inside the polite live region
     And the focus is on "Keep going"
@@ -189,8 +180,7 @@ Feature: The coach helps without penalty
 
   Scenario: The 12-minute note does not steal focus from an answer being typed
     Given the coach lab shows lesson "c1/03-last-one-wins"
-    When I press Continue
-    And I start typing the answer "1"
+    When I start typing the answer "1"
     And the clock advances 12 minutes
     Then the coach suggests stopping after this goal
     And the focus is on "Your answer"
