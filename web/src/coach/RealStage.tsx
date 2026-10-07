@@ -1,8 +1,8 @@
 import { describe } from "@sierrendipity/explorer";
-import { useEffect, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { CardFace } from "../cards/CardFace";
 import { cardToWord, wordToCard } from "../cards/model";
-import { HeartbeatView, MachineView, PixelDisplay, PointerWalk, useMachineTimeline, type MachineTimeline } from "../diagrams";
+import { HeartbeatView, MachineView, PixelDisplay, PointerWalk, useMachineTimeline } from "../diagrams";
 import { PlayerControls } from "./PlayerControls";
 import { plainBoxes } from "./plain";
 import { BandsPanel, BuilderPanel, CarryPanel, FlipPanel, LampsPanel } from "./StageWidgets";
@@ -12,23 +12,6 @@ import type { Stage, StageProps } from "./types";
 const WIDGETS = ["D3", "D4", "D5", "D6", "D7", "D8", "D9", "builder"];
 
 const hex = (word: number) => `0x${(word >>> 0).toString(16).padStart(8, "0")}`;
-
-/**
- * Keep the timeline where the player is. The player owns the one live machine; the diagram only draws it. A new
- * program restarts the timeline by itself; a forward step of the player replays as an animated step, and
- * Back, Reset or a jump simply seek.
- */
-function useFollow(timeline: MachineTimeline, steps: number, programKey: string) {
-  const target = Math.min(steps, timeline.length);
-  const { position, stepForward, seek } = timeline;
-  useEffect(() => {
-    if (position === target) return;
-    if (target === position + 1) stepForward();
-    else seek(target);
-    // Only when the player's step count or program changes, never because the timeline moved by itself.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [target, timeline.length, programKey]);
-}
 
 /** One card of the list: a real face with a number spinner, or a plain face for a word that is not a Course 1 card. */
 function Face({ word, index, count, current, locked, plain, onEdit }: { word: number; index: number; count: number; current: boolean; locked: boolean; plain: boolean; onEdit: (card: number, word: number) => void }) {
@@ -61,13 +44,12 @@ function Face({ word, index, count, current, locked, plain, onEdit }: { word: nu
  * scene asks for (`show`): heartbeat D3, bit lamps D4, card flip D5, pointer walk D6, carry ripple D7, field
  * bands D8, pixel screen D9, a `timeline` scrubber and the program `builder`.
  *
- * The player owns the live machine. This stage follows `live.steps` (so Back, Reset and edits can never leave the
+ * The player owns the live machine. This stage draws the player's own session (so Back, Reset and edits can never leave the
  * diagram disagreeing with the player) and sends every change back through `onEditStarter` / `onReplaceCards`.
  * Controls are the player's own. A locked control stays in place, says "Not yet" and does nothing.
  */
 export function RealStage({ lesson, live, scene, onEditStarter, onReplaceCards, controls }: StageProps) {
-  const timeline = useMachineTimeline(live.cards, { hideEnd: live.hideEnd, boxes: lesson.boxes, pointer: lesson.pointer });
-  useFollow(timeline, live.steps, live.cards.join(","));
+  const timeline = useMachineTimeline(live.cards, { session: live.session, boxes: lesson.boxes, pointer: lesson.pointer });
 
   const show = new Set(scene.show);
   const widgets = WIDGETS.filter((w) => show.has(w));

@@ -1,4 +1,5 @@
 import type { FlipSpec, LampSpec, PublishedLesson } from "@sierrendipity/lesson-core";
+import type { Session } from "@sierrendipity/explorer";
 import type { ReactNode } from "react";
 
 /** The controls a scene may lock (`lock:` in lesson.yaml). A locked control is aria-disabled and says "Not yet". */
@@ -6,6 +7,8 @@ export type StageControl = "edit" | "step" | "back" | "run" | "reset" | "drag" |
 
 /** The machine the student is working with, as plain data. During Show me it is the ghost's copy. */
 export interface LiveView {
+  /** The one session behind the player and the stage; stages draw it and never step it. */
+  session: Session;
   /** The student's cards (words), without the hidden end marker. */
   cards: number[];
   /** The boxes the lesson shows, in order, with their current values (signed 32-bit). */

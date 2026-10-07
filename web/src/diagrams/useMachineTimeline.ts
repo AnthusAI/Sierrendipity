@@ -1,5 +1,5 @@
-import { Machine, Timeline, decode, registerName, type Decoded } from "@sierrendipity/explorer";
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { Machine, Timeline, decode, registerName, type Decoded, type Session } from "@sierrendipity/explorer";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState, useSyncExternalStore } from "react";
 
 export const SPEEDS = [0.25, 0.5, 1, 2, 4, 8, "instant"] as const;
 export type Speed = (typeof SPEEDS)[number];
@@ -46,6 +46,11 @@ export interface MachineTimelineOptions {
   maxSteps?: number;
   /** Force reduced motion on or off instead of following the system. */
   reducedMotion?: boolean;
+  /**
+   * Draw this session instead of running a machine of its own. The session owns the position, so stepping,
+   * Back and seeking go through it; `words`, `hideEnd`, `memorySize` and `maxSteps` then come from the session.
+   */
+  session?: Session;
 }
 
 /** One visible step: the card that ran and what it did. */
@@ -128,14 +133,22 @@ function imageOf(words: number[]) {
 
 /** Builds a real Machine and Timeline from `words` and plays them with one animation clock. */
 export function useMachineTimeline(words: number[], opts: MachineTimelineOptions = {}): MachineTimeline {
-  const hideEnd = opts.hideEnd ?? false;
+  const session = opts.session;
+  const hideEnd = session ? session.hideEnd : (opts.hideEnd ?? false);
   const boxes = useMemo(() => opts.boxes ?? ["a0"], [(opts.boxes ?? ["a0"]).join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
   const pointer = opts.pointer ?? false;
   const reducedMotion = useReducedMotion(opts.reducedMotion);
-  const maxSteps = opts.maxSteps ?? DEFAULT_MAX_STEPS;
+  const maxSteps = session ? session.maxSteps : (opts.maxSteps ?? DEFAULT_MAX_STEPS);
   const key = words.join(",");
 
   const { cards, timeline, endHidden } = useMemo(() => {
+    if (session) {
+      session.recordAll();
+      const last = session.timeline.length > 0 ? session.timeline.snapshotAt(session.timeline.length) : undefined;
+      const visible = session.program.rows.slice(0, session.cards).map((row) => row.word);
+      const endHidden = session.hideEnd && last?.state === "halted" && last.lastStep?.pc === session.cards * 4;
+      return { cards: visible, timeline: session.timeline, endHidden };
+    }
     const cards = hideEnd && words.length > 0 && words[words.length - 1] === EBREAK ? words.slice(0, -1) : words;
     const program = hideEnd ? [...cards, EBREAK] : cards;
     const machine = new Machine({ memorySize: opts.memorySize ?? 16384 });
@@ -147,20 +160,22 @@ export function useMachineTimeline(words: number[], opts: MachineTimelineOptions
     const endHidden = hideEnd && last?.state === "halted" && last.lastStep?.pc === cards.length * 4;
     return { cards, timeline, endHidden };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, hideEnd, opts.memorySize, maxSteps]);
+  }, [key, hideEnd, opts.memorySize, maxSteps, session]);
 
   const length = endHidden ? timeline.length - 1 : timeline.length;
   /** The Timeline position behind a visible position: the hidden end marker runs with the last card. */
   const under = useCallback((p: number) => (endHidden && p === length ? timeline.length : p), [endHidden, length, timeline]);
 
   const [state, setState] = useState<{ position: number; from: number | null; run: number }>({ position: 0, from: null, run: 0 });
+  const [, bump] = useReducer((n: number) => n + 1, 0);
+  const position = session ? Math.min(session.timeline.position, length) : Math.min(state.position, length);
   const [t, setT] = useState(1);
   const [override, setOverride] = useState<number | null>(null);
   const [speed, setSpeed] = useState<Speed>(1);
   const [playing, setPlaying] = useState(false);
   const [announcement, setAnnouncement] = useState("");
   const latest = useRef({ position: 0, length, speed, reducedMotion });
-  latest.current = { position: state.position, length, speed, reducedMotion };
+  latest.current = { position, length, speed, reducedMotion };
 
   // A different program starts over.
   useEffect(() => {
@@ -170,12 +185,23 @@ export function useMachineTimeline(words: number[], opts: MachineTimelineOptions
     setT(1);
   }, [timeline]);
 
+  const seen = useRef<{ session: Session | undefined; position: number }>({ session, position });
+  useEffect(() => {
+    const before = seen.current;
+    seen.current = { session, position };
+    if (!session || before.session !== session || before.position === position) return;
+    if (position === before.position + 1) goTo(position, before.position);
+    else goTo(position, null);
+    // A move made by the session's owner (the player) shows as an animated step when it is exactly one forward.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, position]);
+
   useEffect(() => {
     if (!TEST_CLOCK) return;
     clockListeners.add(setOverride);
     return () => void clockListeners.delete(setOverride);
   }, []);
-  useEffect(() => setOverride(null), [state.position]);
+  useEffect(() => setOverride(null), [position]);
 
   const animated = !TEST_CLOCK && !reducedMotion && speed !== "instant";
   useEffect(() => {
@@ -198,50 +224,62 @@ export function useMachineTimeline(words: number[], opts: MachineTimelineOptions
     setT(from === null || TEST_CLOCK || latest.current.reducedMotion || latest.current.speed === "instant" ? 1 : 0);
   }, []);
 
-  const stepForward = useCallback(() => {
-    const { position, length } = latest.current;
-    if (position >= length) return false;
-    goTo(position + 1, position);
-    return true;
-  }, [goTo]);
-  const stepBackward = useCallback(() => {
-    const { position } = latest.current;
-    if (position <= 0) return false;
-    goTo(position - 1, null, `Went back to step ${position - 1}.`);
-    return true;
-  }, [goTo]);
   const seek = useCallback(
-    (position: number) => {
+    (target: number) => {
       const { length } = latest.current;
-      if (!Number.isInteger(position) || position < 0 || position > length) throw new RangeError(`position ${position} outside 0..${length}`);
-      goTo(position, null);
+      if (!Number.isInteger(target) || target < 0 || target > length) throw new RangeError(`position ${target} outside 0..${length}`);
+      if (session) {
+        session.timeline.seek(under(target));
+        bump();
+      } else goTo(target, null);
     },
-    [goTo],
+    [goTo, session, under],
   );
+  const stepForward = useCallback(() => {
+    const { position: at, length } = latest.current;
+    if (at >= length) return false;
+    if (session) {
+      session.stepForward();
+      bump();
+    } else goTo(at + 1, at);
+    return true;
+  }, [goTo, session]);
+  const stepBackward = useCallback(() => {
+    const { position: at } = latest.current;
+    if (at <= 0) return false;
+    if (session) {
+      session.stepBackward();
+      setAnnouncement(`Went back to step ${at - 1}.`);
+      bump();
+    } else goTo(at - 1, null, `Went back to step ${at - 1}.`);
+    return true;
+  }, [goTo, session]);
   const reset = useCallback(() => {
     setPlaying(false);
-    goTo(0, null);
-  }, [goTo]);
+    if (session) {
+      session.reset();
+      session.recordAll();
+      bump();
+    } else goTo(0, null);
+  }, [goTo, session]);
   const pause = useCallback(() => setPlaying(false), []);
   const play = useCallback(() => {
     if (latest.current.length === 0) return;
-    if (latest.current.position >= latest.current.length) goTo(0, null);
+    if (latest.current.position >= latest.current.length) seek(0);
     setPlaying(true);
-  }, [goTo]);
+  }, [seek]);
 
   useEffect(() => {
     if (!playing) return;
-    if (state.position >= length) return void setPlaying(false);
+    if (position >= length) return void setPlaying(false);
     if (speed === "instant") {
-      goTo(length, null);
+      seek(length);
       return void setPlaying(false);
     }
     const rest = animated ? STEP_MS + 300 : 300;
     const id = setTimeout(stepForward, rest / speed);
     return () => clearTimeout(id);
-  }, [playing, state.position, length, speed, animated, goTo, stepForward]);
-
-  const position = Math.min(state.position, length);
+  }, [playing, position, length, speed, animated, seek, stepForward]);
 
   // Every visible step, worked out once per program so rendering and the log stay cheap.
   const steps = useMemo(() => {

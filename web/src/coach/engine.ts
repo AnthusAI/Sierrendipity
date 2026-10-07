@@ -84,7 +84,7 @@ export interface PlayerState {
 /** A prediction is made before the reveal: while it is asked, the machine does not move. */
 const ASK_LOCKED: StageControl[] = ["step", "back", "reset", "edit"];
 
-const finished = (live: Live): boolean => live.machine.state !== "ready" && live.machine.state !== "running";
+const finished = (live: Live): boolean => !live.session.canStep;
 
 /** One lesson being played: scenes, the live machine, help, stuck rules and progress. No DOM, no React. */
 export class LessonEngine {
@@ -659,6 +659,7 @@ export class LessonEngine {
     const scene = this.phase === "scene" ? this.scene() : null;
     const goalMissed = !demo && !!scene && this.waiting(scene) === "until" && finished(live) && !this.holds(scene.until, liveRunOf(live));
     return {
+      session: live.session,
       cards: live.words.slice(0, live.cards),
       boxes: this.lesson.boxes.map((name) => ({ name, value: m.regs[registerNumber(name) ?? 0]! | 0 })),
       pointer: this.lesson.pointer && !over ? m.pc / 4 : null,
