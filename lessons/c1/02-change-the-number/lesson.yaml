@@ -53,7 +53,7 @@ nowYouCan:
 warmups:
   - id: change-the-six
     concept: numbers-on-cards
-    question: The card says Put 6 into the box. What does the box hold after one Step?
+    question: "The card says: put 6 in the box. After you select Run, what does the box hold?"
     program:
       asm: |
         addi a0, zero, 6

@@ -132,6 +132,11 @@ Given("the engine plays {string} with the step scene waiting for {string}", (id:
   w.published = copy;
   fresh();
 });
+Given("the lesson shows the controls {string}", (controls: string) => {
+  const copy = w.published!;
+  copy.ui = { ...copy.ui, controls: controls.split(",").map((c) => c.trim()) as ("step" | "back" | "reset")[] };
+  fresh();
+});
 When("the student continues to the Run scene and runs", () => {
   for (let i = 0; i < 3; i++) w.engine!.continue();
   w.engine!.step();
@@ -143,6 +148,18 @@ Then("the coach tells the student to press Back and spotlights {string}", (targe
 });
 When("the player presses Back", () => {
   w.engine!.back();
+});
+When("the player presses Reset", () => {
+  w.engine!.reset();
+});
+Then("the coach is not stranded", () => {
+  assert.equal(w.engine!.getState().stranded, false);
+});
+Then("the coach tells the student to select {string} and spotlights {string}", (button: string, target: string) => {
+  const st = w.engine!.getState();
+  assert.equal(st.stranded, true);
+  assert.equal(st.strandedButton, button);
+  assert.equal(st.spotlight, target);
 });
 Then("the coach no longer tells the student to press Back", () => {
   assert.equal(w.engine!.getState().stranded, false);

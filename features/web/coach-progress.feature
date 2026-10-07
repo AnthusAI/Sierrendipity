@@ -87,7 +87,7 @@ Feature: The coach records progress and never blocks on storage
     When I press Continue
     And I press Step
     And I press Step
-    Then the Step button explains "Select Back first"
+    Then the Step button explains "Select Start again first"
     And the idle Step button meets 4.5:1 contrast
 
   Scenario: In a lesson without a Back button the idle Run button says all done

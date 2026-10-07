@@ -11,14 +11,23 @@ hideEnd: true
 starter:
   hex: ["0x00400513", "0x00600593"]   # put 4 in box a0, put 6 in box a1
 tabs: [cards]
+ui:
+  controls: [step, reset]
+  stepLabel: Run
+  resetLabel: Start again
+  log: false
+  deskTitle: false
+  endMarker: false
+  boxNames: true
+  spotlight: ring
 scenes:
   - id: look
-    say: A second box, a1, is on the screen, and its name is a label. Select Continue.
+    say: There are two boxes now, named a0 and a1. Select Continue.
     show: [cards, boxes]
     spotlight: "box:a1"
 
   - id: run
-    say: Select Step two times. Each card fills its own box.
+    say: Select Run two times. Each card fills its own box.
     show: [cards, boxes]
     spotlight: "button:step"
     until:
@@ -28,13 +37,13 @@ scenes:
     hints:
       - Which button makes the machine follow a card?
       - Each selection follows one card. Each card fills its own box.
-      - Select Step two times. Box a0 receives 4. Box a1 receives 6.
+      - Select Run two times. Box a0 receives 4. Box a1 receives 6.
     showMe: demo-step-twice
     doneSay: Each card filled its own box.
     lock: [edit, drag, toggle]
 
   - id: change
-    say: Change one card so that box a1 holds 9. Then select Step two times.
+    say: Change one card so that box a1 holds 9. Then select Run two times.
     show: [cards, boxes]
     spotlight: "card:1"
     until:
@@ -45,7 +54,7 @@ scenes:
     hints:
       - Which card fills box a1?
       - Each card fills the box it names. Look at the second card.
-      - Change the number on the second card to 9. Then select Step two times.
+      - Change the number on the second card to 9. Then select Run two times.
     showMe: demo-spin-second
     doneSay: You changed one card. Only one box changed.
     lock: [drag, toggle]

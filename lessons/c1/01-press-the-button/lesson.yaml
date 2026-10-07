@@ -47,7 +47,7 @@ scenes:
     until:
       - the machine has taken at least 1 step
     hints:
-      - Find the blue Run button above the card.
+      - Find the Run button above the card.
       - The card is an instruction. The Run button makes the computer follow it.
       - Select Run one time. Then look at the box.
     showMe: demo-step

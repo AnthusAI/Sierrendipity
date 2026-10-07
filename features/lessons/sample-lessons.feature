@@ -22,7 +22,7 @@ Feature: The five sample lessons of Course 1
       | c1/02-change-the-number  | 3      | 1     | a0         |
       | c1/03-last-one-wins      | 4      | 2     | a0         |
       | c1/04-two-boxes          | 4      | 2     | a0, a1     |
-      | c1/05-add                | 4      | 3     | a0, a1, a2 |
+      | c1/05-add                | 5      | 3     | a0, a1, a2 |
 
   Scenario: The boxes and ideas appear one at a time
     Given the lesson "c1/04-two-boxes"

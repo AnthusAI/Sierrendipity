@@ -58,7 +58,7 @@ Feature: The coach plays the lessons
     And I answer <guess>
     Then the coach replies "<reply>"
     And the reply is not styled as an error
-    And the coach says "Select Step two times"
+    And the coach says "Select Run two times"
     When I press Step
     And I press Step
     Then box "a0" shows 8
@@ -77,7 +77,7 @@ Feature: The coach plays the lessons
     Given the coach lab shows lesson "c1/03-last-one-wins"
     When I press Continue
     And I answer 8
-    Then the coach says "Select Step two times"
+    Then the coach says "Select Run two times"
     And the coach announces "Scene complete"
     When I press Step
     And I press Step
@@ -99,7 +99,7 @@ Feature: The coach plays the lessons
 
   Scenario Outline: Lesson 05 answers the guess <guess> and then adds
     Given the coach lab shows lesson "c1/05-add"
-    When I press Continue
+    When I press Continue 2 times
     And I press Step
     And I press Step
     And I answer <guess>
@@ -115,7 +115,7 @@ Feature: The coach plays the lessons
 
   Scenario: Lesson 05 rewards the right guess of 12
     Given the coach lab shows lesson "c1/05-add"
-    When I press Continue
+    When I press Continue 2 times
     And I press Step
     And I press Step
     And I answer 12
@@ -186,7 +186,6 @@ Feature: The coach plays the lessons
     Given the coach lab shows lesson "c1/03-last-one-wins"
     When I press Continue
     Then the Step button is locked with the explanation "Not yet"
-    And the Back button is locked with the explanation "Not yet"
     And the Reset button is locked with the explanation "Not yet"
 
   Scenario: A goal reached early is not asked for again

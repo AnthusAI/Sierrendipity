@@ -44,7 +44,7 @@ export function MachineView({ timeline: tl, boxes = tl.boxes, pointer = tl.point
     const card = row?.getBoundingClientRect();
     // The value starts at the number written on the card; a card with no number sends it from its right edge.
     const number = row?.querySelector<HTMLElement>('[data-part="number"]')?.getBoundingClientRect();
-    const slot = desk.current.querySelector<HTMLElement>(`[aria-label="Box ${target}"]`)?.getBoundingClientRect();
+    const slot = desk.current.querySelector<HTMLElement>(`[data-box-name="${target}"]`)?.getBoundingClientRect();
     if (card && slot) {
       const k = ease(tl.t);
       const [x0, y0] = number
@@ -85,9 +85,10 @@ export function MachineView({ timeline: tl, boxes = tl.boxes, pointer = tl.point
                 <div
                   key={name}
                   role="group"
-                  aria-label={`Box ${name}`}
+                  aria-label={quiet?.boxNames === false ? "The box" : `Box ${name}`}
                   aria-current={changed ? "true" : undefined}
                   data-box
+                  data-box-name={name}
                   data-coach-id={coachIds ? `box:${name}` : undefined}
                   data-changed={String(changed)}
                   className={`flex h-24 w-28 flex-col items-center justify-between rounded-md border-2 px-2 py-2 ${
@@ -129,6 +130,7 @@ export function MachineView({ timeline: tl, boxes = tl.boxes, pointer = tl.point
       {knocked && (
         <span
           data-knocked-out
+          aria-hidden="true"
           className="pointer-events-none absolute left-0 top-0 rounded-md border-2 border-foreground bg-card px-3 py-1 text-2xl font-semibold tabular-nums text-foreground shadow"
           style={{ transform: `translate(${knocked.x}px, ${knocked.y}px) translate(-50%, -50%) rotate(${knocked.k * 540}deg)`, opacity: 1 - knocked.k * 0.9 }}
         >
@@ -138,6 +140,7 @@ export function MachineView({ timeline: tl, boxes = tl.boxes, pointer = tl.point
       {token && (
         <span
           data-token
+          aria-hidden="true"
           data-t={tl.t}
           className="pointer-events-none absolute left-0 top-0 rounded-md bg-primary px-3 py-1 text-lg font-semibold tabular-nums text-primary-foreground shadow"
           style={{ transform: `translate(${token.x}px, ${token.y}px) translate(-50%, -50%)` }}

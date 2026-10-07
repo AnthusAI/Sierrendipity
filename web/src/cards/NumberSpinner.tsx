@@ -46,11 +46,11 @@ export function NumberSpinner({ value, min, max, step = 1, onChange, label = "nu
     if (clamped !== value) onChange(clamped);
   };
 
-  const nudge = (to: number, name: string, icon: ReactNode, disabled: boolean) => (
+  const nudge = (to: number, name: string, hint: string, icon: ReactNode, disabled: boolean) => (
     <button
       type="button"
-      tabIndex={-1}
       aria-label={name}
+      title={hint}
       disabled={disabled || locked}
       onClick={() => commit(to)}
       className="inline-flex size-6 items-center justify-center rounded border border-input bg-background align-middle text-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40"
@@ -61,7 +61,7 @@ export function NumberSpinner({ value, min, max, step = 1, onChange, label = "nu
 
   return (
     <span className={cn("relative inline-block", buttons && "whitespace-nowrap")}>
-      {buttons ? nudge(snapDown(value, step), "Make the number smaller", <Minus className="size-3.5" aria-hidden />, value <= min) : null}
+      {buttons ? nudge(snapDown(value, step), "Minus", "Make the number smaller", <Minus className="size-3.5" aria-hidden />, value <= min) : null}
       <input
         role="spinbutton"
         type="text"
@@ -109,7 +109,7 @@ export function NumberSpinner({ value, min, max, step = 1, onChange, label = "nu
           commit(next);
         }}
       />
-      {buttons ? nudge(snapUp(value, step), "Make the number bigger", <Plus className="size-3.5" aria-hidden />, value >= max) : null}
+      {buttons ? nudge(snapUp(value, step), "Plus", "Make the number bigger", <Plus className="size-3.5" aria-hidden />, value >= max) : null}
       {locked ? (
         <span id={tipId} role="tooltip" className="pointer-events-none absolute -top-7 left-0 z-10 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-xs text-background opacity-0 transition-opacity peer-hover:opacity-100 peer-focus-visible:opacity-100">
           Not yet

@@ -8,7 +8,7 @@ Feature: The coach helps without penalty
     Given the coach lab shows lesson "c1/01-press-the-button"
     When I press Continue 3 times
     And I ask for a hint
-    Then the hint says "Find the blue Run button above the card."
+    Then the hint says "Find the Run button above the card."
     When I ask for a hint
     Then the hint says "The Run button makes the computer follow it."
     When I ask for a hint
@@ -65,7 +65,7 @@ Feature: The coach helps without penalty
     Given the coach lab shows lesson "c1/04-two-boxes"
     When I press Continue
     And the clock advances 60 seconds
-    And I press Back
+    And I press Step
     And the clock advances 60 seconds
     Then no nudge is offered
 
@@ -110,7 +110,7 @@ Feature: The coach helps without penalty
     And the clock advances 76 seconds
     Then the coach offers "Want a nudge?"
     When I choose "Nudge"
-    Then the hint says "Find the blue Run button above the card."
+    Then the hint says "Find the Run button above the card."
     And no nudge is offered
 
   Scenario: Choosing Show me from the nudge plays the ghost

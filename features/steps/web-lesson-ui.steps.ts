@@ -23,13 +23,13 @@ Then("the lesson text says {string}", async function (this: WebWorld, text: stri
 });
 
 When("I select the plus button on card {int}", async function (this: WebWorld, n: number) {
-  await cardInput(this, n).locator("xpath=..").getByRole("button", { name: "Make the number bigger", exact: true }).click();
+  await cardInput(this, n).locator("xpath=..").getByRole("button", { name: "Plus", exact: true }).click();
 });
 When("I select the plus button on card {int} {int} times", async function (this: WebWorld, n: number, times: number) {
-  for (let i = 0; i < times; i++) await cardInput(this, n).locator("xpath=..").getByRole("button", { name: "Make the number bigger", exact: true }).click();
+  for (let i = 0; i < times; i++) await cardInput(this, n).locator("xpath=..").getByRole("button", { name: "Plus", exact: true }).click();
 });
 When("I select the minus button on card {int}", async function (this: WebWorld, n: number) {
-  await cardInput(this, n).locator("xpath=..").getByRole("button", { name: "Make the number smaller", exact: true }).click();
+  await cardInput(this, n).locator("xpath=..").getByRole("button", { name: "Minus", exact: true }).click();
 });
 
 Then("the {string} button is disabled and explains {string}", async function (this: WebWorld, name: string, reason: string) {
@@ -74,4 +74,27 @@ When("I select Try again", async function (this: WebWorld) {
 });
 Then("the lesson shows the step count {int}", async function (this: WebWorld, steps: number) {
   await this.page.locator(`[data-stage-scene][data-live-steps="${steps}"]`).waitFor();
+});
+
+Then("the lesson shows no goal-met line", async function (this: WebWorld) {
+  await settleFrames(this);
+  assert.equal(await this.page.locator("[data-coach-done]").count(), 0);
+});
+Then("the boxes are named to a screen reader as {string}", async function (this: WebWorld, name: string) {
+  await settleFrames(this);
+  assert.equal(await player(this).getByRole("group", { name, exact: true }).count(), 1);
+  assert.equal(await player(this).getByRole("group", { name: "Box a0", exact: true }).count(), 0);
+});
+Then("the knocked-out number is hidden from screen readers", async function (this: WebWorld) {
+  assert.equal(await player(this).locator("[data-knocked-out]").first().getAttribute("aria-hidden"), "true");
+});
+Then("the token starts with the number {int} at the number on card {int}", async function (this: WebWorld, value: number, card: number) {
+  const token = player(this).locator("[data-token]", { hasText: new RegExp(`^${value}$`) });
+  await token.waitFor();
+  assert.ok(Number(await token.getAttribute("data-t")) < 0.1, "the diagram clock is not near the start");
+  const from = await cardInput(this, card).boundingBox();
+  const at = await token.boundingBox();
+  assert.ok(from && at, "the token or the number is not on the screen");
+  const gap = Math.hypot(from.x + from.width / 2 - (at.x + at.width / 2), from.y + from.height / 2 - (at.y + at.height / 2));
+  assert.ok(gap < 30, `the token starts ${gap.toFixed(0)} pixels from the number on card ${card}`);
 });

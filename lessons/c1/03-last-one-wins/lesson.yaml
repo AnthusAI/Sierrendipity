@@ -11,6 +11,15 @@ hideEnd: true
 starter:
   hex: ["0x00300513", "0x00800513"]   # put 3 in box a0, then put 8 in box a0
 tabs: [cards]
+ui:
+  controls: [step, reset]
+  stepLabel: Run
+  resetLabel: Start again
+  log: false
+  deskTitle: false
+  endMarker: false
+  boxNames: false
+  spotlight: ring
 onWrongDefault:
   say: Watch what happens.
   goto: watch
@@ -51,7 +60,7 @@ scenes:
     lock: [edit, drag, toggle]
 
   - id: watch
-    say: Select Step two times. Look at the box.
+    say: Select Run two times. Look at the box.
     show: [cards, boxes]
     spotlight: "button:step"
     until:

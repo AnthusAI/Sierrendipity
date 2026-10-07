@@ -102,7 +102,7 @@ full machine. Unknown keys and wrong types are errors.
 
 | Key | Values | Default | Meaning |
 | --- | --- | --- | --- |
-| `controls` | list of `step`, `back`, `reset` (no repeats) | all three | The buttons under the title |
+| `controls` | list of `step`, `back`, `reset` (no repeats; must include `step`) | all three | The buttons under the title. A scene may not spotlight `button:back` or `button:reset` when the list hides it |
 | `stepLabel` | short text, at most 20 characters | Step | The name of the Step button (for example `Run`) |
 | `resetLabel` | short text, at most 20 characters | Reset | The name of the Reset button (for example `Start again`) |
 | `log` | true or false | true | The "What just happened" log |
@@ -111,7 +111,7 @@ full machine. Unknown keys and wrong types are errors.
 | `boxNames` | true or false | true | The register name (a0) on each box. When false, text says "the box" instead of "box a0" |
 | `spotlight` | `ring` or `dim` | ring | A ring around the target, or a dimming spotlight |
 
-Reset is disabled, with the reason "Nothing to start again yet", until the machine has run something.
+When Back is hidden, a run that misses the goal points at Reset (the `resetLabel`) instead of Back, and the idle Run button says "Select Start again first" until the student starts again. Reset is disabled, with the reason "Nothing to start again yet", until the machine has run something.
 Use the same label for a button in every sentence of the lesson: if `stepLabel` is `Run`, the text says "Run".
 
 ### Simplified Technical English (STE)
@@ -161,8 +161,9 @@ The checker is in `lesson-core/src/ste.ts`.
   builds a line from the `until` phrases.
 - `ifMissed` (optional, needs `until`) is the help the coach shows when the student runs the machine and the
   goal is still not met. It says what the machine did and what to change. The coach shows it as
-  `[data-coach-missed]` with a "Try again" button; "Try again" restores the starter cards and resets the machine
-  (`engine.tryAgain()`). Limits: at most 3 sentences and 45 words.
+  `[data-coach-missed]` with a "Try again" button; "Try again" resets the machine to the start and keeps the
+  cards as the student left them, then moves keyboard focus to the Run (Step) button (`engine.tryAgain()`). A scene
+  with `ask` cannot have `ifMissed`. Limits: at most 3 sentences and 45 words.
 - `onWrongDefault` is text, or `{ say, goto }`. `goto` names the scene that reveals the answer; the checker
   requires it when the scene after an `ask` does not wait on the machine (`until`).
 - The player locks Step, Back, Reset and Edit in `ask` scenes (the prediction comes before the reveal), restores the

@@ -95,6 +95,7 @@ function parseUi(input: unknown, errors: string[]): LessonUi | undefined {
   if (raw.controls !== undefined) {
     const ok = Array.isArray(raw.controls) && raw.controls.length > 0 && raw.controls.every((c) => c === "step" || c === "back" || c === "reset");
     if (!ok || new Set(raw.controls as string[]).size !== (raw.controls as string[]).length) errors.push("lesson.yaml ui: controls must be a list of step, back and reset");
+    else if (!(raw.controls as string[]).includes("step")) errors.push("lesson.yaml ui: controls must include step (the Step button is always shown)");
     else ui.controls = raw.controls as LessonUi["controls"];
   }
   if (raw.stepLabel !== undefined) {
@@ -228,6 +229,7 @@ function parseScene(raw: unknown, i: number, ctx: SceneCtx, errors: string[]): S
       if (countSentences(ifMissed) > MAX_SENTENCES_PER_SCENE + 1) errors.push(`${w}: ifMissed has ${countSentences(ifMissed)} sentences (at most ${MAX_SENTENCES_PER_SCENE + 1} sentences)`);
       if (countWords(ifMissed) > MAX_WORDS_PER_SCENE + 15) errors.push(`${w}: ifMissed has ${countWords(ifMissed)} words (at most ${MAX_WORDS_PER_SCENE + 15} words)`);
       if (!Array.isArray(raw.until) || raw.until.length === 0) errors.push(`${w}: ifMissed needs an until goal to miss`);
+      if (raw.ask !== undefined) errors.push(`${w}: ifMissed cannot be used with ask (a question has no run to miss)`);
     }
   }
   const show = raw.show === undefined ? [] : raw.show;
@@ -511,6 +513,9 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
       if (scene) scenes.push(scene);
     });
     for (const s of scenes) {
+      for (const control of ["back", "reset"] as const) {
+        if (s.spotlight === `button:${control}` && ui?.controls && !ui.controls.includes(control)) errors.push(`scene "${s.id}": spotlight button:${control} points at a button that ui.controls hides`);
+      }
       if (s.showMe !== undefined && !(s.showMe in ghosts)) errors.push(`scene "${s.id}": showMe: no ghost "${s.showMe}" in ghosts/`);
       s.onWrong.forEach((o, k) => {
         if (o.goto !== undefined && !ids.has(o.goto)) errors.push(`scene "${s.id}": onWrong[${k}].goto unknown scene "${o.goto}"`);

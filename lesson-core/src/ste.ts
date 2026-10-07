@@ -8,6 +8,8 @@ import type { Lesson } from "./lesson";
  */
 export const STE_MAX_WORDS_PER_SENTENCE = 20;
 
+const COLOUR_POINTER = /\b(?:blue|red|green|orange|yellow|purple|pink|grey|gray)\s+(?:\w+\s+){0,2}?(?:button|box|card|arrow|ring|number|label|one)\b/i;
+
 /** Words and phrases that are vague, informal or unclear for a reader who is new to the subject. */
 const AVOID: [RegExp, string][] = [
   [/\bspin(?:ner|ning|s)?\b/i, 'use "change"'],
@@ -15,11 +17,12 @@ const AVOID: [RegExp, string][] = [
   [/\bjust\b/i, 'delete "just" or say "only"'],
   [/\bsimply\b|\beasily\b|\bquickly\b/i, "delete the adverb"],
   [/\bpretty (?:much|good|easy)\b|\bkind of\b|\bsort of\b/i, "say exactly what you mean"],
-  [/\bpress\b/i, 'use "select" for a button on the screen'],
-  [/\bclick\b|\btap\b/i, 'use "select" for a button on the screen'],
+  [/\bpress(?:es|ed|ing)?\b/i, 'use "select" for a button on the screen'],
+  [/\bclick(?:s|ed|ing)?\b|\btap(?:s|ped|ping)?\b/i, 'use "select" for a button on the screen'],
+  [COLOUR_POINTER, 'do not point at a thing by its colour: name the thing, for example "the Run button"'],
   [/\bbasically\b|\bobviously\b|\bof course\b/i, "delete it"],
   [/\bthat is all\b|\bthat's all\b/i, "say what the thing is"],
-  [/\bget\b|\bgets\b|\bgot\b/i, 'use a precise verb ("receive", "become", "make")'],
+  [/\bget(?:s|ting)?\b|\bgot(?:ten)?\b/i, 'use a precise verb ("receive", "become", "make")'],
 ];
 
 const CONTRACTION = /\b\w+(?:n't|'re|'ve|'ll|'m|'d)\b|\b(?:it|that|let|here|there|what|who|he|she)'s\b/i;
@@ -38,7 +41,7 @@ export function steProblems(text: string): string[] {
     const n = words(sentence);
     if (n > STE_MAX_WORDS_PER_SENTENCE) problems.push(`a sentence has ${n} words (at most ${STE_MAX_WORDS_PER_SENTENCE}): "${sentence}"`);
   }
-  const contraction = text.match(CONTRACTION);
+  const contraction = text.replace(/\u2019/g, "'").match(CONTRACTION);
   if (contraction) problems.push(`"${contraction[0]}" is a contraction: write the full words`);
   for (const [pattern, advice] of AVOID) {
     const hit = text.match(pattern);

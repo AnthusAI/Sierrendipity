@@ -18,6 +18,8 @@ export interface LiveView {
   atEnd: boolean;
   canStep: boolean;
   canBack: boolean;
+  /** The run is over and the scene's goal does not hold: with Back hidden, the way on is Reset (or Start again). */
+  goalMissed: boolean;
   /** The Stop card is hidden: show the end of the list as "the end of the list". */
   hideEnd: boolean;
   /** True while the ghost is demonstrating on a copy: controls are inert. */

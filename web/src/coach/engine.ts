@@ -56,8 +56,10 @@ export interface PlayerState {
   doneLine: string | null;
   /** A short polite announcement for screen readers when a scene completes without a doneSay. */
   announce: string | null;
-  /** The machine cannot reach the goal by stepping: the coach points at Back. */
+  /** The machine cannot reach the goal by stepping: the coach points at Back, or at Reset when the lesson hides Back. */
   stranded: boolean;
+  /** The words on the button the coach points at when stranded (Back, or the lesson's name for Reset). */
+  strandedButton: string;
   reply: string | null;
   /** The scene's `ifMissed` text, while the machine has finished without meeting the goal. */
   missed: string | null;
@@ -646,6 +648,8 @@ export class LessonEngine {
     const m = live.machine;
     const steps = liveRunOf(live).steps;
     const over = m.state === "halted" || m.pc >= live.cards * 4;
+    const scene = this.phase === "scene" ? this.scene() : null;
+    const goalMissed = !demo && !!scene && this.waiting(scene) === "until" && finished(live) && !this.holds(scene.until, liveRunOf(live));
     return {
       cards: live.words.slice(0, live.cards),
       boxes: this.lesson.boxes.map((name) => ({ name, value: m.regs[registerNumber(name) ?? 0]! | 0 })),
@@ -654,6 +658,7 @@ export class LessonEngine {
       atEnd: over,
       canStep: !demo && !finished(live),
       canBack: !demo && steps > 0,
+      goalMissed,
       hideEnd: this.lesson.hideEnd,
       demo,
     };
@@ -664,9 +669,14 @@ export class LessonEngine {
     const showing = this.phase === "scene" && scene ? scene : null;
     const view = this.viewOf(this.demo ?? this.live, this.phase === "ghost");
     const locked = (this.phase === "scene" ? [...(scene?.lock ?? []), ...(this.waiting(scene) === "ask" ? ASK_LOCKED : [])] : ["edit", "step", "back", "run", "reset", "drag", "toggle"]) as StageControl[];
-    // Stranded: the run is over, the goal does not hold, and no edit can change that. Back is the way out.
-    const stranded = !!showing && this.waiting(showing) === "until" && !view.canStep && view.steps > 0 && locked.includes("edit") && !locked.includes("back") && !this.holds(showing.until, liveRunOf(this.live));
-    const spotlight = stranded ? "button:back" : showing?.spotlight && (!this.tourSkipped || this.hintRung >= 1) ? showing.spotlight : null;
+    const controlsShown = this.lesson.ui?.controls;
+    const backShown = !controlsShown || controlsShown.includes("back");
+    const resetShown = !controlsShown || controlsShown.includes("reset");
+    const wayOut: "back" | "reset" | null = backShown ? "back" : resetShown ? "reset" : null;
+    // Stranded: the run is over, the goal does not hold, and no edit can change that. Back (or Reset when Back is hidden) is the way out.
+    const stranded = !!showing && wayOut !== null && this.waiting(showing) === "until" && !view.canStep && view.steps > 0 && locked.includes("edit") && !locked.includes(wayOut) && !this.holds(showing.until, liveRunOf(this.live));
+    const strandedButton = wayOut === "reset" ? this.lesson.ui?.resetLabel ?? "Reset" : "Back";
+    const spotlight = stranded ? `button:${wayOut}` : showing?.spotlight && (!this.tourSkipped || this.hintRung >= 1) ? showing.spotlight : null;
     const rung = this.hintRung;
     this.snapshot = {
       phase: this.phase,
@@ -682,6 +692,7 @@ export class LessonEngine {
       doneLine: this.doneLine,
       announce: this.announce,
       stranded,
+      strandedButton,
       reply: this.reply,
       missed: this.phase === "scene" && finished(this.live) ? this.plain(this.missed ?? "") || null : null,
       hint: rung > 0 && showing ? { rung: rung as 1 | 2 | 3, text: showing.hints[rung - 1] ?? "" } : null,

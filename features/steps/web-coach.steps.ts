@@ -88,6 +88,8 @@ When("I reload the lab", async function (this: WebWorld) {
 // Doing things
 
 const named = (w: WebWorld, name: string) => w.page.locator("[data-lesson-player]").getByRole("button", { name, exact: true });
+/** A control by its place, whatever a lesson calls it (Step may be Run; Reset may be Start again). */
+const control = (w: WebWorld, id: "step" | "back" | "reset") => w.page.locator(`[data-lesson-player] [data-coach-id="button:${id}"]`);
 
 When("I press Continue", async function (this: WebWorld) {
   await named(this, "Continue").click();
@@ -102,14 +104,14 @@ When("I press Continue {int} times", async function (this: WebWorld, times: numb
   for (let i = 0; i < times; i++) await named(this, "Continue").click();
 });
 When("I press Step", async function (this: WebWorld) {
-  await named(this, "Step").click();
+  await control(this, "step").click();
 });
 When("I press Back", async function (this: WebWorld) {
   // Back may be aria-disabled (nothing to undo); a student can still click it, so force past Playwright's check.
   await named(this, "Back").click({ force: true });
 });
 When("I press Reset", async function (this: WebWorld) {
-  await named(this, "Reset").click();
+  await control(this, "reset").click();
 });
 When("I press the Enter key", async function (this: WebWorld) {
   await this.page.keyboard.press("Enter");
@@ -408,9 +410,9 @@ When("I type {string} into the number on card {int} and leave it", async functio
 Then("the card hint says {string}", async function (this: WebWorld, text: string) {
   await this.page.locator("[data-card-hint]", { hasText: text }).waitFor();
 });
-for (const control of ["Step", "Back", "Reset"]) {
-  Then(`the ${control} button is locked with the explanation {string}`, async function (this: WebWorld, text: string) {
-    const b = named(this, control);
+for (const name of ["Step", "Back", "Reset"]) {
+  Then(`the ${name} button is locked with the explanation {string}`, async function (this: WebWorld, text: string) {
+    const b = control(this, name.toLowerCase() as "step" | "back" | "reset");
     assert.equal(await b.getAttribute("aria-disabled"), "true");
     const described = await b.evaluate((el) => (el.getAttribute("aria-describedby") ?? "").split(" ").map((id) => document.getElementById(id)?.textContent ?? "").join(" "));
     assert.ok(described.includes(text), `description was "${described}"`);

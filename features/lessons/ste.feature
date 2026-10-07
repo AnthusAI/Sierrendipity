@@ -14,6 +14,16 @@ Feature: Lesson text follows Simplified Technical English
       | Do not do that, it is just a card.                                                            | only                |
       | We do not know what is wrong with it but it is not good and it is not bad and it is not clear. | a sentence has 24 words |
       | Let's watch the box.                                                                          | contraction         |
+      | Don’t select it.                                                                              | contraction         |
+      | Let’s watch the box.                                                                          | contraction         |
+      | She is pressing the button.                                                                   | select              |
+      | He pressed Run.                                                                               | select              |
+      | The student clicked the card.                                                                 | select              |
+      | Tapping the card is not needed.                                                               | select              |
+      | The box is getting a number.                                                                  | precise verb        |
+      | The number is spinning.                                                                       | change              |
+      | Find the blue Run button above the card.                                                      | colour              |
+      | Select the green card.                                                                        | colour              |
 
   Scenario Outline: Good text has no problem
     Then the text "<text>" has no Simplified Technical English problem

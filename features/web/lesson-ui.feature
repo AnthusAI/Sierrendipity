@@ -62,6 +62,7 @@ Feature: Lessons show only what their one idea needs
     Then the missed-goal help says "the goal is 9"
     When I select Try again
     Then there is no missed-goal help
+    And the focus is on "Run"
     And the number on card 1 is 5
     And the lesson shows the step count 0
     When I set the number on card 1 to 9
@@ -69,11 +70,57 @@ Feature: Lessons show only what their one idea needs
     Then box "a0" shows 9
     And there is no missed-goal help
 
-  Scenario: A scene without ifMissed shows no missed-goal help
+  Scenario: A scene without ifMissed shows no missed-goal help after a run that misses
     Given the coach lab shows lesson "c1/04-two-boxes"
     When I press Continue
     And I press Step
-    Then there is no missed-goal help
+    And I press Step
+    And I press Reset
+    And I press Step
+    And I press Step
+    Then the lesson shows the step count 2
+    And the lesson shows no goal-met line
+    And there is no missed-goal help
+
+  Scenario: After a missed goal the idle Run button points at Start again
+    Given the coach lab shows lesson "c1/02-change-the-number"
+    When I press Continue
+    And I select Run
+    Then the Step button explains "Select Start again"
+
+  Scenario: The plus and minus buttons are reached with the Tab key
+    Given the coach lab shows lesson "c1/02-change-the-number"
+    When I press Continue
+    And I tab until the focus is on "Minus"
+    And I tab until the focus is on "Number on card 1"
+    And I tab until the focus is on "Plus"
+    Then the focus is on "Plus"
+
+  Scenario: A box with no register name is "the box" to a screen reader
+    Given the coach lab shows lesson "c1/02-change-the-number"
+    When I press Continue
+    Then the boxes are named to a screen reader as "The box"
+
+  Scenario: Lesson 3 keeps the Run button and shows only what it needs
+    Given the coach lab shows lesson "c1/03-last-one-wins"
+    When I press Continue
+    And I answer 8
+    Then the "Run" button is ready
+    And the lesson has no "Back" button
+    And the lesson has no "Step" button
+    And the lesson text never says "Step"
+
+  Scenario: Lesson 4 names its boxes and still calls the button Run
+    Given the coach lab shows lesson "c1/04-two-boxes"
+    Then the lesson text says "a0 and a1"
+    And the "Run" button is ready
+    And the lesson has no "Back" button
+
+  Scenario: Lesson 5 introduces the log
+    Given the coach lab shows lesson "c1/05-add"
+    When I press Continue
+    Then the lesson text says "A log below the boxes"
+    And the lesson has no "Back" button
 
   Scenario: The second card knocks the first number out of the box
     Given the coach lab shows lesson "c1/03-last-one-wins"
@@ -82,10 +129,13 @@ Feature: Lessons show only what their one idea needs
     And I press Step
     And I press Step
     And the timeline is at step 2
-    And the diagram clock is frozen at 0.2
+    And the diagram clock is frozen at 0.02
+    Then the token starts with the number 8 at the number on card 2
+    When the diagram clock is frozen at 0.2
     Then the token starts with the number 8 from the card
     When the diagram clock is frozen at 0.75
     Then the old number 3 is knocked out of the box
+    And the knocked-out number is hidden from screen readers
 
   Scenario: The first card knocks nothing out of an empty box
     Given the coach lab shows lesson "c1/03-last-one-wins"

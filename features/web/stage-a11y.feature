@@ -35,7 +35,7 @@ Feature: The real stage is keyboard operable, readable and fits every window
 
   Scenario: The Tab order is the coach, then the controls, then the cards, then the boxes
     Given the coach lab shows lesson "c1/05-add"
-    Then the tab order of the lesson is the coach panel, then Step, Back and Reset, then the cards
+    Then the tab order of the lesson is the coach panel, then Run and Start again, then the cards
     And the boxes come after the cards in the page
 
   Scenario: Every control of the stage has a name a screen reader can use

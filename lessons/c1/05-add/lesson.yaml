@@ -11,6 +11,15 @@ hideEnd: true
 starter:
   hex: ["0x00500513", "0x00700593", "0x00b50633"]   # put 5 in a0, put 7 in a1, add a0 and a1 into a2
 tabs: [cards]
+ui:
+  controls: [step, reset]
+  stepLabel: Run
+  resetLabel: Start again
+  log: true
+  deskTitle: false
+  endMarker: false
+  boxNames: true
+  spotlight: ring
 onWrongDefault:
   say: Watch what happens.
   goto: watch-add
@@ -20,8 +29,12 @@ scenes:
     show: [cards, boxes]
     spotlight: "box:a2"
 
+  - id: log
+    say: A log below the boxes lists each change. Select Continue.
+    show: [cards, boxes]
+
   - id: fill
-    say: Select Step two times. The cards put 5 in box a0 and 7 in box a1.
+    say: Select Run two times. The cards put 5 in box a0 and 7 in box a1.
     show: [cards, boxes]
     spotlight: "button:step"
     until:
@@ -31,13 +44,13 @@ scenes:
     hints:
       - Which button follows the next card?
       - Each selection follows one card. The first two cards fill boxes.
-      - Select Step two times. Box a0 receives 5. Box a1 receives 7.
+      - Select Run two times. Box a0 receives 5. Box a1 receives 7.
     showMe: demo-step-twice
     doneSay: Boxes a0 and a1 hold numbers now.
     lock: [edit, drag, toggle]
 
   - id: predict
-    say: The next card adds a0 and a1 into box a2. What does a2 hold?
+    say: The next card adds a0 and a1 into box a2. What does a2 hold after it runs?
     show: [cards, boxes]
     spotlight: "box:a2"
     ask:
@@ -68,7 +81,7 @@ scenes:
     lock: [edit, drag, toggle]
 
   - id: watch-add
-    say: Select Step. Watch box a2.
+    say: Select Run. Watch box a2.
     show: [cards, boxes]
     spotlight: "button:step"
     until:
@@ -77,7 +90,7 @@ scenes:
     hints:
       - Which button follows the add card?
       - The add card reads a0 and a1. It writes box a2.
-      - Select Step. Box a2 changes to 12.
+      - Select Run. Box a2 changes to 12.
     showMe: demo-step
     doneSay: Box a2 now holds 12.
     lock: [edit, drag, toggle]
