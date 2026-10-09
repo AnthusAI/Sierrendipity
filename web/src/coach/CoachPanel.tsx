@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from "react";
+import { XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { LessonEngine, PlayerState } from "./engine";
 import type { LessonInfo } from "../lessons";
@@ -241,7 +242,11 @@ export function CoachPanel({ state, engine, next, onNext, onStop }: Props) {
       </div>
 
       {phase === "scene" && state.missed && (
-        <div data-coach-missed role="status" className="space-y-2 rounded-md border-2 border-foreground p-3">
+        <div data-coach-missed role="status" className="animate-nope space-y-2 rounded-md border-4 border-destructive bg-danger-bg p-3 text-foreground">
+          <p className="flex items-center gap-2 font-semibold">
+            <XCircle aria-hidden className="size-5 shrink-0 text-destructive" />
+            Not yet
+          </p>
           <p>{state.missed}</p>
           <Button size="sm" data-coach-primary onClick={() => {
               engine.tryAgain();

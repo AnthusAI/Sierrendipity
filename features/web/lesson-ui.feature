@@ -51,6 +51,14 @@ Feature: Lessons show only what their one idea needs
     When I select Run
     Then the "Start again" button is ready
 
+  Scenario: A missed goal looks plainly wrong and not only through colour
+    Given the coach lab shows lesson "c1/02-change-the-number"
+    When I select Run
+    Then the missed-goal help has a thick red outline and the words "Not yet"
+    And the box has a red outline
+    When I select Try again
+    Then the box has no red outline
+
   Scenario: A run that misses the goal says what happened and offers Try again
     Given the coach lab shows lesson "c1/02-change-the-number"
     When I select Run
