@@ -30,6 +30,8 @@ import {
   type SolutionDecl,
   type Warmup,
 } from "./lesson";
+import type { CustomCard } from "./cards/model";
+import { parseCardSolution, parseCustomCards, parseSaveSpec } from "./loader-cards";
 import { functionProblems, parseFunction, parseTableAsk } from "./loader-function";
 import { registerNumber, STOP_WORD } from "./steps/run";
 import { featureProblems } from "./steps/checks";
@@ -127,6 +129,8 @@ interface SceneCtx {
   boxes: string[];
   tabs: string[];
   cards: number;
+  /** Names of the custom cards the lesson gives. */
+  customNames: string[];
 }
 
 /** Which student control a step phrase needs the scene to leave unlocked. */
@@ -209,7 +213,7 @@ function parseScene(raw: unknown, i: number, ctx: SceneCtx, errors: string[]): S
   if (typeof id !== "string" || !/^[a-z0-9-]+$/.test(id)) return void errors.push(`scenes[${i}]: id must be a lowercase slug`);
   const w = `scene "${id}"`;
   const n = errors.length;
-  unknownKeys(raw, ["id", "say", "doneSay", "ifMissed", "show", "spotlight", "ask", "until", "onWrong", "hints", "showMe", "lock", "skippable", "glassNamed", "lamps", "bands", "flip", "carry", "tray"], w, errors);
+  unknownKeys(raw, ["id", "say", "doneSay", "ifMissed", "show", "spotlight", "ask", "until", "onWrong", "hints", "showMe", "lock", "skippable", "glassNamed", "lamps", "bands", "flip", "carry", "tray", "save"], w, errors);
 
   const say = raw.say;
   if (!isStr(say)) errors.push(`${w}: say must be non-empty text`);
@@ -266,6 +270,7 @@ function parseScene(raw: unknown, i: number, ctx: SceneCtx, errors: string[]): S
     }
   }
   const tray = needs("tray", "builder") ? parseTray(raw.tray, w, errors) : undefined;
+  const save = needs("save", "builder") ? parseSaveSpec(raw.save, w, ctx.customNames, errors) : undefined;
   let ask: Ask | undefined;
   if (raw.ask !== undefined) {
     ask = parseAsk(raw.ask, w, errors);
@@ -355,6 +360,7 @@ function parseScene(raw: unknown, i: number, ctx: SceneCtx, errors: string[]): S
     ...(flip ? { flip } : {}),
     ...(carry ? { carry } : {}),
     ...(tray ? { tray } : {}),
+    ...(save ? { save } : {}),
   };
 }
 
@@ -452,7 +458,7 @@ export function loadLesson(files: Record<string, string>, opts: LoadOptions = {}
   }
 
   const stars = new Set(feature?.scenarios.flatMap((s) => (s.tags.includes("pass") ? ["pass"] : s.tags.filter((t) => t.startsWith("star=")).map((t) => t.slice(5)))) ?? []);
-  const solutions = parseSolutions(files, stars, lesson?.hideEnd === true, errors);
+  const solutions = parseSolutions(files, stars, lesson?.hideEnd === true, lesson?.customCards ?? [], lesson?.boxes ?? [], errors);
   if (lesson) lessonLimits(lesson, solutions, errors);
   if (lesson) errors.push(...functionProblems(lesson, feature));
   if (lesson) errors.push(...lessonSteProblems(lesson as Lesson));
@@ -468,7 +474,7 @@ export function loadLesson(files: Record<string, string>, opts: LoadOptions = {}
 function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set<string> | undefined, dir: string | undefined, errors: string[]): Omit<Lesson, "solutions" | "checks"> | undefined {
   const n = errors.length;
   if (!isObj(raw)) return void errors.push("lesson.yaml: must be a mapping");
-  unknownKeys(raw, ["id", "title", "minutes", "concepts", "boxes", "pointer", "hideEnd", "ui", "function", "earlyLesson", "draft", "onWrongDefault", "starter", "tabs", "scenes", "nowYouCan", "warmups", "sideRooms"], "lesson.yaml", errors);
+  unknownKeys(raw, ["id", "title", "minutes", "concepts", "boxes", "pointer", "hideEnd", "ui", "function", "customCards", "earlyLesson", "draft", "onWrongDefault", "starter", "tabs", "scenes", "nowYouCan", "warmups", "sideRooms"], "lesson.yaml", errors);
 
   if (!isStr(raw.id) || !/^[a-z0-9]+\/[a-z0-9-]+$/.test(raw.id)) errors.push('lesson.yaml: id must look like "c1/01-press-the-button"');
   else if (dir !== undefined && raw.id !== dir) errors.push(`lesson.yaml: id "${raw.id}" does not match the directory "${dir}"`);
@@ -496,6 +502,7 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
   for (const key of ["pointer", "hideEnd", "earlyLesson", "draft"] as const) if (raw[key] !== undefined && typeof raw[key] !== "boolean") errors.push(`lesson.yaml: ${key} must be true or false`);
   const ui = parseUi(raw.ui, errors);
   const lessonFunction = parseFunction(raw.function, isStrList(boxes) ? boxes : [], errors);
+  const customCards = parseCustomCards(raw.customCards, isStrList(boxes) ? boxes : [], "lesson.yaml", errors);
   const hideEnd = raw.hideEnd === true;
   const endProblem = (p: Program | undefined, where: string): void => {
     if (hideEnd && p && p.words.at(-1) === STOP_WORD) errors.push(`${where}: with hideEnd the end marker is added for you; remove the final Stop card (ebreak)`);
@@ -520,7 +527,7 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
       const id = isObj(s) && typeof s.id === "string" ? s.id : undefined;
       if (id && ids.has(id)) errors.push(`lesson.yaml: duplicate scene id "${id}"`);
       if (id) ids.add(id);
-      const scene = parseScene(s, i, { boxes: boxList, tabs: isStrList(tabs) ? tabs : [], cards: starter?.words.length ?? 0 }, errors);
+      const scene = parseScene(s, i, { boxes: boxList, tabs: isStrList(tabs) ? tabs : [], cards: starter?.words.length ?? 0, customNames: (customCards ?? []).map((c) => c.name) }, errors);
       if (scene) scenes.push(scene);
     });
     for (const s of scenes) {
@@ -536,6 +543,9 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
       // A tray drag in a ghost needs the scene to have that tray card.
       const ghost = s.showMe !== undefined ? ghosts[s.showMe] : undefined;
       ghost?.events.forEach((e, k) => {
+        if (e.type === "save" && !s.save) errors.push(`ghost "${s.showMe}": events[${k}] saves a card but scene "${s.id}" has no save`);
+        if (e.type === "save" && s.save && (e.to - e.from + 1 < s.save.min || e.to - e.from + 1 > s.save.max)) errors.push(`ghost "${s.showMe}": events[${k}] saves ${e.to - e.from + 1} cards but scene "${s.id}" saves ${s.save.min} to ${s.save.max}`);
+        if (e.type === "save" && s.save && e.name === undefined && s.save.name === undefined) errors.push(`ghost "${s.showMe}": events[${k}] needs a name because scene "${s.id}" does not give one`);
         if (e.type === "drag" && "tray" in e && e.tray >= (s.tray?.length ?? 0)) errors.push(`ghost "${s.showMe}": events[${k}] drags tray card ${e.tray} but scene "${s.id}" needs a tray with that card`);
       });
     }
@@ -616,6 +626,7 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
     hideEnd,
     ...(ui ? { ui } : {}),
     ...(lessonFunction ? { function: lessonFunction } : {}),
+    ...(customCards ? { customCards } : {}),
     earlyLesson: raw.earlyLesson !== false,
     draft: raw.draft === true,
     ...(onWrongDefault ? { onWrongDefault } : {}),
@@ -643,10 +654,18 @@ export function registersIn(words: number[]): string[] {
   return [...out].sort();
 }
 
+/** The words that name boxes: calls and returns of custom cards name `ra`, which is not a box of the lesson. */
+function boxWords(words: number[]): number[] {
+  return words.filter((w) => {
+    const mnemonic = decode(w)?.mnemonic;
+    return mnemonic !== "jal" && mnemonic !== "jalr";
+  });
+}
+
 /** Checks that need the whole lesson: solutions use only the shown boxes, and early lessons stay tiny. */
 function lessonLimits(lesson: Omit<Lesson, "solutions" | "checks">, solutions: SolutionDecl[], errors: string[]): void {
   for (const sol of solutions) {
-    for (const r of registersIn(sol.words)) if (!lesson.boxes.includes(r)) errors.push(`solutions/${sol.file}: uses box ${r} but boxes lists only ${lesson.boxes.join(", ")}`);
+    for (const r of registersIn(boxWords([...sol.words, ...(sol.tail ?? [])]))) if (!lesson.boxes.includes(r)) errors.push(`solutions/${sol.file}: uses box ${r} but boxes lists only ${lesson.boxes.join(", ")}`);
   }
   if (lesson.hideEnd && !lesson.pointer && lesson.earlyLesson) {
     const over = (words: number[], where: string) => {
@@ -659,7 +678,7 @@ function lessonLimits(lesson: Omit<Lesson, "solutions" | "checks">, solutions: S
   }
 }
 
-function parseSolutions(files: Record<string, string>, stars: Set<string>, hideEnd: boolean, errors: string[]): SolutionDecl[] {
+function parseSolutions(files: Record<string, string>, stars: Set<string>, hideEnd: boolean, lessonCards: CustomCard[], boxes: string[], errors: string[]): SolutionDecl[] {
   const raw = yaml(files, "solutions/solutions.yaml", errors);
   const out: SolutionDecl[] = [];
   if (raw === undefined) return out;
@@ -672,7 +691,7 @@ function parseSolutions(files: Record<string, string>, stars: Set<string>, hideE
   list.forEach((s, i) => {
     const where = `solutions/solutions.yaml: solutions[${i}]`;
     if (!isObj(s) || !isStr(s.file)) return void errors.push(`${where}: needs a file`);
-    unknownKeys(s, ["file", "earns", "predictions", "stdin", "maxSteps", "capped", "note", "scenes"], where, errors);
+    unknownKeys(s, ["file", "earns", "predictions", "stdin", "maxSteps", "capped", "note", "scenes", "customCards"], where, errors);
     if (s.scenes !== undefined && !(isStrList(s.scenes) && s.scenes.length > 0)) errors.push(`${where}: scenes must be a list of scene ids`);
     const text = files[`solutions/${s.file}`];
     if (text === undefined) return void errors.push(`${where}: ${s.file} not found in solutions/`);
@@ -688,12 +707,16 @@ function parseSolutions(files: Record<string, string>, stars: Set<string>, hideE
       else errors.push(`${where}: predictions must map a target to a list of numbers`);
     }
     const label = `solutions/${s.file}`;
-    const program = programOf(/\.hex$/.test(s.file) ? { hex: text } : { asm: text }, label, errors);
+    const ownCards = parseCustomCards(s.customCards, boxes, `${where}`, errors, lessonCards.map((c) => c.name));
+    const cardProgram = /\.cards$/.test(s.file) ? parseCardSolution(text, [...lessonCards, ...(ownCards ?? [])], label, errors) : undefined;
+    if (s.customCards !== undefined && !/\.cards$/.test(s.file)) errors.push(`${where}: customCards belongs to a card program (a .cards file)`);
+    const program = /\.cards$/.test(s.file) ? (cardProgram ? { kind: "asm" as const, text, words: cardProgram.words } : undefined) : programOf(/\.hex$/.test(s.file) ? { hex: text } : { asm: text }, label, errors);
     if (hideEnd && program?.words.at(-1) === STOP_WORD) errors.push(`${label}: with hideEnd the end marker is added for you; remove the final Stop card (ebreak)`);
     if (!program || typeof s.capped === "string" || !isStrList(s.earns)) return;
     out.push({
       file: s.file,
       words: program.words,
+      ...(cardProgram ? { tail: cardProgram.tail, usedCards: cardProgram.usedCards } : {}),
       earns: s.earns,
       predictions,
       ...(typeof s.stdin === "string" ? { stdin: s.stdin } : {}),

@@ -46,6 +46,7 @@ export function checkLesson(lesson: Lesson): LessonReport {
       starter: lesson.starter.words,
       hideEnd: lesson.hideEnd,
       events: tableEvents(lesson),
+      ...programFacts(decl),
     });
     const report = runChecks(lesson.checks, run);
     const earned = earnedStars(report);
@@ -106,7 +107,7 @@ function sceneProblems(lesson: Lesson, problems: string[]): void {
     // The student's edits are the cards that differ from the starter.
     const edits = d.words.flatMap((w, card) => (w !== lesson.starter.words[card] ? [{ type: "edit" as const, card, to: w }] : []));
     const events = [...edits, ...tableEvents(lesson)];
-    return runProgram(d.words, { predictions: d.predictions, hideEnd: lesson.hideEnd, starter: lesson.starter.words, events, ...functionFacts(lesson), maxSteps: d.maxSteps ?? DEFAULT_MAX_STEPS });
+    return runProgram(d.words, { predictions: d.predictions, hideEnd: lesson.hideEnd, starter: lesson.starter.words, events, ...functionFacts(lesson), ...programFacts(d), maxSteps: d.maxSteps ?? DEFAULT_MAX_STEPS });
   };
   const runs = passing.map(runOf);
   // A scene may also describe the machine before the student has changed anything: the starter itself.
@@ -121,6 +122,11 @@ function sceneProblems(lesson: Lesson, problems: string[]): void {
       if (![...runs, ...own].some((r) => parsed.fn(r).ok)) problems.push(`scene "${sc.id}": no pass solution (or the starter) satisfies "${phrase}", so the scene could never finish`);
     }
   }
+}
+
+/** The custom card bodies and names of a card-program solution, as facts of its run. */
+function programFacts(decl: { tail?: number[]; usedCards?: string[] }): Pick<RunOptions, "tail" | "usedCards"> {
+  return { ...(decl.tail ? { tail: decl.tail } : {}), ...(decl.usedCards ? { usedCards: decl.usedCards } : {}) };
 }
 
 /** The function boxes a run needs for phrases such as `f(3) is 10`, and the input box holding the default x, when the lesson declares a function. */
@@ -154,11 +160,11 @@ function ruleProblems(lesson: Lesson, problems: string[]): void {
   const parsed = parseRule(fn.rule, fn.name);
   if (!parsed.ok) return void problems.push(`function rule: ${parsed.error}`);
   const boxes = { name: fn.name, input: fn.inputs[0]!, output: fn.output };
-  const programs = lesson.solutions.filter((d) => d.earns.includes("pass")).map((d) => ({ label: `solution ${d.file}`, words: d.words }));
-  if (lesson.scenes.some((sc) => sc.ask?.kind === "table")) programs.push({ label: "the starter", words: lesson.starter.words });
+  const programs = lesson.solutions.filter((d) => d.earns.includes("pass")).map((d) => ({ label: `solution ${d.file}`, words: d.words, tail: d.tail ?? [] }));
+  if (lesson.scenes.some((sc) => sc.ask?.kind === "table")) programs.push({ label: "the starter", words: lesson.starter.words, tail: [] });
   for (const program of programs) {
     for (const x of listedInputs(lesson)) {
-      const have = functionValue(program.words, boxes, x, { hideEnd: lesson.hideEnd });
+      const have = functionValue(program.words, boxes, x, { hideEnd: lesson.hideEnd, tail: program.tail });
       const want = ruleValue(parsed.rule, x);
       if (have === null) problems.push(`rule ${fn.rule}: ${program.label} does not stop for ${fn.name}(${x})`);
       else if (have !== want) problems.push(`rule ${fn.rule} says ${fn.name}(${x}) is ${want} but ${program.label} gives ${have}`);

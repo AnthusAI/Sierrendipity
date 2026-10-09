@@ -1,4 +1,4 @@
-import type { FlipSpec, LampSpec, PublishedLesson } from "@sierrendipity/lesson-core";
+import type { Card, CustomCard, FlipSpec, LampSpec, PublishedLesson, SaveSpec } from "@sierrendipity/lesson-core";
 import type { Session } from "@sierrendipity/explorer";
 import type { ReactNode } from "react";
 
@@ -23,6 +23,8 @@ export interface LiveView {
   canBack: boolean;
   /** The run is over and the scene's goal does not hold: with Back hidden, the way on is Reset (or Start again). */
   goalMissed: boolean;
+  /** The program as cards, with the custom cards it can call, in a lesson that has custom cards. */
+  program?: { cards: Card[]; customCards: CustomCard[] };
   /** The Stop card is hidden: show the end of the list as "the end of the list". */
   hideEnd: boolean;
   /** True while the ghost is demonstrating on a copy: controls are inert. */
@@ -45,6 +47,8 @@ export interface StageScene {
   flip?: FlipSpec;
   carry?: { a: number; b: number };
   tray?: number[];
+  /** The student selects and saves cards as one custom card. */
+  save?: SaveSpec;
 }
 
 /** How a card was changed: a spinner (`edit`, the default) or a lamp (`toggle`). A scene may lock one and not the other. */
@@ -73,6 +77,8 @@ export interface StageProps {
   onEditStarter(card: number, word: number, via?: EditVia): void;
   /** Replace the whole list of cards (the program builder: drag, reorder, remove). Locked by the scene's `drag`. */
   onReplaceCards(words: number[]): void;
+  /** Replace the whole program as cards with the custom cards it can call (the builder in a lesson with custom cards). Locked by `drag`. */
+  onReplaceProgram(cards: Card[], customCards: CustomCard[]): void;
   /** Set x for the lesson's function (the rule banner's input). Locked by the scene's `edit`. */
   onSetFunctionInput(x: number): void;
   controls: StageControls;

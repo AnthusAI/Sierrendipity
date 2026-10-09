@@ -35,6 +35,13 @@ export interface LessonRun {
   hitStepCap: boolean;
   /** The lesson's function and its boxes, for phrases such as `f(3) is 10`. */
   functionBoxes?: FunctionBoxes;
+  /** Words placed after the end marker: the bodies of the custom cards the program calls. */
+  tail?: number[];
+  /** Names of the custom cards in the main program. */
+  usedCards?: string[];
+  /** Calls made (`jal ra`) and calls that returned (`jalr zero, 0(ra)`). */
+  calls?: number;
+  returns?: number;
 }
 
 export interface RunOptions {
@@ -53,6 +60,20 @@ export interface RunOptions {
   /** Append the end marker (Stop, ebreak) after the cards; the student sees it only as "the end of the list". */
   hideEnd?: boolean;
   functionBoxes?: FunctionBoxes;
+  /** Words placed after the end marker (custom card bodies). */
+  tail?: number[];
+  usedCards?: string[];
+}
+
+/** Calls and returns among executed instructions (their text), as made by custom cards. */
+export function callCounts(texts: Iterable<string | undefined>): { calls: number; returns: number } {
+  let calls = 0;
+  let returns = 0;
+  for (const text of texts) {
+    if (text?.startsWith("jal ra,")) calls++;
+    else if (text === "jalr zero, 0(ra)") returns++;
+  }
+  return { calls, returns };
 }
 
 /** The Stop card (ebreak). */
@@ -101,7 +122,8 @@ function visibleSteps(machine: Machine, cards: number, hideEnd: boolean): number
  */
 export function runProgram(cards: number[], opts: RunOptions = {}): LessonRun {
   const hideEnd = opts.hideEnd === true;
-  const words = hideEnd ? [...cards, STOP_WORD] : cards;
+  const tail = opts.tail ?? [];
+  const words = hideEnd ? [...cards, STOP_WORD, ...tail] : [...cards, ...tail];
   const maxSteps = opts.maxSteps ?? DEFAULT_MAX_STEPS;
   let output = "";
   const decoder = new TextDecoder();
@@ -136,6 +158,7 @@ export function runProgram(cards: number[], opts: RunOptions = {}): LessonRun {
   const executed = new Set<string>();
   let laps = 0;
   let hitStepCap = false;
+  const executedTexts: (string | undefined)[] = [];
   autoStop(machine, cards.length, hideEnd);
   while (machine.state === "ready" || machine.state === "running") {
     if (machine.steps >= maxSteps) {
@@ -146,6 +169,7 @@ export function runProgram(cards: number[], opts: RunOptions = {}): LessonRun {
     const result = machine.step();
     if (machine.steps === before) break; // a fault or a wait for input
     const mnemonic = result.decoded?.mnemonic;
+    if (tail.length > 0) executedTexts.push(result.decoded?.text);
     if (mnemonic) {
       executed.add(mnemonic);
       // A jump or branch that lands on itself or earlier is a lap (a jump to itself is a one-card loop).
@@ -169,6 +193,7 @@ export function runProgram(cards: number[], opts: RunOptions = {}): LessonRun {
     laps,
     hitStepCap,
     ...(opts.functionBoxes ? { functionBoxes: opts.functionBoxes } : {}),
+    ...(tail.length > 0 ? { tail: [...tail], usedCards: opts.usedCards ?? [], ...callCounts(executedTexts) } : {}),
   };
 }
 
@@ -208,6 +233,8 @@ export interface Live {
   cards: number;
   hideEnd: boolean;
   words: number[];
+  /** Words after the end marker (custom card bodies); `words` includes them. */
+  tail: number[];
   /** Facts the player records: predictions, events, output. Mutate freely. */
   facts: Partial<Omit<LessonRun, "machine" | "steps" | "cards" | "words">>;
 }
@@ -215,16 +242,17 @@ export interface Live {
 /** Most steps a live machine records: a runaway program is cut off quickly (the stage's long-standing limit). */
 export const LIVE_MAX_STEPS = 2000;
 
-export function startLive(cards: number[], opts: { hideEnd?: boolean; memorySize?: number; maxSteps?: number; startRegs?: Record<string, number> } = {}): Live {
+export function startLive(cards: number[], opts: { hideEnd?: boolean; memorySize?: number; maxSteps?: number; startRegs?: Record<string, number>; tail?: number[] } = {}): Live {
   const hideEnd = opts.hideEnd === true;
-  const words = hideEnd ? [...cards, STOP_WORD] : [...cards];
+  const tail = opts.tail ?? [];
+  const words = hideEnd ? [...cards, STOP_WORD, ...tail] : [...cards, ...tail];
   const startRegs: Record<number, number> = {};
   for (const [name, value] of Object.entries(opts.startRegs ?? {})) {
     const n = registerNumber(name);
     if (n === undefined) throw new RangeError(`no box called '${name}'`);
     startRegs[n] = value;
   }
-  const session = new Session(fromWords(words, { memorySize: opts.memorySize ?? 65536 }), { hideEnd, maxSteps: opts.maxSteps ?? LIVE_MAX_STEPS, startRegs });
+  const session = new Session(fromWords(words, { memorySize: opts.memorySize ?? 65536 }), { hideEnd, maxSteps: opts.maxSteps ?? LIVE_MAX_STEPS, startRegs, tail: tail.length });
   return {
     session,
     get machine() {
@@ -233,6 +261,7 @@ export function startLive(cards: number[], opts: { hideEnd?: boolean; memorySize
     cards: cards.length,
     hideEnd,
     words,
+    tail,
     facts: {},
   };
 }
@@ -248,6 +277,7 @@ export function pressBack(live: Live): boolean {
 }
 
 export function liveRunOf(live: Live): LessonRun {
+  const counts = live.tail.length > 0 ? callCounts(live.session.history().map((step) => step.decoded?.text)) : {};
   return {
     output: "",
     predictions: {},
@@ -260,6 +290,7 @@ export function liveRunOf(live: Live): LessonRun {
     cards: live.cards,
     machine: live.session.machine,
     steps: live.session.steps,
+    ...(live.tail.length > 0 ? { tail: live.tail, ...counts } : {}),
   };
 }
 

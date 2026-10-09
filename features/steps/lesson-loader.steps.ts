@@ -239,6 +239,12 @@ Then("the scene {string} has lamps on card {int} with target {int}", (id: string
   assert.equal(lamps?.target, target);
 });
 Then("the scene {string} has a tray of {int} cards", (id: string, n: number) => assert.equal(sceneOf(id).tray?.length, n));
+Then("the scene {string} lets the student save {int} to {int} cards named {string}", (id: string, min: number, max: number, name: string) => {
+  assert.deepEqual(sceneOf(id).save, { min, max, name });
+});
+Then("the lesson gives the custom card {string} with {int} cards", (name: string, n: number) => {
+  assert.equal(lesson().customCards?.find((c) => c.name === name)?.cards.length, n);
+});
 Then("the lesson is a draft", () => assert.equal(lesson().draft, true));
 Then("the lesson is not a draft", () => assert.equal(lesson().draft, false));
 Then("the published lesson is a draft", () => assert.equal(published.draft, true));

@@ -19,7 +19,7 @@ lessons/<course>/<nn-slug>/
   lesson.yaml                          scenes, starter, concepts, warm-ups
   checks.feature                       real Gherkin: what "done" means
   solutions/solutions.yaml             which stars each reference solution must earn
-  solutions/*.s | *.hex                reference solutions (assembly or hex words)
+  solutions/*.s | *.hex | *.cards      reference solutions (assembly, hex words or a card program; see "Custom cards")
   ghosts/*.json                        recorded UI event scripts for Show me
 ```
 
@@ -38,6 +38,7 @@ hideEnd: true               # hide the Stop card, see below; default false
 draft: true                 # optional, default false: a draft lesson, see "Draft lessons" below
 ui: { controls: [step], stepLabel: Run }          # optional, what the stage shows; see "The ui block"
 function: { name: f, inputs: [a0], output: a0, rule: "f(x) = x·x + 1" }   # optional; see "Functions"
+customCards: [ { name: Double, cards: ["add a0, a0, a0"] } ]               # optional; see "Custom cards"
 starter: { hex: ["0x00500513"] }                  # or { asm: "addi a0, zero, 5" }
 tabs: [cards]               # cards lamps hex assembly boxes shelves screen output
 scenes: [ ... ]
@@ -153,6 +154,7 @@ The checker is in `lesson-core/src/ste.ts`.
   lock: [edit, drag, toggle]        # UI controls disabled in this scene
   skippable: true
   glassNamed: true                  # optional, needs ui.glass: from this scene on, screen readers hear the glass line
+  save: { min: 2, max: 3, name: Square-plus-one }   # optional, needs `builder` in show: see "Custom cards"
 ```
 
 - `ask` kinds: `number` (`answer`, optional `target` box), `choice` (`choices`, `answer` index),
@@ -229,6 +231,43 @@ In a function lesson the checker's runs start with the input box holding `DEFAUL
 the player starts with, so a scene may say `box a0 holds 2` about the default x. A reference solution is
 assumed to fill every table of the lesson (the run carries a `table` event for each); the checker proves the
 answers separately.
+
+### Custom cards
+
+A custom card is a named card made of other cards. The card program compiler is in `lesson-core`
+(`buildProgram`, `programParts`; the card model is `lesson-core/src/cards/model.ts`), so the browser, the lessons
+and the CI checker compile a program the same way: the main program does `jal ra, <body>` for a custom card, and each
+used body is placed once after the end marker, ending in `jalr zero, 0(ra)` (a return). A body may not hold a jump,
+a Stop or another custom card, may write only `a0` to `a3` and `t0` to `t2`, and must put its answer in `a0`
+(`customBodyProblem`). A body holds at most 12 cards; a lesson names at most 6 custom cards.
+
+- **Given cards.** `customCards: [{ name, cards: [asm lines] }]` in lesson.yaml. Each line is one instruction that is a
+  card of Course 1. The name follows the builder's rules (`nameProblem`: at most 24 characters, not a built-in card name,
+  not used twice). Every box a body uses must be in `boxes`. In a scene with `builder` the given cards are in the tray.
+- **A save.** `save: { min, max, name? }` in a scene that shows `builder`. The student turns on Select, ticks `min` to
+  `max` cards that sit next to each other and uses Save as card. With `name` the card gets that name at once;
+  without it the student is asked for a name. The selected cards become one custom card, and the list calls it. The
+  labels are "Select", "Select card N" (checkboxes), "Save as card", and a polite status line says
+  `You made the card "Name".` The player accepts a new custom card only from a scene with `save`, with the number of
+  cards and the name that scene gives.
+- **Solutions as card programs.** A file ending in `.cards` in `solutions/`: one card per line, either one line of
+  assembly or `card "Name"` for a custom card (blank lines and lines that start with # are ignored). The entry in
+  solutions.yaml may add `customCards: [...]` (same shape) for the cards the student saves; it may also use the
+  lesson's given cards. The loader builds the program: `words` is the main program (without the end marker) and `tail`
+  holds the bodies; the checker runs both (`runProgram(words, { hideEnd, tail })`). The early-lesson cap counts the main
+  program only, and a solution's boxes are checked on its cards.
+- **Phrases.** `the program uses the card "Square-plus-one"`, `the machine made at least N calls` (also `made N calls`,
+  `made 1 call`) and `every call returned` (it fails when the machine made no call, or a call did not return). A call
+  is a `jal ra`; a return is `jalr zero, 0(ra)`.
+- **A ghost** can save: `save {from, to, name?}` selects cards `from` to `to` (0-based, inclusive) and saves them on the
+  copy; `name` defaults to the scene's `save.name`, and one of the two is needed. The loader checks that the count
+  fits the scene's `min` and `max`.
+- **With a function.** A function lesson whose body is a custom card works as before: the checker and `f(3) is 10` run
+  the program with its bodies, so the call is part of the run (`functionValue(cards, boxes, x, { hideEnd, tail })`).
+
+Limits for a lesson author: the program is one list of at most 200 cards; a body holds 1 to 12 cards (`save` sets
+`min` and `max` within that); a custom card cannot call another custom card or hold a jump, so a body is a straight
+list of cards; a run stops at the step cap (2,000 steps in the player, 10,000 in the checker unless `maxSteps` says otherwise).
 
 ### What a scene shows
 
@@ -345,6 +384,7 @@ that names the scene satisfies it.
 `spin {card, to}` (card index, new 32-bit word), `toggle {card, bit 0-31}` (flips that bit of the card's 32-bit word, so
 the number field of a put card is bits 20 to 31), `drag {from, to}` (move a card within the list) or
 `drag {tray, to}` (drag tray card `tray` into the list at position `to`; the scene needs a `tray`),
+`save {from, to, name?}` (select cards `from` to `to` and save them as one custom card; see "Custom cards"),
 `type {text}` (types a whole number into the number spinner of the card the ghost last pointed at with
 `point card:<n>`). During Show me all of these act on a COPY of the machine, drawn by the same real components; the
 student's own cards, boxes and progress are untouched until control is handed back. The file name (without `.json`)
@@ -391,6 +431,9 @@ or `0b` binary; box comparisons are modulo 2^32, so `-1` and `4294967295` are th
 | `the program counter is N` | pc |
 | `f(3) is 10` | the program run on a fresh machine with the input box set to 3 leaves 10 in the output box (the name is the lesson's `function.name`; at most 1,000 steps; needs a `function` block) |
 | `f(f(2)) is 26` | the same, with the first result fed back in as the input |
+| `the program uses the card "Square-plus-one"` | a custom card of that name is in the main program (needs a card program or a save) |
+| `the machine made at least 2 calls` | calls (`jal ra`) the machine has made; also `made 2 calls` |
+| `every call returned` | at least one call, and as many returns (`jalr zero, 0(ra)`) as calls |
 | `the student filled the table for 1, 2, 3` | the student answered a table ask over these inputs correctly (a `table` event) |
 
 `runProgram(words, { stdin, maxSteps, startRegs, startMem, starter, predictions, events, position })`
@@ -451,8 +494,9 @@ cards, at most two short sentences per scene, three free hints, a friendly `done
 | `07-flip-the-card` | a card is one big number; flip it to its lamps, then click the card that matches each lamp pattern | put 1, put 2, put 3 in a0 | `D5` flip, `D4` lamps, `click-target` on cards |
 | `08-inside-the-number` | the lamps of a card are bands with jobs; click the band that names the answer box, choose what lamp 30 makes the card say, then flip lamp 30 to turn add into subtract (a2 becomes 7); bonus `below-zero` shows -2 | put 9, put 2, add into a2 | `D8` bands, `click-target` on `band:rd`, `bands.allowedBits` |
 
-`lessons/x1/` holds three more drafts that are test fixtures for the real stage: one scene for every picture
+`lessons/x1/` holds more drafts that are test fixtures for the real stage: one scene for every picture
 (`01-diagrams`), the lamps, flip, bands and carry (`02-lamps`), and the builder with its Show me ghost (`03-builder`).
+`06-custom-card` saves two cards as the card Square-plus-one, with a card-program solution and a ghost that saves.
 
 ## Authoring CLI and CI gate
 

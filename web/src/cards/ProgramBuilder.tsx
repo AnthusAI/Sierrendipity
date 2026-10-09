@@ -75,6 +75,8 @@ export interface ProgramBuilderProps {
   /** Custom cards (functions). Giving `onCustomCardsChange` turns on Select and Save as card. */
   customCards?: CustomCard[];
   onCustomCardsChange?: (customCards: CustomCard[]) => void;
+  /** Limit what may be saved: how many cards, and the name of the card when it is given (then the student is not asked for a name). */
+  saveRule?: { min: number; max: number; name?: string };
   /** Show the faint assembly chip on cards. */
   showAssembly?: boolean;
   /** Let the student change boxes with pickers (numbers are always editable). */
@@ -309,6 +311,7 @@ export function ProgramBuilder({
   maxCards = MAX_CARDS,
   customCards = [],
   onCustomCardsChange,
+  saveRule,
   showAssembly = false,
   editableBoxes = false,
   boxes = DEFAULT_BOXES,
@@ -499,12 +502,19 @@ export function ProgramBuilder({
   const picked = () => selected.slice().sort((a, b) => a - b);
   const saveAsCard = () => {
     const chosen = picked();
-    if (chosen.length < 2) return setMessage("Pick two or more cards first.");
+    const fewest = saveRule?.min ?? 2;
+    if (chosen.length < fewest) return setMessage(saveRule ? `Select ${fewest === saveRule.max ? `${fewest} cards` : `at least ${fewest} cards`} first.` : "Pick two or more cards first.");
+    if (saveRule && chosen.length > saveRule.max) return setMessage(`Select ${saveRule.max === saveRule.min ? `${saveRule.max} cards` : `at most ${saveRule.max} cards`}.`);
     if (chosen.some((index, i) => i > 0 && index !== chosen[i - 1]! + 1)) return setMessage("Pick cards that sit next to each other.");
     const problem = customBodyProblem(chosen.map((i) => cards[i]!));
     if (problem) return setMessage(problem);
     if (customCards.length >= MAX_CUSTOM_CARDS) return setMessage(`You can make up to ${MAX_CUSTOM_CARDS} custom cards.`);
     setMessage(null);
+    if (saveRule?.name !== undefined) {
+      const taken = nameProblem(saveRule.name, customCards.map((c) => c.name));
+      if (taken) return setMessage(taken);
+      return saveNamed(saveRule.name);
+    }
     setNaming(true);
   };
   const saveNamed = (name: string) => {
@@ -518,6 +528,7 @@ export function ProgramBuilder({
     );
     setNaming(false);
     setSelecting(false);
+    setMessage(`You made the card "${name}".`);
     focusNext.current = { row: replacement };
   };
 
@@ -574,7 +585,7 @@ export function ProgramBuilder({
                   Select
                 </Button>
                 {selecting ? (
-                  <Button size="sm" onClick={saveAsCard} disabled={selected.length < 2}>
+                  <Button size="sm" onClick={saveAsCard} disabled={selected.length < (saveRule?.min ?? 2)}>
                     Save as card
                   </Button>
                 ) : null}

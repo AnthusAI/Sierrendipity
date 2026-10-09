@@ -176,8 +176,8 @@ export function ruleStatus(output: string, finished: boolean, held: number, expe
  * Run a program from a fresh machine with the input box set to `x` and read the output box.
  * Null when the program does not stop by itself within the step limit.
  */
-export function functionValue(cards: number[], boxes: FunctionBoxes, x: number, opts: { hideEnd?: boolean } = {}): number | null {
-  const run = runProgram(cards, { startRegs: { [boxes.input]: x }, maxSteps: FUNCTION_MAX_STEPS, hideEnd: opts.hideEnd === true });
+export function functionValue(cards: number[], boxes: FunctionBoxes, x: number, opts: { hideEnd?: boolean; tail?: number[] } = {}): number | null {
+  const run = runProgram(cards, { startRegs: { [boxes.input]: x }, maxSteps: FUNCTION_MAX_STEPS, hideEnd: opts.hideEnd === true, tail: opts.tail ?? [] });
   if (run.hitStepCap || run.machine.state !== "halted") return null;
   const index = registerNumber(boxes.output);
   return index === undefined ? null : run.machine.regs[index]! | 0;

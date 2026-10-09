@@ -1,6 +1,7 @@
 import type { Feature } from "./gherkin/parse";
 import type { Ghost } from "./ghost";
 import type { LessonFunction } from "./function";
+import type { CustomCard } from "./cards/model";
 
 /** A program (cards are just words) plus the text it was authored as. */
 export interface Program {
@@ -48,6 +49,14 @@ export interface FlipSpec {
   lenses?: string[];
 }
 
+/** The student selects `min` to `max` cards of the list and saves them as one named card (needs the `builder`). */
+export interface SaveSpec {
+  min: number;
+  max: number;
+  /** The name the card must have; when absent the student chooses. */
+  name?: string;
+}
+
 export interface Scene {
   id: string;
   say: string;
@@ -81,6 +90,8 @@ export interface Scene {
   carry?: { a: number; b: number };
   /** The builder's tray: the card words a student may drag into the list. */
   tray?: number[];
+  /** The student saves selected cards as one custom card. */
+  save?: SaveSpec;
 }
 
 /** A small predict-the-result question: run the program, ask what `target` holds. */
@@ -112,6 +123,10 @@ export interface SolutionDecl {
   maxSteps?: number;
   /** True when it never stops by itself and must be cut off by the step cap. */
   capped: boolean;
+  /** Words after the end marker: the bodies of the custom cards the card program calls (words are then the main cards only). */
+  tail?: number[];
+  /** Names of the custom cards the program calls. */
+  usedCards?: string[];
   /** Scenes whose `until` this solution is the way to meet, even though it does not pass the lesson (a step on the way). */
   scenes?: string[];
   note?: string;
@@ -143,6 +158,8 @@ export interface Lesson {
   ui?: LessonUi;
   /** The function this lesson's program computes: the rule banner, `f(3) is 10` phrases and the table ask use it. */
   function?: LessonFunction;
+  /** Custom cards the lesson gives the student: they are in the builder's tray, and solutions may use them. */
+  customCards?: CustomCard[];
   /** A draft is playable only with `?draft=1` in dev and test builds and is left out of the catalog and the path. */
   draft: boolean;
   /** False opts a hidden-end, pointer-less lesson out of the early-lesson caps. */
