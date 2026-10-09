@@ -1,5 +1,6 @@
 import type { Feature } from "./gherkin/parse";
 import type { Ghost } from "./ghost";
+import type { LessonFunction } from "./function";
 
 /** A program (cards are just words) plus the text it was authored as. */
 export interface Program {
@@ -12,7 +13,9 @@ export type Ask =
   | { kind: "number"; question: string; answer: number; target?: string }
   | { kind: "choice"; question: string; choices: string[]; answer: number }
   | { kind: "click-target"; question: string; target: string }
-  | { kind: "machine-query"; question: string; query: string };
+  | { kind: "machine-query"; question: string; query: string }
+  /** The student fills f(x) for each input; the expected values come from running the starter on each input. */
+  | { kind: "table"; question: string; inputs: number[]; target: string };
 
 export interface OnWrong {
   /** The wrong answer to react to (a number, or text for choices). */
@@ -138,6 +141,8 @@ export interface Lesson {
   onWrongDefaultGoto?: string;
   /** What the stage shows. Early lessons show only what the idea needs; every field defaults to the full machine. */
   ui?: LessonUi;
+  /** The function this lesson's program computes: the rule banner, `f(3) is 10` phrases and the table ask use it. */
+  function?: LessonFunction;
   /** A draft is playable only with `?draft=1` in dev and test builds and is left out of the catalog and the path. */
   draft: boolean;
   /** False opts a hidden-end, pointer-less lesson out of the early-lesson caps. */
@@ -187,7 +192,8 @@ export const LENSES = ["card", "lamps", "number", "hex", "assembly"] as const;
 /** The field bands a card can show (`band:<field>` targets). */
 export const BAND_FIELDS = ["opcode", "rd", "rs1", "rs2", "funct3", "funct7", "imm", "shamt", "special"] as const;
 export const LOCKS = ["edit", "step", "back", "run", "reset", "drag", "toggle"] as const;
-export const ASK_KINDS = ["number", "choice", "click-target", "machine-query"] as const;
+export const ASK_KINDS = ["number", "choice", "click-target", "machine-query", "table"] as const;
+export const MAX_TABLE_ROWS = 8;
 export const MAX_WORDS_PER_SCENE = 30;
 export const MAX_SENTENCES_PER_SCENE = 2;
 export const MAX_STEPS_CAP = 1_000_000;
@@ -227,6 +233,8 @@ export function knownTarget(target: string, ctx: { boxes: string[]; tabs: string
       return (BAND_FIELDS as readonly string[]).includes(name);
     case "lamp":
       return /^(\d|[12]\d|3[01])$/.test(name);
+    case "banner":
+      return name === "rule";
     default:
       return false;
   }

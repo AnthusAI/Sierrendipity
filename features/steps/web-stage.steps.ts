@@ -29,6 +29,11 @@ interface Opening {
 
 /** What a student would do to get past the scene that is not the one the spec is about. */
 const AUTO: Record<string, (w: WebWorld) => Promise<void>> = {
+  enter: async (w) => {
+    await w.page.getByLabel("Number for x in f(x)").fill("3");
+    await named(w, "Run").click();
+    await named(w, "Run").click();
+  },
   place: async (w) => answer(w, "4"),
   "find-answer": async (w) => void (await coachId(w, "band:rd").click()),
   bands: async (w) => void (await coachId(w, "band:rd").click()),

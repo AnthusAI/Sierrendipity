@@ -1,0 +1,59 @@
+id: x1/05-function
+title: Stage fixture, a function and its table
+minutes: 4
+draft: true
+# A test fixture (draft: never listed in the course). The rule banner shows f(x) = x·x + 1 with the number
+# for x in it. The student sets x, runs the two cards, then fills a table of f(x) for three values of x.
+concepts:
+  introduces: [cards]
+  requires: []
+boxes: [a0]
+pointer: false
+hideEnd: true
+ui: { controls: [step, back, reset], stepLabel: Run, resetLabel: Start again }
+function:
+  name: f
+  inputs: [a0]
+  output: a0
+  rule: "f(x) = x·x + 1"
+starter:
+  asm: |
+    mul a0, a0, a0
+    addi a0, a0, 1
+tabs: [cards]
+onWrongDefault: Use the rule above the boxes. Put the number in place of x.
+scenes:
+  - id: enter
+    say: Type 3 for x above the boxes. Then select Run two times.
+    show: [cards, boxes]
+    spotlight: "banner:rule"
+    until:
+      - the machine has taken at least 2 steps
+      - f(3) is 10
+    hints:
+      - Look at the rule above the boxes.
+      - Type 3 in the box for x.
+      - Type 3 for x. Select Run two times.
+    doneSay: The two cards follow the rule.
+    lock: [drag, toggle]
+
+  - id: table
+    say: Now fill in the table. Use the rule.
+    show: [cards, boxes]
+    ask:
+      kind: table
+      question: What is f(x) for each x?
+      inputs: [1, 2, 3]
+      target: a0
+    onWrong:
+      - match: "2:4"
+        say: That is x·x. The rule also adds 1.
+      - match: 3
+        say: Check the row for 3. Put 3 in place of x.
+    hints:
+      - Put the number in place of x in the rule.
+      - Do the multiplication first. Then add 1.
+      - f(1) is 2 and f(2) is 5.
+    lock: [edit, drag, toggle]
+nowYouCan:
+  - Follow a rule with a number.

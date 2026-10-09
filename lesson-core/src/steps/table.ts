@@ -1,4 +1,5 @@
 import { decode } from "@sierrendipity/explorer";
+import { FUNCTION_MAX_STEPS, functionValue } from "../function";
 import { mnemonicsOf, PIXEL_BASE, PIXEL_COUNT, registerNumber, type LessonRun } from "./run";
 
 export interface StepResult {
@@ -86,6 +87,15 @@ const popcount = (n: number): number => {
   return c;
 };
 const plural = (n: number, one: string, many: string): string => `${n} ${n === 1 ? one : many}`;
+
+/** The value of the lesson's function for `x` on a fresh machine, or a message that says why there is none. */
+function evaluateFunction(run: LessonRun, name: string, x: number): number | string {
+  const boxes = run.functionBoxes;
+  if (!boxes) return "this lesson has no function";
+  if (boxes.name !== name) return `this lesson's function is called ${boxes.name}, not ${name}`;
+  const value = functionValue(run.words.slice(0, run.cards), boxes, x, { hideEnd: run.words.length > run.cards });
+  return value ?? `the program does not stop for ${name}(${x}) within ${plural(FUNCTION_MAX_STEPS, "step", "steps")}`;
+}
 
 type G = Record<string, string | undefined>;
 interface Phrase {
@@ -295,6 +305,35 @@ export const PHRASES: Phrase[] = [
   P("the program counter is 4", `the program counter is (?<a>${NUM})`, (g) => {
     const a = address(g.a, 4);
     return (run) => pass(run.machine.pc === a, `the program counter is ${a}`, `the program counter is ${run.machine.pc}`);
+  }),
+  P("f(3) is 10", `(?<name>[a-z][a-z0-9]*)\\((?<x>${NUM})\\) is (?<v>${NUM})`, (g) => {
+    const x = signed(word32(g.x));
+    const want = signed(word32(g.v));
+    return (run) => {
+      const have = evaluateFunction(run, g.name!, x);
+      if (typeof have === "string") return no(have);
+      return pass(have === want, `${g.name}(${x}) is ${have}`, `${g.name}(${x}) is ${have}, not ${want}`);
+    };
+  }),
+  P("f(f(2)) is 26", `(?<name>[a-z][a-z0-9]*)\\((?<again>[a-z][a-z0-9]*)\\((?<x>${NUM})\\)\\) is (?<v>${NUM})`, (g) => {
+    if (g.name !== g.again) throw new PhraseError(`'${g.name}' and '${g.again}' are two different names`);
+    const x = signed(word32(g.x));
+    const want = signed(word32(g.v));
+    return (run) => {
+      const inner = evaluateFunction(run, g.name!, x);
+      if (typeof inner === "string") return no(inner);
+      const have = evaluateFunction(run, g.name!, inner);
+      if (typeof have === "string") return no(have);
+      return pass(have === want, `${g.name}(${g.name}(${x})) is ${have}`, `${g.name}(${g.name}(${x})) is ${have}, not ${want}`);
+    };
+  }),
+  P("the student filled the table for 1, 2, 3", `the student filled the table for (?<list>${NUM}(?:\\s*,\\s*${NUM})*)`, (g) => {
+    const wanted = g.list!.split(",").map((t) => signed(word32(t.trim())));
+    return (run) => {
+      const filled = new Set(run.events.flatMap((e) => (e.type === "table" ? e.inputs : [])));
+      const missing = wanted.filter((x) => !filled.has(x));
+      return pass(missing.length === 0, `the table is filled for ${wanted.join(", ")}`, `the student has not filled the table for ${missing.join(", ")}`);
+    };
   }),
 ];
 

@@ -27,6 +27,8 @@ export interface LiveView {
   hideEnd: boolean;
   /** True while the ghost is demonstrating on a copy: controls are inert. */
   demo: boolean;
+  /** The x of the lesson's function, when the lesson has one. */
+  functionInput?: number;
 }
 
 /** The scene being played, as far as the stage cares. */
@@ -71,6 +73,8 @@ export interface StageProps {
   onEditStarter(card: number, word: number, via?: EditVia): void;
   /** Replace the whole list of cards (the program builder: drag, reorder, remove). Locked by the scene's `drag`. */
   onReplaceCards(words: number[]): void;
+  /** Set x for the lesson's function (the rule banner's input). Locked by the scene's `edit`. */
+  onSetFunctionInput(x: number): void;
   controls: StageControls;
 }
 

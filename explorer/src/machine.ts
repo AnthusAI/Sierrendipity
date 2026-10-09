@@ -64,6 +64,7 @@ export class Machine {
   private historyBytes = 0;
   private input = new Uint8Array(0);
   private inputClosed = false;
+  private startRegs: [number, number][] = [];
   // Working state of the step in progress.
   private current!: HistoryEntry;
   private changed: number[] = [];
@@ -115,11 +116,18 @@ export class Machine {
     this.reset();
   }
 
+  /** Registers that hold these values after every reset (register number to value), for a program that takes its input in a box. */
+  setStartRegs(values: Record<number, number>): void {
+    this.startRegs = Object.entries(values).map(([register, value]) => [Number(register), value]);
+    this.reset();
+  }
+
   reset(): void {
     this.mem.fill(0);
     this.mem.set(this.image, this.loadAddress);
     this.regs.fill(0);
     this.regs[2] = this.stackTop;
+    for (const [register, value] of this.startRegs) if (register !== 0) this.regs[register] = value >>> 0;
     this._pc = this.entry;
     this._state = "ready";
     this._exitCode = null;

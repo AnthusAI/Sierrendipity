@@ -37,6 +37,7 @@ pointer: false              # show the arrow at the card being run (the program 
 hideEnd: true               # hide the Stop card, see below; default false
 draft: true                 # optional, default false: a draft lesson, see "Draft lessons" below
 ui: { controls: [step], stepLabel: Run }          # optional, what the stage shows; see "The ui block"
+function: { name: f, inputs: [a0], output: a0, rule: "f(x) = x·x + 1" }   # optional; see "Functions"
 starter: { hex: ["0x00500513"] }                  # or { asm: "addi a0, zero, 5" }
 tabs: [cards]               # cards lamps hex assembly boxes shelves screen output
 scenes: [ ... ]
@@ -140,7 +141,7 @@ The checker is in `lesson-core/src/ste.ts`.
   say: The next card adds a0 and a1 into box a2. What will a2 hold?   # <= 2 sentences, <= 30 words
   show: [cards, boxes, D1]          # tabs/panels, diagram ids D1..D14, `timeline`, `builder` (see "What a scene shows")
   spotlight: "box:a2"               # dims everything else; "kind:name"
-  ask:                              # number | choice | click-target | machine-query
+  ask:                              # number | choice | click-target | machine-query | table
     { kind: number, question: "...", target: a2, answer: 12 }
   until: [ "the machine has taken at least 3 steps", "box a2 holds 12" ]   # step phrases, all must hold
   onWrong:
@@ -155,7 +156,7 @@ The checker is in `lesson-core/src/ste.ts`.
 ```
 
 - `ask` kinds: `number` (`answer`, optional `target` box), `choice` (`choices`, `answer` index),
-  `click-target` (`target`), `machine-query` (`query` is a step phrase).
+  `click-target` (`target`), `machine-query` (`query` is a step phrase), `table` (`inputs`, `target`; see "Functions").
 - `until` conditions are phrases of the shared step vocabulary. A scene with no `until` and no `ask`
   waits for [Continue]. Write `until` phrases that stay true once reached (`at least`), because they
   are evaluated against the live run.
@@ -174,6 +175,60 @@ The checker is in `lesson-core/src/ste.ts`.
   A prediction made after the machine has finished is not a prediction: it is not recorded and cannot earn `called-it`.
 - `onWrong.match` is the wrong answer to react to (a number, or text for choices); `goto` names a scene.
 - `showMe` must name an existing ghost; `goto` must name an existing scene.
+
+### Functions
+
+A lesson whose program computes a function of one number says so with a `function` block:
+
+```yaml
+function:
+  name: f              # a short lowercase word
+  inputs: [a0]         # exactly one box: it holds x when the program starts
+  output: a0           # the box that holds f(x) when the program stops
+  rule: "f(x) = x·x + 1"
+```
+
+Both boxes must be in `boxes`. The block turns on four things:
+
+- **The rule banner.** A small panel above the boxes (`data-coach-id="banner:rule"`, a region named "The rule";
+  `web/src/machine/RulePanel.tsx`) shows the rule, a box for x, the rule with that number in it
+  (`f(7) = 7·7 + 1 = 50`) and a polite status line that says in words whether the output box holds the
+  value of the rule (never colour alone). It reads the shared `Session`, so Step, Back and Reset update it.
+  The student sets x in the banner (a whole number from -99999 to 99999, default `DEFAULT_FUNCTION_INPUT`, 1);
+  the machine then starts again with the input box holding x (`startLive(..., { startRegs })`). The box is
+  read-only in a scene that locks `edit`, and in every `ask` scene. A scene may spotlight `banner:rule`.
+  `lesson-core` renders the text as pure functions: `ruleText`, `ruleSubstitution`, `ruleValue`, `ruleStatus`.
+- **Function phrases** in `until`, `checks.feature` and ask queries (see the step vocabulary).
+- **The table ask:** `ask: { kind: table, question: "...", inputs: [1, 2, 3], target: a0 }`. The student fills one
+  number for each input (1 to 8 whole numbers, no repeats; `target` is a box of the lesson). The right answers
+  are not written down: the checker and the player run the starter program on each input (input box set to x,
+  at most 1,000 steps) and read the output box (`tableExpected`). A table that is all right finishes the scene.
+  A wrong table gets a reply about the first wrong row. `onWrong.match` for a table is `"2:4"` (row x = 2, the
+  student wrote 4) or `"2"` (any wrong value in the row x = 2); `"2:4"` wins over `"2"`, and either wins over
+  `onWrongDefault`. The reply starts with `Row x = 2: you wrote 4.` The loader rejects a match that is not a row
+  of the table or that is the right answer.
+- **The rule check.** `npm run lesson -- check` fails when the rule disagrees with the program on a listed input.
+  The listed inputs are the `inputs` of the table asks and the numbers in function phrases (`f(3) is 10`), or
+  1, 2 and 3 when the lesson lists none. The programs are every reference solution that earns `pass`, and the
+  starter when the lesson has a table (the table's answers come from it).
+
+The rule grammar (machine-evaluable, at most 60 characters):
+
+```
+rule    = name "(x)" "=" sum
+sum     = product { ("+" | "-") product }
+product = factor { ("*" | "·" | "×") factor }
+factor  = whole number | "x" | "(" sum ")" | "-" factor
+```
+
+Spaces are free. Values are computed as 32-bit signed numbers, the size of a box. The banner writes `*` and `×`
+as `·`, and a negative x in brackets (`(-3)·(-3) + 1`). Anything else (`^`, other letters, a name that is not the
+function's) is a load error.
+
+In a function lesson the checker's runs start with the input box holding `DEFAULT_FUNCTION_INPUT`, the same x
+the player starts with, so a scene may say `box a0 holds 2` about the default x. A reference solution is
+assumed to fill every table of the lesson (the run carries a `table` event for each); the checker proves the
+answers separately.
 
 ### What a scene shows
 
@@ -334,6 +389,9 @@ or `0b` binary; box comparisons are modulo 2^32, so `-1` and `4294967295` are th
 | `the student rewound` | a rewind event |
 | `the timeline is at step N` | timeline position |
 | `the program counter is N` | pc |
+| `f(3) is 10` | the program run on a fresh machine with the input box set to 3 leaves 10 in the output box (the name is the lesson's `function.name`; at most 1,000 steps; needs a `function` block) |
+| `f(f(2)) is 26` | the same, with the first result fed back in as the input |
+| `the student filled the table for 1, 2, 3` | the student answered a table ask over these inputs correctly (a `table` event) |
 
 `runProgram(words, { stdin, maxSteps, startRegs, startMem, starter, predictions, events, position })`
 runs from address 0 (64 KiB of memory; `hideEnd: true` appends the end marker) until the machine stops, faults, waits for input or hits the step
@@ -417,6 +475,8 @@ npm run lessons:build                          # write lessons/dist/*.json
 - the lesson has no `@pass`, no solution earns `pass`, a bonus star is never earned, or there is no
   wrong solution;
 - a warm-up's `target` does not hold `expected`;
+- a declared `function.rule` disagrees with a reference solution (or with the starter of a lesson with a table)
+  on a listed input (see "Functions");
 - the official Gherkin parser disagrees with ours.
 
 It prints per solution the stars earned, steps run and cards. `features/lessons/lesson-cli.feature`

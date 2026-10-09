@@ -2,7 +2,7 @@ import { describe } from "@sierrendipity/explorer";
 import type { ReactNode } from "react";
 import { CardFace } from "../cards/CardFace";
 import { cardToWord, wordToCard } from "../cards/model";
-import { GlassStrip, wordHex as hex } from "../machine";
+import { GlassStrip, RulePanel, wordHex as hex } from "../machine";
 import { HeartbeatView, MachineView, PixelDisplay, PointerWalk, useMachineTimeline } from "../diagrams";
 import { PlayerControls } from "./PlayerControls";
 import { plainBoxes } from "./plain";
@@ -55,7 +55,7 @@ function Face({ word, index, count, current, locked, plain, glass, glassNamed, r
  * diagram disagreeing with the player) and sends every change back through `onEditStarter` / `onReplaceCards`.
  * Controls are the player's own. A locked control stays in place, says "Not yet" and does nothing.
  */
-export function RealStage({ lesson, live, scene, onEditStarter, onReplaceCards, controls }: StageProps) {
+export function RealStage({ lesson, live, scene, onEditStarter, onReplaceCards, onSetFunctionInput, controls }: StageProps) {
   const timeline = useMachineTimeline(live.cards, { session: live.session, boxes: lesson.boxes, pointer: lesson.pointer });
 
   const sceneIndex = lesson.scenes.findIndex((s) => s.id === scene.id);
@@ -69,6 +69,9 @@ export function RealStage({ lesson, live, scene, onEditStarter, onReplaceCards, 
   const edit = (card: number, word: number) => onEditStarter(card, word, "edit");
 
   const parts: ReactNode[] = [];
+  if (lesson.function && live.functionInput !== undefined) {
+    parts.push(<RulePanel key="rule" fn={lesson.function} timeline={timeline} input={live.functionInput} onInput={onSetFunctionInput} locked={editLocked || live.demo} />);
+  }
   if (machine) {
     parts.push(
       <MachineView

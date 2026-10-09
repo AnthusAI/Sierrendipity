@@ -1,11 +1,13 @@
 import { decode, fromWords, Machine, registerName, Session, type MachineView, type StepResult } from "@sierrendipity/explorer";
+import type { FunctionBoxes } from "../function";
 
 /** Something the student did in the UI, recorded as a fact for lesson conditions. */
 export type LessonEvent =
   | { type: "edit"; card: number; to: number }
   | { type: "toggle"; card: number; bit: number }
   | { type: "rewind" }
-  | { type: "look"; step: number };
+  | { type: "look"; step: number }
+  | { type: "table"; inputs: number[] };
 
 /** A machine plus everything recorded about how it got where it is. Plain data: pure and no DOM. */
 export interface LessonRun {
@@ -31,6 +33,8 @@ export interface LessonRun {
   laps: number;
   /** True when the run was stopped by the step cap while still running. */
   hitStepCap: boolean;
+  /** The lesson's function and its boxes, for phrases such as `f(3) is 10`. */
+  functionBoxes?: FunctionBoxes;
 }
 
 export interface RunOptions {
@@ -48,6 +52,7 @@ export interface RunOptions {
   memorySize?: number;
   /** Append the end marker (Stop, ebreak) after the cards; the student sees it only as "the end of the list". */
   hideEnd?: boolean;
+  functionBoxes?: FunctionBoxes;
 }
 
 /** The Stop card (ebreak). */
@@ -163,6 +168,7 @@ export function runProgram(cards: number[], opts: RunOptions = {}): LessonRun {
     executed: [...executed].sort(),
     laps,
     hitStepCap,
+    ...(opts.functionBoxes ? { functionBoxes: opts.functionBoxes } : {}),
   };
 }
 
@@ -209,10 +215,16 @@ export interface Live {
 /** Most steps a live machine records: a runaway program is cut off quickly (the stage's long-standing limit). */
 export const LIVE_MAX_STEPS = 2000;
 
-export function startLive(cards: number[], opts: { hideEnd?: boolean; memorySize?: number; maxSteps?: number } = {}): Live {
+export function startLive(cards: number[], opts: { hideEnd?: boolean; memorySize?: number; maxSteps?: number; startRegs?: Record<string, number> } = {}): Live {
   const hideEnd = opts.hideEnd === true;
   const words = hideEnd ? [...cards, STOP_WORD] : [...cards];
-  const session = new Session(fromWords(words, { memorySize: opts.memorySize ?? 65536 }), { hideEnd, maxSteps: opts.maxSteps ?? LIVE_MAX_STEPS });
+  const startRegs: Record<number, number> = {};
+  for (const [name, value] of Object.entries(opts.startRegs ?? {})) {
+    const n = registerNumber(name);
+    if (n === undefined) throw new RangeError(`no box called '${name}'`);
+    startRegs[n] = value;
+  }
+  const session = new Session(fromWords(words, { memorySize: opts.memorySize ?? 65536 }), { hideEnd, maxSteps: opts.maxSteps ?? LIVE_MAX_STEPS, startRegs });
   return {
     session,
     get machine() {
