@@ -111,6 +111,16 @@ Then("there is no missed-goal help", async function (this: WebWorld) {
 When("I select Try again", async function (this: WebWorld) {
   await this.page.locator("[data-coach-missed]").getByRole("button", { name: "Try again", exact: true }).click();
 });
+When("I select Start again in the missed-goal help", async function (this: WebWorld) {
+  await this.page.locator("[data-coach-missed]").getByRole("button", { name: "Start again", exact: true }).click();
+});
+Then("the missed-goal help offers Start again", async function (this: WebWorld) {
+  await this.page.locator("[data-coach-missed]").getByRole("button", { name: "Start again", exact: true }).waitFor();
+});
+Then("the missed-goal help does not offer Start again", async function (this: WebWorld) {
+  await settleFrames(this);
+  assert.equal(await this.page.locator("[data-coach-missed]").getByRole("button", { name: "Start again", exact: true }).count(), 0);
+});
 Then("the lesson shows the step count {int}", async function (this: WebWorld, steps: number) {
   await this.page.locator(`[data-stage-scene][data-live-steps="${steps}"]`).waitFor();
 });
