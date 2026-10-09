@@ -1,0 +1,115 @@
+id: c1/06-multiply
+title: Multiply
+minutes: 4
+concepts:
+  introduces: [multiply]
+  requires: [cards, numbers-on-cards, two-boxes, add]
+# One new idea (a card can multiply, and one box can be used twice), one action (predict), then a short try-it.
+boxes: [a0, a1]
+pointer: false
+hideEnd: true
+starter:
+  hex: ["0x00700513", "0x02a505b3"]   # put 7 in a0, multiply a0 by a0 into a1
+tabs: [cards]
+ui:
+  controls: [step, reset]
+  resetLabel: Start again
+  log: true
+  deskTitle: false
+  endMarker: false
+  boxNames: true
+  glass: true
+  spotlight: ring
+  spotlightAfterHint: true
+onWrongDefault:
+  say: Watch box a1.
+  goto: watch-multiply
+scenes:
+  - id: fill
+    glassNamed: true
+    say: Make box a0 hold 7.
+    show: [cards, boxes]
+    spotlight: "button:step"
+    until:
+      - the machine has taken at least 1 step
+      - box a0 holds 7
+    hints:
+      - Which button makes the machine follow a card?
+      - Each selection follows one card. The first card fills a box.
+      - Select Step one time. Box a0 receives 7.
+    showMe: demo-step
+    doneSay: Box a0 holds 7 now.
+    lock: [edit, drag, toggle]
+
+  - id: predict
+    say: "The next card multiplies, like a1 = a0 * a0 in algebra. It uses box a0 two times."
+    show: [cards, boxes]
+    spotlight: "box:a1"
+    ask:
+      kind: number
+      question: What does box a1 hold after the multiply card?
+      target: a1
+      answer: 49
+    onWrong:
+      - { match: 14, say: "That is 7 plus 7, but this card multiplies. Watch box a1.", goto: watch-multiply }
+      - { match: 7, say: "Box a0 keeps its 7. The answer goes in box a1.", goto: watch-multiply }
+      - { match: 77, say: "Multiplying is not writing the digits side by side. Watch box a1.", goto: watch-multiply }
+    hints:
+      - Which box does the multiply card read? Which box does it write?
+      - To multiply 3 by 3 is to make 9. The card reads box a0 two times.
+      - Box a0 holds 7. Seven times seven is 49.
+    lock: [edit, drag, toggle]
+
+  - id: watch-multiply
+    say: Make box a1 hold the product. Box a1 is empty at first.
+    show: [cards, boxes]
+    spotlight: "button:step"
+    until:
+      - the machine has taken at least 2 steps
+      - box a1 holds 49
+    hints:
+      - Which button follows the multiply card?
+      - The multiply card reads box a0 two times. It writes box a1.
+      - Select Step. Box a1 changes to 49.
+    showMe: demo-step
+    doneSay: Box a1 now holds 49, so a1 = a0 * a0. The machine's own text for this card is mul a1, a0, a0.
+    lock: [edit, drag, toggle]
+
+  - id: twist
+    say: A box can be used two times. Change the first number so that box a1 holds 81, then select Step two times.
+    show: [cards, boxes]
+    spotlight: "card:0"
+    until:
+      - the student edited a card
+      - the machine has taken at least 2 steps
+      - box a1 holds 81
+    ifMissed: Box a1 holds the number in box a0 times itself. The goal is 81. Change the number on card 1 to 9, then select Step two times.
+    hints:
+      - Which number times itself makes 81?
+      - Box a1 holds box a0 times box a0. Change the first card, then run both cards.
+      - Use the plus button on card 1 until it shows 9. Then select Step two times.
+    showMe: demo-twist
+    doneSay: Nine times nine is 81. The same box gave both numbers.
+    lock: [drag, toggle]
+nowYouCan:
+  - Multiply two boxes into a third.
+  - Use one box two times in a card.
+warmups:
+  - id: multiply-three-twice
+    concept: multiply
+    question: Box a0 holds 3. After the multiply card, what does box a1 hold?
+    program:
+      asm: |
+        addi a0, zero, 3
+        mul a1, a0, a0
+    target: a1
+    expected: 9
+  - id: multiply-five-twice
+    concept: multiply
+    question: Box a0 holds 5. After the multiply card, what does box a1 hold?
+    program:
+      asm: |
+        addi a0, zero, 5
+        mul a1, a0, a0
+    target: a1
+    expected: 25

@@ -14,6 +14,7 @@ Feature: The coach engine never strands a student
       | c1/03-last-one-wins        |
       | c1/04-two-boxes            |
       | c1/05-add                  |
+      | c1/06-multiply             |
 
   Scenario: A prediction made after the reveal is not a prediction
     Given the engine plays "x1/04-reveal"
