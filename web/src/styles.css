@@ -60,6 +60,7 @@
   --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, "Liberation Mono", monospace;
 
   --animate-fade-in: fade-in 150ms ease-out;
+  --animate-nope: nope 420ms cubic-bezier(0.36, 0.07, 0.19, 0.97);
   --animate-dialog-in: dialog-in 180ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -67,6 +68,22 @@
   from { opacity: 0; }
   to { opacity: 1; }
 }
+/* A missed goal: a short, sharp shake ("bzzt, nope"). Reduced motion keeps the red outline and drops the shake. */
+@keyframes nope {
+  10%, 90% { transform: translateX(-3px); }
+  20%, 80% { transform: translateX(6px); }
+  30%, 50%, 70% { transform: translateX(-10px); }
+  40%, 60% { transform: translateX(10px); }
+}
+@keyframes nope-flash {
+  0%, 100% { background-color: var(--background); }
+  25% { background-color: var(--danger-bg); }
+}
+[data-lesson-player][data-missed] [data-box] {
+  border-color: var(--destructive);
+  animation: nope 420ms cubic-bezier(0.36, 0.07, 0.19, 0.97), nope-flash 700ms ease-out;
+}
+
 @keyframes dialog-in {
   from { opacity: 0; transform: translate(-50%, calc(-50% + 8px)) scale(0.98); }
   to { opacity: 1; transform: translate(-50%, -50%) scale(1); }

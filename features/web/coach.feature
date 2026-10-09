@@ -58,7 +58,7 @@ Feature: The coach plays the lessons
     When I answer <guess>
     Then the coach replies "<reply>"
     And the reply is not styled as an error
-    And the coach says "Select Run two times"
+    And the coach says "Select Step two times"
     When I press Step
     And I press Step
     Then box "a0" shows 8
@@ -74,7 +74,7 @@ Feature: The coach plays the lessons
   Scenario: Lesson 03 rewards a correct first prediction
     Given the coach lab shows lesson "c1/03-last-one-wins"
     When I answer 8
-    Then the coach says "Select Run two times"
+    Then the coach says "Select Step two times"
     And the coach confirms "You called it."
     When I press Step
     And I press Step
@@ -198,7 +198,7 @@ Feature: The coach plays the lessons
     Given the coach lab shows lesson "c1/03-last-one-wins"
     When I type "<typed>" as my answer and press Answer
     Then the answer hint says "<hint>"
-    And the coach says "What does the box hold"
+    And the coach says "the button is now called Step"
 
     Examples:
       | typed | hint                       |

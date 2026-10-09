@@ -65,6 +65,45 @@ Then("the token starts with the number {int} from the card", async function (thi
 Then("the missed-goal help says {string}", async function (this: WebWorld, text: string) {
   await this.page.locator("[data-coach-missed]", { hasText: text }).waitFor();
 });
+Then("the missed-goal help has a thick red outline and the words {string}", async function (this: WebWorld, words: string) {
+  const help = this.page.locator("[data-coach-missed]", { hasText: words });
+  await help.waitFor();
+  const style = await help.evaluate((el) => {
+    const s = getComputedStyle(el);
+    return { width: parseFloat(s.borderTopWidth), color: s.borderTopColor, destructive: getComputedStyle(document.documentElement).getPropertyValue("--destructive").trim() };
+  });
+  assert.ok(style.width >= 4, `outline is ${style.width}px`);
+  assert.notEqual(style.color, "rgb(0, 0, 0)");
+  assert.ok(await help.locator("svg[aria-hidden]").count() > 0, "an icon shows it is not colour alone");
+});
+Then("the box has a red outline", async function (this: WebWorld) {
+  await settleFrames(this);
+  const box = this.page.locator("[data-lesson-player] [data-box]").first();
+  const red = await box.evaluate((el) => getComputedStyle(el).borderTopColor);
+  const expected = await this.page.evaluate(() => {
+    const probe = document.createElement("i");
+    probe.style.color = "var(--destructive)";
+    document.body.append(probe);
+    const c = getComputedStyle(probe).color;
+    probe.remove();
+    return c;
+  });
+  assert.equal(red, expected);
+});
+Then("the box has no red outline", async function (this: WebWorld) {
+  await settleFrames(this);
+  const box = this.page.locator("[data-lesson-player] [data-box]").first();
+  const red = await box.evaluate((el) => getComputedStyle(el).borderTopColor);
+  const expected = await this.page.evaluate(() => {
+    const probe = document.createElement("i");
+    probe.style.color = "var(--destructive)";
+    document.body.append(probe);
+    const c = getComputedStyle(probe).color;
+    probe.remove();
+    return c;
+  });
+  assert.notEqual(red, expected);
+});
 Then("there is no missed-goal help", async function (this: WebWorld) {
   await settleFrames(this);
   assert.equal(await this.page.locator("[data-coach-missed]").count(), 0);
@@ -142,4 +181,13 @@ Then("the registers panel is named {string} and holds {int} boxes", async functi
   const panel = player(this).getByRole("group", { name, exact: true });
   assert.equal(await panel.count(), 1);
   assert.equal(await panel.locator("[data-box]").count(), count);
+});
+
+Then("the coach marks the next goal with the words {string}", async function (this: WebWorld, words: string) {
+  await this.page.locator("[data-coach-next-goal]", { hasText: words }).waitFor();
+  assert.ok(await this.page.locator("[data-coach-next-goal] svg[aria-hidden]").count() > 0, "an icon and words, not colour alone");
+});
+Then("the coach shows no next-goal marker", async function (this: WebWorld) {
+  await settleFrames(this);
+  assert.equal(await this.page.locator("[data-coach-next-goal]").count(), 0);
 });

@@ -7,11 +7,24 @@ Feature: A lesson chooses which parts of the machine it shows
     And the known concepts are "machine, boxes"
 
   Scenario: A good ui block loads
-    When I replace "tabs: [cards, boxes]" with "tabs: [cards, boxes]\nui:\n  controls: [step, reset]\n  stepLabel: Run\n  resetLabel: Start again\n  log: false\n  deskTitle: false\n  endMarker: false\n  boxNames: false\n  spotlight: dim" in "lesson.yaml"
+    When I make the test lesson hide its end marker
+    And I replace "tabs: [cards, boxes]" with "tabs: [cards, boxes]\nui:\n  controls: [step, reset]\n  stepLabel: Run\n  resetLabel: Start again\n  log: false\n  deskTitle: false\n  endMarker: false\n  boxNames: false\n  spotlight: dim" in "lesson.yaml"
     And I load the lesson
     Then the lesson loads
     And the lesson ui shows the controls "step, reset" with the step label "Run"
     And the lesson ui says the spotlight is "dim" and the reset label is "Start again"
+
+  Scenario: The button is called Run only for a starter of one card
+    When I make the test lesson hide its end marker
+    And I replace "tabs: [cards, boxes]" with "tabs: [cards, boxes]\nui:\n  stepLabel: Run" in "lesson.yaml"
+    And I load the lesson
+    Then the lesson loads
+
+  Scenario: A starter of two cards cannot call the button Run
+    When I replace the starter with the assembly "addi a0, zero, 3; addi a0, zero, 8"
+    And I replace "tabs: [cards, boxes]" with "tabs: [cards, boxes]\nui:\n  stepLabel: Run" in "lesson.yaml"
+    And I load the lesson
+    Then the lesson fails to load with "stepLabel Run is only for a starter of one card"
 
   Scenario: A ui block may fade the spotlight until the first hint
     When I replace "tabs: [cards, boxes]" with "tabs: [cards, boxes]\nui:\n  spotlightAfterHint: true" in "lesson.yaml"

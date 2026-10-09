@@ -36,7 +36,7 @@ boxes: [a0]                 # the only boxes (registers) the machine shows; more
 pointer: false              # show the arrow at the card being run (the program counter); default false
 hideEnd: true               # hide the Stop card, see below; default false
 draft: true                 # optional, default false: a draft lesson, see "Draft lessons" below
-ui: { controls: [step], stepLabel: Run }          # optional, what the stage shows; see "The ui block"
+ui: { controls: [step], stepLabel: Run }          # optional (Run only for a one-card starter), what the stage shows; see "The ui block"
 starter: { hex: ["0x00500513"] }                  # or { asm: "addi a0, zero, 5" }
 tabs: [cards]               # cards lamps hex assembly boxes shelves screen output
 scenes: [ ... ]
@@ -103,7 +103,7 @@ full machine. Unknown keys and wrong types are errors.
 | Key | Values | Default | Meaning |
 | --- | --- | --- | --- |
 | `controls` | list of `step`, `back`, `reset` (no repeats; must include `step`) | all three | The buttons under the title. A scene may not spotlight `button:back` or `button:reset` when the list hides it |
-| `stepLabel` | short text, at most 20 characters | Step | The name of the Step button (for example `Run`) |
+| `stepLabel` | short text, at most 20 characters | Step | The name of the Step button. The label `Run` is only for a starter of one card (c1/01, c1/02): the loader rejects `stepLabel: Run` when the starter has more than one card, because one press runs one card. From two cards on, leave it out so the button is called Step, and introduce the name once, in the first scene of the first lesson that has two cards (c1/03: "With two cards, the button is now called Step. Each Step runs one card.") |
 | `resetLabel` | short text, at most 20 characters | Reset | The name of the Reset button (for example `Start again`) |
 | `log` | true or false | true | The "What just happened" log |
 | `deskTitle` | true or false | true | The "The desk" heading |
@@ -114,7 +114,9 @@ full machine. Unknown keys and wrong types are errors.
 | `spotlightAfterHint` | boolean | false | Goal and question scenes show their spotlight only after the first hint |
 
 When Back is hidden, a run that misses the goal points at Reset (the `resetLabel`) instead of Back, and the idle Run button says "Select Start again first" until the student starts again. Reset is disabled, with the reason "Nothing to start again yet", until the machine has run something.
-Use the same label for a button in every sentence of the lesson: if `stepLabel` is `Run`, the text says "Run".
+Use the same label for a button in every sentence of the lesson: if `stepLabel` is `Run`, the text says "Run"; otherwise it says "Step". The coach panel, the idle notes and the Show me narration use the lesson's own button names.
+
+**A new goal is marked.** When a scene completes and the next scene has a goal, the coach panel shows a "Next goal" label (an arrow icon and words, never colour alone) above the new text. If that scene needs a card changed while the machine has already finished, its spotlight shows at once (even with `spotlightAfterHint`) and the idle Step button says what to do: "Change the number on card 2 first" (taken from a `card:<n>` spotlight, else "Change a number first").
 
 ### Simplified Technical English (STE)
 
