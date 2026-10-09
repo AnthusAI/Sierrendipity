@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from "react";
-import { XCircle } from "lucide-react";
+import { ArrowRight, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { LessonEngine, PlayerState } from "./engine";
 import type { LessonInfo } from "../lessons";
@@ -160,6 +160,12 @@ export function CoachPanel({ state, engine, next, onNext, onStop }: Props) {
           <span data-coach-announce className="sr-only">
             {state.announce}
           </span>
+        )}
+        {state.nextGoal && phase === "scene" && (
+          <p data-coach-next-goal className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide">
+            <ArrowRight aria-hidden className="size-4 shrink-0" />
+            Next goal
+          </p>
         )}
         {phase !== "done" && phase !== "quick-offer" && (
           <p data-coach-say>

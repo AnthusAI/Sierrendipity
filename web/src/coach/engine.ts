@@ -64,6 +64,8 @@ export interface PlayerState {
   announce: string | null;
   /** The machine cannot reach the goal by stepping: the coach points at Back, or at Reset when the lesson hides Back. */
   stranded: boolean;
+  /** A scene that follows a completed goal has just begun: the coach panel marks it as the next goal. */
+  nextGoal: boolean;
   /** The words on the button the coach points at when stranded (Back, or the lesson's name for Reset). */
   strandedButton: string;
   reply: string | null;
@@ -113,6 +115,9 @@ export class LessonEngine {
   private announce: string | null = null;
   private reply: string | null = null;
   private missed: string | null = null;
+  private nextGoal = false;
+  private completedGoal = false;
+  private awaitingEdit = false;
   private hintRung = 0;
   private yourTurn = false;
   private nudgeOffer = false;
@@ -254,6 +259,7 @@ export class LessonEngine {
     const to = word >>> 0;
     if (!Number.isInteger(card) || card < 0 || card >= this.cards.length || this.cards[card] === to) return;
     this.touch();
+    this.awaitingEdit = false;
     const before = this.cards[card]!;
     this.cards = this.cards.map((w, i) => (i === card ? to : w));
     this.live = this.build(this.cards, this.live.facts);
@@ -496,6 +502,7 @@ export class LessonEngine {
 
   /** The scene's goal is met: say the authored doneSay (or announce quietly), then move on. */
   private complete(scene: Scene): void {
+    this.completedGoal = true;
     this.doneLine = scene.doneSay ?? null;
     this.announce = scene.doneSay ? null : "Scene complete.";
     this.goNext();
@@ -536,8 +543,12 @@ export class LessonEngine {
     this.hintRung = 0;
     this.reply = null;
     this.missed = null;
+    this.awaitingEdit = false;
     this.nudgeOffer = false;
     this.skipTourAsk = false;
+    const scene0 = this.lesson.scenes[i]!;
+    this.nextGoal = this.completedGoal && this.waiting(scene0) === "until";
+    this.completedGoal = false;
     this.detector.newGoal(this.clock.now());
     this.armIdle();
     const scene = this.lesson.scenes[i]!;
@@ -546,6 +557,7 @@ export class LessonEngine {
       this.cards = [...this.lesson.starter.words];
       this.live = this.build(this.cards, this.live.facts);
     }
+    this.awaitingEdit = this.nextGoal && finished(this.live) && !scene.lock.includes("edit") && !this.holds(scene.until, liveRunOf(this.live));
     // The goal may already hold (the student got there early): do not make them do it again.
     if (this.waiting(scene) === "until") this.afterRun(false);
     else this.refresh();
@@ -588,10 +600,10 @@ export class LessonEngine {
     const say = (narration: string, pointer: string | null = this.ghost?.pointer ?? null) => (this.ghost = { narration: `Show me: ${narration}`, pointer });
     switch (e.type) {
       case "point":
-        say(`pointing at ${plainTarget(e.target)}.`, e.target);
+        say(`pointing at ${plainTarget(e.target, this.lesson.ui)}.`, e.target);
         break;
       case "press":
-        say(`pressing ${e.control === "step" ? "Step" : e.control[0]!.toUpperCase() + e.control.slice(1)}.`, `button:${e.control}`);
+        say(`pressing ${buttonLabel(e.control, this.lesson.ui)}.`, `button:${e.control}`);
         if (e.control === "step") pressStep(demo);
         else if (e.control === "back") pressBack(demo);
         else if (e.control === "run") for (let i = 0; i < 1000 && pressStep(demo); i++);
@@ -652,6 +664,12 @@ export class LessonEngine {
     this.refresh();
   }
 
+  /** What the idle Step button says when the next goal begins with a finished machine and needs a changed card. */
+  private editFirstNote(scene: Scene | null): string {
+    const card = /^card:(\d+)$/.exec(scene?.spotlight ?? "");
+    return card ? `Change the number on card ${Number(card[1]) + 1} first` : "Change a number first";
+  }
+
   private viewOf(live: Live, demo: boolean): LiveView {
     const m = live.machine;
     const steps = liveRunOf(live).steps;
@@ -668,6 +686,7 @@ export class LessonEngine {
       canStep: !demo && !finished(live),
       canBack: !demo && steps > 0,
       goalMissed,
+      editFirst: this.awaitingEdit && !demo && finished(live) ? this.editFirstNote(scene) : null,
       hideEnd: this.lesson.hideEnd,
       demo,
     };
@@ -685,7 +704,7 @@ export class LessonEngine {
     // Stranded: the run is over, the goal does not hold, and no edit can change that. Back (or Reset when Back is hidden) is the way out.
     const stranded = !!showing && wayOut !== null && this.waiting(showing) === "until" && !view.canStep && view.steps > 0 && locked.includes("edit") && !locked.includes(wayOut) && !this.holds(showing.until, liveRunOf(this.live));
     const strandedButton = wayOut === "reset" ? this.lesson.ui?.resetLabel ?? "Reset" : "Back";
-    const fadesSpotlight = !!this.lesson.ui?.spotlightAfterHint && !!showing && this.waiting(showing) !== "continue";
+    const fadesSpotlight = !!this.lesson.ui?.spotlightAfterHint && !!showing && !this.awaitingEdit && this.waiting(showing) !== "continue";
     const spotlight = stranded ? `button:${wayOut}` : showing?.spotlight && (!this.tourSkipped || this.hintRung >= 1) && (!fadesSpotlight || this.hintRung >= 1) ? showing.spotlight : null;
     const rung = this.hintRung;
     this.snapshot = {
@@ -702,6 +721,7 @@ export class LessonEngine {
       doneLine: this.doneLine,
       announce: this.announce,
       stranded,
+      nextGoal: this.nextGoal && this.phase === "scene",
       strandedButton,
       reply: this.reply,
       missed: this.phase === "scene" && finished(this.live) ? this.plain(this.missed ?? "") || null : null,
@@ -739,12 +759,19 @@ function demoCards(live: Live): number[] {
   return live.words.slice(0, live.cards);
 }
 
-/** "button:step" -> "the Step button". */
-export function plainTarget(target: string): string {
+/** The words on a button: the lesson's own name for Step and Reset, else the control's name. */
+function buttonLabel(control: string, ui?: { stepLabel?: string; resetLabel?: string }): string {
+  if (control === "step") return ui?.stepLabel ?? "Step";
+  if (control === "reset") return ui?.resetLabel ?? "Reset";
+  return control[0]!.toUpperCase() + control.slice(1);
+}
+
+/** "button:step" -> "the Step button" (or the lesson's name for it, such as "the Run button"). */
+export function plainTarget(target: string, ui?: { stepLabel?: string; resetLabel?: string }): string {
   const [kind, name = ""] = target.split(":");
   switch (kind) {
     case "button":
-      return `the ${name[0]?.toUpperCase()}${name.slice(1)} button`;
+      return `the ${buttonLabel(name, ui)} button`;
     case "card":
       return `card ${Number(name) + 1}`;
     case "box":

@@ -23,6 +23,8 @@ export interface LiveView {
   canBack: boolean;
   /** The run is over and the scene's goal does not hold: with Back hidden, the way on is Reset (or Start again). */
   goalMissed: boolean;
+  /** The next goal begins with a finished machine: the note for the idle Step button ("Change the number on card 2 first"), or null. */
+  editFirst: string | null;
   /** The Stop card is hidden: show the end of the list as "the end of the list". */
   hideEnd: boolean;
   /** True while the ghost is demonstrating on a copy: controls are inert. */

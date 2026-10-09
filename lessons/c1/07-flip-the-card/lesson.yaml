@@ -14,7 +14,6 @@ starter:
 tabs: [cards, lamps]
 ui:
   controls: [step, reset]
-  stepLabel: Run
   resetLabel: Start again
   log: true
   deskTitle: false

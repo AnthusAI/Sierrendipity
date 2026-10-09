@@ -503,6 +503,7 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
   const starter = programOf(raw.starter, "starter", errors);
   endProblem(starter, "starter");
   boxProblem(starter, "starter");
+  if (ui?.stepLabel === "Run" && starter && starter.words.length > 1) errors.push("lesson.yaml ui: stepLabel Run is only for a starter of one card (each press of Run would run one card of several); leave stepLabel out so the button is called Step");
   const tabs = raw.tabs ?? [];
   if (!isStrList(tabs)) errors.push("lesson.yaml: tabs must be a list");
   else for (const t of tabs) if (!(TABS as readonly string[]).includes(t)) errors.push(`lesson.yaml: unknown tab "${t}" (use ${TABS.join(", ")})`);

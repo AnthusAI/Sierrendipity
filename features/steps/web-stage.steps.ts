@@ -38,11 +38,11 @@ const AUTO: Record<string, (w: WebWorld) => Promise<void>> = {
   "match-three": async (w) => void (await coachId(w, "card:1").click()),
   "make-five": async (w) => {
     await lamp(w, 2).click();
-    await named(w, "Run").click();
+    await named(w, "Step").click();
   },
   "make-seven": async (w) => {
     await lamp(w, 1).click();
-    await named(w, "Run").click();
+    await named(w, "Step").click();
   },
 };
 

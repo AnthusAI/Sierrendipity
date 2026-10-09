@@ -182,3 +182,12 @@ Then("the registers panel is named {string} and holds {int} boxes", async functi
   assert.equal(await panel.count(), 1);
   assert.equal(await panel.locator("[data-box]").count(), count);
 });
+
+Then("the coach marks the next goal with the words {string}", async function (this: WebWorld, words: string) {
+  await this.page.locator("[data-coach-next-goal]", { hasText: words }).waitFor();
+  assert.ok(await this.page.locator("[data-coach-next-goal] svg[aria-hidden]").count() > 0, "an icon and words, not colour alone");
+});
+Then("the coach shows no next-goal marker", async function (this: WebWorld) {
+  await settleFrames(this);
+  assert.equal(await this.page.locator("[data-coach-next-goal]").count(), 0);
+});

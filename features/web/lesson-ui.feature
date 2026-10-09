@@ -100,19 +100,45 @@ Feature: Lessons show only what their one idea needs
     Given the coach lab shows lesson "c1/02-change-the-number"
     Then the boxes are named to a screen reader as "The box"
 
-  Scenario: Lesson 3 keeps the Run button and shows only what it needs
+  Scenario: Lesson 3 introduces the Step button in its first scene
+    Given the coach lab shows lesson "c1/03-last-one-wins"
+    Then the lesson text says "the button is now called Step"
+    And the lesson text says "Each Step runs one card"
+    And the lesson has no "Run" button
+    And the lesson has no "Back" button
+
+  Scenario: In lesson 3 one Step runs exactly one card
     Given the coach lab shows lesson "c1/03-last-one-wins"
     When I answer 8
-    Then the "Run" button is ready
-    And the lesson has no "Back" button
-    And the lesson has no "Step" button
-    And the lesson text never says "Step"
+    Then the "Step" button is ready
+    When I press Step
+    Then the lesson shows the step count 1
+    And box "a0" shows 3
+    When I press Step
+    Then the lesson shows the step count 2
+    And box "a0" shows 8
 
-  Scenario: Lesson 4 names its boxes and still calls the button Run
+  Scenario: Lesson 4 names its boxes and calls the button Step
     Given the coach lab shows lesson "c1/04-two-boxes"
     Then the lesson text says "box a1 hold 6"
-    And the "Run" button is ready
+    And the "Step" button is ready
+    And the lesson has no "Run" button
     And the lesson has no "Back" button
+
+  Scenario: A new goal in the same lesson is marked and the lesson then completes
+    Given the coach lab shows lesson "c1/04-two-boxes"
+    Then the coach shows no next-goal marker
+    When I press Step
+    And I press Step
+    Then the coach marks the next goal with the words "Next goal"
+    And the coach says "Change one card so that box a1 holds 9"
+    And the spotlight surrounds "card:1"
+    And the "Step" button is disabled and explains "Change the number on card 2 first"
+    When I set the number on card 2 to 9
+    And I press Step
+    And I press Step
+    Then box "a1" shows 9
+    And the Now you can card is shown
 
   Scenario: Lesson 5 introduces the log
     Given the coach lab shows lesson "c1/05-add"
