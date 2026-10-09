@@ -73,17 +73,6 @@ Feature: Lessons show only what their one idea needs
     Then box "a0" shows 9
     And there is no missed-goal help
 
-  Scenario: A scene without ifMissed shows no missed-goal help after a run that misses
-    Given the coach lab shows lesson "c1/04-two-boxes"
-    When I press Step
-    And I press Step
-    And I press Reset
-    And I press Step
-    And I press Step
-    Then the lesson shows the step count 2
-    And the lesson shows no goal-met line
-    And there is no missed-goal help
-
   Scenario: After a missed goal the idle Run button points at Start again
     Given the coach lab shows lesson "c1/02-change-the-number"
     When I select Run

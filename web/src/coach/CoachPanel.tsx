@@ -260,6 +260,14 @@ export function CoachPanel({ state, engine, next, onNext, onStop }: Props) {
             }}>
             Try again
           </Button>
+          {state.canRestoreCards && (
+            <Button size="sm" variant="outline" className="ml-2" onClick={() => {
+                engine.restoreCards();
+                findCoachTarget(coachId.button("step"))?.focus();
+              }}>
+              Start again
+            </Button>
+          )}
         </div>
       )}
 
