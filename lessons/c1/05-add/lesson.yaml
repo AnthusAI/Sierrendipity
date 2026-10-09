@@ -13,7 +13,6 @@ starter:
 tabs: [cards]
 ui:
   controls: [step, reset]
-  stepLabel: Run
   resetLabel: Start again
   log: true
   deskTitle: false
@@ -38,7 +37,7 @@ scenes:
     hints:
       - Which button follows the next card?
       - Each selection follows one card. The first two cards fill boxes.
-      - Select Run two times. Box a0 receives 5. Box a1 receives 7.
+      - Select Step two times. Box a0 receives 5. Box a1 receives 7.
     showMe: demo-step-twice
     doneSay: Boxes a0 and a1 hold numbers now.
     lock: [edit, drag, toggle]
@@ -68,7 +67,7 @@ scenes:
     hints:
       - Which button follows the add card?
       - The add card reads a0 and a1. It writes box a2.
-      - Select Run. Box a2 changes to 12.
+      - Select Step. Box a2 changes to 12.
     showMe: demo-step
     doneSay: Box a2 now holds 12, so a2 = a0 + a1. The machine's own text for this card is add a2, a0, a1.
     lock: [edit, drag, toggle]

@@ -152,7 +152,7 @@ function listedInputs(lesson: Lesson): number[] {
     ...lesson.scenes.flatMap((sc) => sc.until),
     ...lesson.checks.scenarios.flatMap((sc) => sc.steps.map((st) => st.text)),
   ].filter((p) => FUNCTION_PHRASE.test(p.trim()));
-  const listed = [...lesson.scenes.flatMap((sc) => (sc.ask?.kind === "table" ? sc.ask.inputs : [])), ...phrases.flatMap(phraseInputs), ...nestedOuterInputs(lesson, phrases)];
+  const listed = [...lesson.scenes.flatMap((sc) => (sc.ask?.kind === "table" ? sc.ask.inputs : [])), ...lesson.scenes.flatMap((sc) => (sc.input !== undefined ? [sc.input] : [])), ...phrases.flatMap(phraseInputs), ...nestedOuterInputs(lesson, phrases)];
   return listed.length > 0 ? [...new Set(listed)] : [1, 2, 3];
 }
 

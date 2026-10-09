@@ -3,7 +3,7 @@
   "title": "G2: Function input, rule banner, function checks (f(3) is 10) and a table ask (M, most important)",
   "description": "Most important gap: it enables the function throughline (R1 follow-ups).\nAcceptance:\n- Given a lesson with a function card, the student can enter x and see the result in the box.\n- A rule banner shows the rule, e.g. f(x) = x squared plus 1.\n- A check 'f(3) is 10' can be written in lesson.yaml and is run by the loader and the browser.\n- A 'table' ask has the student fill x and f(x) rows; wrong cells get a specific reply.\n- Covered by Gherkin features under features/.",
   "type": "story",
-  "status": "open",
+  "status": "in_progress",
   "priority": 1,
   "assignee": null,
   "creator": null,
@@ -24,17 +24,29 @@
         "model": "Claude Sonnet 5.5",
         "name": "Real Machine Board Agent"
       }
+    },
+    {
+      "id": "da2532fc-d7dd-488e-b881-c18d7b527e79",
+      "author": "home",
+      "text": "PR #41 (feature/w2-g2-functions) implements G2: lesson function block (rule grammar + - * and brackets), phrases f(3) is 10 / f(f(2)) is 26 / the student filled the table for 1, 2, 3, ask kind table (onWrong per row), banner:rule panel, checker fails when the rule disagrees with a pass solution or the starter of a table lesson, Session/Machine start registers, fixture x1/05-function. npm test 1876 scenarios green. Note for G3: custom cards must keep the function program free of an input card; the input arrives in the input box via start registers.",
+      "created_at": "2026-10-09T20:29:15.646550Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "W2 G2 Functions Agent"
+      }
     }
   ],
   "created_at": "2026-10-07T12:27:55.990845Z",
-  "updated_at": "2026-10-07T15:51:31.676190Z",
+  "updated_at": "2026-10-09T20:29:15.647520Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "Claude Sonnet 5.5",
     "name": "Curriculum Board Agent"
   },
-  "right_now_summary": "The function flow now supports input, rule checks, and table responses for upcoming lessons.",
-  "right_now_updated_at": "2026-10-07T15:51:34.169078Z",
+  "right_now_summary": "PR #41 implements function inputs, rule banners, checks, and table exercises, with 1,876 scenarios passing.",
+  "right_now_updated_at": "2026-10-09T20:29:17.046707Z",
   "custom": {}
 }

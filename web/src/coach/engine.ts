@@ -67,11 +67,15 @@ export interface PlayerState {
   announce: string | null;
   /** The machine cannot reach the goal by stepping: the coach points at Back, or at Reset when the lesson hides Back. */
   stranded: boolean;
+  /** A scene that follows a completed goal has just begun: the coach panel marks it as the next goal. */
+  nextGoal: boolean;
   /** The words on the button the coach points at when stranded (Back, or the lesson's name for Reset). */
   strandedButton: string;
   reply: string | null;
   /** The scene's `ifMissed` text, while the machine has finished without meeting the goal. */
   missed: string | null;
+  /** True while the missed-goal help shows and the cards are not the starter cards: [Start again] can put them back. */
+  canRestoreCards: boolean;
   hint: { rung: 1 | 2 | 3; text: string } | null;
   canHint: boolean;
   canShowMe: boolean;
@@ -120,6 +124,9 @@ export class LessonEngine {
   private announce: string | null = null;
   private reply: string | null = null;
   private missed: string | null = null;
+  private nextGoal = false;
+  private completedGoal = false;
+  private awaitingEdit = false;
   private hintRung = 0;
   private yourTurn = false;
   private nudgeOffer = false;
@@ -148,6 +155,7 @@ export class LessonEngine {
     this.userId = opts.userId ?? "local";
     this.isVisible = opts.isVisible ?? (() => typeof document === "undefined" || document.visibilityState !== "hidden");
     this.cards = [...lesson.starter.words];
+    this.functionInput = lesson.function ? lesson.scenes[0]?.input ?? DEFAULT_FUNCTION_INPUT : DEFAULT_FUNCTION_INPUT;
     this.live = this.build(this.cards);
     this.live.facts = { starter: [...lesson.starter.words], predictions: {}, events: [], ...functionFactsOf(lesson, this.functionInput) };
     this.detector = new StuckDetector(this.clock.now());
@@ -255,12 +263,24 @@ export class LessonEngine {
     this.refresh();
   }
 
+  /** [Start again] after a missed goal: the starter cards come back and the machine starts over. */
+  restoreCards(): void {
+    if (this.phase !== "scene" || !this.missed) return;
+    this.touch();
+    this.cards = [...this.lesson.starter.words];
+    this.live = this.build(this.cards, this.live.facts);
+    this.awaitingEdit = false;
+    this.missed = null;
+    this.refresh();
+  }
+
   /** Replace card `card` with the full new word. A spinner is an `edit`; a lamp is a `toggle` (each has its own lock). */
   edit(card: number, word: number, via: EditVia = "edit"): void {
     if (!this.canAct(via)) return;
     const to = word >>> 0;
     if (!Number.isInteger(card) || card < 0 || card >= this.cards.length || this.cards[card] === to) return;
     this.touch();
+    this.awaitingEdit = false;
     const before = this.cards[card]!;
     this.cards = this.cards.map((w, i) => (i === card ? to : w));
     this.live = this.build(this.cards, this.live.facts);
@@ -336,7 +356,7 @@ export class LessonEngine {
     const row = ask.inputs.findIndex((_, k) => values[k] !== expected[k]);
     if (row < 0) {
       (this.live.facts.events ??= []).push({ type: "table", inputs: [...ask.inputs] });
-      this.recordRun(liveRunOf(this.live));
+      this.recordRun(liveRunOf(this.live), true);
       this.resolveAnswer(true, "table", !finished(this.live));
       return;
     }
@@ -499,12 +519,12 @@ export class LessonEngine {
    * Record a finished run as an attempt, once per scene and cards: always in the goal scene, elsewhere only
    * when it earns a bonus not yet earned. Back and Reset never add attempts, and a pass counts only here.
    */
-  private recordRun(run: LessonRun): void {
+  private recordRun(run: LessonRun, force = false): void {
     const key = `${this.sceneIndex}|${this.cards.join(",")}`;
     if (this.recorded.has(key)) return;
     const stars = earnedStars(runChecks(this.lesson.checks, run));
     const newBonus = stars.some((s) => s !== "pass" && !this.bonusSeen.has(s));
-    if (this.sceneIndex !== this.goalScene() && !newBonus) return;
+    if (this.sceneIndex !== this.goalScene() && !newBonus && !(force && stars.includes("pass"))) return;
     this.recorded.add(key);
     for (const s of stars) this.bonusSeen.add(s);
     this.safe(() => this.store?.recordAttempt(this.userId, this.lesson.id, { passed: stars.includes("pass"), stars, cards: run.cards, steps: run.steps, concepts: this.lesson.concepts.introduces, cardsUsed: stars.includes("pass") ? cardsUsed(this.cards) : [] }));
@@ -532,6 +552,7 @@ export class LessonEngine {
 
   /** The scene's goal is met: say the authored doneSay (or announce quietly), then move on. */
   private complete(scene: Scene): void {
+    this.completedGoal = true;
     this.doneLine = scene.doneSay ?? null;
     this.announce = scene.doneSay ? null : "Scene complete.";
     this.goNext();
@@ -572,8 +593,12 @@ export class LessonEngine {
     this.hintRung = 0;
     this.reply = null;
     this.missed = null;
+    this.awaitingEdit = false;
     this.nudgeOffer = false;
     this.skipTourAsk = false;
+    const scene0 = this.lesson.scenes[i]!;
+    this.nextGoal = this.completedGoal && this.waiting(scene0) === "until";
+    this.completedGoal = false;
     this.detector.newGoal(this.clock.now());
     this.armIdle();
     const scene = this.lesson.scenes[i]!;
@@ -582,11 +607,16 @@ export class LessonEngine {
       this.cards = [...this.lesson.starter.words];
       this.live = this.build(this.cards, this.live.facts);
     }
-    // A scene that fixes x for the function: put x there (the machine starts again only when x changes).
-    if (scene.input !== undefined && this.lesson.function && scene.input !== this.functionInput) {
-      this.functionInput = scene.input;
-      this.live = this.build(this.cards, this.live.facts);
+    // In a function lesson a scene that fixes x, or asks a question, starts the machine again at that x, so the answer is not already on screen.
+    const fn = this.lesson.function;
+    if (fn && (scene.input !== undefined || scene.ask)) {
+      const x = scene.input ?? this.functionInput;
+      if (x !== this.functionInput || this.live.session.steps > 0) {
+        this.functionInput = x;
+        this.live = this.build(this.cards, this.live.facts);
+      }
     }
+    this.awaitingEdit = this.nextGoal && finished(this.live) && !scene.lock.includes("edit") && !this.holds(scene.until, liveRunOf(this.live));
     // The goal may already hold (the student got there early): do not make them do it again.
     if (this.waiting(scene) === "until") this.afterRun(false);
     else this.refresh();
@@ -629,10 +659,10 @@ export class LessonEngine {
     const say = (narration: string, pointer: string | null = this.ghost?.pointer ?? null) => (this.ghost = { narration: `Show me: ${narration}`, pointer });
     switch (e.type) {
       case "point":
-        say(`pointing at ${plainTarget(e.target)}.`, e.target);
+        say(`pointing at ${plainTarget(e.target, this.lesson.ui)}.`, e.target);
         break;
       case "press":
-        say(`pressing ${e.control === "step" ? "Step" : e.control[0]!.toUpperCase() + e.control.slice(1)}.`, `button:${e.control}`);
+        say(`pressing ${buttonLabel(e.control, this.lesson.ui)}.`, `button:${e.control}`);
         if (e.control === "step") pressStep(demo);
         else if (e.control === "back") pressBack(demo);
         else if (e.control === "run") for (let i = 0; i < 1000 && pressStep(demo); i++);
@@ -693,6 +723,12 @@ export class LessonEngine {
     this.refresh();
   }
 
+  /** What the idle Step button says when the next goal begins with a finished machine and needs a changed card. */
+  private editFirstNote(scene: Scene | null): string {
+    const card = /^card:(\d+)$/.exec(scene?.spotlight ?? "");
+    return card ? `Change the number on card ${Number(card[1]) + 1} first` : "Change a number first";
+  }
+
   private viewOf(live: Live, demo: boolean): LiveView {
     const m = live.machine;
     const steps = liveRunOf(live).steps;
@@ -709,6 +745,7 @@ export class LessonEngine {
       canStep: !demo && !finished(live),
       canBack: !demo && steps > 0,
       goalMissed,
+      editFirst: this.awaitingEdit && !demo && finished(live) ? this.editFirstNote(scene) : null,
       hideEnd: this.lesson.hideEnd,
       demo,
       ...(this.lesson.function ? { functionInput: this.functionInput, functionInputLocked: this.scene()?.input !== undefined } : {}),
@@ -727,7 +764,7 @@ export class LessonEngine {
     // Stranded: the run is over, the goal does not hold, and no edit can change that. Back (or Reset when Back is hidden) is the way out.
     const stranded = !!showing && wayOut !== null && this.waiting(showing) === "until" && !view.canStep && view.steps > 0 && locked.includes("edit") && !locked.includes(wayOut) && !this.holds(showing.until, liveRunOf(this.live));
     const strandedButton = wayOut === "reset" ? this.lesson.ui?.resetLabel ?? "Reset" : "Back";
-    const fadesSpotlight = !!this.lesson.ui?.spotlightAfterHint && !!showing && this.waiting(showing) !== "continue";
+    const fadesSpotlight = !!this.lesson.ui?.spotlightAfterHint && !!showing && !this.awaitingEdit && this.waiting(showing) !== "continue";
     const spotlight = stranded ? `button:${wayOut}` : showing?.spotlight && (!this.tourSkipped || this.hintRung >= 1) && (!fadesSpotlight || this.hintRung >= 1) ? showing.spotlight : null;
     const rung = this.hintRung;
     this.snapshot = {
@@ -744,9 +781,11 @@ export class LessonEngine {
       doneLine: this.doneLine,
       announce: this.announce,
       stranded,
+      nextGoal: this.nextGoal && this.phase === "scene",
       strandedButton,
       reply: this.reply,
       missed: this.phase === "scene" && finished(this.live) ? this.plain(this.missed ?? "") || null : null,
+      canRestoreCards: this.phase === "scene" && finished(this.live) && !!this.missed && !this.startersAreOnTheCards(),
       hint: rung > 0 && showing ? { rung: rung as 1 | 2 | 3, text: showing.hints[rung - 1] ?? "" } : null,
       canHint: !!showing && showing.hints.length >= 3 && rung < 3,
       canShowMe: !!showing && !!showing.showMe && !!this.lesson.ghosts[showing.showMe],
@@ -760,6 +799,10 @@ export class LessonEngine {
       stopped: this.stopped,
     };
     this.emit();
+  }
+
+  private startersAreOnTheCards(): boolean {
+    return this.cards.length === this.lesson.starter.words.length && this.cards.every((w, k) => w === this.lesson.starter.words[k]);
   }
 
   private endCard(): NonNullable<PlayerState["end"]> {
@@ -788,12 +831,19 @@ function demoCards(live: Live): number[] {
   return live.words.slice(0, live.cards);
 }
 
-/** "button:step" -> "the Step button". */
-export function plainTarget(target: string): string {
+/** The words on a button: the lesson's own name for Step and Reset, else the control's name. */
+function buttonLabel(control: string, ui?: { stepLabel?: string; resetLabel?: string }): string {
+  if (control === "step") return ui?.stepLabel ?? "Step";
+  if (control === "reset") return ui?.resetLabel ?? "Reset";
+  return control[0]!.toUpperCase() + control.slice(1);
+}
+
+/** "button:step" -> "the Step button" (or the lesson's name for it, such as "the Run button"). */
+export function plainTarget(target: string, ui?: { stepLabel?: string; resetLabel?: string }): string {
   const [kind, name = ""] = target.split(":");
   switch (kind) {
     case "button":
-      return `the ${name[0]?.toUpperCase()}${name.slice(1)} button`;
+      return `the ${buttonLabel(name, ui)} button`;
     case "card":
       return `card ${Number(name) + 1}`;
     case "box":

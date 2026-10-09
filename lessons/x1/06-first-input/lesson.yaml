@@ -1,0 +1,54 @@
+id: x1/06-first-input
+title: Stage fixture, the first scene fixes x
+minutes: 3
+draft: true
+# A test fixture (draft: never listed in the course). The first scene fixes x at 4 and asks a question,
+# so the player must start the machine with 4 in the box and must not show the answer.
+concepts:
+  introduces: [cards]
+  requires: []
+boxes: [a0]
+pointer: false
+hideEnd: true
+ui: { controls: [step, back, reset], resetLabel: Start again }
+function:
+  name: f
+  inputs: [a0]
+  output: a0
+  rule: "f(x) = x·x + 1"
+starter:
+  asm: |
+    mul a0, a0, a0
+    addi a0, a0, 1
+tabs: [cards]
+onWrongDefault: Put 4 in place of x in the rule.
+scenes:
+  - id: first
+    say: The rule uses 4 for x. Say what the box holds at the end.
+    show: [cards, boxes]
+    input: 4
+    ask:
+      kind: number
+      question: What does the box hold after the two cards run for x = 4?
+      target: a0
+      answer: 17
+    hints:
+      - Put 4 in place of x in the rule.
+      - Do the multiplication first. Then add 1.
+      - 4·4 is 16. Add 1.
+    lock: [edit, drag, toggle]
+
+  - id: watch
+    say: Select Step two times. Watch the box.
+    show: [cards, boxes]
+    input: 4
+    until:
+      - the machine has taken at least 2 steps
+      - box a0 holds 17
+    hints:
+      - Select the Step button.
+      - Two cards need two steps.
+      - Select Step two times.
+    lock: [edit, drag, toggle]
+nowYouCan:
+  - Follow a rule with a number.

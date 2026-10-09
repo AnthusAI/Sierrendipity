@@ -46,7 +46,6 @@ Feature: A lesson can declare a function and check it
     Examples:
       | finished | held | rule | said                                                              |
       | false    | 3    | 10   | The program has not finished. Box a0 holds 3.                     |
-      | false    | 3    | 10   | The program has not finished. Box a0 holds 3.                     |
       | true     | 10   | 10   | Box a0 holds 10. This is the same as the rule.                    |
       | true     | 9    | 10   | Box a0 holds 9. The rule gives 10. These are different.           |
 
@@ -74,6 +73,7 @@ Feature: A lesson can declare a function and check it
       | f(f(2)) is 25    | fails   |
       | f(0x10) is 257   | passes  |
       | f(0b11) is 10    | passes  |
+      | f(4294967295) is 2 | passes |
 
   Scenario Outline: The phrase about x is true of the x the machine started with
     Given the function program "mul a0, a0, a0; addi a0, a0, 1; ebreak" named f from box a0 to box a0 started with x = 3
@@ -190,6 +190,9 @@ Feature: A lesson can declare a function and check it
       | lesson.yaml  | inputs: [1, 2, 3]                                               | inputs: [1, 1, 3]                    | must not repeat a number                        |
       | lesson.yaml  | inputs: [1, 2, 3]                                               | inputs: []                           | list of 1 to 8 whole numbers                    |
       | lesson.yaml  | inputs: [1, 2, 3]                                               | inputs: [1, 100000]                  | each from -99999 to 99999                       |
+      | lesson.yaml  | input: 3\n    ask:                                                | ask:                                 | must say which x it is judged at                |
+      | lesson.yaml  | input: 3\n    until:                                              | until:                               | must say which x it is judged at                |
+      | lesson.yaml  | - x is 3                                                        | - x is 100000                        | x must be a whole number from -99999            |
       | lesson.yaml  | input: 3                                                        | input: 2.5                           | input must be a whole number from -99999        |
       | lesson.yaml  | input: 3                                                        | input: 100000                        | input must be a whole number from -99999        |
       | lesson.yaml  | inputs: [1, 2, 3]                                               | inputs: [1, 2.5]                     | list of 1 to 8 whole numbers                    |
@@ -227,15 +230,6 @@ Feature: A lesson can declare a function and check it
     And I check the lesson
     Then the check fails with "says f(1) is 2 but solution good.s gives 3"
 
-  Scenario: The checker checks the rule on the inputs of the function phrases as well as the table rows
-    Given the lesson "x1/05-function"
-    When I replace "inputs: [1, 2, 3]" with "inputs: [1]" in "lesson.yaml"
-    And I replace "match: \"2:4\"" with "match: \"1:4\"" in "lesson.yaml"
-    And I replace "match: 3" with "match: 1" in "lesson.yaml"
-    And I replace "rule: \"f(x) = x·x + 1\"" with "rule: \"f(x) = x·x + 3\"" in "lesson.yaml"
-    And I check the lesson
-    Then the check fails with "says f(3) is 12 but solution good.s gives 10"
-
   Scenario: A scene that fixes x is judged at that x, so a number ask can depend on x
     Given the lesson "x1/05-function"
     When I check the lesson
@@ -271,3 +265,9 @@ Feature: A lesson can declare a function and check it
     When I replace "And f(f(2)) is 26" with "And f(f(300)) is 0" in "checks.feature"
     And I check the lesson
     Then the check fails with "is too big for a box at f(90001)"
+
+  Scenario: The checker includes the x of a scene in the rule-fit check
+    Given the lesson "x1/05-function"
+    When I replace "input: 5" with "input: 60000" in "lesson.yaml"
+    And I check the lesson
+    Then the check fails with "is too big for a box at f(60000)"

@@ -36,7 +36,7 @@ boxes: [a0]                 # the only boxes (registers) the machine shows; more
 pointer: false              # show the arrow at the card being run (the program counter); default false
 hideEnd: true               # hide the Stop card, see below; default false
 draft: true                 # optional, default false: a draft lesson, see "Draft lessons" below
-ui: { controls: [step], stepLabel: Run }          # optional, what the stage shows; see "The ui block"
+ui: { controls: [step], stepLabel: Run }          # optional (Run only for a one-card starter), what the stage shows; see "The ui block"
 function: { name: f, inputs: [a0], output: a0, rule: "f(x) = x·x + 1" }   # optional; see "Functions"
 starter: { hex: ["0x00500513"] }                  # or { asm: "addi a0, zero, 5" }
 tabs: [cards]               # cards lamps hex assembly boxes shelves screen output
@@ -104,7 +104,7 @@ full machine. Unknown keys and wrong types are errors.
 | Key | Values | Default | Meaning |
 | --- | --- | --- | --- |
 | `controls` | list of `step`, `back`, `reset` (no repeats; must include `step`) | all three | The buttons under the title. A scene may not spotlight `button:back` or `button:reset` when the list hides it |
-| `stepLabel` | short text, at most 20 characters | Step | The name of the Step button (for example `Run`) |
+| `stepLabel` | short text, at most 20 characters | Step | The name of the Step button. The label `Run` is only for a starter of one card (c1/01, c1/02): the loader rejects `stepLabel: Run` when the starter has more than one card, because one press runs one card. From two cards on, leave it out so the button is called Step, and introduce the name once, in the first scene of the first lesson that has two cards (c1/03: "With two cards, the button is now called Step. Each Step runs one card.") |
 | `resetLabel` | short text, at most 20 characters | Reset | The name of the Reset button (for example `Start again`) |
 | `log` | true or false | true | The "What just happened" log |
 | `deskTitle` | true or false | true | The "The desk" heading |
@@ -115,7 +115,9 @@ full machine. Unknown keys and wrong types are errors.
 | `spotlightAfterHint` | boolean | false | Goal and question scenes show their spotlight only after the first hint |
 
 When Back is hidden, a run that misses the goal points at Reset (the `resetLabel`) instead of Back, and the idle Run button says "Select Start again first" until the student starts again. Reset is disabled, with the reason "Nothing to start again yet", until the machine has run something.
-Use the same label for a button in every sentence of the lesson: if `stepLabel` is `Run`, the text says "Run".
+Use the same label for a button in every sentence of the lesson: if `stepLabel` is `Run`, the text says "Run"; otherwise it says "Step". The coach panel, the idle notes and the Show me narration use the lesson's own button names.
+
+**A new goal is marked.** When a scene completes and the next scene has a goal, the coach panel shows a "Next goal" label (an arrow icon and words, never colour alone) above the new text. If that scene needs a card changed while the machine has already finished, its spotlight shows at once (even with `spotlightAfterHint`) and the idle Step button says what to do: "Change the number on card 2 first" (taken from a `card:<n>` spotlight, else "Change a number first").
 
 ### Simplified Technical English (STE)
 
@@ -167,7 +169,9 @@ The checker is in `lesson-core/src/ste.ts`.
   goal is still not met. It says what the machine did and what to change. The coach shows it as
   `[data-coach-missed]` with a "Try again" button; "Try again" resets the machine to the start and keeps the
   cards as the student left them, then moves keyboard focus to the Run (Step) button (`engine.tryAgain()`). A scene
-  with `ask` cannot have `ifMissed`. Limits: at most 3 sentences and 45 words.
+  with `ask` cannot have `ifMissed`. When the cards are not the starter cards, the same box also shows
+  "Start again", which puts the starter cards back and starts the machine over (`engine.restoreCards()`), so a
+  goal that no edit of the current cards can reach never traps the student. Limits: at most 3 sentences and 45 words.
 - `onWrongDefault` is text, or `{ say, goto }`. `goto` names the scene that reveals the answer; the checker
   requires it when the scene after an `ask` does not wait on the machine (`until`).
 - The player locks Step, Back, Reset and Edit in `ask` scenes (the prediction comes before the reveal), restores the
@@ -206,7 +210,11 @@ Both boxes must be in `boxes`. The block turns on four things:
 - **A scene can fix x:** `input: 3` on a scene. On entry the player sets x to 3 (the machine starts again if x
   changes) and locks the box; the checker judges that scene at x = 3 (number asks, `until` phrases, reference
   solutions). Use it for any ask whose answer depends on x. A scene that waits for the student to type x says
-  `x is 3` in `until`; the checker judges it at x = 3.
+  `x is 3` in `until`; the checker judges it at x = 3. In a lesson with a function, a scene with a number ask, or
+  with a box phrase in `until`, must do one of these (the loader refuses it otherwise), because the checker and the
+  player would judge it at different x. A scene with `input` or any `ask` starts the machine again on entry, so the
+  answer is not already on screen; the first scene's `input` is applied from the start. A table answer records
+  the pass if the lesson's `@pass` facts hold, even when later scenes have goals.
   `lesson-core` renders the text as pure functions: `ruleText`, `ruleSubstitution`, `ruleValue`, `ruleStatus`.
 - **Function phrases** in `until`, `checks.feature` and ask queries (see the step vocabulary).
 - **The table ask:** `ask: { kind: table, question: "...", inputs: [1, 2, 3], target: a0 }`. The student fills one

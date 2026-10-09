@@ -107,7 +107,7 @@ export function PlayerControls({ live, controls, timeline = false, length, ui }:
   const scrubLocked = locked("step") || locked("back");
   const shown = (control: "back" | "reset") => !ui?.controls || ui.controls.includes(control);
   const resetName = ui?.resetLabel ?? "Reset";
-  const stepIdleWhy = shown("back") ? "Select Back first" : live.goalMissed && shown("reset") ? `Select ${resetName} first` : "All done";
+  const stepIdleWhy = live.editFirst ?? (shown("back") ? "Select Back first" : live.goalMissed && shown("reset") ? `Select ${resetName} first` : "All done");
 
   return (
     <div role="group" aria-label="Machine controls" className="flex flex-wrap items-start gap-2">

@@ -23,7 +23,7 @@ Feature: The real stage is keyboard operable, readable and fits every window
     And I press the ArrowRight key 3 times
     Then the focus is on "bit 2, worth 4"
     When I press the Space key
-    And I shift-tab until the focus is on "Run"
+    And I shift-tab until the focus is on "Step"
     And I press the Enter key
     Then box "a0" shows 5
     And the coach says "Now make 7"

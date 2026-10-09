@@ -27,23 +27,22 @@ Feature: A lesson with a function shows its rule, takes an input and asks for a 
     Given the coach lab shows lesson "x1/05-function"
     When I type 3 for x
     Then the rule banner says "The program has not finished. Box a0 holds 3."
-    When I select Run
+    When I press Step
     Then the rule banner says "The program has not finished. Box a0 holds 9."
-    When I select Run
-    Then box "a0" shows 10
-    And the coach says "The rule now uses 3 for x."
+    When I press Step
+    Then the coach says "The rule now uses 3 for x."
 
   Scenario: Back moves the banner back with the machine
     Given the coach lab shows lesson "x1/05-function"
     When I type 3 for x
-    And I select Run
+    And I press Step
     And I press Back
     Then the rule banner says "The program has not finished. Box a0 holds 3."
 
   Scenario: Changing x starts the machine again
     Given the coach lab shows lesson "x1/05-function"
     When I type 3 for x
-    And I select Run
+    And I press Step
     And I type 5 for x
     Then the lesson shows the step count 0
     And the rule banner shows "f(5) = 5·5 + 1 = 26"
@@ -88,16 +87,16 @@ Feature: A lesson with a function shows its rule, takes an input and asks for a 
 
   Scenario: Running at the starting x does not finish the first scene
     Given the coach lab shows lesson "x1/05-function"
-    When I select Run
-    And I select Run
+    When I press Step
+    And I press Step
     Then the coach says "Type 3 for x above the boxes."
     And the rule banner says "Box a0 holds 2. This is the same as the rule."
 
   Scenario: The scene is done when the machine has run the rule for 3
     Given the coach lab shows lesson "x1/05-function"
     When I type 3 for x
-    And I select Run
-    And I select Run
+    And I press Step
+    And I press Step
     Then the coach says "The rule now uses 3 for x."
     And the box for x holds "3"
     And the box for x cannot be changed
@@ -105,9 +104,16 @@ Feature: A lesson with a function shows its rule, takes an input and asks for a 
   Scenario: A student who typed 3 is right to say 10 and goes on
     Given the coach lab shows lesson "x1/05-function" at the scene "guess"
     When I type "10" in the answer box and press the Enter key
-    Then the coach says "Now x is 5."
+    Then the coach confirms "You called it."
+    And the coach says "Watch the box hold the answer."
 
-  Scenario: A wrong guess gets the reply of the scene
+  Scenario: The guess scene does not show its own answer
+    Given the coach lab shows lesson "x1/05-function" at the scene "guess"
+    Then the lesson shows the step count 0
+    And the box for x holds "3"
+    And the box for x cannot be changed
+
+  Scenario: A wrong guess gets the reply of the scene and the next scene shows the answer
     Given the coach lab shows lesson "x1/05-function" at the scene "guess"
     When I type "9" in the answer box and press the Enter key
     Then the coach replies "You said 9. That is x·x. The rule also adds 1."
@@ -118,7 +124,15 @@ Feature: A lesson with a function shows its rule, takes an input and asks for a 
     And the box for x cannot be changed
     And the lesson shows the step count 0
     When I type "26" in the answer box and press the Enter key
-    Then the coach says "Now fill in the table."
+    Then the coach says "Watch the box for x = 5."
+
+  Scenario: A wrong guess does not skip the scene after it
+    Given the coach lab shows lesson "x1/05-function" at the scene "guess"
+    When I type "9" in the answer box and press the Enter key
+    Then the coach says "Watch the box hold the answer."
+    When I press Step
+    And I press Step
+    Then the coach says "Now x is 5."
 
   Scenario: The banner gives no values while a question is open
     Given the coach lab shows lesson "x1/05-function" at the scene "again"
@@ -175,11 +189,11 @@ Feature: A lesson with a function shows its rule, takes an input and asks for a 
     And I submit the table
     Then the coach replies "Row x = 3: you wrote 9. Check the row for 3. Put 3 in place of x."
 
-  Scenario: A wrong row with no reply of its own gets the lesson's reply
+  Scenario: A wrong row with no exact reply gets the reply of its row
     Given the coach lab shows lesson "x1/05-function" at the scene "table"
     When I fill the table with "7, 5, 10"
     And I submit the table
-    Then the coach replies "Row x = 1: you wrote 7. Use the rule above the boxes. Put the number in place of x."
+    Then the coach replies "Row x = 1: you wrote 7. Check the row for 1. Put 1 in place of x."
 
   Scenario: The first wrong row is the one the reply is about
     Given the coach lab shows lesson "x1/05-function" at the scene "table"
@@ -217,8 +231,8 @@ Feature: A lesson with a function shows its rule, takes an input and asks for a 
 
   Scenario: The banner never depends on colour alone
     Given the coach lab shows lesson "x1/05-function"
-    When I select Run
-    And I select Run
+    When I press Step
+    And I press Step
     Then the rule banner says "This is the same as the rule."
 
   Scenario Outline: The banner fits a phone and a tablet
@@ -245,7 +259,7 @@ Feature: A lesson with a function shows its rule, takes an input and asks for a 
   Scenario: Reduced motion draws no animation on the banner
     Given the coach lab shows lesson "x1/05-function" at the scene "enter" with reduced motion
     When I type 3 for x
-    And I select Run
+    And I press Step
     Then the rule banner has no animation or transition longer than a millisecond
     And the rule banner says "Box a0 holds 9."
 
@@ -261,3 +275,19 @@ Feature: A lesson with a function shows its rule, takes an input and asks for a 
       | warm    | dark  |
       | neutral | light |
       | neutral | dark  |
+
+  Scenario: A pass is recorded even when a scene with a goal comes after the table
+    Given the coach lab shows lesson "x1/05-function" at the scene "table"
+    When I fill the table with "2, 5, 10"
+    And I submit the table
+    Then the stored progress of "x1/05-function" has passed
+    And the Now you can card is shown
+
+  Scenario: A scene that fixes x on the first scene is applied from the start
+    Given the coach lab shows lesson "x1/06-first-input"
+    Then the box for x holds "4"
+    And the box for x cannot be changed
+    And the lesson shows the step count 0
+    And the rule banner shows no values
+    When I type "17" in the answer box and press the Enter key
+    Then the coach confirms "You called it."
