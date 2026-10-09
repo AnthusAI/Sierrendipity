@@ -23,6 +23,7 @@ Feature: The five sample lessons of Course 1
       | c1/03-last-one-wins      | 2      | 2     | a0         |
       | c1/04-two-boxes          | 2      | 2     | a0, a1     |
       | c1/05-add                | 3      | 3     | a0, a1, a2 |
+      | c1/07-a-rule-for-x       | 3      | 2     | a0         |
 
   Scenario: The boxes and ideas appear one at a time
     Given the lesson "c1/04-two-boxes"
