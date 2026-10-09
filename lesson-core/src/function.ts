@@ -18,6 +18,8 @@ export interface FunctionBoxes {
 export const MAX_RULE_CHARS = 60;
 /** The x a function lesson starts with, in the player and in the checker, until the student sets another. */
 export const DEFAULT_FUNCTION_INPUT = 1;
+/** The most the student may type for x, and the most a lesson may list (keeps the banner short). */
+export const MAX_FUNCTION_INPUT = 99_999;
 /** Most steps a function evaluation may take; a program that needs more does not finish. */
 export const FUNCTION_MAX_STEPS = 1000;
 
@@ -132,6 +134,29 @@ function evaluate(expression: Expression, x: bigint): bigint {
   }
 }
 
+const BOX_MIN = -(2n ** 31n);
+const BOX_MAX = 2n ** 31n - 1n;
+
+function fits(expression: Expression, x: bigint): boolean {
+  const inBox = (v: bigint): boolean => v >= BOX_MIN && v <= BOX_MAX;
+  switch (expression.kind) {
+    case "number":
+      return inBox(expression.value);
+    case "x":
+      return inBox(x);
+    case "negate":
+    case "group":
+      return fits(expression.inner, x) && inBox(evaluate(expression, x));
+    case "binary":
+      return fits(expression.left, x) && fits(expression.right, x) && inBox(evaluate(expression, x));
+  }
+}
+
+/** True when every step of the rule stays inside a box (32 bits, signed) for `x`: then the equation is true arithmetic, not a wrapped number. */
+export function ruleFits(rule: ParsedRule, x: number): boolean {
+  return fits(rule.expression, BigInt(x));
+}
+
 /** The value of the rule for `x`, as a signed 32-bit number (the size of a box). */
 export function ruleValue(rule: ParsedRule, x: number): number {
   return Number(BigInt.asIntN(32, evaluate(rule.expression, BigInt(x))));
@@ -143,13 +168,16 @@ function render(expression: Expression, x: number | null): string {
       return expression.value.toString();
     case "x":
       return x === null ? "x" : x < 0 ? `(${x})` : String(x);
-    case "negate":
-      return `-${render(expression.inner, x)}`;
+    case "negate": {
+      const inner = render(expression.inner, x);
+      return expression.inner.kind === "negate" ? `-(${inner})` : `-${inner}`;
+    }
     case "group":
       return `(${render(expression.inner, x)})`;
     case "binary": {
       const left = render(expression.left, x);
-      const right = render(expression.right, x);
+      const rawRight = render(expression.right, x);
+      const right = expression.right.kind === "negate" ? `(${rawRight})` : rawRight;
       return expression.operator === "*" ? `${left}·${right}` : `${left} ${expression.operator} ${right}`;
     }
   }
@@ -160,13 +188,17 @@ export function ruleText(rule: ParsedRule): string {
   return `${rule.name}(x) = ${render(rule.expression, null)}`;
 }
 
-/** The rule with a number in place of x and the answer: `f(7) = 7·7 + 1 = 50`. */
+/** The rule with a number in place of x and the answer: `f(7) = 7·7 + 1 = 50`. When the numbers do not fit in a box it says so instead of printing a wrapped result. */
 export function ruleSubstitution(rule: ParsedRule, x: number): string {
+  if (!ruleFits(rule, x)) return `${rule.name}(${x}) is too big for a box`;
   return `${rule.name}(${x}) = ${render(rule.expression, x)} = ${ruleValue(rule, x)}`;
 }
 
 /** What the machine says about the rule, in words (never only a colour): not finished, the same, or different. */
-export function ruleStatus(output: string, finished: boolean, held: number, expected: number): string {
+export function ruleStatus(output: string, finished: boolean, held: number, expected: number, trouble?: "fault" | "limit" | "too-big"): string {
+  if (trouble === "too-big") return `The rule gives a number that does not fit in a box. Choose a smaller number for x.`;
+  if (trouble === "fault") return `The program stopped with a fault. Box ${output} holds ${held}.`;
+  if (trouble === "limit") return `The program kept running and was stopped. Box ${output} holds ${held}.`;
   if (!finished) return `The program has not finished. Box ${output} holds ${held}.`;
   if (held === expected) return `Box ${output} holds ${held}. This is the same as the rule.`;
   return `Box ${output} holds ${held}. The rule gives ${expected}. These are different.`;

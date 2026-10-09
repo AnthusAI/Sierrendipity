@@ -81,6 +81,8 @@ export interface Scene {
   carry?: { a: number; b: number };
   /** The builder's tray: the card words a student may drag into the list. */
   tray?: number[];
+  /** Function lessons: x is fixed to this number in this scene. The player sets it on entry and locks it; the checker judges the scene at it. */
+  input?: number;
 }
 
 /** A small predict-the-result question: run the program, ask what `target` holds. */

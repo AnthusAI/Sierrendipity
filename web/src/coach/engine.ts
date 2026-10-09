@@ -1,5 +1,6 @@
 import {
   DEFAULT_FUNCTION_INPUT,
+  MAX_FUNCTION_INPUT,
   earnedStars,
   liveRunOf,
   parseStep,
@@ -30,8 +31,6 @@ const STAR_NAMES: Record<string, string> = {
   "another-way": "another way to do it",
   "below-zero": "a box below zero",
 };
-/** The most the student may type for x (a box holds 32 bits; this keeps the banner short). */
-export const MAX_FUNCTION_INPUT = 99_999;
 export const DEFAULT_WRONG = "Watch what happens.";
 /** The most cards the builder may hand back (the same ceiling as the cards model). */
 const MAX_REPLACED_CARDS = 200;
@@ -150,7 +149,7 @@ export class LessonEngine {
     this.isVisible = opts.isVisible ?? (() => typeof document === "undefined" || document.visibilityState !== "hidden");
     this.cards = [...lesson.starter.words];
     this.live = this.build(this.cards);
-    this.live.facts = { starter: [...lesson.starter.words], predictions: {}, events: [], ...functionFactsOf(lesson) };
+    this.live.facts = { starter: [...lesson.starter.words], predictions: {}, events: [], ...functionFactsOf(lesson, this.functionInput) };
     this.detector = new StuckDetector(this.clock.now());
     this.mastery = this.hasMastery();
     if (this.mastery && lesson.scenes.some((s) => s.skippable)) this.phase = "quick-offer";
@@ -320,7 +319,7 @@ export class LessonEngine {
 
   /** The student sets x for the lesson's function: the machine starts again with the input box holding it. */
   setFunctionInput(x: number): void {
-    if (!this.lesson.function || !this.canAct("edit")) return;
+    if (!this.lesson.function || !this.canAct("edit") || this.scene()?.input !== undefined) return;
     if (!Number.isInteger(x) || Math.abs(x) > MAX_FUNCTION_INPUT || x === this.functionInput) return;
     this.touch();
     this.functionInput = x;
@@ -337,6 +336,7 @@ export class LessonEngine {
     const row = ask.inputs.findIndex((_, k) => values[k] !== expected[k]);
     if (row < 0) {
       (this.live.facts.events ??= []).push({ type: "table", inputs: [...ask.inputs] });
+      this.recordRun(liveRunOf(this.live));
       this.resolveAnswer(true, "table", !finished(this.live));
       return;
     }
@@ -456,6 +456,7 @@ export class LessonEngine {
     const fn = this.lesson.function;
     const live = startLive(cards, { hideEnd: this.lesson.hideEnd, ...(fn ? { startRegs: { [fn.inputs[0]!]: this.functionInput } } : {}) });
     if (facts) live.facts = facts;
+    if (fn) live.facts.functionInput = this.functionInput;
     return live;
   }
 
@@ -490,7 +491,7 @@ export class LessonEngine {
 
   /** The last scene with a goal on the machine: where an unfinished or wrong run counts as an attempt. */
   private goalScene(): number {
-    for (let i = this.lesson.scenes.length - 1; i >= 0; i--) if (this.lesson.scenes[i]!.until.length > 0) return i;
+    for (let i = this.lesson.scenes.length - 1; i >= 0; i--) if (this.lesson.scenes[i]!.until.length > 0 || this.lesson.scenes[i]!.ask?.kind === "table") return i;
     return -1;
   }
 
@@ -579,6 +580,11 @@ export class LessonEngine {
     // A scene that locks editing promises the starter cards: put them back if the student changed them.
     if (scene.lock.includes("edit") && this.cards.some((w, k) => w !== this.lesson.starter.words[k])) {
       this.cards = [...this.lesson.starter.words];
+      this.live = this.build(this.cards, this.live.facts);
+    }
+    // A scene that fixes x for the function: put x there (the machine starts again only when x changes).
+    if (scene.input !== undefined && this.lesson.function && scene.input !== this.functionInput) {
+      this.functionInput = scene.input;
       this.live = this.build(this.cards, this.live.facts);
     }
     // The goal may already hold (the student got there early): do not make them do it again.
@@ -705,7 +711,7 @@ export class LessonEngine {
       goalMissed,
       hideEnd: this.lesson.hideEnd,
       demo,
-      ...(this.lesson.function ? { functionInput: this.functionInput } : {}),
+      ...(this.lesson.function ? { functionInput: this.functionInput, functionInputLocked: this.scene()?.input !== undefined } : {}),
     };
   }
 
@@ -773,9 +779,9 @@ export class LessonEngine {
 }
 
 /** The function's boxes as facts of a run, so `f(3) is 10` can run the program fresh. Nothing for a lesson without a function. */
-function functionFactsOf(lesson: PublishedLesson): Pick<Live["facts"], "functionBoxes"> {
+function functionFactsOf(lesson: PublishedLesson, input: number): Pick<Live["facts"], "functionBoxes" | "functionInput"> {
   const fn = lesson.function;
-  return fn ? { functionBoxes: { name: fn.name, input: fn.inputs[0]!, output: fn.output } } : {};
+  return fn ? { functionBoxes: { name: fn.name, input: fn.inputs[0]!, output: fn.output }, functionInput: input } : {};
 }
 
 function demoCards(live: Live): number[] {

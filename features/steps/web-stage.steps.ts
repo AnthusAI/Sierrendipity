@@ -31,9 +31,12 @@ interface Opening {
 const AUTO: Record<string, (w: WebWorld) => Promise<void>> = {
   enter: async (w) => {
     await w.page.getByLabel("Number for x in f(x)").fill("3");
+    await w.page.getByLabel("Number for x in f(x)").press("Enter");
     await named(w, "Run").click();
     await named(w, "Run").click();
   },
+  guess: async (w) => answer(w, "10"),
+  again: async (w) => answer(w, "26"),
   place: async (w) => answer(w, "4"),
   "find-answer": async (w) => void (await coachId(w, "band:rd").click()),
   bands: async (w) => void (await coachId(w, "band:rd").click()),

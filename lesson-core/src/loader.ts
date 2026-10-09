@@ -30,7 +30,7 @@ import {
   type SolutionDecl,
   type Warmup,
 } from "./lesson";
-import { functionProblems, parseFunction, parseTableAsk } from "./loader-function";
+import { functionProblems, parseFunction, parseSceneInput, parseTableAsk } from "./loader-function";
 import { registerNumber, STOP_WORD } from "./steps/run";
 import { featureProblems } from "./steps/checks";
 import { lessonSteProblems } from "./ste";
@@ -209,7 +209,7 @@ function parseScene(raw: unknown, i: number, ctx: SceneCtx, errors: string[]): S
   if (typeof id !== "string" || !/^[a-z0-9-]+$/.test(id)) return void errors.push(`scenes[${i}]: id must be a lowercase slug`);
   const w = `scene "${id}"`;
   const n = errors.length;
-  unknownKeys(raw, ["id", "say", "doneSay", "ifMissed", "show", "spotlight", "ask", "until", "onWrong", "hints", "showMe", "lock", "skippable", "glassNamed", "lamps", "bands", "flip", "carry", "tray"], w, errors);
+  unknownKeys(raw, ["id", "say", "doneSay", "ifMissed", "show", "spotlight", "ask", "until", "onWrong", "hints", "showMe", "lock", "skippable", "glassNamed", "lamps", "bands", "flip", "carry", "tray", "input"], w, errors);
 
   const say = raw.say;
   if (!isStr(say)) errors.push(`${w}: say must be non-empty text`);
@@ -266,6 +266,7 @@ function parseScene(raw: unknown, i: number, ctx: SceneCtx, errors: string[]): S
     }
   }
   const tray = needs("tray", "builder") ? parseTray(raw.tray, w, errors) : undefined;
+  const sceneInput = parseSceneInput(raw.input, w, errors);
   let ask: Ask | undefined;
   if (raw.ask !== undefined) {
     ask = parseAsk(raw.ask, w, errors);
@@ -355,6 +356,7 @@ function parseScene(raw: unknown, i: number, ctx: SceneCtx, errors: string[]): S
     ...(flip ? { flip } : {}),
     ...(carry ? { carry } : {}),
     ...(tray ? { tray } : {}),
+    ...(sceneInput !== undefined ? { input: sceneInput } : {}),
   };
 }
 

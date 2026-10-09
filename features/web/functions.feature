@@ -31,7 +31,7 @@ Feature: A lesson with a function shows its rule, takes an input and asks for a 
     Then the rule banner says "The program has not finished. Box a0 holds 9."
     When I select Run
     Then box "a0" shows 10
-    And the rule banner says "Box a0 holds 10. This is the same as the rule."
+    And the coach says "The rule now uses 3 for x."
 
   Scenario: Back moves the banner back with the machine
     Given the coach lab shows lesson "x1/05-function"
@@ -49,10 +49,11 @@ Feature: A lesson with a function shows its rule, takes an input and asks for a 
     And the rule banner shows "f(5) = 5·5 + 1 = 26"
     And the rule banner says "The program has not finished. Box a0 holds 5."
 
-  Scenario Outline: Text that is not a whole number does not change x
+  Scenario Outline: Text that is not a whole number does not change x and gets a plain message
     Given the coach lab shows lesson "x1/05-function"
     When I type "<typed>" for x
-    Then the rule banner shows "f(1) = 1·1 + 1 = 2"
+    Then the box for x says "Type a whole number from -99999 to 99999. The number for x stays 1."
+    And the rule banner shows "f(1) = 1·1 + 1 = 2"
 
     Examples:
       | typed   |
@@ -60,13 +61,74 @@ Feature: A lesson with a function shows its rule, takes an input and asks for a 
       | 2.5     |
       | 123456  |
 
+  Scenario: Keystrokes do not change x until the student confirms
+    Given the coach lab shows lesson "x1/05-function"
+    When I type "2" for x without confirming
+    Then the rule banner shows "f(1) = 1·1 + 1 = 2"
+    When I type "2.5" for x without confirming
+    And I leave the box for x
+    Then the box for x says "Type a whole number"
+    And the box for x holds "1"
+    And the rule banner shows "f(1) = 1·1 + 1 = 2"
+
+  Scenario: Leaving the box confirms a good number
+    Given the coach lab shows lesson "x1/05-function"
+    When I type "7" for x without confirming
+    And I leave the box for x
+    Then the rule banner shows "f(7) = 7·7 + 1 = 50"
+    And the box for x has no message
+
+  Scenario: A number whose square does not fit in a box is not printed as an equation
+    Given the coach lab shows lesson "x1/05-function"
+    When I type 46341 for x
+    Then the rule banner shows "f(46341) is too big for a box"
+    And the rule banner says "does not fit in a box"
+    When I type 46340 for x
+    Then the rule banner shows "f(46340) = 46340·46340 + 1 = 2147395601"
+
+  Scenario: Running at the starting x does not finish the first scene
+    Given the coach lab shows lesson "x1/05-function"
+    When I select Run
+    And I select Run
+    Then the coach says "Type 3 for x above the boxes."
+    And the rule banner says "Box a0 holds 2. This is the same as the rule."
+
   Scenario: The scene is done when the machine has run the rule for 3
     Given the coach lab shows lesson "x1/05-function"
     When I type 3 for x
     And I select Run
     And I select Run
+    Then the coach says "The rule now uses 3 for x."
+    And the box for x holds "3"
+    And the box for x cannot be changed
+
+  Scenario: A student who typed 3 is right to say 10 and goes on
+    Given the coach lab shows lesson "x1/05-function" at the scene "guess"
+    When I type "10" in the answer box and press the Enter key
+    Then the coach says "Now x is 5."
+
+  Scenario: A wrong guess gets the reply of the scene
+    Given the coach lab shows lesson "x1/05-function" at the scene "guess"
+    When I type "9" in the answer box and press the Enter key
+    Then the coach replies "You said 9. That is x·x. The rule also adds 1."
+
+  Scenario: A scene that fixes x puts x there and starts the machine again
+    Given the coach lab shows lesson "x1/05-function" at the scene "again"
+    Then the box for x holds "5"
+    And the box for x cannot be changed
+    And the lesson shows the step count 0
+    When I type "26" in the answer box and press the Enter key
     Then the coach says "Now fill in the table."
 
+  Scenario: The banner gives no values while a question is open
+    Given the coach lab shows lesson "x1/05-function" at the scene "again"
+    Then the rule banner reads "f(x) = x·x + 1"
+    And the rule banner shows no values
+
+  Scenario: The banner gives no values while the table is asked
+    Given the coach lab shows lesson "x1/05-function" at the scene "table"
+    Then the rule banner reads "f(x) = x·x + 1"
+    And the rule banner shows no values
   Scenario: The table has a row and a named cell for each x
     Given the coach lab shows lesson "x1/05-function" at the scene "table"
     Then the table has the columns "x" and "f(x)"
@@ -88,6 +150,18 @@ Feature: A lesson with a function shows its rule, takes an input and asks for a 
     When I fill the table with "2, 5, 10"
     And I submit the table
     Then the Now you can card is shown
+
+  Scenario: Filling the table is what earns the pass of a lesson whose pass needs the table
+    Given the coach lab shows lesson "x1/05-function" at the scene "table"
+    When I fill the table with "2, 5, 10"
+    And I submit the table
+    Then the stored progress of "x1/05-function" has passed
+
+  Scenario: A wrong table is not a pass
+    Given the coach lab shows lesson "x1/05-function" at the scene "table"
+    When I fill the table with "2, 4, 10"
+    And I submit the table
+    Then the stored progress of "x1/05-function" has not passed
 
   Scenario: A wrong row gets a reply about that exact value
     Given the coach lab shows lesson "x1/05-function" at the scene "table"
@@ -143,21 +217,30 @@ Feature: A lesson with a function shows its rule, takes an input and asks for a 
 
   Scenario: The banner never depends on colour alone
     Given the coach lab shows lesson "x1/05-function"
-    When I type 3 for x
-    And I select Run
+    When I select Run
     And I select Run
     Then the rule banner says "This is the same as the rule."
 
-  Scenario Outline: The banner and the table fit a phone and a tablet
-    Given the coach lab shows lesson "x1/05-function" at <width> by <height> at the scene "<scene>"
+  Scenario Outline: The banner fits a phone and a tablet
+    Given the coach lab shows lesson "x1/05-function" at <width> by <height> at the scene "enter"
     Then the lab page does not scroll sideways
-    And the rule banner and the table fit the window
+    And the rule banner fits the window
 
     Examples:
-      | width | height | scene  |
-      | 320   | 568    | enter  |
-      | 320   | 568    | table  |
-      | 390   | 844    | table  |
+      | width | height |
+      | 320   | 568    |
+      | 390   | 844    |
+
+  Scenario Outline: The table and the banner fit a phone and a tablet
+    Given the coach lab shows lesson "x1/05-function" at <width> by <height> at the scene "table"
+    Then the lab page does not scroll sideways
+    And the rule banner fits the window
+    And the table fits the window
+
+    Examples:
+      | width | height |
+      | 320   | 568    |
+      | 390   | 844    |
 
   Scenario: Reduced motion draws no animation on the banner
     Given the coach lab shows lesson "x1/05-function" at the scene "enter" with reduced motion

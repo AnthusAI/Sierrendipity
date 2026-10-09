@@ -130,6 +130,7 @@ export function LessonPlayer({ lesson, store = null, userId = "local", clock = r
     ...(scene?.flip ? { flip: scene.flip } : {}),
     ...(scene?.carry ? { carry: scene.carry } : {}),
     ...(scene?.tray ? { tray: scene.tray } : {}),
+    ...(scene?.ask ? { asking: true } : {}),
   };
   const fallback = () => {
     const r = stageRef.current?.getBoundingClientRect();

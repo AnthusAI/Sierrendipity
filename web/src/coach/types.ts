@@ -29,6 +29,8 @@ export interface LiveView {
   demo: boolean;
   /** The x of the lesson's function, when the lesson has one. */
   functionInput?: number;
+  /** The scene fixed x: the banner shows it and does not let the student change it. */
+  functionInputLocked?: boolean;
 }
 
 /** The scene being played, as far as the stage cares. */
@@ -45,6 +47,8 @@ export interface StageScene {
   flip?: FlipSpec;
   carry?: { a: number; b: number };
   tray?: number[];
+  /** The scene asks a question: the banner must not show values that would answer it. */
+  asking?: boolean;
 }
 
 /** How a card was changed: a spinner (`edit`, the default) or a lamp (`toggle`). A scene may lock one and not the other. */

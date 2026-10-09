@@ -195,8 +195,18 @@ Both boxes must be in `boxes`. The block turns on four things:
   (`f(7) = 7·7 + 1 = 50`) and a polite status line that says in words whether the output box holds the
   value of the rule (never colour alone). It reads the shared `Session`, so Step, Back and Reset update it.
   The student sets x in the banner (a whole number from -99999 to 99999, default `DEFAULT_FUNCTION_INPUT`, 1);
-  the machine then starts again with the input box holding x (`startLive(..., { startRegs })`). The box is
-  read-only in a scene that locks `edit`, and in every `ask` scene. A scene may spotlight `banner:rule`.
+  the number counts when the student presses Enter or leaves the box, never key by key, and text that is not a
+  whole number gets a plain message and changes nothing. The machine then starts again with the input box
+  holding x (`startLive(..., { startRegs })`). The box is read-only in a scene that locks `edit`, in every `ask`
+  scene and in a scene with `input`. While a scene asks a question the banner shows the rule only (no
+  numbers, no status), so it cannot give the answer away. When a step of the rule does not fit in a box (for
+  example `f(46341)` for `x·x + 1`) the banner says `f(46341) is too big for a box` instead of an equation. The
+  status line also says when the program faulted or was stopped by the step limit. A scene may spotlight
+  `banner:rule`.
+- **A scene can fix x:** `input: 3` on a scene. On entry the player sets x to 3 (the machine starts again if x
+  changes) and locks the box; the checker judges that scene at x = 3 (number asks, `until` phrases, reference
+  solutions). Use it for any ask whose answer depends on x. A scene that waits for the student to type x says
+  `x is 3` in `until`; the checker judges it at x = 3.
   `lesson-core` renders the text as pure functions: `ruleText`, `ruleSubstitution`, `ruleValue`, `ruleStatus`.
 - **Function phrases** in `until`, `checks.feature` and ask queries (see the step vocabulary).
 - **The table ask:** `ask: { kind: table, question: "...", inputs: [1, 2, 3], target: a0 }`. The student fills one
@@ -208,7 +218,7 @@ Both boxes must be in `boxes`. The block turns on four things:
   `onWrongDefault`. The reply starts with `Row x = 2: you wrote 4.` The loader rejects a match that is not a row
   of the table or that is the right answer.
 - **The rule check.** `npm run lesson -- check` fails when the rule disagrees with the program on a listed input.
-  The listed inputs are the `inputs` of the table asks and the numbers in function phrases (`f(3) is 10`), or
+  The listed inputs are the `inputs` of the table asks, the numbers in function phrases (`f(3) is 10`, decimal, hex or binary, and the outer input of `f(f(2))`) and `x is N`, or
   1, 2 and 3 when the lesson lists none. The programs are every reference solution that earns `pass`, and the
   starter when the lesson has a table (the table's answers come from it).
 
@@ -390,6 +400,7 @@ or `0b` binary; box comparisons are modulo 2^32, so `-1` and `4294967295` are th
 | `the timeline is at step N` | timeline position |
 | `the program counter is N` | pc |
 | `f(3) is 10` | the program run on a fresh machine with the input box set to 3 leaves 10 in the output box (the name is the lesson's `function.name`; at most 1,000 steps; needs a `function` block) |
+| `x is 3` | the x the machine started with (the input box) is 3: use it in `until` when the student must set x themselves, because `f(3) is 10` is true of the starter before the student does anything |
 | `f(f(2)) is 26` | the same, with the first result fed back in as the input |
 | `the student filled the table for 1, 2, 3` | the student answered a table ask over these inputs correctly (a `table` event) |
 

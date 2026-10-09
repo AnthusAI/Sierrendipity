@@ -35,6 +35,8 @@ export interface LessonRun {
   hitStepCap: boolean;
   /** The lesson's function and its boxes, for phrases such as `f(3) is 10`. */
   functionBoxes?: FunctionBoxes;
+  /** The x the machine started with (the input box), for the phrase `x is 3`. */
+  functionInput?: number;
 }
 
 export interface RunOptions {
@@ -53,6 +55,7 @@ export interface RunOptions {
   /** Append the end marker (Stop, ebreak) after the cards; the student sees it only as "the end of the list". */
   hideEnd?: boolean;
   functionBoxes?: FunctionBoxes;
+  functionInput?: number;
 }
 
 /** The Stop card (ebreak). */
@@ -169,6 +172,7 @@ export function runProgram(cards: number[], opts: RunOptions = {}): LessonRun {
     laps,
     hitStepCap,
     ...(opts.functionBoxes ? { functionBoxes: opts.functionBoxes } : {}),
+    ...(opts.functionInput !== undefined ? { functionInput: opts.functionInput } : {}),
   };
 }
 
