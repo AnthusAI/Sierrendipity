@@ -168,7 +168,9 @@ The checker is in `lesson-core/src/ste.ts`.
   goal is still not met. It says what the machine did and what to change. The coach shows it as
   `[data-coach-missed]` with a "Try again" button; "Try again" resets the machine to the start and keeps the
   cards as the student left them, then moves keyboard focus to the Run (Step) button (`engine.tryAgain()`). A scene
-  with `ask` cannot have `ifMissed`. Limits: at most 3 sentences and 45 words.
+  with `ask` cannot have `ifMissed`. When the cards are not the starter cards, the same box also shows
+  "Start again", which puts the starter cards back and starts the machine over (`engine.restoreCards()`), so a
+  goal that no edit of the current cards can reach never traps the student. Limits: at most 3 sentences and 45 words.
 - `onWrongDefault` is text, or `{ say, goto }`. `goto` names the scene that reveals the answer; the checker
   requires it when the scene after an `ask` does not wait on the machine (`until`).
 - The player locks Step, Back, Reset and Edit in `ask` scenes (the prediction comes before the reveal), restores the

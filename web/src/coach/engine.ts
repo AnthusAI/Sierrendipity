@@ -71,6 +71,8 @@ export interface PlayerState {
   reply: string | null;
   /** The scene's `ifMissed` text, while the machine has finished without meeting the goal. */
   missed: string | null;
+  /** True while the missed-goal help shows and the cards are not the starter cards: [Start again] can put them back. */
+  canRestoreCards: boolean;
   hint: { rung: 1 | 2 | 3; text: string } | null;
   canHint: boolean;
   canShowMe: boolean;
@@ -250,6 +252,17 @@ export class LessonEngine {
     if (this.phase !== "scene" || !this.missed) return;
     this.touch();
     this.live = this.build(this.cards, this.live.facts);
+    this.refresh();
+  }
+
+  /** [Start again] after a missed goal: the starter cards come back and the machine starts over. */
+  restoreCards(): void {
+    if (this.phase !== "scene" || !this.missed) return;
+    this.touch();
+    this.cards = [...this.lesson.starter.words];
+    this.live = this.build(this.cards, this.live.facts);
+    this.awaitingEdit = false;
+    this.missed = null;
     this.refresh();
   }
 
@@ -725,6 +738,7 @@ export class LessonEngine {
       strandedButton,
       reply: this.reply,
       missed: this.phase === "scene" && finished(this.live) ? this.plain(this.missed ?? "") || null : null,
+      canRestoreCards: this.phase === "scene" && finished(this.live) && !!this.missed && !this.startersAreOnTheCards(),
       hint: rung > 0 && showing ? { rung: rung as 1 | 2 | 3, text: showing.hints[rung - 1] ?? "" } : null,
       canHint: !!showing && showing.hints.length >= 3 && rung < 3,
       canShowMe: !!showing && !!showing.showMe && !!this.lesson.ghosts[showing.showMe],
@@ -737,6 +751,10 @@ export class LessonEngine {
       stopped: this.stopped,
     };
     this.emit();
+  }
+
+  private startersAreOnTheCards(): boolean {
+    return this.cards.length === this.lesson.starter.words.length && this.cards.every((w, k) => w === this.lesson.starter.words[k]);
   }
 
   private endCard(): NonNullable<PlayerState["end"]> {
