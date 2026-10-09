@@ -1,0 +1,7 @@
+{
+  "id": "demo-save",
+  "events": [
+    { "at": 0, "type": "point", "target": "card:0" },
+    { "at": 900, "type": "save", "from": 0, "to": 1 }
+  ]
+}

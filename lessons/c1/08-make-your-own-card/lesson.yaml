@@ -1,0 +1,111 @@
+id: c1/08-make-your-own-card
+title: Make Your Own Card
+minutes: 4
+concepts:
+  introduces: [function-card]
+  requires: [multiply, rule]
+# One new idea (two cards can become one named card), one action (select both cards and save them as a card).
+boxes: [a0]
+pointer: false
+hideEnd: true
+ui:
+  controls: [step, reset]
+  resetLabel: Start again
+  log: false
+  deskTitle: false
+  endMarker: false
+  boxNames: true
+  glass: false
+  spotlight: ring
+  spotlightAfterHint: true
+function:
+  name: f
+  inputs: [a0]
+  output: a0
+  rule: "f(x) = x·x + 1"
+starter:
+  asm: |
+    mul a0, a0, a0
+    addi a0, a0, 1
+tabs: [cards]
+onWrongDefault: Use the rule above the boxes. Put the number in place of x.
+scenes:
+  - id: save
+    say: Make these two cards into one card. Select both cards, then save them.
+    show: [builder, D1]
+    tray: ["mul a0, a0, a0", "addi a0, a0, 1"]
+    save: { min: 2, max: 2, name: f }
+    spotlight: tray
+    until:
+      - the program uses the card "f"
+    ifMissed: The machine ran two separate cards. Use Select, check both cards, then use Save as card.
+    hints:
+      - Look for the button called Select.
+      - Use Select. Check card 1 and card 2.
+      - Check card 1 and card 2. Then use Save as card.
+    showMe: demo-save
+    doneSay: You made a card named f. One card now does the work of two cards.
+
+  - id: predict
+    say: Your card f follows the rule above the boxes. Fill in the table for x = 7.
+    show: [builder, D1]
+    tray: ["mul a0, a0, a0", "addi a0, a0, 1"]
+    ask:
+      kind: table
+      question: What does your card f give for 7?
+      inputs: [7]
+      target: a0
+    onWrong:
+      - match: "7:49"
+        say: That is x·x only. The rule also adds 1.
+        goto: use
+      - match: "7:8"
+        say: That is x + 1. The rule multiplies x by x first.
+        goto: use
+    hints:
+      - Put 7 in place of x in the rule.
+      - Multiply 7 by 7 first. Then add 1.
+      - 7·7 is 49. Add 1 to 49.
+    lock: [drag, toggle]
+
+  - id: use
+    say: Type 7 for x above the boxes. Select Step until the machine stops.
+    show: [builder, D1]
+    tray: ["mul a0, a0, a0", "addi a0, a0, 1"]
+    spotlight: "banner:rule"
+    until:
+      - box a0 holds 50
+      - every call returned
+    ifMissed: Box a0 holds the answer for the x you typed. Type 7 for x, then select Step until the machine stops.
+    hints:
+      - Look at the rule above the boxes.
+      - Type 7 in the box for x. Then select Step.
+      - Type 7 for x. Select Step until box a0 shows 50.
+    showMe: demo-run
+    doneSay: Your card f gives 50 for 7, as the rule says. A card like this is a function.
+    lock: [drag, toggle]
+nowYouCan:
+  - Save two cards as one card.
+  - Use your own card in a program.
+  - Say what your card gives for a number.
+warmups:
+  - id: saved-double-plus-three
+    concept: function-card
+    question: Two cards are saved as one card. They add box a0 to itself, then add 3. Box a0 holds 4. What does a0 hold after the new card?
+    program:
+      asm: |
+        addi a0, zero, 4
+        add a0, a0, a0
+        addi a0, a0, 3
+    target: a0
+    expected: 11
+  - id: saved-square-plus-two
+    concept: function-card
+    question: A saved card multiplies box a0 by itself, then adds 2. Box a0 holds 5. What does a0 hold after the card runs?
+    program:
+      asm: |
+        addi a0, zero, 5
+        mul a0, a0, a0
+        addi a0, a0, 2
+    target: a0
+    expected: 27

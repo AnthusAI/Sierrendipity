@@ -1,0 +1,4 @@
+# Puts 2 in the box first, so only the goal of the scene "twice" holds.
+addi a0, zero, 2
+card "f"
+card "f"

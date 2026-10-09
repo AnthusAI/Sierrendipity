@@ -1,0 +1,3 @@
+# Puts 5 in the box first, so only the goal of one scene holds.
+addi a0, zero, 5
+card "f"

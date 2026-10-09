@@ -1,0 +1,11 @@
+{
+  "id": "demo-swap",
+  "events": [
+    { "at": 0, "type": "point", "target": "card:2" },
+    { "at": 900, "type": "drag", "from": 2, "to": 1 },
+    { "at": 1800, "type": "point", "target": "button:step" },
+    { "at": 2700, "type": "press", "control": "step" },
+    { "at": 3600, "type": "press", "control": "step" },
+    { "at": 4500, "type": "press", "control": "step" }
+  ]
+}

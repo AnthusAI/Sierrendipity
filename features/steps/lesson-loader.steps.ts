@@ -260,6 +260,13 @@ Then("the lesson ui says the spotlight is {string} and the reset label is {strin
 Then("the scene {string} says if missed {string}", (id: string, text: string) => {
   assert.equal(lesson().scenes.find((s) => s.id === id)?.ifMissed, text);
 });
+Then("the lesson ui shows the controls {string} with the default step label", (controls: string) => {
+  assert.deepEqual(lesson().ui?.controls, list(controls));
+  assert.equal(lesson().ui?.stepLabel, undefined);
+});
+Then("the scene {string} says if missed something that includes {string}", (id: string, text: string) => {
+  assert.ok(lesson().scenes.find((s) => s.id === id)?.ifMissed?.includes(text), String(lesson().scenes.find((s) => s.id === id)?.ifMissed));
+});
 Then("every lesson on disk has no Simplified Technical English problem", () => {
   const known = readConcepts();
   const problems = listLessonIds().flatMap((id) => {
