@@ -239,6 +239,12 @@ Then("the scene {string} has lamps on card {int} with target {int}", (id: string
   assert.equal(lamps?.target, target);
 });
 Then("the scene {string} has a tray of {int} cards", (id: string, n: number) => assert.equal(sceneOf(id).tray?.length, n));
+Then("the scene {string} lets the student save {int} to {int} cards named {string}", (id: string, min: number, max: number, name: string) => {
+  assert.deepEqual(sceneOf(id).save, { min, max, name });
+});
+Then("the lesson gives the custom card {string} with {int} cards", (name: string, n: number) => {
+  assert.equal(lesson().customCards?.find((c) => c.name === name)?.cards.length, n);
+});
 Then("the lesson is a draft", () => assert.equal(lesson().draft, true));
 Then("the lesson is not a draft", () => assert.equal(lesson().draft, false));
 Then("the published lesson is a draft", () => assert.equal(published.draft, true));
@@ -253,6 +259,13 @@ Then("the lesson ui says the spotlight is {string} and the reset label is {strin
 });
 Then("the scene {string} says if missed {string}", (id: string, text: string) => {
   assert.equal(lesson().scenes.find((s) => s.id === id)?.ifMissed, text);
+});
+Then("the lesson ui shows the controls {string} with the default step label", (controls: string) => {
+  assert.deepEqual(lesson().ui?.controls, list(controls));
+  assert.equal(lesson().ui?.stepLabel, undefined);
+});
+Then("the scene {string} says if missed something that includes {string}", (id: string, text: string) => {
+  assert.ok(lesson().scenes.find((s) => s.id === id)?.ifMissed?.includes(text), String(lesson().scenes.find((s) => s.id === id)?.ifMissed));
 });
 Then("every lesson on disk has no Simplified Technical English problem", () => {
   const known = readConcepts();

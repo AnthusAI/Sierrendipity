@@ -1,0 +1,106 @@
+id: c1/10-order-matters
+title: Order Matters
+minutes: 4
+concepts:
+  introduces: [composition]
+  requires: [reuse]
+# One new idea (two cards in a different order give a different answer), one action (drag one card above another).
+boxes: [a0]
+pointer: false
+hideEnd: true
+ui:
+  controls: [step, reset]
+  resetLabel: Start again
+  log: false
+  deskTitle: false
+  endMarker: false
+  boxNames: true
+  glass: true
+  spotlight: ring
+  spotlightAfterHint: true
+starter:
+  asm: |
+    addi a0, zero, 7
+    mul a0, a0, a0
+    addi a0, a0, 1
+tabs: [cards]
+onWrongDefault: Think about which card runs first. Watch the box.
+scenes:
+  - id: first-order
+    glassNamed: true
+    say: Call the multiply card f and the add 1 card g. Here f runs first and g runs second, so select Step until the machine stops.
+    show: [cards, boxes]
+    spotlight: "button:step"
+    until:
+      - the machine has taken at least 3 steps
+      - box a0 holds 50
+    ifMissed: The box holds 50 when all three cards run in this order. Select Start again, then select Step three times.
+    hints:
+      - Which button follows the next card?
+      - Each selection follows one card. The cards run from the top.
+      - Select Step three times. The box ends with 50.
+    showMe: demo-step-three
+    doneSay: 7 times 7 is 49, and 49 plus 1 is 50. This order is g(f(x)).
+    lock: [edit, drag, toggle]
+
+  - id: predict
+    say: Now g runs before f, so this order is f(g(x)). What does the box hold at the end?
+    show: [cards, boxes]
+    ask:
+      kind: number
+      question: "The cards run in this order: put 7, add 1, multiply. What does the box hold?"
+      answer: 64
+    onWrong:
+      - match: 50
+        say: That is the first order. Now the add 1 card runs first.
+        goto: swap
+      - match: 8
+        say: The box holds 8 after the add. The multiply card still runs after that.
+        goto: swap
+    hints:
+      - Follow the cards one at a time from the top.
+      - After the put card and the add card, the box holds 8.
+      - The multiply card multiplies 8 by 8.
+    lock: [edit, drag, toggle]
+
+  - id: swap
+    say: Drag the card that adds 1 above the card that multiplies. Then select Step until the machine stops.
+    show: [builder, D1]
+    tray: ["addi a0, a0, 1"]
+    spotlight: "card:2"
+    until:
+      - the machine has taken at least 3 steps
+      - the word at address 4 is 0x00150513
+      - box a0 holds 64
+    ifMissed: The box does not hold 64. Put the add 1 card above the multiply card, then select Start again and Step.
+    hints:
+      - Which card must run before the multiply card?
+      - Move the card that adds 1 up one place. Use Move card 3 up.
+      - The order must be put 7, add 1, multiply. Then select Step three times.
+    showMe: demo-swap
+    doneSay: Add 1 first, and 8 times 8 is 64. So f(g(x)) is not the same as g(f(x)).
+    lock: [toggle]
+nowYouCan:
+  - Change the answer by changing the order of cards.
+  - Say which card must run first.
+warmups:
+  - id: square-then-add-two
+    concept: composition
+    question: Box a0 holds 5. A card multiplies the box by itself. Then a card adds 2. What does box a0 hold at the end?
+    program:
+      asm: |
+        addi a0, zero, 5
+        mul a0, a0, a0
+        addi a0, a0, 2
+    target: a0
+    expected: 27
+  - id: add-two-then-square
+    concept: composition
+    question: Box a0 holds 5. A card adds 2. Then a card multiplies the box by itself. What does box a0 hold at the end?
+    program:
+      asm: |
+        addi a0, zero, 5
+        addi a0, a0, 2
+        mul a0, a0, a0
+    target: a0
+    expected: 49

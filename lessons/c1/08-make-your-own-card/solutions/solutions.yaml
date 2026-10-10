@@ -1,0 +1,24 @@
+solutions:
+  - file: good.cards
+    earns: [pass, fewer-cards]
+    customCards:
+      - name: f
+        cards: ["mul a0, a0, a0", "addi a0, a0, 1"]
+    note: The two starter cards saved as one card named f.
+  - file: put-seven.cards
+    earns: []
+    scenes: [use]
+    customCards:
+      - name: f
+        cards: ["mul a0, a0, a0", "addi a0, a0, 1"]
+    note: Puts 7 in the box before the card f, so box a0 holds 50 at the end. Only the goal of the scene "use" holds.
+  - file: unsaved.s
+    earns: []
+    note: The right answer from two separate cards, but no card was saved.
+  - file: wrong-no-plus-one.s
+    earns: []
+    note: The card forgets to add 1, so f(3) is 9.
+  - file: forever.s
+    earns: []
+    capped: true
+    note: A card that jumps to itself; only the step cap stops it.

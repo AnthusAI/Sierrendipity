@@ -93,7 +93,7 @@ function evaluateFunction(run: LessonRun, name: string, x: number): number | str
   const boxes = run.functionBoxes;
   if (!boxes) return "this lesson has no function";
   if (boxes.name !== name) return `this lesson's function is called ${boxes.name}, not ${name}`;
-  const value = functionValue(run.words.slice(0, run.cards), boxes, x, { hideEnd: run.words.length > run.cards });
+  const value = functionValue(run.words.slice(0, run.cards), boxes, x, { hideEnd: run.words.length - (run.tail?.length ?? 0) > run.cards, tail: run.tail ?? [] });
   return value ?? `the program does not stop for ${name}(${x}) within ${plural(FUNCTION_MAX_STEPS, "step", "steps")}`;
 }
 
@@ -112,6 +112,24 @@ const P = (example: string, pattern: string, make: (g: G) => StepFn): Phrase => 
 });
 
 export const PHRASES: Phrase[] = [
+  P('the program uses the card "Square-plus-one"', `the program uses the card (?<name>${STR})`, (g) => {
+    const name = str(g.name);
+    return (run) => pass((run.usedCards ?? []).includes(name), `the program uses the card "${name}"`, `the program does not use the card "${name}"`);
+  }),
+  P("the machine made at least 2 calls", `the machine made (?<least>at least )?(?<n>${NUM}) calls?`, (g) => {
+    const n = count(g.n!, 0);
+    const least = g.least !== undefined;
+    return (run) => {
+      const made = run.calls ?? 0;
+      return pass(least ? made >= n : made === n, `the machine made ${plural(made, "call", "calls")}`, `the machine made ${plural(made, "call", "calls")}`);
+    };
+  }),
+  P("every call returned", "every call returned", () => (run) => {
+    const made = run.calls ?? 0;
+    const back = run.returns ?? 0;
+    if (made === 0) return no("the machine made no calls");
+    return pass(back === made, `all ${plural(made, "call", "calls")} returned`, `${plural(made, "call", "calls")} made and ${back} returned`);
+  }),
   P("the machine halted normally", "the machine halted normally", () => (run) => {
     const m = run.machine;
     return pass(
@@ -152,7 +170,7 @@ export const PHRASES: Phrase[] = [
   }),
   P("the machine reached the end", "the machine reached the end", () => (run) => {
     const m = run.machine;
-    const atEnd = m.state === "halted" && m.exitCode === null && m.pc === (run.words.length - 1) * 4;
+    const atEnd = m.state === "halted" && m.exitCode === null && m.pc === (run.words.length - 1 - (run.tail?.length ?? 0)) * 4;
     return pass(atEnd, "the machine reached the end of the list", m.state === "halted" ? "the machine stopped before the end of the list" : `the machine has not reached the end (it is ${m.state})`);
   }),
   P("memory at 1024 holds 3", `memory at (?<a>${NUM}) holds (?<v>${NUM})`, (g) => {

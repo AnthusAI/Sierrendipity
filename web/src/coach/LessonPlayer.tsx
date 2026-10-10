@@ -1,4 +1,4 @@
-import type { ProgressStore, PublishedLesson } from "@sierrendipity/lesson-core";
+import type { Card, CustomCard, ProgressStore, PublishedLesson } from "@sierrendipity/lesson-core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { LessonInfo } from "../lessons";
 import { realClock, type Clock } from "./clock";
@@ -117,6 +117,7 @@ export function LessonPlayer({ lesson, store = null, userId = "local", clock = r
   );
   const onEditStarter = useCallback((card: number, word: number, via?: EditVia) => engine.edit(card, word, via), [engine]);
   const onReplaceCards = useCallback((words: number[]) => engine.replaceCards(words), [engine]);
+  const onReplaceProgram = useCallback((cards: Card[], customCards: CustomCard[]) => engine.replaceProgram(cards, customCards), [engine]);
   const onSetFunctionInput = useCallback((x: number) => engine.setFunctionInput(x), [engine]);
 
   const scene = state.scene;
@@ -130,6 +131,7 @@ export function LessonPlayer({ lesson, store = null, userId = "local", clock = r
     ...(scene?.flip ? { flip: scene.flip } : {}),
     ...(scene?.carry ? { carry: scene.carry } : {}),
     ...(scene?.tray ? { tray: scene.tray } : {}),
+    ...(scene?.save ? { save: scene.save } : {}),
     ...(scene?.ask ? { asking: true } : {}),
   };
   const fallback = () => {
@@ -138,11 +140,11 @@ export function LessonPlayer({ lesson, store = null, userId = "local", clock = r
   };
 
   return (
-    <div data-lesson-player data-lesson={lesson.id} data-missed={state.phase === "scene" && state.missed ? "true" : undefined} className="grid gap-4 md:grid-cols-[minmax(0,1fr)_20rem]">
+    <div data-lesson-player data-lesson={lesson.id} data-celebrate={state.celebration ? state.celebration.kind : undefined} data-missed={state.phase === "scene" && state.missed ? "true" : undefined} className="grid gap-4 md:grid-cols-[minmax(0,1fr)_20rem]">
       {/* The coach comes first in the page order, so a keyboard or screen reader meets it before the machine. */}
       <CoachPanel state={state} engine={engine} next={next} onNext={onNext} onStop={onStop} />
       <section ref={stageRef} aria-label={`${lesson.title}: the machine`} className="min-w-0 rounded-lg border bg-background p-4 md:col-start-1 md:row-start-1">
-        {stage({ lesson, live: state.view, scene: stageScene, onEditStarter, onReplaceCards, onSetFunctionInput, controls })}
+        {stage({ lesson, live: state.view, scene: stageScene, onEditStarter, onReplaceCards, onReplaceProgram, onSetFunctionInput, controls })}
       </section>
       {state.spotlight && state.phase === "scene" && <Spotlight target={state.spotlight} reduced={reduced} mode={lesson.ui?.spotlight ?? "ring"} />}
       {state.phase === "ghost" && <GhostPointer target={state.ghost?.pointer ?? null} fallback={fallback} reduced={reduced} />}

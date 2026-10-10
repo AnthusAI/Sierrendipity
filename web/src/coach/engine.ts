@@ -19,7 +19,7 @@ import {
   type Scene,
 } from "@sierrendipity/lesson-core";
 import { cardsUsed, describe } from "@sierrendipity/explorer";
-import { numberSpec, wordToCard } from "../cards/model";
+import { MAX_CUSTOM_CARDS, buildProgram, customCard, numberSpec, programParts, wordToCard, type Card, type CustomCard } from "../cards/model";
 import { plainBoxes } from "./plain";
 import { markStopShown, sessionInfo, type Clock } from "./clock";
 import { STUCK, StuckDetector, type StuckReason } from "./stuck";
@@ -34,8 +34,16 @@ const STAR_NAMES: Record<string, string> = {
 export const DEFAULT_WRONG = "Watch what happens.";
 /** The most cards the builder may hand back (the same ceiling as the cards model). */
 const MAX_REPLACED_CARDS = 200;
+/** The cards of a program (a custom card is one card of the list) and the custom cards it can call. */
+export interface ProgramState {
+  cards: Card[];
+  customCards: CustomCard[];
+}
+
 /** After the last ghost event, hold the picture this long so the student can read it. */
 export const GHOST_HOLD_MS = 2500;
+/** How long the celebration of a reached goal plays before the way on appears. */
+export const CELEBRATION_MS = 1400;
 
 export interface EngineOptions {
   store?: ProgressStore | null;
@@ -43,6 +51,8 @@ export interface EngineOptions {
   clock: Clock;
   /** True while the tab is visible; the idle rule only counts visible time. */
   isVisible?: () => boolean;
+  /** True when the student asked for less motion: the celebration is still and does not delay the way on. */
+  reducedMotion?: () => boolean;
 }
 
 export type Waiting = "continue" | "until" | "ask";
@@ -88,6 +98,10 @@ export interface PlayerState {
   functionName: string | null;
   end: { verb: "ran" | "made"; made: string[]; values: string[]; stars: string[]; nowYouCan: string[] } | null;
   stopped: boolean;
+  /** A goal was just reached: the coach shows the celebration until the student acts. `lesson` is the end of the lesson. */
+  celebration: { kind: "goal" | "lesson" } | null;
+  /** The celebration is still playing: the way on (Continue, Next lesson, Stop here) is not offered yet. */
+  celebrating: boolean;
 }
 
 /** A prediction is made before the reveal: while it is asked, the machine does not move. */
@@ -102,10 +116,16 @@ export class LessonEngine {
   private readonly store: ProgressStore | null;
   private readonly userId: string;
   private readonly isVisible: () => boolean;
+  private readonly reducedMotion: () => boolean;
   private readonly detector: StuckDetector;
   private readonly listeners = new Set<() => void>();
 
   private cards: number[];
+  /** Words after the end marker: the bodies of the custom cards the program calls. */
+  private tail: number[] = [];
+  /** The program as cards, in a lesson that has custom cards; otherwise null and only `cards` (words) is used. */
+  private program: ProgramState | null = null;
+  private demoProgram: ProgramState | null = null;
   /** The x of the lesson's function, set by the student above the boxes (a lesson without a function ignores it). */
   private functionInput = DEFAULT_FUNCTION_INPUT;
   private live: Live;
@@ -139,6 +159,9 @@ export class LessonEngine {
 
   private ghostTimers: number[] = [];
   private idleTimer: number | null = null;
+  private celebration: PlayerState["celebration"] = null;
+  private celebrating = false;
+  private celebrationTimer: number | null = null;
   private sessionTimer: number | null = null;
   private started = false;
   private snapshot!: PlayerState;
@@ -154,8 +177,10 @@ export class LessonEngine {
     this.store = opts.store ?? null;
     this.userId = opts.userId ?? "local";
     this.isVisible = opts.isVisible ?? (() => typeof document === "undefined" || document.visibilityState !== "hidden");
+    this.reducedMotion = opts.reducedMotion ?? (() => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches);
     this.cards = [...lesson.starter.words];
     this.functionInput = lesson.function ? lesson.scenes[0]?.input ?? DEFAULT_FUNCTION_INPUT : DEFAULT_FUNCTION_INPUT;
+    if (lesson.customCards || lesson.scenes.some((s) => s.save)) this.startProgram();
     this.live = this.build(this.cards);
     this.live.facts = { starter: [...lesson.starter.words], predictions: {}, events: [], ...functionFactsOf(lesson, this.functionInput) };
     this.detector = new StuckDetector(this.clock.now());
@@ -188,6 +213,8 @@ export class LessonEngine {
     if (this.idleTimer !== null) this.clock.clearTimeout(this.idleTimer);
     if (this.sessionTimer !== null) this.clock.clearTimeout(this.sessionTimer);
     this.idleTimer = this.sessionTimer = null;
+    if (this.celebrationTimer !== null) this.clock.clearTimeout(this.celebrationTimer);
+    this.celebrationTimer = null;
   }
 
   subscribe = (cb: () => void): (() => void) => {
@@ -206,7 +233,7 @@ export class LessonEngine {
   }
 
   continue(): void {
-    if (this.phase !== "scene" || this.waiting() !== "continue") return;
+    if (this.phase !== "scene" || this.waiting() !== "continue" || this.celebrating) return;
     this.touch();
     this.doneLine = null;
     this.goNext();
@@ -279,10 +306,13 @@ export class LessonEngine {
     if (!this.canAct(via)) return;
     const to = word >>> 0;
     if (!Number.isInteger(card) || card < 0 || card >= this.cards.length || this.cards[card] === to) return;
+    const before = this.cards[card]!;
+    if (this.program) {
+      const edited = wordToCard(to);
+      if (!edited || this.program.cards[card]?.kind === "custom" || !this.setProgram(this.program.cards.map((c, i) => (i === card ? edited : c)), this.program.customCards)) return;
+    } else this.cards = this.cards.map((w, i) => (i === card ? to : w));
     this.touch();
     this.awaitingEdit = false;
-    const before = this.cards[card]!;
-    this.cards = this.cards.map((w, i) => (i === card ? to : w));
     this.live = this.build(this.cards, this.live.facts);
     (this.live.facts.events ??= []).push({ type: "edit", card, to });
     this.trigger(this.detector.edited(`card:${card}`, before, to));
@@ -295,12 +325,40 @@ export class LessonEngine {
     if (!Array.isArray(words) || words.length > MAX_REPLACED_CARDS || !words.every((w) => Number.isInteger(w) && w >= 0 && w <= 0xffffffff)) return;
     const next = words.map((w) => w >>> 0);
     if (next.length === this.cards.length && next.every((w, i) => w === this.cards[i])) return;
-    this.touch();
     const before = this.cards;
-    this.cards = next;
+    if (this.program) {
+      const made = next.map(wordToCard);
+      if (!made.every((c): c is Card => c !== null) || !this.setProgram(made, this.program.customCards)) return;
+    } else this.cards = next;
+    this.touch();
     this.live = this.build(this.cards, this.live.facts);
     const events = (this.live.facts.events ??= []);
-    next.forEach((w, card) => {
+    this.cards.forEach((w, card) => {
+      if (before[card] !== w) events.push({ type: "edit", card, to: w });
+    });
+    this.afterRun(false);
+  }
+
+  /**
+   * Replace the whole program as cards, with the custom cards it can call (the builder in a lesson with custom cards).
+   * Locked when the scene locks `drag`. A custom card the lesson did not give is accepted only from a scene with `save`,
+   * and only as that scene allows: the number of cards, and the name when the scene gives one.
+   */
+  replaceProgram(cards: Card[], customCards: CustomCard[]): void {
+    if (!this.canAct("drag") || !this.program) return;
+    if (!Array.isArray(cards) || !Array.isArray(customCards) || cards.length > MAX_REPLACED_CARDS || customCards.length > MAX_CUSTOM_CARDS) return;
+    const given = this.lesson.customCards ?? [];
+    const save = this.scene()?.save;
+    const kept = this.program.customCards;
+    const fresh = customCards.filter((c) => !kept.some((k) => k.name === c.name));
+    if (fresh.length > 0 && (!save || fresh.length > 1 || fresh[0]!.cards.length < save.min || fresh[0]!.cards.length > save.max || (save.name !== undefined && fresh[0]!.name !== save.name))) return;
+    if (given.some((g) => !customCards.some((c) => c.name === g.name))) return;
+    const before = this.cards;
+    if (!this.setProgram(cards, customCards)) return;
+    this.touch();
+    this.live = this.build(this.cards, this.live.facts);
+    const events = (this.live.facts.events ??= []);
+    this.cards.forEach((w, card) => {
       if (before[card] !== w) events.push({ type: "edit", card, to: w });
     });
     this.afterRun(false);
@@ -387,6 +445,7 @@ export class LessonEngine {
     this.safe(() => this.store?.recordEvent(this.userId, { type: "show-me", lessonId: this.lesson.id, concepts: this.lesson.concepts.introduces }));
     // The ghost works on a copy; the student's own machine is never touched.
     this.demo = this.copyLive();
+    this.demoProgram = this.program ? { cards: [...this.program.cards], customCards: [...this.program.customCards] } : null;
     this.phase = "ghost";
     this.ghost = { narration: "Show me: watch the ghost.", pointer: null };
     for (const e of ghost.events) {
@@ -472,12 +531,30 @@ export class LessonEngine {
     }
   }
 
-  private build(cards: number[], facts?: Live["facts"]): Live {
+  private build(cards: number[], facts?: Live["facts"], program: ProgramState | null = this.program, tail: number[] = this.tail): Live {
     const fn = this.lesson.function;
-    const live = startLive(cards, { hideEnd: this.lesson.hideEnd, ...(fn ? { startRegs: { [fn.inputs[0]!]: this.functionInput } } : {}) });
+    const live = startLive(cards, { hideEnd: this.lesson.hideEnd, tail, ...(fn ? { startRegs: { [fn.inputs[0]!]: this.functionInput } } : {}) });
     if (facts) live.facts = facts;
+    if (program) live.facts.usedCards = [...new Set(program.cards.filter((c) => c.kind === "custom").map((c) => c.params.name!))];
     if (fn) live.facts.functionInput = this.functionInput;
     return live;
+  }
+
+  /** Start the program as cards: the starter, and the custom cards the lesson gives. Stays words when a starter word is not a card. */
+  private startProgram(): void {
+    const cards = this.cards.map(wordToCard);
+    if (cards.every((c): c is Card => c !== null)) this.setProgram(cards, [...(this.lesson.customCards ?? [])]);
+  }
+
+  /** Make `cards` the program: its words and the custom card bodies come from one build. False (and nothing changes) when the build has problems. */
+  private setProgram(cards: Card[], customCards: CustomCard[]): boolean {
+    const built = buildProgram(cards, customCards);
+    if (built.errors.length > 0) return false;
+    const parts = programParts(built);
+    this.cards = parts.words;
+    this.tail = parts.tail;
+    this.program = { cards, customCards };
+    return true;
   }
 
   private copyLive(): Live {
@@ -499,7 +576,22 @@ export class LessonEngine {
     this.yourTurn = false;
     this.doneLine = null;
     this.announce = null;
+    this.celebration = null;
     this.armIdle();
+  }
+
+  /** Show the celebration; the way on stays hidden until it ends (no wait at all with reduced motion). */
+  private celebrate(kind: "goal" | "lesson"): void {
+    if (this.celebrationTimer !== null) this.clock.clearTimeout(this.celebrationTimer);
+    this.celebrationTimer = null;
+    this.celebration = { kind };
+    this.celebrating = !this.reducedMotion();
+    if (!this.celebrating) return;
+    this.celebrationTimer = this.clock.setTimeout(() => {
+      this.celebrationTimer = null;
+      this.celebrating = false;
+      this.refresh();
+    }, CELEBRATION_MS);
   }
 
   private holds(phrases: string[], run: LessonRun): boolean {
@@ -556,6 +648,10 @@ export class LessonEngine {
     this.doneLine = scene.doneSay ?? null;
     this.announce = scene.doneSay ? null : "Scene complete.";
     this.goNext();
+    if (this.phase !== "done") {
+      this.celebrate("goal");
+      this.refresh();
+    }
   }
 
   /** `genuine`: the guess was made before the machine showed the answer. Anything later is not a prediction. */
@@ -624,6 +720,7 @@ export class LessonEngine {
 
   private finish(): void {
     this.phase = "done";
+    this.celebrate("lesson");
     this.sceneKey++;
     this.nudgeOffer = false;
     this.skipTourAsk = false;
@@ -666,7 +763,7 @@ export class LessonEngine {
         if (e.control === "step") pressStep(demo);
         else if (e.control === "back") pressBack(demo);
         else if (e.control === "run") for (let i = 0; i < 1000 && pressStep(demo); i++);
-        else if (e.control === "reset") this.demo = this.build(demoCards(demo), structuredClone(demo.facts));
+        else if (e.control === "reset") this.demo = this.build(demoCards(demo), structuredClone(demo.facts), this.demoProgram, demo.tail);
         break;
       case "spin":
       case "toggle":
@@ -689,7 +786,21 @@ export class LessonEngine {
           [pointer, narration] = [`card:${e.to}`, `moving card ${e.from + 1}.`];
         }
         say(narration, pointer);
-        this.demo = this.build(cards, structuredClone(demo.facts));
+        this.demo = this.build(cards, structuredClone(demo.facts), this.demoProgram, demo.tail);
+        break;
+      }
+      case "save": {
+        const state = this.demoProgram;
+        const name = e.name ?? this.scene()?.save?.name;
+        if (!state || !name || e.to >= state.cards.length) break;
+        const customCards = [...state.customCards, { name, cards: state.cards.slice(e.from, e.to + 1) }];
+        const cards = [...state.cards.slice(0, e.from), customCard(name), ...state.cards.slice(e.to + 1)];
+        const built = buildProgram(cards, customCards);
+        if (built.errors.length > 0) break;
+        const parts = programParts(built);
+        this.demoProgram = { cards, customCards };
+        this.demo = this.build(parts.words, structuredClone(demo.facts), this.demoProgram, parts.tail);
+        say(`selecting cards ${e.from + 1} to ${e.to + 1} and saving them as the card "${name}".`, `card:${e.from}`);
         break;
       }
       case "type": {
@@ -702,7 +813,7 @@ export class LessonEngine {
         const n = /^-?\d+$/.test(e.text.trim()) ? Number(e.text.trim()) : NaN;
         if (spec && Number.isInteger(n) && n >= spec.min && n <= spec.max && n % spec.step === 0) {
           cards[index] = spec.apply(n).word >>> 0;
-          this.demo = this.build(cards, structuredClone(demo.facts));
+          this.demo = this.build(cards, structuredClone(demo.facts), this.demoProgram, demo.tail);
         }
         say(`typing "${e.text}".`);
         break;
@@ -715,6 +826,7 @@ export class LessonEngine {
     this.ghostTimers.forEach((t) => this.clock.clearTimeout(t));
     this.ghostTimers = [];
     this.demo = null;
+    this.demoProgram = null;
     this.ghost = null;
     this.phase = "scene";
     this.yourTurn = true;
@@ -731,6 +843,7 @@ export class LessonEngine {
 
   private viewOf(live: Live, demo: boolean): LiveView {
     const m = live.machine;
+    const program = demo ? this.demoProgram : this.program;
     const steps = liveRunOf(live).steps;
     const over = m.state === "halted" || m.pc >= live.cards * 4;
     const scene = this.phase === "scene" ? this.scene() : null;
@@ -738,6 +851,7 @@ export class LessonEngine {
     return {
       session: live.session,
       cards: live.words.slice(0, live.cards),
+      ...(program ? { program: { cards: program.cards, customCards: program.customCards } } : {}),
       boxes: this.lesson.boxes.map((name) => ({ name, value: m.regs[registerNumber(name) ?? 0]! | 0 })),
       pointer: this.lesson.pointer && !over ? m.pc / 4 : null,
       steps,
@@ -797,6 +911,8 @@ export class LessonEngine {
       functionName: this.lesson.function?.name ?? null,
       end: this.phase === "done" ? this.endCard() : null,
       stopped: this.stopped,
+      celebration: this.celebration,
+      celebrating: this.celebrating,
     };
     this.emit();
   }

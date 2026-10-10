@@ -13,14 +13,16 @@ export type GhostEvent =
   /** Move a card within the list (`from`), or drag tray card `tray` into the list at `to`. */
   | { at: number; type: "drag"; from: number; to: number }
   | { at: number; type: "drag"; tray: number; to: number }
-  | { at: number; type: "type"; text: string };
+  | { at: number; type: "type"; text: string }
+  /** Select cards `from` to `to` (0-based, inclusive) and save them as one custom card; `name` defaults to the scene's save name. */
+  | { at: number; type: "save"; from: number; to: number; name?: string };
 
 export interface Ghost {
   id: string;
   events: GhostEvent[];
 }
 
-export const GHOST_EVENT_TYPES = ["point", "press", "spin", "toggle", "drag", "type"] as const;
+export const GHOST_EVENT_TYPES = ["point", "press", "spin", "toggle", "drag", "type", "save"] as const;
 export const MAX_GHOST_EVENTS = 200;
 export const MAX_GHOST_MS = 60_000;
 /** A UI target such as "button:step", "card:2", "box:a2", "band:rd", "lamp:3", "flip" or "tray". */
@@ -83,6 +85,13 @@ export function validateGhost(value: unknown, expectedId?: string): { ghost: Gho
         case "type":
           need(["text"]);
           if (typeof e.text !== "string" || e.text.length === 0 || e.text.length > 200) errors.push(`${at}.text must be 1 to 200 characters`);
+          break;
+        case "save":
+          need(["from", "to", "name"]);
+          if (!isInt(e.from, 0, 255)) errors.push(`${at}.from must be a card index from 0 to 255`);
+          if (!isInt(e.to, 0, 255)) errors.push(`${at}.to must be a card index from 0 to 255`);
+          else if (isInt(e.from, 0, 255) && e.to < e.from) errors.push(`${at}.to must not be before from`);
+          if (e.name !== undefined && (typeof e.name !== "string" || e.name.trim().length === 0 || e.name.length > 24)) errors.push(`${at}.name must be 1 to 24 characters`);
           break;
         default:
           errors.push(`${at}: unknown type "${String(e.type)}" (use ${GHOST_EVENT_TYPES.join(", ")})`);

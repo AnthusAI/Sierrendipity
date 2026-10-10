@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { composite, contrastRatio, parseColor, toHex, type Rgba } from "../../web/src/theme/contrast";
+import type { Locator } from "playwright";
 import type { WebWorld } from "../support/web-world.ts";
 
 const root = path.resolve(__dirname, "../..");
@@ -91,8 +92,17 @@ const named = (w: WebWorld, name: string) => w.page.locator("[data-lesson-player
 /** A control by its place, whatever a lesson calls it (Step may be Run; Reset may be Start again). */
 const control = (w: WebWorld, id: "step" | "back" | "reset") => w.page.locator(`[data-lesson-player] [data-coach-id="button:${id}"]`);
 
+/** A student waits for the celebration to finish; the lab's test clock only moves when told to, so move it. */
+async function waitOutCelebration(w: WebWorld, wanted: Locator) {
+  if ((await w.page.locator("[data-coach-celebrate]").count()) > 0 && (await wanted.count()) === 0) await advance(w, 1400);
+}
+
 When("I press Continue", async function (this: WebWorld) {
+  await waitOutCelebration(this, named(this, "Continue"));
   await named(this, "Continue").click();
+});
+When("the celebration ends", async function (this: WebWorld) {
+  await advance(this, 1400);
 });
 When("I select Start again", async function (this: WebWorld) {
   await named(this, "Start again").click();
@@ -101,7 +111,10 @@ When("I select Run", async function (this: WebWorld) {
   await named(this, "Run").click();
 });
 When("I press Continue {int} times", async function (this: WebWorld, times: number) {
-  for (let i = 0; i < times; i++) await named(this, "Continue").click();
+  for (let i = 0; i < times; i++) {
+    await waitOutCelebration(this, named(this, "Continue"));
+    await named(this, "Continue").click();
+  }
 });
 When("I press Step", async function (this: WebWorld) {
   await control(this, "step").click();
@@ -138,6 +151,7 @@ When("I ask to be shown", async function (this: WebWorld) {
   await panel(this).locator("[data-coach-help]").getByRole("button", { name: "Show me", exact: true }).click();
 });
 When("I choose {string}", async function (this: WebWorld, name: string) {
+  await waitOutCelebration(this, this.page.locator("[data-lesson-player]").getByRole("button", { name, exact: true }));
   const offer = panel(this).locator("[data-coach-nudge], [data-coach-question]").getByRole("button", { name, exact: true });
   if ((await offer.count()) > 0) await offer.click();
   else await this.page.locator("[data-lesson-player], [data-lesson-load-error]").getByRole("button", { name, exact: true }).click();
@@ -273,6 +287,32 @@ const rectOf = (w: WebWorld, selector: string) =>
     return { x: r.x, y: r.y, width: r.width, height: r.height };
   });
 
+When("I scroll the lesson by {int} pixels, the spotlight is still on {string} in the next frame", async function (this: WebWorld, pixels: number, target: string) {
+  await this.page.setViewportSize({ width: 900, height: 300 });
+  await this.page.locator(`[data-coach-spotlight][data-target="${target}"]`).waitFor();
+  const result = await this.page.evaluate(
+    ([px, id]) =>
+      new Promise<{ moved: number; lag: number }>((resolve) => {
+        const el = document.querySelector<HTMLElement>(`[data-coach-id="${id}"]`)!;
+        let scroller: HTMLElement | null = el;
+        while (scroller && !(/(auto|scroll)/.test(getComputedStyle(scroller).overflowY) && scroller.scrollHeight > scroller.clientHeight)) scroller = scroller.parentElement;
+        const before = el.getBoundingClientRect().top;
+        if (scroller) scroller.scrollTop += px as number;
+        else window.scrollBy(0, px as number);
+        // The scroll event runs before the next frame's callbacks, so one frame later the frame must already be in place.
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            const ring = document.querySelector("[data-coach-spotlight]")!.getBoundingClientRect();
+            const now = el.getBoundingClientRect();
+            resolve({ moved: Math.abs(now.top - before), lag: Math.abs(ring.top - (now.top - 6)) });
+          }),
+        );
+      }),
+    [pixels, target] as [number, string],
+  );
+  assert.ok(result.moved > 20, `the page did not scroll (target moved ${result.moved}px)`);
+  assert.ok(result.lag <= 1, `the spotlight trails its target by ${result.lag}px`);
+});
 Then("the spotlight surrounds {string}", async function (this: WebWorld, target: string) {
   await this.page.locator(`[data-coach-spotlight][data-target="${target}"]`).waitFor();
   const slack = 16;

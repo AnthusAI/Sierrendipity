@@ -174,6 +174,7 @@ function refsFor(config: ThemeConfig, mode: Mode) {
     changed: "amber.a4",
     "changed-fg": "amber.12",
     // status and banners
+    success: mode === "light" ? "green.11" : "green.9",
     "success-bg": "green.3",
     "success-fg": mode === "light" ? "green.12" : "green.11",
     "warning-bg": "amber.3",
@@ -289,6 +290,9 @@ export const CONTRAST_PAIRS: ContrastPair[] = [
   text("changed-fg", "changed", "changed registers"),
   text("pc-mark-foreground", "pc-mark", "the PC marker"),
   text("success-fg", "success-bg", "ready status"),
+  ui("success", "card", "the success outline on cards"),
+  ui("success", "background", "the success outline on the page"),
+  ui("success", "success-bg", "the success icon on the celebration"),
   text("warning-fg", "warning-bg", "warnings and the starting status"),
   text("danger-fg", "danger-bg", "errors"),
   text("bp-text", "background", "breakpoint labels"),

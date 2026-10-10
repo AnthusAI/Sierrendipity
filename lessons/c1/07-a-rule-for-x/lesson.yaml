@@ -1,0 +1,127 @@
+id: c1/07-a-rule-for-x
+title: A Rule for x
+minutes: 4
+concepts:
+  introduces: [rule]
+  requires: [cards, numbers-on-cards, add, multiply]
+# One new idea (a list of cards is a rule, a function of x), one action at a time: change x, then fill the table.
+# A scene with a number ask or a box phrase in until fixes x with input: N or x is N, so the checker and the player judge it at the same x.
+# The picture comes first (the banner shows the number going through the rule); f(x) is named after it.
+boxes: [a0]
+pointer: false
+hideEnd: true
+function: { name: f, inputs: [a0], output: a0, rule: "f(x) = x·x + 1" }
+starter:
+  asm: |
+    mul a0, a0, a0
+    addi a0, a0, 1
+tabs: [cards]
+ui:
+  controls: [step, reset]
+  resetLabel: Start again
+  log: true
+  deskTitle: false
+  endMarker: false
+  boxNames: false
+  glass: true
+  spotlight: ring
+  spotlightAfterHint: true
+onWrongDefault: Use the rule above the box. Put the number in place of x.
+scenes:
+  - id: run
+    glassNamed: true
+    say: These two cards are a rule for the box. Select Step two times and watch the box.
+    show: [cards, boxes]
+    spotlight: "banner:rule"
+    input: 1
+    until:
+      - the machine has taken at least 2 steps
+      - the box shows 2
+    hints:
+      - Which button follows the next card?
+      - Each selection follows one card. The box starts with x = 1.
+      - Select Step two times. The box ends with 2.
+    showMe: demo-step-twice
+    doneSay: The rule took 1 and gave 2. The panel above the box shows the same steps.
+    lock: [drag, toggle]
+
+  - id: call-it
+    say: "Now x is 4. Guess before you select Step: what will the box show?"
+    show: [cards, boxes]
+    input: 4
+    spotlight: "banner:rule"
+    ask:
+      kind: number
+      question: What does box a0 hold at the end, with x = 4?
+      target: a0
+      answer: 17
+    hints:
+      - Put 4 in place of x in the rule.
+      - Multiply 4 by 4. Then add 1.
+      - 4 times 4 is 16. Then add 1.
+    lock: [edit, drag, toggle]
+
+  - id: fifty
+    say: Change x above the box so that the box shows 50. Then select Step two times.
+    show: [cards, boxes]
+    spotlight: "banner:rule"
+    until:
+      - x is 7
+      - the machine has taken at least 2 steps
+      - the box shows 50
+      - f(7) is 50
+    hints:
+      - The panel above the box shows the rule with your x in it.
+      - Try a number for x. Read what the rule gives in the panel.
+      - Multiply x by x. Then add 1. Which x gives 50?
+    ifMissed: The box does not show 50. Change x above the box, then select Step two times. Keep both cards as they are.
+    doneSay: This rule is f(x) = x·x + 1, the rule you know from Algebra 2. Your two cards are the function f.
+    lock: [drag, toggle]
+
+  - id: table
+    say: Fill in the table. Use the rule for each x.
+    show: [cards, boxes]
+    ask:
+      kind: table
+      question: What is f(x) for each x?
+      inputs: [1, 2, 3]
+      target: a0
+    onWrong:
+      - match: "1:1"
+        say: That is x·x. The rule also adds 1.
+      - match: "2:4"
+        say: That is x·x. The rule also adds 1.
+      - match: "3:9"
+        say: That is x·x. The rule also adds 1.
+      - match: "3:7"
+        say: That is 3 + 3 + 1. The rule multiplies 3 by 3.
+    hints:
+      - Put the number in place of x in the rule.
+      - Do the multiplication first. Then add 1.
+      - You know f(1) from the first scene.
+    lock: [edit, drag, toggle]
+nowYouCan:
+  - Follow a rule with any number for x.
+  - Say that two cards are a function.
+  - Fill a table of f(x).
+warmups:
+  - id: rule-five
+    concept: rule
+    question: "The rule is f(x) = x·x + 1. What is f(5)?"
+    program:
+      asm: |
+        addi a0, zero, 5
+        mul a0, a0, a0
+        addi a0, a0, 1
+    target: a0
+    expected: 26
+  - id: rule-zero
+    concept: rule
+    question: "The cards multiply the box by itself, then add 1. The box starts with 0. What does the box hold at the end?"
+    program:
+      asm: |
+        addi a0, zero, 0
+        mul a0, a0, a0
+        addi a0, a0, 1
+    target: a0
+    expected: 1
