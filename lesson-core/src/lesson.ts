@@ -92,6 +92,8 @@ export interface Scene {
   tray?: number[];
   /** The student saves selected cards as one custom card. */
   save?: SaveSpec;
+  /** Function lessons: x is fixed to this number in this scene. The player sets it on entry and locks it; the checker judges the scene at it. */
+  input?: number;
 }
 
 /** A small predict-the-result question: run the program, ask what `target` holds. */

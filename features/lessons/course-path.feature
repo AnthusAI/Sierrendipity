@@ -4,7 +4,7 @@ Feature: Warm-ups and the course path
   Stars never gate the path: passing opens the next lesson, bonuses only open side rooms.
 
   Background:
-    Given the five authored lessons of Course 1
+    Given the six authored lessons of Course 1
     And the clock is at day 1
     And a new in-memory progress store
 
@@ -82,12 +82,23 @@ Feature: Warm-ups and the course path
     And the continue target for "ana" is the lesson "c1/02-change-the-number"
     And "ana" has exactly one continue target
 
+  Scenario: The multiply lesson opens after Add
+    When "ana" attempts "c1/01-press-the-button" and passes with stars "pass" using 1 cards and 2 steps
+    And "ana" attempts "c1/02-change-the-number" and passes with stars "pass" using 1 cards and 2 steps
+    And "ana" attempts "c1/03-last-one-wins" and passes with stars "pass" using 2 cards and 3 steps
+    And "ana" attempts "c1/04-two-boxes" and passes with stars "pass" using 2 cards and 3 steps
+    And "ana" attempts "c1/05-add" and passes with stars "pass" using 3 cards and 4 steps
+    Then the path for "ana" shows "c1/05-add" as done
+    And the path for "ana" shows "c1/06-multiply" as current
+    And the continue target for "ana" is the lesson "c1/06-multiply"
+
   Scenario: Finishing every lesson ends the path
     When "ana" attempts "c1/01-press-the-button" and passes with stars "pass" using 1 cards and 2 steps
     And "ana" attempts "c1/02-change-the-number" and passes with stars "pass, another-way" using 1 cards and 2 steps
     And "ana" attempts "c1/03-last-one-wins" and passes with stars "pass, called-it" using 2 cards and 3 steps
     And "ana" attempts "c1/04-two-boxes" and passes with stars "pass" using 2 cards and 3 steps
     And "ana" attempts "c1/05-add" and passes with stars "pass" using 3 cards and 4 steps
+    And "ana" attempts "c1/06-multiply" and passes with stars "pass" using 2 cards and 3 steps
     Then the continue target for "ana" is the end of the course
     And the path for "ana" shows no current lesson
 

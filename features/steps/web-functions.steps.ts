@@ -37,11 +37,37 @@ Then("the rule banner is above the boxes", async function (this: WebWorld) {
   assert.ok(above, "the rule banner comes before the boxes");
 });
 
+async function typeKeys(w: WebWorld, text: string): Promise<void> {
+  const box = inputOfX(w);
+  await box.click();
+  await box.press("ControlOrMeta+a");
+  await w.page.keyboard.type(text);
+}
 When("I type {int} for x", async function (this: WebWorld, x: number) {
-  await inputOfX(this).fill(String(x));
+  await typeKeys(this, String(x));
+  await this.page.keyboard.press("Enter");
 });
 When("I type {string} for x", async function (this: WebWorld, text: string) {
-  await inputOfX(this).fill(text);
+  await typeKeys(this, text);
+  await this.page.keyboard.press("Enter");
+});
+When("I type {string} for x without confirming", async function (this: WebWorld, text: string) {
+  await typeKeys(this, text);
+});
+When("I leave the box for x", async function (this: WebWorld) {
+  await this.page.keyboard.press("Tab");
+});
+Then("the box for x says {string}", async function (this: WebWorld, text: string) {
+  await player(this).locator("[data-rule-message]", { hasText: text }).waitFor();
+});
+Then("the box for x has no message", async function (this: WebWorld) {
+  await settle(this);
+  assert.equal((await player(this).locator("[data-rule-message]").innerText()).trim(), "");
+});
+Then("the rule banner shows no values", async function (this: WebWorld) {
+  await settle(this);
+  assert.equal(await banner(this).locator("[data-rule-substitution], [data-rule-status]").count(), 0);
+  assert.ok((await banner(this).locator("[data-rule-text]").innerText()).includes("x"));
 });
 Then("the box for x holds {string}", async function (this: WebWorld, text: string) {
   await this.page.waitForFunction(
@@ -91,14 +117,18 @@ Then("the table says {string}", async function (this: WebWorld, text: string) {
   await player(this).locator("[data-table-ask] [data-coach-answer-hint]", { hasText: text }).waitFor();
 });
 
-Then("the rule banner and the table fit the window", async function (this: WebWorld) {
-  const width = await this.page.evaluate(() => window.innerWidth);
-  for (const selector of ['[data-coach-id="banner:rule"]', "[data-table-ask]"]) {
-    const found = this.page.locator(`[data-lesson-player] ${selector}`);
-    if ((await found.count()) === 0) continue;
-    const box = await found.first().boundingBox();
-    assert.ok(box && box.x >= 0 && box.x + box.width <= width + 0.5, `${selector} at ${JSON.stringify(box)} in a ${width}px window`);
-  }
+async function fits(w: WebWorld, selector: string): Promise<void> {
+  const width = await w.page.evaluate(() => window.innerWidth);
+  const found = w.page.locator(`[data-lesson-player] ${selector}`);
+  assert.ok((await found.count()) > 0, `${selector} is not on the page`);
+  const box = await found.first().boundingBox();
+  assert.ok(box && box.x >= 0 && box.x + box.width <= width + 0.5, `${selector} at ${JSON.stringify(box)} in a ${width}px window`);
+}
+Then("the rule banner fits the window", async function (this: WebWorld) {
+  await fits(this, '[data-coach-id="banner:rule"]');
+});
+Then("the table fits the window", async function (this: WebWorld) {
+  await fits(this, "[data-table-ask]");
 });
 Then("the rule banner has no animation or transition longer than a millisecond", async function (this: WebWorld) {
   const moving = await banner(this).evaluate((root) =>

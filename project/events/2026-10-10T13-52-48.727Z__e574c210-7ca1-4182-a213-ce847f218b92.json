@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "event_id": "e574c210-7ca1-4182-a213-ce847f218b92",
+  "issue_id": "SIE-1bb857d2-8e11-4de9-a494-6130b241ceac",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-10T13:52:48.727Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "GitHub Actions deploys validated main to production",
+    "description": "## Purpose\n\nImplement the repository workflow that deploys the exact validated `main` revision after its required checks and release conditions pass.\n\n## Acceptance\n\n- The workflow can run only for trusted repository events on `refs/heads/main`, never for untrusted pull-request code.\n- It checks out and deploys the exact event SHA, builds the web asset, and invokes the existing CDK stack in account 335163751677 / `us-east-1`.\n- It uses short-lived GitHub OIDC credentials only; no long-lived AWS secret is stored in GitHub.\n- It publishes the branch, SHA, workflow run, stack name, and post-deploy verification result in the run output.\n- It fails safely before changing production when required CI/release conditions are not met.\n\n## Dependency\n\nBlocked by SIE-f0d77c, which owns the least-privilege AWS OIDC deploy role. Reuse that work; do not create credentials or an IAM role from this task without explicit approval.",
+    "issue_type": "task",
+    "status": "open",
+    "priority": 1,
+    "assignee": null,
+    "parent": "SIE-a87ccc8f-2b32-47fa-8829-bcde84a9b2b0",
+    "labels": [
+      "delivery",
+      "ci"
+    ],
+    "agent": {
+      "platform": "codex",
+      "model": "GPT-5",
+      "name": "Sierrendipity handoff"
+    }
+  }
+}

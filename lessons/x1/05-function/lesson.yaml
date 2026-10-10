@@ -10,7 +10,7 @@ concepts:
 boxes: [a0]
 pointer: false
 hideEnd: true
-ui: { controls: [step, back, reset], stepLabel: Run, resetLabel: Start again }
+ui: { controls: [step, back, reset], resetLabel: Start again }
 function:
   name: f
   inputs: [a0]
@@ -24,18 +24,78 @@ tabs: [cards]
 onWrongDefault: Use the rule above the boxes. Put the number in place of x.
 scenes:
   - id: enter
-    say: Type 3 for x above the boxes. Then select Run two times.
+    say: Type 3 for x above the boxes. Then select Step two times.
     show: [cards, boxes]
     spotlight: "banner:rule"
     until:
+      - x is 3
       - the machine has taken at least 2 steps
-      - f(3) is 10
+      - box a0 holds 10
     hints:
       - Look at the rule above the boxes.
       - Type 3 in the box for x.
-      - Type 3 for x. Select Run two times.
+      - Type 3 for x. Select Step two times.
     doneSay: The two cards follow the rule.
     lock: [drag, toggle]
+
+  - id: guess
+    say: The rule now uses 3 for x. Say what the box holds.
+    show: [cards, boxes]
+    input: 3
+    ask:
+      kind: number
+      question: What does the box hold after the two cards run for x = 3?
+      target: a0
+      answer: 10
+    onWrong:
+      - match: 9
+        say: That is x·x. The rule also adds 1.
+    hints:
+      - Put 3 in place of x in the rule.
+      - Do the multiplication first. Then add 1.
+      - 3·3 is 9. Add 1.
+    lock: [edit, drag, toggle]
+
+  - id: see
+    say: Select Step two times. Watch the box hold the answer.
+    show: [cards, boxes]
+    input: 3
+    until:
+      - the machine has taken at least 2 steps
+      - box a0 holds 10
+    hints:
+      - Select the Step button.
+      - Two cards need two steps.
+      - Select Step two times.
+    lock: [edit, drag, toggle]
+
+  - id: again
+    say: Now x is 5. Say what the box holds.
+    show: [cards, boxes]
+    input: 5
+    ask:
+      kind: number
+      question: What does the box hold after the two cards run for x = 5?
+      target: a0
+      answer: 26
+    hints:
+      - Put 5 in place of x in the rule.
+      - Do the multiplication first. Then add 1.
+      - 5·5 is 25. Add 1.
+    lock: [edit, drag, toggle]
+
+  - id: see-again
+    say: Select Step two times. Watch the box for x = 5.
+    show: [cards, boxes]
+    input: 5
+    until:
+      - the machine has taken at least 2 steps
+      - box a0 holds 26
+    hints:
+      - Select the Step button.
+      - Two cards need two steps.
+      - Select Step two times.
+    lock: [edit, drag, toggle]
 
   - id: table
     say: Now fill in the table. Use the rule.
@@ -48,12 +108,30 @@ scenes:
     onWrong:
       - match: "2:4"
         say: That is x·x. The rule also adds 1.
+        goto: table
       - match: 3
         say: Check the row for 3. Put 3 in place of x.
+        goto: table
+      - match: 2
+        say: Check the row for 2. Put 2 in place of x.
+        goto: table
+      - match: 1
+        say: Check the row for 1. Put 1 in place of x.
+        goto: table
     hints:
       - Put the number in place of x in the rule.
       - Do the multiplication first. Then add 1.
       - f(1) is 2 and f(2) is 5.
     lock: [edit, drag, toggle]
+
+  - id: last
+    say: The rule works for 4 too.
+    show: [cards, boxes]
+    until:
+      - f(4) is 17
+    hints:
+      - Use 4 in place of x.
+      - 4·4 is 16.
+      - 16 and 1 make 17.
 nowYouCan:
   - Follow a rule with a number.

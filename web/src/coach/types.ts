@@ -25,12 +25,16 @@ export interface LiveView {
   goalMissed: boolean;
   /** The program as cards, with the custom cards it can call, in a lesson that has custom cards. */
   program?: { cards: Card[]; customCards: CustomCard[] };
+  /** The next goal begins with a finished machine: the note for the idle Step button ("Change the number on card 2 first"), or null. */
+  editFirst: string | null;
   /** The Stop card is hidden: show the end of the list as "the end of the list". */
   hideEnd: boolean;
   /** True while the ghost is demonstrating on a copy: controls are inert. */
   demo: boolean;
   /** The x of the lesson's function, when the lesson has one. */
   functionInput?: number;
+  /** The scene fixed x: the banner shows it and does not let the student change it. */
+  functionInputLocked?: boolean;
 }
 
 /** The scene being played, as far as the stage cares. */
@@ -49,6 +53,8 @@ export interface StageScene {
   tray?: number[];
   /** The student selects and saves cards as one custom card. */
   save?: SaveSpec;
+  /** The scene asks a question: the banner must not show values that would answer it. */
+  asking?: boolean;
 }
 
 /** How a card was changed: a spinner (`edit`, the default) or a lamp (`toggle`). A scene may lock one and not the other. */

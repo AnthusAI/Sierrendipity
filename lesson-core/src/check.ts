@@ -1,6 +1,6 @@
 import type { Lesson } from "./lesson";
-import { DEFAULT_FUNCTION_INPUT, functionValue, parseRule, ruleValue } from "./function";
-import { phraseInputs, FUNCTION_PHRASE } from "./loader-function";
+import { DEFAULT_FUNCTION_INPUT, functionValue, parseRule, ruleFits, ruleValue } from "./function";
+import { FUNCTION_PHRASE, isNestedPhrase, phraseInputs } from "./loader-function";
 import { earnedStars, runChecks, starOf } from "./steps/checks";
 import { DEFAULT_MAX_STEPS, registerNumber, runProgram, type LessonEvent, type RunOptions } from "./steps/run";
 import { parseStep } from "./steps/table";
@@ -85,9 +85,10 @@ const UI_ONLY = /^(?:the student (?:rewound|toggled|filled)|the timeline)/i;
 
 /** Scene content must agree with the machine: asks have the right answer, untils can be met. */
 function sceneProblems(lesson: Lesson, problems: string[]): void {
-  const starterRun = runProgram(lesson.starter.words, { hideEnd: lesson.hideEnd, events: tableEvents(lesson), ...functionFacts(lesson) });
+  const starterAt = (x: number) => runProgram(lesson.starter.words, { hideEnd: lesson.hideEnd, events: tableEvents(lesson), ...functionFacts(lesson, x) });
   for (const sc of lesson.scenes) {
     if (sc.ask?.kind === "number" && sc.ask.target) {
+      const starterRun = starterAt(sceneInput(sc));
       const index = registerNumber(sc.ask.target);
       const have = index === undefined ? undefined : starterRun.machine.regs[index]! | 0;
       if (have !== (sc.ask.answer | 0)) problems.push(`scene "${sc.id}": ask answer ${sc.ask.answer} but the starter produces ${have} in ${sc.ask.target}`);
@@ -103,18 +104,19 @@ function sceneProblems(lesson: Lesson, problems: string[]): void {
   }
 
   const passing = lesson.solutions.filter((d) => d.earns.includes("pass"));
-  const runOf = (d: (typeof lesson.solutions)[number]) => {
+  const runOf = (d: (typeof lesson.solutions)[number], x: number) => {
     // The student's edits are the cards that differ from the starter.
     const edits = d.words.flatMap((w, card) => (w !== lesson.starter.words[card] ? [{ type: "edit" as const, card, to: w }] : []));
     const events = [...edits, ...tableEvents(lesson)];
-    return runProgram(d.words, { predictions: d.predictions, hideEnd: lesson.hideEnd, starter: lesson.starter.words, events, ...functionFacts(lesson), ...programFacts(d), maxSteps: d.maxSteps ?? DEFAULT_MAX_STEPS });
+    return runProgram(d.words, { predictions: d.predictions, hideEnd: lesson.hideEnd, starter: lesson.starter.words, events, ...functionFacts(lesson, x), ...programFacts(d), maxSteps: d.maxSteps ?? DEFAULT_MAX_STEPS });
   };
-  const runs = passing.map(runOf);
-  // A scene may also describe the machine before the student has changed anything: the starter itself.
-  runs.push(starterRun);
   for (const sc of lesson.scenes) {
+    const x = sceneInput(sc);
+    const runs = passing.map((d) => runOf(d, x));
+    // A scene may also describe the machine before the student has changed anything: the starter itself.
+    runs.push(starterAt(x));
     // Solutions that name this scene (`scenes:` in solutions.yaml) are a way to finish it without passing the lesson.
-    const own = lesson.solutions.filter((d) => d.scenes?.includes(sc.id)).map(runOf);
+    const own = lesson.solutions.filter((d) => d.scenes?.includes(sc.id)).map((d) => runOf(d, x));
     for (const phrase of sc.until) {
       if (UI_ONLY.test(phrase)) continue;
       const parsed = parseStep(phrase);
@@ -129,10 +131,17 @@ function programFacts(decl: { tail?: number[]; usedCards?: string[] }): Pick<Run
   return { ...(decl.tail ? { tail: decl.tail } : {}), ...(decl.usedCards ? { usedCards: decl.usedCards } : {}) };
 }
 
+/** The x a scene is judged at: its fixed `input`, else the number its `x is N` goal waits for, else the default x. */
+function sceneInput(scene: Lesson["scenes"][number]): number {
+  if (scene.input !== undefined) return scene.input;
+  for (const phrase of scene.until) if (/^(?:(?:given|when|then|and|but)\s+)?x is /i.test(phrase.trim())) return phraseInputs(phrase)[0] ?? DEFAULT_FUNCTION_INPUT;
+  return DEFAULT_FUNCTION_INPUT;
+}
+
 /** The function boxes a run needs for phrases such as `f(3) is 10`, and the input box holding the default x, when the lesson declares a function. */
-function functionFacts(lesson: Lesson): Pick<RunOptions, "functionBoxes" | "startRegs"> {
+function functionFacts(lesson: Lesson, x: number = DEFAULT_FUNCTION_INPUT): Pick<RunOptions, "functionBoxes" | "startRegs" | "functionInput"> {
   const fn = lesson.function;
-  return fn ? { functionBoxes: { name: fn.name, input: fn.inputs[0]!, output: fn.output }, startRegs: { [fn.inputs[0]!]: DEFAULT_FUNCTION_INPUT } } : {};
+  return fn ? { functionBoxes: { name: fn.name, input: fn.inputs[0]!, output: fn.output }, startRegs: { [fn.inputs[0]!]: x }, functionInput: x } : {};
 }
 
 /** A reference solution is assumed to fill every table of the lesson correctly; the checker proves the answers separately. */
@@ -142,11 +151,14 @@ function tableEvents(lesson: Lesson): LessonEvent[] {
 
 /** The inputs a lesson lists for its function: table rows and the numbers in function phrases, or 1, 2, 3 when it lists none. */
 function listedInputs(lesson: Lesson): number[] {
+  const rule = lesson.function ? parseRule(lesson.function.rule, lesson.function.name) : undefined;
+  const nestedOuterInputs = (_lesson: Lesson, found: string[]): number[] =>
+    rule?.ok ? found.filter(isNestedPhrase).flatMap((p) => phraseInputs(p).map((x) => ruleValue(rule.rule, x))) : [];
   const phrases = [
     ...lesson.scenes.flatMap((sc) => sc.until),
     ...lesson.checks.scenarios.flatMap((sc) => sc.steps.map((st) => st.text)),
   ].filter((p) => FUNCTION_PHRASE.test(p.trim()));
-  const listed = [...lesson.scenes.flatMap((sc) => (sc.ask?.kind === "table" ? sc.ask.inputs : [])), ...phrases.flatMap(phraseInputs)];
+  const listed = [...lesson.scenes.flatMap((sc) => (sc.ask?.kind === "table" ? sc.ask.inputs : [])), ...lesson.scenes.flatMap((sc) => (sc.input !== undefined ? [sc.input] : [])), ...phrases.flatMap(phraseInputs), ...nestedOuterInputs(lesson, phrases)];
   return listed.length > 0 ? [...new Set(listed)] : [1, 2, 3];
 }
 
@@ -162,6 +174,9 @@ function ruleProblems(lesson: Lesson, problems: string[]): void {
   const boxes = { name: fn.name, input: fn.inputs[0]!, output: fn.output };
   const programs = lesson.solutions.filter((d) => d.earns.includes("pass")).map((d) => ({ label: `solution ${d.file}`, words: d.words, tail: d.tail ?? [] }));
   if (lesson.scenes.some((sc) => sc.ask?.kind === "table")) programs.push({ label: "the starter", words: lesson.starter.words, tail: [] });
+  for (const x of listedInputs(lesson)) {
+    if (!ruleFits(parsed.rule, x)) problems.push(`rule ${fn.rule} is too big for a box at ${fn.name}(${x})`);
+  }
   for (const program of programs) {
     for (const x of listedInputs(lesson)) {
       const have = functionValue(program.words, boxes, x, { hideEnd: lesson.hideEnd, tail: program.tail });

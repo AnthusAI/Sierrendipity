@@ -21,7 +21,7 @@
     "model": "Claude Sonnet 5.5",
     "name": "Real Machine Board Agent"
   },
-  "right_now_summary": "Custom cards and function flows work, while Gallery saving and validation still need testing.",
-  "right_now_updated_at": "2026-10-07T15:52:02.515840Z",
+  "right_now_summary": "Custom cards work in lessons; function checks are being added, while Gallery save and the table widget need work.",
+  "right_now_updated_at": "2026-10-10T13:54:56.827627Z",
   "custom": {}
 }

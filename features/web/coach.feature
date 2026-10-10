@@ -58,7 +58,7 @@ Feature: The coach plays the lessons
     When I answer <guess>
     Then the coach replies "<reply>"
     And the reply is not styled as an error
-    And the coach says "Select Run two times"
+    And the coach says "Select Step two times"
     When I press Step
     And I press Step
     Then box "a0" shows 8
@@ -74,7 +74,7 @@ Feature: The coach plays the lessons
   Scenario: Lesson 03 rewards a correct first prediction
     Given the coach lab shows lesson "c1/03-last-one-wins"
     When I answer 8
-    Then the coach says "Select Run two times"
+    Then the coach says "Select Step two times"
     And the coach confirms "You called it."
     When I press Step
     And I press Step
@@ -119,6 +119,37 @@ Feature: The coach plays the lessons
     And I press Step
     Then the Now you can card is shown
     And the stored progress of "c1/05-add" has passed with the bonus "called-it"
+
+  Scenario: Lesson 06 plays end to end with a wrong guess and a missed goal
+    Given the coach lab shows lesson "c1/06-multiply"
+    When I press Step
+    Then box "a0" shows 7
+    When I answer 14
+    Then the coach replies "You said 14. That is 7 plus 7, but this card multiplies. Watch box a1."
+    When I press Step
+    Then box "a1" shows 49
+    When I select Start again
+    And I press Step
+    And I press Step
+    Then the missed-goal help says "The goal is 81"
+    When I select Try again
+    Then there is no missed-goal help
+    When I set the number on card 1 to 9
+    And I press Step
+    And I press Step
+    Then box "a1" shows 81
+    And the stored progress of "c1/06-multiply" has passed without the bonus "called-it"
+
+  Scenario: Lesson 06 rewards the right guess of 49
+    Given the coach lab shows lesson "c1/06-multiply"
+    When I press Step
+    And I answer 49
+    And I press Step
+    And I set the number on card 1 to 9
+    And I press Step
+    And I press Step
+    Then box "a1" shows 81
+    And the stored progress of "c1/06-multiply" has passed with the bonus "called-it"
 
   Scenario: Controls that a scene locks say "Not yet" and do nothing
     Given the coach lab shows lesson "c1/01-press-the-button"
@@ -198,7 +229,7 @@ Feature: The coach plays the lessons
     Given the coach lab shows lesson "c1/03-last-one-wins"
     When I type "<typed>" as my answer and press Answer
     Then the answer hint says "<hint>"
-    And the coach says "What does the box hold"
+    And the coach says "the button is now called Step"
 
     Examples:
       | typed | hint                       |

@@ -66,8 +66,8 @@ Feature: The first real machine panels: the Registers panel and the glass strip
 
   Scenario: The boxes still fill with reduced motion
     Given the coach lab shows lesson "c1/04-two-boxes" with reduced motion
-    When I select Run
-    And I select Run
+    When I press Step
+    And I press Step
     Then box "a0" shows 4
     And box "a1" shows 6
     And the glass line under card 1 says "addi a0, zero, 4 · 0x00400513"

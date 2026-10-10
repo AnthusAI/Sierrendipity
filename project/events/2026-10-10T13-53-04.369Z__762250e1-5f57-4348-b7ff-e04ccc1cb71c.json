@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "event_id": "762250e1-5f57-4348-b7ff-e04ccc1cb71c",
+  "issue_id": "SIE-781dad41-d508-439d-91ee-8641f68e60cf",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-10T13:53:04.369Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Record production deployment provenance and verify the live release",
+    "description": "## Purpose\n\nMake each production deployment auditable and independently verifiable instead of inferring its source branch from a local checkout.\n\n## Verified gap\n\nThe current CDK/CloudFormation stack records successful manual updates but not the Git branch or commit SHA that produced them.\n\n## Acceptance\n\n- The deployment workflow records the exact `main` SHA, branch, release version when present, and GitHub Actions run URL in durable deploy evidence.\n- After CDK completes, it verifies the `Sierrendipity` CloudFormation stack reaches `UPDATE_COMPLETE` and checks the live site/config endpoint.\n- The record identifies whether a deployment was manual or GitHub Actions-driven.\n- A maintainer can answer which revision is live from retained evidence without consulting a developer workstation.\n\n## Guardrail\n\nDo not expose OAuth, session, or AWS credentials in workflow logs or provenance.",
+    "issue_type": "task",
+    "status": "open",
+    "priority": 1,
+    "assignee": null,
+    "parent": "SIE-a87ccc8f-2b32-47fa-8829-bcde84a9b2b0",
+    "labels": [
+      "delivery",
+      "observability"
+    ],
+    "agent": {
+      "platform": "codex",
+      "model": "GPT-5",
+      "name": "Sierrendipity handoff"
+    }
+  }
+}

@@ -245,8 +245,8 @@ function summarize(id: string): LessonSummary {
   assert.ok(loaded.ok, loaded.ok ? "" : loaded.errors.join("\n"));
   return loaded.lesson;
 }
-Given("the five authored lessons of Course 1", () => {
-  lessons = ["01-press-the-button", "02-change-the-number", "03-last-one-wins", "04-two-boxes", "05-add"].map((slug) => summarize(`c1/${slug}`));
+Given("the six authored lessons of Course 1", () => {
+  lessons = ["01-press-the-button", "02-change-the-number", "03-last-one-wins", "04-two-boxes", "05-add", "06-multiply"].map((slug) => summarize(`c1/${slug}`));
 });
 Given("a three-lesson course", () => {
   const warm = (id: string, expected: number) => ({

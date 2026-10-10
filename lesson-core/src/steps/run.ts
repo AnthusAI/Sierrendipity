@@ -42,6 +42,8 @@ export interface LessonRun {
   /** Calls made (`jal ra`) and calls that returned (`jalr zero, 0(ra)`). */
   calls?: number;
   returns?: number;
+  /** The x the machine started with (the input box), for the phrase `x is 3`. */
+  functionInput?: number;
 }
 
 export interface RunOptions {
@@ -63,6 +65,7 @@ export interface RunOptions {
   /** Words placed after the end marker (custom card bodies). */
   tail?: number[];
   usedCards?: string[];
+  functionInput?: number;
 }
 
 /** Calls and returns among executed instructions (their text), as made by custom cards. */
@@ -194,6 +197,7 @@ export function runProgram(cards: number[], opts: RunOptions = {}): LessonRun {
     hitStepCap,
     ...(opts.functionBoxes ? { functionBoxes: opts.functionBoxes } : {}),
     ...(tail.length > 0 ? { tail: [...tail], usedCards: opts.usedCards ?? [], ...callCounts(executedTexts) } : {}),
+    ...(opts.functionInput !== undefined ? { functionInput: opts.functionInput } : {}),
   };
 }
 

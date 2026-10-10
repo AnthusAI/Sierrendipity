@@ -31,7 +31,7 @@
     "platform": "claude_code",
     "model": "claude-sonnet-5-5"
   },
-  "right_now_summary": "The IDE and sign-in are deployed, while interactive runs, lessons, and final checks are still being built.",
-  "right_now_updated_at": "2026-10-07T19:59:46.174487Z",
+  "right_now_summary": "The IDE is deployed, but sign-in and multi-file C++ runs still need verification.",
+  "right_now_updated_at": "2026-10-10T13:55:23.738680Z",
   "custom": {}
 }
