@@ -1,0 +1,3 @@
+# Puts 7 in the box first, so only the goal of the scene "use" holds.
+addi a0, zero, 7
+card "f"

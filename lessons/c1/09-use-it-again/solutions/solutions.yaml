@@ -1,0 +1,35 @@
+solutions:
+  - file: good.cards
+    earns: [pass]
+    note: The card f alone.
+  - file: good-with-add-zero.cards
+    earns: [pass]
+    note: The card that adds 0, then the card f.
+  - file: put-5.cards
+    earns: []
+    scenes: [five]
+    note: Puts 5 in the box before the card f.
+  - file: put-3.cards
+    earns: []
+    scenes: [three]
+    note: Puts 3 in the box before the card f.
+  - file: put-7.cards
+    earns: []
+    scenes: [seven]
+    note: Puts 7 in the box before the card f.
+  - file: twice.cards
+    earns: []
+    note: The card f two times, but x is 1, so the box holds 5 and not 26.
+  - file: put-two-twice.cards
+    earns: [twice]
+    note: Puts 2 in the box before the card f two times, so the box holds 26.
+  - file: wrong-no-card.s
+    earns: []
+    note: The card f is not in the list.
+  - file: wrong-only-five.s
+    earns: []
+    note: Three plain cards that work for 5 only, with no card f.
+  - file: forever.s
+    earns: []
+    capped: true
+    note: A card that jumps to itself; only the step cap stops it.

@@ -1,0 +1,15 @@
+solutions:
+  - file: good.s
+    earns: [pass]
+    note: Put 7, add 1, then multiply. The box holds 64.
+  - file: wrong-same-order.s
+    earns: []
+    scenes: [first-order]
+    note: The starter order. The box holds 50, which is the goal of the first scene only.
+  - file: wrong-adds-twice.s
+    earns: []
+    note: The multiply card became a second add 1 card, so the box holds 9.
+  - file: forever.s
+    earns: []
+    capped: true
+    note: A card that jumps to itself; only the step cap stops it.

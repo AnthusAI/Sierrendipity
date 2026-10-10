@@ -1,0 +1,174 @@
+id: c1/09-use-it-again
+title: Use It Again
+minutes: 4
+concepts:
+  introduces: [reuse]
+  requires: [function-card]
+# One new idea (one saved card works for every number), one action (run the card for 5, 3 and 7).
+boxes: [a0]
+pointer: false
+hideEnd: true
+ui:
+  controls: [step, reset]
+  resetLabel: Start again
+  log: false
+  deskTitle: false
+  endMarker: false
+  boxNames: true
+  glass: false
+  spotlight: ring
+  spotlightAfterHint: true
+function:
+  name: f
+  inputs: [a0]
+  output: a0
+  rule: "f(x) = x·x + 1"
+customCards:
+  - name: f
+    cards: ["mul a0, a0, a0", "addi a0, a0, 1"]
+starter:
+  asm: |
+    addi a0, a0, 0
+tabs: [cards]
+onWrongDefault: Use the rule above the boxes. Put the number in place of x.
+scenes:
+  - id: bring
+    say: The list starts with one card that does nothing yet. Add your card f to the list.
+    show: [builder, D1]
+    tray: ["addi a0, a0, 0"]
+    spotlight: tray
+    until:
+      - the program uses the card "f"
+    ifMissed: The machine ran, but your card f is not in the list. Drag f from the tray into the list.
+    hints:
+      - Look at the tray. It holds your card f.
+      - Drag the card f from the tray into the list.
+      - With the keyboard, use the Tab key to reach the card f in the tray, then the Enter key.
+    doneSay: Your card f is in the list. You can use it for any number.
+
+  - id: predict
+    say: Your card f follows the rule above the boxes. What will it give for x = 5?
+    show: [builder, D1]
+    tray: ["addi a0, a0, 0"]
+    input: 5
+    ask:
+      kind: number
+      question: What does your card f give for 5?
+      answer: 26
+    onWrong:
+      - match: 25
+        say: That is x·x only. The rule also adds 1.
+        goto: five
+      - match: 6
+        say: That is x + 1. The rule multiplies x by x first.
+        goto: five
+    hints:
+      - Put 5 in place of x in the rule.
+      - Multiply 5 by 5 first. Then add 1.
+      - 5·5 is 25. Add 1 to 25.
+    lock: [drag, toggle]
+
+  - id: five
+    say: Type 5 for x above the boxes. Select Step until the machine stops.
+    show: [builder, D1]
+    tray: ["addi a0, a0, 0"]
+    spotlight: "banner:rule"
+    until:
+      - x is 5
+      - box a0 holds 26
+      - every call returned
+    ifMissed: Box a0 holds the answer for the x you typed. Type 5 for x, then select Step until the machine stops.
+    hints:
+      - Look at the rule above the boxes.
+      - Type 5 in the box for x. Then select Step.
+      - Type 5 for x. Select Step until box a0 shows 26.
+    showMe: demo-run
+    doneSay: The card f gave 26 for 5. Now use the same card for 3.
+    lock: [drag, toggle]
+
+  - id: three
+    say: Type 3 for x. Select Step until the machine stops.
+    show: [builder, D1]
+    tray: ["addi a0, a0, 0"]
+    spotlight: "banner:rule"
+    until:
+      - x is 3
+      - box a0 holds 10
+      - every call returned
+    ifMissed: Box a0 holds the answer for the x you typed. Type 3 for x, then select Step until the machine stops.
+    hints:
+      - Look at the box for x.
+      - Type 3 in the box for x. Then select Step.
+      - Type 3 for x. Select Step until box a0 shows 10.
+    showMe: demo-run
+    doneSay: The same card gave 10 for 3.
+    lock: [drag, toggle]
+
+  - id: seven
+    say: Now type 7 for x. Select Step until the machine stops.
+    show: [builder, D1]
+    tray: ["addi a0, a0, 0"]
+    spotlight: "banner:rule"
+    until:
+      - x is 7
+      - box a0 holds 50
+      - every call returned
+    ifMissed: Box a0 holds the answer for the x you typed. Type 7 for x, then select Step until the machine stops.
+    hints:
+      - Look at the box for x.
+      - Type 7 in the box for x. Then select Step.
+      - Type 7 for x. Select Step until box a0 shows 50.
+    showMe: demo-run
+    doneSay: One card gave 26, 10 and 50. You made it one time and used it three times.
+    lock: [drag, toggle]
+
+  - id: twice
+    say: "Try this too: add the card f a second time, and type 2 for x. Select Step until the machine stops, then select Continue."
+    show: [builder, D1]
+    tray: ["addi a0, a0, 0"]
+    skippable: true
+
+  - id: twice-why
+    say: The box holds 26 now. The second f worked on the answer of the first f.
+    show: [builder, D1]
+    tray: ["addi a0, a0, 0"]
+    skippable: true
+    ask:
+      kind: choice
+      question: What number did the first f give to the second f?
+      choices: ["2", "5", "26"]
+      answer: 1
+    onWrong:
+      - match: "2"
+        say: The number 2 is the x at the start. The second f works on the answer of the first f.
+      - match: "26"
+        say: The number 26 is the final answer. The first f gave a smaller number.
+    hints:
+      - The first f works on x = 2.
+      - The first f gives 2·2 + 1.
+      - 2·2 + 1 is 5.
+    doneSay: The first f gave 5. The second f used 5 and gave 26.
+nowYouCan:
+  - Use one saved card for many numbers.
+  - Use a saved card two times in a row.
+warmups:
+  - id: saved-card-two-times
+    concept: reuse
+    question: A saved card adds 4 to box a0. Box a0 holds 1. The card runs two times. What does a0 hold at the end?
+    program:
+      asm: |
+        addi a0, zero, 1
+        addi a0, a0, 4
+        addi a0, a0, 4
+    target: a0
+    expected: 9
+  - id: saved-doubler-two-times
+    concept: reuse
+    question: A saved card doubles box a0. Box a0 holds 3. The card runs two times. What does a0 hold at the end?
+    program:
+      asm: |
+        addi a0, zero, 3
+        add a0, a0, a0
+        add a0, a0, a0
+    target: a0
+    expected: 12
