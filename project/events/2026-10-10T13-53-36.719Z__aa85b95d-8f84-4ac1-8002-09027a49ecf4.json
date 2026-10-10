@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "event_id": "aa85b95d-8f84-4ac1-8002-09027a49ecf4",
+  "issue_id": "SIE-1bb857d2-8e11-4de9-a494-6130b241ceac",
+  "event_type": "dependency_added",
+  "occurred_at": "2026-10-10T13:53:36.719Z",
+  "actor_id": "home",
+  "payload": {
+    "dependency_type": "blocked-by",
+    "target_id": "SIE-f0d77ce0-66c5-4546-8e4d-6d732d7c1782"
+  }
+}

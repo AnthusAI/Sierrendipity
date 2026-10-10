@@ -1,4 +1,4 @@
-id: c1/08-inside-the-number
+id: c1/16-inside-the-number
 title: Inside the Number
 minutes: 5
 draft: true
@@ -14,7 +14,6 @@ starter:
 tabs: [cards, lamps]
 ui:
   controls: [step, reset]
-  stepLabel: Run
   resetLabel: Start again
   log: true
   deskTitle: false
@@ -92,13 +91,13 @@ scenes:
     hints:
       - Which lamp turns Add into Subtract?
       - Lamp 30 is in the band called exact job. Only that lamp can be switched.
-      - Switch on lamp 30, then select Run three times.
+      - Switch on lamp 30, then select Step three times.
     showMe: demo-flip-bit
     doneSay: One lamp turned Add into Subtract, and box a2 holds 7.
     lock: [edit, drag]
 
   - id: below-zero
-    say: "Bonus question: can a box go below zero? Change the 9 on card 1 to 0, then select Run three times."
+    say: "Bonus question: can a box go below zero? Change the 9 on card 1 to 0, then select Step three times."
     show: [D1]
     lock: [drag, toggle]
 nowYouCan:

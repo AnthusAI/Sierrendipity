@@ -64,3 +64,9 @@ Feature: Cloud infrastructure
     Then there is no certificate, DNS record or CloudFront alias
     And the runtime config redirects to the CloudFront site
     And the app client allows only the CloudFront site and localhost:5173
+
+  Scenario: GitHub production delivery has a repository-scoped role
+    Given the Sierrendipity GitHub deploy stack is synthesized
+    Then the GitHub deploy role trusts only the Sierrendipity main branch
+    And the GitHub deploy role may publish only unprotected site assets, invalidate the site cache and read stack status
+    And the GitHub deploy role targets the existing production site

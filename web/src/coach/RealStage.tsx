@@ -78,7 +78,7 @@ export function RealStage({ lesson, live, scene, onEditStarter, onReplaceCards, 
 
   const parts: ReactNode[] = [];
   if (lesson.function && live.functionInput !== undefined) {
-    parts.push(<RulePanel key="rule" fn={lesson.function} timeline={timeline} input={live.functionInput} onInput={onSetFunctionInput} locked={editLocked || live.demo} />);
+    parts.push(<RulePanel key="rule" fn={lesson.function} timeline={timeline} input={live.functionInput} onInput={onSetFunctionInput} locked={editLocked || live.demo || live.functionInputLocked === true} hideValues={scene.asking === true} />);
   }
   if (machine) {
     parts.push(

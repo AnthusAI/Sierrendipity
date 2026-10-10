@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "event_id": "b3c4e39a-0377-46a3-a2b8-4519809b27bc",
+  "issue_id": "SIE-a18f8d24-1e6c-457a-8a77-9771f0c7bc88",
+  "event_type": "comment_added",
+  "occurred_at": "2026-10-09T20:29:15.647Z",
+  "actor_id": "home",
+  "payload": {
+    "comment_id": "da2532fc-d7dd-488e-b881-c18d7b527e79",
+    "comment_author": "home",
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "W2 G2 Functions Agent"
+    }
+  }
+}

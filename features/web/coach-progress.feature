@@ -80,7 +80,7 @@ Feature: The coach records progress and never blocks on storage
     Given the coach lab shows lesson "c1/04-two-boxes"
     When I press Step
     And I press Step
-    Then the Step button explains "Select Start again first"
+    Then the Step button explains "Change the number on card 2 first"
     And the idle Step button meets 4.5:1 contrast
 
   Scenario: In a lesson without a Back button the idle Run button says all done

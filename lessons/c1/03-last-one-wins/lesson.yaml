@@ -13,7 +13,6 @@ starter:
 tabs: [cards]
 ui:
   controls: [step, reset]
-  stepLabel: Run
   resetLabel: Start again
   log: false
   deskTitle: false
@@ -27,12 +26,12 @@ onWrongDefault:
 scenes:
   - id: predict
     glassNamed: true
-    say: Two cards put a number in the same box, one after the other. What does the box hold at the end?
+    say: With two cards, the button is now called Step. Each Step runs one card.
     show: [cards, boxes]
     spotlight: "box:a0"
     ask:
       kind: number
-      question: What does the box hold after both cards?
+      question: Both cards put a number in the same box, one after the other. What does the box hold at the end?
       target: a0
       answer: 8
     hints:
@@ -42,7 +41,7 @@ scenes:
     lock: [edit, drag, toggle]
 
   - id: watch
-    say: Select Run two times. Look at the box.
+    say: Select Step two times. Look at the box.
     show: [cards, boxes]
     spotlight: "button:step"
     until:

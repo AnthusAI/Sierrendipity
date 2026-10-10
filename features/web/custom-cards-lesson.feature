@@ -21,12 +21,12 @@ Feature: A lesson can ask the student to save cards as one custom card
     And I tick the card 1 and the card 2 in the lesson's builder
     And I use "Save as card" in the lesson's builder
     And I type 3 for x
-    And I select Run
+    And I press Step
     Then the lesson shows the step count 1
     And the rule banner says "The program has not finished. Box a0 holds 3."
-    When I select Run
-    And I select Run
-    And I select Run
+    When I press Step
+    And I press Step
+    And I press Step
     Then box "a0" shows 10
     And the rule banner says "Box a0 holds 10. This is the same as the rule."
     And the coach confirms "The new card did the work."

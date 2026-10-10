@@ -333,6 +333,13 @@ export const PHRASES: Phrase[] = [
       return pass(have === want, `${g.name}(${x}) is ${have}`, `${g.name}(${x}) is ${have}, not ${want}`);
     };
   }),
+  P("x is 3", `x is (?<v>${NUM})`, (g) => {
+    const want = signed(word32(g.v));
+    return (run) => {
+      if (run.functionInput === undefined) return no("this lesson has no function");
+      return pass(run.functionInput === want, `x is ${want}`, `x is ${run.functionInput}, not ${want}`);
+    };
+  }),
   P("f(f(2)) is 26", `(?<name>[a-z][a-z0-9]*)\\((?<again>[a-z][a-z0-9]*)\\((?<x>${NUM})\\)\\) is (?<v>${NUM})`, (g) => {
     if (g.name !== g.again) throw new PhraseError(`'${g.name}' and '${g.again}' are two different names`);
     const x = signed(word32(g.x));
