@@ -323,12 +323,14 @@ Then("the GitHub deploy role trusts only the Sierrendipity main branch", () => {
 });
 
 Then("the GitHub deploy role may publish only unprotected site assets, invalidate the site cache and read stack status", () => {
-  const role = only(
+  const [roleId] = only(
     (Object.entries(githubDeployTemplate.findResources("AWS::IAM::Role")) as [string, Res][]).filter(
       ([, resource]) => resource.Properties?.RoleName === ROLE_NAME,
     ),
-  )[1].Properties;
-  const statements = role.Policies[0].PolicyDocument.Statement;
+  );
+  const policies = Object.entries(githubDeployTemplate.findResources("AWS::IAM::Policy")) as [string, Res][];
+  const policy = only(policies.filter(([, resource]) => JSON.stringify(resource.Properties?.Roles).includes(roleId)))[1].Properties;
+  const statements = policy.PolicyDocument.Statement;
   const list = only(statements.filter((statement: any) => statement.Sid === "ListSierrendipitySiteAssets"));
   assert.deepEqual(list.Action.sort(), ["s3:GetBucketLocation", "s3:ListBucket"]);
   assert.match(JSON.stringify(list.Resource), /SierrendipitySiteBucketName/);
