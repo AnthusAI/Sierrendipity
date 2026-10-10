@@ -4,7 +4,7 @@ import { MemoryProgressStore, isPublishedLesson, publishLesson, type Lesson, typ
 import { loadLesson } from "@sierrendipity/lesson-core/loader";
 import { LESSONS_ROOT, readConcepts, readLessonDir } from "@sierrendipity/lesson-core/node";
 import { join } from "node:path";
-import { createTestClock } from "../../web/src/coach/clock";
+import { createTestClock, type TestClock } from "../../web/src/coach/clock";
 import { LessonEngine } from "../../web/src/coach/engine";
 
 interface World {
@@ -12,6 +12,7 @@ interface World {
   published?: PublishedLesson;
   engine?: LessonEngine;
   store?: ProgressStore;
+  clock?: TestClock;
   broken?: unknown;
 }
 const w: World = {};
@@ -24,7 +25,7 @@ function load(id: string): Lesson {
 
 function fresh() {
   w.store = new MemoryProgressStore();
-  w.engine = new LessonEngine(w.published!, { store: w.store, userId: "local", clock: createTestClock(), isVisible: () => true });
+  w.engine = new LessonEngine(w.published!, { store: w.store, userId: "local", clock: (w.clock = createTestClock()), isVisible: () => true });
   w.engine.start();
   return w.engine;
 }
@@ -53,7 +54,8 @@ function solve(e: LessonEngine, stopAt?: string, limit = 80) {
   for (let i = 0; i < limit; i++) {
     const st = e.getState();
     if (st.phase === "done") return;
-    if (st.phase === "quick-offer") e.chooseQuick(false);
+    if (st.celebrating) w.clock!.advance(1400);
+    else if (st.phase === "quick-offer") e.chooseQuick(false);
     else if (stopAt && st.scene?.id === stopAt) return;
     else if (st.waiting === "continue") e.continue();
     else if (st.waiting === "ask") e.answer(st.ask!.kind === "number" || st.ask!.kind === "choice" ? st.ask.answer : 0);

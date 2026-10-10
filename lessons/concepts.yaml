@@ -9,8 +9,8 @@ concepts:
   - { id: card-flip, title: A card is one big number you can flip to see as lamps }
   - { id: binary-lamps, title: Lamps are switches worth 1, 2, 4, 8 and so on }
   - { id: fields, title: The lamps of a card are split into bands with jobs }
-  - { id: multiply, title: A card can multiply }
-  - { id: rule, title: A rule turns a number x into a new number }
+  - { id: multiply, title: A card can multiply two boxes }
+  - { id: rule, title: A list of cards is a rule that turns x into a new number }
   - { id: function-card, title: Cards you save as one card make a function }
   - { id: reuse, title: One saved card works for every number }
   - { id: composition, title: The order of two cards changes the answer }

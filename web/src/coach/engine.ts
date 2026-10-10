@@ -42,6 +42,8 @@ export interface ProgramState {
 
 /** After the last ghost event, hold the picture this long so the student can read it. */
 export const GHOST_HOLD_MS = 2500;
+/** How long the celebration of a reached goal plays before the way on appears. */
+export const CELEBRATION_MS = 1400;
 
 export interface EngineOptions {
   store?: ProgressStore | null;
@@ -49,6 +51,8 @@ export interface EngineOptions {
   clock: Clock;
   /** True while the tab is visible; the idle rule only counts visible time. */
   isVisible?: () => boolean;
+  /** True when the student asked for less motion: the celebration is still and does not delay the way on. */
+  reducedMotion?: () => boolean;
 }
 
 export type Waiting = "continue" | "until" | "ask";
@@ -94,6 +98,10 @@ export interface PlayerState {
   functionName: string | null;
   end: { verb: "ran" | "made"; made: string[]; values: string[]; stars: string[]; nowYouCan: string[] } | null;
   stopped: boolean;
+  /** A goal was just reached: the coach shows the celebration until the student acts. `lesson` is the end of the lesson. */
+  celebration: { kind: "goal" | "lesson" } | null;
+  /** The celebration is still playing: the way on (Continue, Next lesson, Stop here) is not offered yet. */
+  celebrating: boolean;
 }
 
 /** A prediction is made before the reveal: while it is asked, the machine does not move. */
@@ -108,6 +116,7 @@ export class LessonEngine {
   private readonly store: ProgressStore | null;
   private readonly userId: string;
   private readonly isVisible: () => boolean;
+  private readonly reducedMotion: () => boolean;
   private readonly detector: StuckDetector;
   private readonly listeners = new Set<() => void>();
 
@@ -150,6 +159,9 @@ export class LessonEngine {
 
   private ghostTimers: number[] = [];
   private idleTimer: number | null = null;
+  private celebration: PlayerState["celebration"] = null;
+  private celebrating = false;
+  private celebrationTimer: number | null = null;
   private sessionTimer: number | null = null;
   private started = false;
   private snapshot!: PlayerState;
@@ -165,6 +177,7 @@ export class LessonEngine {
     this.store = opts.store ?? null;
     this.userId = opts.userId ?? "local";
     this.isVisible = opts.isVisible ?? (() => typeof document === "undefined" || document.visibilityState !== "hidden");
+    this.reducedMotion = opts.reducedMotion ?? (() => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches);
     this.cards = [...lesson.starter.words];
     this.functionInput = lesson.function ? lesson.scenes[0]?.input ?? DEFAULT_FUNCTION_INPUT : DEFAULT_FUNCTION_INPUT;
     if (lesson.customCards || lesson.scenes.some((s) => s.save)) this.startProgram();
@@ -200,6 +213,8 @@ export class LessonEngine {
     if (this.idleTimer !== null) this.clock.clearTimeout(this.idleTimer);
     if (this.sessionTimer !== null) this.clock.clearTimeout(this.sessionTimer);
     this.idleTimer = this.sessionTimer = null;
+    if (this.celebrationTimer !== null) this.clock.clearTimeout(this.celebrationTimer);
+    this.celebrationTimer = null;
   }
 
   subscribe = (cb: () => void): (() => void) => {
@@ -218,7 +233,7 @@ export class LessonEngine {
   }
 
   continue(): void {
-    if (this.phase !== "scene" || this.waiting() !== "continue") return;
+    if (this.phase !== "scene" || this.waiting() !== "continue" || this.celebrating) return;
     this.touch();
     this.doneLine = null;
     this.goNext();
@@ -561,7 +576,22 @@ export class LessonEngine {
     this.yourTurn = false;
     this.doneLine = null;
     this.announce = null;
+    this.celebration = null;
     this.armIdle();
+  }
+
+  /** Show the celebration; the way on stays hidden until it ends (no wait at all with reduced motion). */
+  private celebrate(kind: "goal" | "lesson"): void {
+    if (this.celebrationTimer !== null) this.clock.clearTimeout(this.celebrationTimer);
+    this.celebrationTimer = null;
+    this.celebration = { kind };
+    this.celebrating = !this.reducedMotion();
+    if (!this.celebrating) return;
+    this.celebrationTimer = this.clock.setTimeout(() => {
+      this.celebrationTimer = null;
+      this.celebrating = false;
+      this.refresh();
+    }, CELEBRATION_MS);
   }
 
   private holds(phrases: string[], run: LessonRun): boolean {
@@ -618,6 +648,10 @@ export class LessonEngine {
     this.doneLine = scene.doneSay ?? null;
     this.announce = scene.doneSay ? null : "Scene complete.";
     this.goNext();
+    if (this.phase !== "done") {
+      this.celebrate("goal");
+      this.refresh();
+    }
   }
 
   /** `genuine`: the guess was made before the machine showed the answer. Anything later is not a prediction. */
@@ -686,6 +720,7 @@ export class LessonEngine {
 
   private finish(): void {
     this.phase = "done";
+    this.celebrate("lesson");
     this.sceneKey++;
     this.nudgeOffer = false;
     this.skipTourAsk = false;
@@ -876,6 +911,8 @@ export class LessonEngine {
       functionName: this.lesson.function?.name ?? null,
       end: this.phase === "done" ? this.endCard() : null,
       stopped: this.stopped,
+      celebration: this.celebration,
+      celebrating: this.celebrating,
     };
     this.emit();
   }
