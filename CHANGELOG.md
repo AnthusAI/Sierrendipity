@@ -1,3 +1,21 @@
+# [0.3.0](https://github.com/AnthusAI/Sierrendipity/compare/v0.2.0...v0.3.0) (2026-10-10)
+
+
+### Bug Fixes
+
+* **lessons:** c1/07 follows merged function checks, adds the f(4) guess, uses Step ([7e1417b](https://github.com/AnthusAI/Sierrendipity/commit/7e1417b87ce82e0bfe871a42fae5b00904d49996))
+* **lessons:** c1/08-10 meet the function-lesson rules, x is checked, f and g defined, fewer-cards bonus ([361bfc5](https://github.com/AnthusAI/Sierrendipity/commit/361bfc50e01878c34013cb32657ce08ce63e70a7))
+* **lessons:** custom-card fixture uses the Step button after the G2 stepLabel rule ([9a30c77](https://github.com/AnthusAI/Sierrendipity/commit/9a30c774061f2e7d1cce9075d3011f3ba0c71cd6))
+* **web:** keep the spotlight on its target while the page scrolls ([07e30f5](https://github.com/AnthusAI/Sierrendipity/commit/07e30f58a6a7fa6af5cac3744afdbcae21d10908))
+
+
+### Features
+
+* **lessons:** c1/07 A Rule for x, a list of cards is the rule f(x) = x·x + 1 ([4b6c41b](https://github.com/AnthusAI/Sierrendipity/commit/4b6c41bad781e6caaa5885b28a8c53e480659406))
+* **lessons:** c1/08 make your own card, c1/09 use it again, c1/10 order matters ([f1aefe4](https://github.com/AnthusAI/Sierrendipity/commit/f1aefe482029d2102dce07e90fce07446b682217))
+* **lessons:** custom cards in lessons, buildProgram in lesson-core, save scenes ([5ce2bfa](https://github.com/AnthusAI/Sierrendipity/commit/5ce2bfa03d378da0b61e82a53facefcb1457d1d0))
+* **web:** celebrate a reached goal and hold the way on until it ends ([7120ded](https://github.com/AnthusAI/Sierrendipity/commit/7120dedac9a1ea7e201b5d32ad666ce9f447e139))
+
 # [0.2.0](https://github.com/AnthusAI/Sierrendipity/compare/v0.1.0...v0.2.0) (2026-10-10)
 
 
