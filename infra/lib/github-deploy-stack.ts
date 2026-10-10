@@ -1,4 +1,4 @@
-import { CfnOutput, Fn, Stack, type StackProps } from "aws-cdk-lib";
+import { CfnOutput, Stack, type StackProps } from "aws-cdk-lib";
 import * as iam from "aws-cdk-lib/aws-iam";
 import type { Construct } from "constructs";
 
@@ -6,6 +6,8 @@ const GITHUB_OIDC_PROVIDER = "token.actions.githubusercontent.com";
 // This repository has GitHub's immutable OIDC subject template enabled.
 const GITHUB_MAIN_SUBJECT = "repo:AnthusAI@152415604/Sierrendipity@1407197360:ref:refs/heads/main";
 const ROLE_NAME = "SierrendipityGitHubProductionDeploy";
+const SITE_BUCKET_NAME = "sierrendipity-sitebucket397a1860-ylhnjttg8nz0";
+const SITE_DISTRIBUTION_ID = "E1O1EHD0LKT7W6";
 
 export class SierrendipityGitHubDeployStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -16,15 +18,10 @@ export class SierrendipityGitHubDeployStack extends Stack {
       "GitHubOidcProvider",
       `arn:${this.partition}:iam::${this.account}:oidc-provider/${GITHUB_OIDC_PROVIDER}`,
     );
-    const siteBucketName = Fn.importValue("SierrendipitySiteBucketName");
-    const distributionId = Fn.importValue("SierrendipitySiteDistributionId");
-    const siteBucketArn = Fn.join("", [`arn:${this.partition}:s3:::`, siteBucketName]);
-    const siteObjectArn = Fn.join("", [siteBucketArn, "/*"]);
-    const protectedObjectArns = [
-      Fn.join("", [siteBucketArn, "/config.json"]),
-      Fn.join("", [siteBucketArn, "/deployments/*"]),
-    ];
-    const distributionArn = Fn.join("", [`arn:${this.partition}:cloudfront::${this.account}:distribution/`, distributionId]);
+    const siteBucketArn = `arn:${this.partition}:s3:::${SITE_BUCKET_NAME}`;
+    const siteObjectArn = `${siteBucketArn}/*`;
+    const protectedObjectArns = [`${siteBucketArn}/config.json`, `${siteBucketArn}/deployments/*`];
+    const distributionArn = `arn:${this.partition}:cloudfront::${this.account}:distribution/${SITE_DISTRIBUTION_ID}`;
     const deployRole = new iam.Role(this, "GitHubProductionDeploy", {
       roleName: ROLE_NAME,
       description: "GitHub Actions OIDC deployment for the Sierrendipity main branch.",
@@ -76,4 +73,4 @@ export class SierrendipityGitHubDeployStack extends Stack {
   }
 }
 
-export { GITHUB_MAIN_SUBJECT, ROLE_NAME };
+export { GITHUB_MAIN_SUBJECT, ROLE_NAME, SITE_BUCKET_NAME, SITE_DISTRIBUTION_ID };

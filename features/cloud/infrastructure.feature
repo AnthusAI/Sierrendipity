@@ -69,4 +69,4 @@ Feature: Cloud infrastructure
     Given the Sierrendipity GitHub deploy stack is synthesized
     Then the GitHub deploy role trusts only the Sierrendipity main branch
     And the GitHub deploy role may publish only unprotected site assets, invalidate the site cache and read stack status
-    And the Sierrendipity stack exports the site deployment targets
+    And the GitHub deploy role targets the existing production site

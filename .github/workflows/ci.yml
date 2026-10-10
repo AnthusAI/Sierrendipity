@@ -91,6 +91,9 @@ jobs:
     concurrency:
       group: sierrendipity-production
       cancel-in-progress: false
+    env:
+      SITE_BUCKET: sierrendipity-sitebucket397a1860-ylhnjttg8nz0
+      SITE_DISTRIBUTION_ID: E1O1EHD0LKT7W6
     steps:
       - uses: actions/checkout@v4
         with:
@@ -115,26 +118,16 @@ jobs:
           role-to-assume: arn:aws:iam::335163751677:role/SierrendipityGitHubProductionDeploy
           aws-region: us-east-1
 
-      - name: Resolve the production site targets
-        id: site
-        run: |
-          site_bucket="$(aws cloudformation describe-stacks --stack-name Sierrendipity --query \"Stacks[0].Outputs[?OutputKey=='SiteBucketName'].OutputValue\" --output text)"
-          distribution_id="$(aws cloudformation describe-stacks --stack-name Sierrendipity --query \"Stacks[0].Outputs[?OutputKey=='SiteDistributionId'].OutputValue\" --output text)"
-          test -n "$site_bucket" && test "$site_bucket" != "None"
-          test -n "$distribution_id" && test "$distribution_id" != "None"
-          echo "bucket=$site_bucket" >> "$GITHUB_OUTPUT"
-          echo "distribution=$distribution_id" >> "$GITHUB_OUTPUT"
-
       - name: Publish the exact validated web build
         run: |
-          aws s3 sync web/dist "s3://${{ steps.site.outputs.bucket }}" --delete --exclude config.json --exclude 'deployments/*'
-          aws cloudfront create-invalidation --distribution-id "${{ steps.site.outputs.distribution }}" --paths '/*'
+          aws s3 sync web/dist "s3://${SITE_BUCKET}" --delete --exclude config.json --exclude 'deployments/*'
+          aws cloudfront create-invalidation --distribution-id "${SITE_DISTRIBUTION_ID}" --paths '/*'
 
       - name: Verify the uploaded and live production revision
         run: |
           status="$(aws cloudformation describe-stacks --stack-name Sierrendipity --query 'Stacks[0].StackStatus' --output text)"
           test "$status" = "UPDATE_COMPLETE"
-          aws s3 cp "s3://${{ steps.site.outputs.bucket }}/deployment.json" - | grep -F '"sha":"${{ github.sha }}"'
+          aws s3 cp "s3://${SITE_BUCKET}/deployment.json" - | grep -F '"sha":"${{ github.sha }}"'
           curl --fail --show-error --retry 5 https://sierrendipity.anth.us/config.json
           for attempt in {1..30}; do
             if curl --fail --silent https://sierrendipity.anth.us/deployment.json | grep -F '"sha":"${{ github.sha }}"'; then

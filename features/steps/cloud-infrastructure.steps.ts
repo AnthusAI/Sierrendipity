@@ -4,7 +4,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { App } from "aws-cdk-lib";
 import { Template } from "aws-cdk-lib/assertions";
-import { GITHUB_MAIN_SUBJECT, ROLE_NAME, SierrendipityGitHubDeployStack } from "../../infra/lib/github-deploy-stack";
+import { GITHUB_MAIN_SUBJECT, ROLE_NAME, SITE_BUCKET_NAME, SITE_DISTRIBUTION_ID, SierrendipityGitHubDeployStack } from "../../infra/lib/github-deploy-stack";
 import { SierrendipityStack } from "../../infra/lib/stack";
 
 // Synthesizing bundles three Lambdas with esbuild and stages the runner image asset.
@@ -333,10 +333,10 @@ Then("the GitHub deploy role may publish only unprotected site assets, invalidat
   const statements = policy.PolicyDocument.Statement;
   const list = only(statements.filter((statement: any) => statement.Sid === "ListSierrendipitySiteAssets"));
   assert.deepEqual(list.Action.sort(), ["s3:GetBucketLocation", "s3:ListBucket"]);
-  assert.match(JSON.stringify(list.Resource), /SierrendipitySiteBucketName/);
+  assert.match(JSON.stringify(list.Resource), new RegExp(SITE_BUCKET_NAME));
   const publish = only(statements.filter((statement: any) => statement.Sid === "PublishSierrendipitySiteAssets"));
   assert.deepEqual(publish.Action.sort(), ["s3:AbortMultipartUpload", "s3:DeleteObject", "s3:GetObject", "s3:PutObject"]);
-  assert.match(JSON.stringify(publish.Resource), /SierrendipitySiteBucketName/);
+  assert.match(JSON.stringify(publish.Resource), new RegExp(SITE_BUCKET_NAME));
   const protect = only(statements.filter((statement: any) => statement.Sid === "ProtectRuntimeConfigurationAndDeploymentRecords"));
   assert.equal(protect.Effect, "Deny");
   assert.deepEqual(protect.Action.sort(), ["s3:AbortMultipartUpload", "s3:DeleteObject", "s3:PutObject"]);
@@ -344,7 +344,7 @@ Then("the GitHub deploy role may publish only unprotected site assets, invalidat
   assert.match(JSON.stringify(protect.Resource), /deployments/);
   const invalidate = only(statements.filter((statement: any) => statement.Sid === "InvalidateSierrendipitySiteCache"));
   assert.deepEqual(invalidate.Action, "cloudfront:CreateInvalidation");
-  assert.match(JSON.stringify(invalidate.Resource), /SierrendipitySiteDistributionId/);
+  assert.match(JSON.stringify(invalidate.Resource), new RegExp(SITE_DISTRIBUTION_ID));
   const read = only(statements.filter((statement: any) => statement.Sid === "ReadSierrendipityStackStatus"));
   assert.deepEqual(read.Action.sort(), ["cloudformation:DescribeStackEvents", "cloudformation:DescribeStacks"]);
   assert.deepEqual(read.Resource, {
@@ -352,8 +352,7 @@ Then("the GitHub deploy role may publish only unprotected site assets, invalidat
   });
 });
 
-Then("the Sierrendipity stack exports the site deployment targets", () => {
-  const outputs = template.toJSON().Outputs;
-  assert.equal(outputs.SiteBucketName.Export.Name, "SierrendipitySiteBucketName");
-  assert.equal(outputs.SiteDistributionId.Export.Name, "SierrendipitySiteDistributionId");
+Then("the GitHub deploy role targets the existing production site", () => {
+  assert.equal(SITE_BUCKET_NAME, "sierrendipity-sitebucket397a1860-ylhnjttg8nz0");
+  assert.equal(SITE_DISTRIBUTION_ID, "E1O1EHD0LKT7W6");
 });

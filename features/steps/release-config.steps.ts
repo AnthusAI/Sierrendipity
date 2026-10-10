@@ -76,13 +76,15 @@ Then("the production deployment job uses GitHub OIDC only for validated main pus
   assert.match(deploy, /^    permissions:\n      contents: read\n      id-token: write$/m);
   assert.match(deploy, /uses: aws-actions\/configure-aws-credentials@v4/);
   assert.match(deploy, /role-to-assume: arn:aws:iam::335163751677:role\/SierrendipityGitHubProductionDeploy/);
+  assert.match(deploy, /SITE_BUCKET: sierrendipity-sitebucket397a1860-ylhnjttg8nz0/);
+  assert.match(deploy, /SITE_DISTRIBUTION_ID: E1O1EHD0LKT7W6/);
   assert.match(deploy, /npm run build -w web/);
   assert.match(deploy, /aws s3 sync web\/dist/);
   assert.match(deploy, /--exclude config\.json/);
   assert.match(deploy, /--exclude 'deployments\/\*'/);
   assert.match(deploy, /aws cloudfront create-invalidation/);
   assert.match(deploy, /web\/dist\/deployment\.json/);
-  assert.match(deploy, /aws s3 cp "s3:\/\/\$\{\{ steps\.site\.outputs\.bucket \}\}\/deployment\.json" -/);
+  assert.match(deploy, /aws s3 cp "s3:\/\/\$\{SITE_BUCKET\}\/deployment\.json" -/);
   assert.match(deploy, /Verified production revision/);
   assert.doesNotMatch(deploy, /cdk deploy/);
   assert.match(deploy, /StackStatus/);

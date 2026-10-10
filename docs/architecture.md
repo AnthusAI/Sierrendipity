@@ -75,16 +75,14 @@ Once enabled, a successful CI run for a push to `main` deploys only the built `w
 
 The OIDC trust is pinned to GitHub's immutable subject for this repository and branch: `repo:AnthusAI@152415604/Sierrendipity@1407197360:ref:refs/heads/main`. It accepts no pull-request, tag, fork, or non-`main` subject.
 
-One-time, human-operated bootstrap (after reviewing the exact CDK diff) must deploy the stacks in this order from `infra/` with the `legacy` profile:
+One-time, human-operated bootstrap (after reviewing the exact CDK diff) deploys only the dedicated role stack from `infra/` with the `legacy` profile:
 
 ```sh
-AWS_PROFILE=legacy npx cdk diff Sierrendipity
-AWS_PROFILE=legacy npx cdk deploy Sierrendipity --require-approval never
 AWS_PROFILE=legacy npx cdk diff SierrendipityGitHubDeploy
 AWS_PROFILE=legacy npx cdk deploy SierrendipityGitHubDeploy --require-approval never
 ```
 
-The first deployment adds the stack exports consumed by `SierrendipityGitHubDeploy`; it must complete before the role stack can be deployed. This is deliberately a content-only delivery path. Any automated delivery for backend, runner, or general infrastructure requires a separately reviewed, resource-scoped design and role.
+The dedicated stack is bound to the existing production site bucket and distribution, so the bootstrap does not alter the live application stack. This is deliberately a content-only delivery path. Any automated delivery for backend, runner, or general infrastructure requires a separately reviewed, resource-scoped design and role.
 
 ## Custom domain
 

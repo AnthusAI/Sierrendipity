@@ -318,8 +318,6 @@ export class SierrendipityStack extends Stack {
 
     // ---- Outputs ----
     new CfnOutput(this, "SiteUrl", { value: siteOrigin });
-    new CfnOutput(this, "SiteBucketName", { value: siteBucket.bucketName, exportName: "SierrendipitySiteBucketName" });
-    new CfnOutput(this, "SiteDistributionId", { value: distribution.distributionId, exportName: "SierrendipitySiteDistributionId" });
     if (customOrigin) new CfnOutput(this, "CustomDomainUrl", { value: customOrigin });
     new CfnOutput(this, "ControlUrl", { value: controlUrl.url });
     new CfnOutput(this, "ProxyUrl", { value: proxyUrl.url });
