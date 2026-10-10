@@ -5,7 +5,13 @@ import type { WebWorld } from "../support/web-world.ts";
 Then(
   "the backend received an explain request for {string} with checks {string} and the file {string}",
   async function (this: WebWorld, language: string, checks: string, file: string) {
-    const last = this.mock.explainRequests.at(-1);
+    // Explore starts an asynchronous fetch. Waiting here asserts its request rather than racing it.
+    const deadline = Date.now() + 3_000;
+    let last = this.mock.explainRequests.at(-1);
+    while (Date.now() < deadline && (!last || last.language !== language || String(last.checks) !== checks || !last.files.some((f) => f.path === file))) {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      last = this.mock.explainRequests.at(-1);
+    }
     if (!last || last.language !== language || String(last.checks) !== checks || !last.files.some((f) => f.path === file)) {
       throw new Error(`unexpected explain request: ${JSON.stringify(last)}`);
     }

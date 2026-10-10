@@ -80,3 +80,61 @@ jobs:
       - run: npx tsc -p runner --noEmit
       - run: npx tsc -p explorer --noEmit
       - run: npm run typecheck -w web
+
+  deploy-production:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [specs, runner-linux, typecheck]
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    concurrency:
+      group: sierrendipity-production
+      cancel-in-progress: false
+    env:
+      SITE_BUCKET: sierrendipity-sitebucket397a1860-ylhnjttg8nz0
+      SITE_DISTRIBUTION_ID: E1O1EHD0LKT7W6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build -w web
+      - name: Stamp the site with its immutable source revision
+        run: |
+          printf '{"source":"github-actions","sha":"%s","branch":"%s","workflow":"%s/%s/actions/runs/%s"}\n' \
+            "${{ github.sha }}" "${{ github.ref_name }}" "${{ github.server_url }}" "${{ github.repository }}" "${{ github.run_id }}" \
+            > web/dist/deployment.json
+
+      - name: Configure AWS credentials through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::335163751677:role/SierrendipityGitHubProductionDeploy
+          aws-region: us-east-1
+
+      - name: Publish the exact validated web build
+        run: |
+          aws s3 sync web/dist "s3://${SITE_BUCKET}" --delete --exclude config.json --exclude 'deployments/*'
+          aws cloudfront create-invalidation --distribution-id "${SITE_DISTRIBUTION_ID}" --paths '/*'
+
+      - name: Verify the uploaded and live production revision
+        run: |
+          status="$(aws cloudformation describe-stacks --stack-name Sierrendipity --query 'Stacks[0].StackStatus' --output text)"
+          test "$status" = "UPDATE_COMPLETE"
+          aws s3 cp "s3://${SITE_BUCKET}/deployment.json" - | grep -F '"sha":"${{ github.sha }}"'
+          curl --fail --show-error --retry 5 https://sierrendipity.anth.us/config.json
+          for attempt in {1..30}; do
+            if curl --fail --silent https://sierrendipity.anth.us/deployment.json | grep -F '"sha":"${{ github.sha }}"'; then
+              printf 'Verified production revision %s on attempt %s\n' "${{ github.sha }}" "$attempt" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "The production edge did not serve ${{ github.sha }} after cache invalidation" >&2
+          exit 1

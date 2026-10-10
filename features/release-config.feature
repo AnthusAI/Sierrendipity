@@ -19,3 +19,7 @@ Feature: Release automation
     Given the semantic-release workflow
     Then it is triggered by the completion of the "CI" workflow
     And it defines the jobs "release" and "guard-pre-1-0"
+
+  Scenario: CI deploys only a validated main revision through GitHub OIDC
+    Given the CI workflow
+    Then the production deployment job uses GitHub OIDC only for validated main pushes
