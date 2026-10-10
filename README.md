@@ -9,7 +9,7 @@ A web-based coding tutor for a high-school student learning to program.
 
 ## What is live today
 
-The stack `Sierrendipity` is deployed to AWS (account `legacy`, us-east-1) from `develop`.
+The `Sierrendipity` stack is deployed to AWS (account `legacy`, us-east-1). Application infrastructure remains human-operated; once bootstrapped, only validated `main` revisions may automatically publish static site assets.
 
 - Site: https://d11ihk8g92hg9x.cloudfront.net (serves `/config.json`)
 - Sign-in: Cognito domain `sierrendipity` with a Google OAuth client
@@ -32,7 +32,7 @@ shows source lines linked to assembly instructions, their machine-code bytes and
 Not yet verified: the one-task-per-user and global-cap limits against real concurrent requests,
 and rejection of an unapproved Google account (both covered by specs only).
 
-Not set up yet: CI and automated releases (milestone M8).
+CI validates pull requests and pushes. The production `main` workflow is deliberately limited to static site assets: backend, runner, and infrastructure delivery require a separately reviewed, resource-scoped role.
 
 ## Architecture
 

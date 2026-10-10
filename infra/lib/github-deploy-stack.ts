@@ -3,7 +3,8 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import type { Construct } from "constructs";
 
 const GITHUB_OIDC_PROVIDER = "token.actions.githubusercontent.com";
-const GITHUB_MAIN_SUBJECT = "repo:AnthusAI/Sierrendipity:ref:refs/heads/main";
+// This repository has GitHub's immutable OIDC subject template enabled.
+const GITHUB_MAIN_SUBJECT = "repo:AnthusAI@152415604/Sierrendipity@1407197360:ref:refs/heads/main";
 const ROLE_NAME = "SierrendipityGitHubProductionDeploy";
 
 export class SierrendipityGitHubDeployStack extends Stack {
@@ -19,6 +20,10 @@ export class SierrendipityGitHubDeployStack extends Stack {
     const distributionId = Fn.importValue("SierrendipitySiteDistributionId");
     const siteBucketArn = Fn.join("", [`arn:${this.partition}:s3:::`, siteBucketName]);
     const siteObjectArn = Fn.join("", [siteBucketArn, "/*"]);
+    const protectedObjectArns = [
+      Fn.join("", [siteBucketArn, "/config.json"]),
+      Fn.join("", [siteBucketArn, "/deployments/*"]),
+    ];
     const distributionArn = Fn.join("", [`arn:${this.partition}:cloudfront::${this.account}:distribution/`, distributionId]);
     const deployRole = new iam.Role(this, "GitHubProductionDeploy", {
       roleName: ROLE_NAME,
@@ -35,6 +40,14 @@ export class SierrendipityGitHubDeployStack extends Stack {
         sid: "ListSierrendipitySiteAssets",
         actions: ["s3:GetBucketLocation", "s3:ListBucket"],
         resources: [siteBucketArn],
+      }),
+    );
+    deployRole.addToPolicy(
+      new iam.PolicyStatement({
+        sid: "ProtectRuntimeConfigurationAndDeploymentRecords",
+        effect: iam.Effect.DENY,
+        actions: ["s3:AbortMultipartUpload", "s3:DeleteObject", "s3:PutObject"],
+        resources: protectedObjectArns,
       }),
     );
     deployRole.addToPolicy(

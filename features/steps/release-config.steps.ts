@@ -81,8 +81,12 @@ Then("the production deployment job uses GitHub OIDC only for validated main pus
   assert.match(deploy, /--exclude config\.json/);
   assert.match(deploy, /--exclude 'deployments\/\*'/);
   assert.match(deploy, /aws cloudfront create-invalidation/);
-  assert.match(deploy, /\| aws s3 cp -/);
+  assert.match(deploy, /web\/dist\/deployment\.json/);
+  assert.match(deploy, /aws s3 cp "s3:\/\/\$\{\{ steps\.site\.outputs\.bucket \}\}\/deployment\.json" -/);
+  assert.match(deploy, /Verified production revision/);
   assert.doesNotMatch(deploy, /cdk deploy/);
-  assert.match(deploy, /aws cloudformation describe-stacks --stack-name Sierrendipity/);
+  assert.match(deploy, /StackStatus/);
+  assert.match(deploy, /UPDATE_COMPLETE/);
   assert.match(deploy, /curl --fail --show-error --retry 5 https:\/\/sierrendipity\.anth\.us\/config\.json/);
+  assert.match(deploy, /https:\/\/sierrendipity\.anth\.us\/deployment\.json/);
 });

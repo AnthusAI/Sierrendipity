@@ -69,6 +69,23 @@ Forwards the runner API paths (a whitelist: `POST /run`, `POST /runs`, `POST /ex
 - The site deploys `web/dist` when it exists (run the web build first), otherwise `infra/placeholder-site`. `/config.json` is written by the deployment: `{region, cognitoDomain, clientId, controlUrl, proxyUrl, redirectUri}`; URLs have no trailing slash.
 - Optional budget alert subscriber: `-c budgetAlertEmail=...` (never committed). Alerts go to an SNS topic regardless.
 
+### GitHub production site delivery
+
+Once enabled, a successful CI run for a push to `main` deploys only the built `web/dist` site assets. It uses the existing GitHub OIDC provider and the `SierrendipityGitHubProductionDeploy` role; it does not run CDK or change Lambdas, Fargate, Cognito, DNS, runtime configuration, or the protected `deployments/` records. The role explicitly denies writes to `config.json` and `deployments/*` even though it can sync other site assets. The workflow stamps `deployment.json` with the immutable Git SHA, uploads it with the site, invalidates CloudFront, and fails unless the production domain serves that exact revision.
+
+The OIDC trust is pinned to GitHub's immutable subject for this repository and branch: `repo:AnthusAI@152415604/Sierrendipity@1407197360:ref:refs/heads/main`. It accepts no pull-request, tag, fork, or non-`main` subject.
+
+One-time, human-operated bootstrap (after reviewing the exact CDK diff) must deploy the stacks in this order from `infra/` with the `legacy` profile:
+
+```sh
+AWS_PROFILE=legacy npx cdk diff Sierrendipity
+AWS_PROFILE=legacy npx cdk deploy Sierrendipity --require-approval never
+AWS_PROFILE=legacy npx cdk diff SierrendipityGitHubDeploy
+AWS_PROFILE=legacy npx cdk deploy SierrendipityGitHubDeploy --require-approval never
+```
+
+The first deployment adds the stack exports consumed by `SierrendipityGitHubDeploy`; it must complete before the role stack can be deployed. This is deliberately a content-only delivery path. Any automated delivery for backend, runner, or general infrastructure requires a separately reviewed, resource-scoped design and role.
+
 ## Custom domain
 
 - The site is served at `https://sierrendipity.anth.us` (the CloudFront default domain keeps working). Context keys: `siteDomain` (default `sierrendipity.anth.us`; an empty string disables the custom domain), `hostedZoneId` (default `Z02552332GG6AM25SFP73`) and `hostedZoneName` (default `anth.us`). The zone is imported by attributes, so synth stays offline.

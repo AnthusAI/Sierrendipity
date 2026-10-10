@@ -103,6 +103,11 @@ jobs:
 
       - run: npm ci
       - run: npm run build -w web
+      - name: Stamp the site with its immutable source revision
+        run: |
+          printf '{"source":"github-actions","sha":"%s","branch":"%s","workflow":"%s/%s/actions/runs/%s"}\n' \
+            "${{ github.sha }}" "${{ github.ref_name }}" "${{ github.server_url }}" "${{ github.repository }}" "${{ github.run_id }}" \
+            > web/dist/deployment.json
 
       - name: Configure AWS credentials through GitHub OIDC
         uses: aws-actions/configure-aws-credentials@v4
@@ -123,13 +128,20 @@ jobs:
       - name: Publish the exact validated web build
         run: |
           aws s3 sync web/dist "s3://${{ steps.site.outputs.bucket }}" --delete --exclude config.json --exclude 'deployments/*'
-          printf '{"source":"github-actions","sha":"%s","branch":"%s","workflow":"%s/%s/actions/runs/%s"}\n' \
-            "${{ github.sha }}" "${{ github.ref_name }}" "${{ github.server_url }}" "${{ github.repository }}" "${{ github.run_id }}" \
-            | aws s3 cp - "s3://${{ steps.site.outputs.bucket }}/deployments/${{ github.sha }}.json" --content-type application/json
-          aws s3 cp "s3://${{ steps.site.outputs.bucket }}/deployments/${{ github.sha }}.json" "s3://${{ steps.site.outputs.bucket }}/deployments/latest.json" --content-type application/json
           aws cloudfront create-invalidation --distribution-id "${{ steps.site.outputs.distribution }}" --paths '/*'
 
-      - name: Verify the live production stack
+      - name: Verify the uploaded and live production revision
         run: |
-          aws cloudformation describe-stacks --stack-name Sierrendipity --query 'Stacks[0].{Status:StackStatus,Updated:LastUpdatedTime,Outputs:Outputs}' --output json
+          status="$(aws cloudformation describe-stacks --stack-name Sierrendipity --query 'Stacks[0].StackStatus' --output text)"
+          test "$status" = "UPDATE_COMPLETE"
+          aws s3 cp "s3://${{ steps.site.outputs.bucket }}/deployment.json" - | grep -F '"sha":"${{ github.sha }}"'
           curl --fail --show-error --retry 5 https://sierrendipity.anth.us/config.json
+          for attempt in {1..30}; do
+            if curl --fail --silent https://sierrendipity.anth.us/deployment.json | grep -F '"sha":"${{ github.sha }}"'; then
+              printf 'Verified production revision %s on attempt %s\n' "${{ github.sha }}" "$attempt" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "The production edge did not serve ${{ github.sha }} after cache invalidation" >&2
+          exit 1

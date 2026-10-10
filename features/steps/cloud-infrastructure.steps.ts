@@ -304,13 +304,16 @@ Then("the app client allows only the CloudFront site and localhost:5173", () => 
 });
 
 Then("the GitHub deploy role trusts only the Sierrendipity main branch", () => {
+  assert.equal(GITHUB_MAIN_SUBJECT, "repo:AnthusAI@152415604/Sierrendipity@1407197360:ref:refs/heads/main");
   const role = only(
     (Object.entries(githubDeployTemplate.findResources("AWS::IAM::Role")) as [string, Res][]).filter(
       ([, resource]) => resource.Properties?.RoleName === ROLE_NAME,
     ),
   )[1].Properties;
   const statement = role.AssumeRolePolicyDocument.Statement[0];
-  assert.equal(statement.Principal.Federated, "arn:aws:iam::123456789012:oidc-provider/token.actions.githubusercontent.com");
+  assert.deepEqual(statement.Principal.Federated, {
+    "Fn::Join": ["", ["arn:", { Ref: "AWS::Partition" }, ":iam::123456789012:oidc-provider/token.actions.githubusercontent.com"]],
+  });
   assert.deepEqual(statement.Condition, {
     StringEquals: {
       "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
@@ -319,7 +322,7 @@ Then("the GitHub deploy role trusts only the Sierrendipity main branch", () => {
   });
 });
 
-Then("the GitHub deploy role may publish only site assets, invalidate the site cache and read stack status", () => {
+Then("the GitHub deploy role may publish only unprotected site assets, invalidate the site cache and read stack status", () => {
   const role = only(
     (Object.entries(githubDeployTemplate.findResources("AWS::IAM::Role")) as [string, Res][]).filter(
       ([, resource]) => resource.Properties?.RoleName === ROLE_NAME,
@@ -332,6 +335,11 @@ Then("the GitHub deploy role may publish only site assets, invalidate the site c
   const publish = only(statements.filter((statement: any) => statement.Sid === "PublishSierrendipitySiteAssets"));
   assert.deepEqual(publish.Action.sort(), ["s3:AbortMultipartUpload", "s3:DeleteObject", "s3:GetObject", "s3:PutObject"]);
   assert.match(JSON.stringify(publish.Resource), /SierrendipitySiteBucketName/);
+  const protect = only(statements.filter((statement: any) => statement.Sid === "ProtectRuntimeConfigurationAndDeploymentRecords"));
+  assert.equal(protect.Effect, "Deny");
+  assert.deepEqual(protect.Action.sort(), ["s3:AbortMultipartUpload", "s3:DeleteObject", "s3:PutObject"]);
+  assert.match(JSON.stringify(protect.Resource), /config\.json/);
+  assert.match(JSON.stringify(protect.Resource), /deployments/);
   const invalidate = only(statements.filter((statement: any) => statement.Sid === "InvalidateSierrendipitySiteCache"));
   assert.deepEqual(invalidate.Action, "cloudfront:CreateInvalidation");
   assert.match(JSON.stringify(invalidate.Resource), /SierrendipitySiteDistributionId/);
