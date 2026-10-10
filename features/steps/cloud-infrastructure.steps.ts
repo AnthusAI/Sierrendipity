@@ -347,7 +347,9 @@ Then("the GitHub deploy role may publish only unprotected site assets, invalidat
   assert.match(JSON.stringify(invalidate.Resource), /SierrendipitySiteDistributionId/);
   const read = only(statements.filter((statement: any) => statement.Sid === "ReadSierrendipityStackStatus"));
   assert.deepEqual(read.Action.sort(), ["cloudformation:DescribeStackEvents", "cloudformation:DescribeStacks"]);
-  assert.match(read.Resource, /^arn:aws:cloudformation:us-east-1:123456789012:stack\/Sierrendipity\/\*$/);
+  assert.deepEqual(read.Resource, {
+    "Fn::Join": ["", ["arn:", { Ref: "AWS::Partition" }, ":cloudformation:us-east-1:123456789012:stack/Sierrendipity/*"]],
+  });
 });
 
 Then("the Sierrendipity stack exports the site deployment targets", () => {
