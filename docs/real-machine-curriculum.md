@@ -372,7 +372,7 @@ Notes for the table:
 - "Real" lists the real components on the stage; **bold** marks a component that is new in that lesson.
 - Every lesson has one new idea, one action, at most 4 minutes (the two capstones say why they may be longer),
   and at most one new control.
-- The existing drafts 06-08 move to c1/12-14. They are drafts, so renumbering costs no progress data.
+- The existing drafts 06-08 are now c1/14-16 (counting-with-lamps, flip-the-card, inside-the-number); c1/06 is Multiply (published, see below). They are drafts, so renumbering costs no progress data.
 - Each prediction needs one inference, and the answer is never printed on the screen (review recommendation 2).
 
 | Id | Title | New idea | The one action | Real components | Diagram retired or kept | Engine work |

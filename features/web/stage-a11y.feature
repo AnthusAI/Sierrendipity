@@ -14,7 +14,7 @@ Feature: The real stage is keyboard operable, readable and fits every window
     And the focus is on "Next lesson, about 3 min"
 
   Scenario: Lesson 06 is played with the keyboard alone
-    Given the coach lab shows lesson "c1/06-counting-with-lamps"
+    Given the coach lab shows lesson "c1/14-counting-with-lamps"
     Then the focus is on "Continue"
     When I press the Enter key
     And I type "4" in the answer box and press the Enter key
