@@ -33,7 +33,7 @@ tabs: [cards]
 onWrongDefault: Use the rule above the boxes. Put the number in place of x.
 scenes:
   - id: bring
-    say: The first card adds 0, so it changes nothing. Add your card f to the list.
+    say: The list starts with one card that does nothing yet. Add your card f to the list.
     show: [builder, D1]
     tray: ["addi a0, a0, 0"]
     spotlight: tray
@@ -50,6 +50,7 @@ scenes:
     say: Your card f follows the rule above the boxes. What will it give for x = 5?
     show: [builder, D1]
     tray: ["addi a0, a0, 0"]
+    input: 5
     ask:
       kind: number
       question: What does your card f give for 5?
@@ -73,6 +74,7 @@ scenes:
     tray: ["addi a0, a0, 0"]
     spotlight: "banner:rule"
     until:
+      - x is 5
       - box a0 holds 26
       - every call returned
     ifMissed: Box a0 holds the answer for the x you typed. Type 5 for x, then select Step until the machine stops.
@@ -90,6 +92,7 @@ scenes:
     tray: ["addi a0, a0, 0"]
     spotlight: "banner:rule"
     until:
+      - x is 3
       - box a0 holds 10
       - every call returned
     ifMissed: Box a0 holds the answer for the x you typed. Type 3 for x, then select Step until the machine stops.
@@ -107,6 +110,7 @@ scenes:
     tray: ["addi a0, a0, 0"]
     spotlight: "banner:rule"
     until:
+      - x is 7
       - box a0 holds 50
       - every call returned
     ifMissed: Box a0 holds the answer for the x you typed. Type 7 for x, then select Step until the machine stops.

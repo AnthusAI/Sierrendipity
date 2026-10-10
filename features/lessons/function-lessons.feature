@@ -47,7 +47,7 @@ Feature: The function lessons of Course 1 (make your own card, use it again, ord
     Given the lesson "c1/08-make-your-own-card"
     When I check the lesson
     Then the check passes
-    And the solution "good.cards" earned "pass" in 4 steps with 1 cards
+    And the solution "good.cards" earned "pass, fewer-cards" in 4 steps with 1 cards
     And the solution "put-seven.cards" earned "nothing" in 5 steps with 2 cards
     And the solution "unsaved.s" earned "nothing" in 2 steps with 2 cards
     And the solution "wrong-no-plus-one.s" earned "nothing" in 1 steps with 1 cards

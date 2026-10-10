@@ -28,7 +28,7 @@ onWrongDefault: Think about which card runs first. Watch the box.
 scenes:
   - id: first-order
     glassNamed: true
-    say: The cards put 7 in the box, multiply the box by itself, then add 1. Select Step until the machine stops.
+    say: Call the multiply card f and the add 1 card g. Here f runs first and g runs second, so select Step until the machine stops.
     show: [cards, boxes]
     spotlight: "button:step"
     until:
@@ -40,11 +40,11 @@ scenes:
       - Each selection follows one card. The cards run from the top.
       - Select Step three times. The box ends with 50.
     showMe: demo-step-three
-    doneSay: 7 times 7 is 49. Then 49 plus 1 is 50.
+    doneSay: 7 times 7 is 49, and 49 plus 1 is 50. This order is g(f(x)).
     lock: [edit, drag, toggle]
 
   - id: predict
-    say: Now the card that adds 1 runs before the card that multiplies. What does the box hold at the end?
+    say: Now g runs before f, so this order is f(g(x)). What does the box hold at the end?
     show: [cards, boxes]
     ask:
       kind: number

@@ -1,6 +1,6 @@
 solutions:
   - file: good.cards
-    earns: [pass]
+    earns: [pass, fewer-cards]
     customCards:
       - name: f
         cards: ["mul a0, a0, a0", "addi a0, a0, 1"]
