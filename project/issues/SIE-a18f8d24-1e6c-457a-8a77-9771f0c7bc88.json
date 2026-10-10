@@ -3,7 +3,7 @@
   "title": "G2: Function input, rule banner, function checks (f(3) is 10) and a table ask (M, most important)",
   "description": "Most important gap: it enables the function throughline (R1 follow-ups).\nAcceptance:\n- Given a lesson with a function card, the student can enter x and see the result in the box.\n- A rule banner shows the rule, e.g. f(x) = x squared plus 1.\n- A check 'f(3) is 10' can be written in lesson.yaml and is run by the loader and the browser.\n- A 'table' ask has the student fill x and f(x) rows; wrong cells get a specific reply.\n- Covered by Gherkin features under features/.",
   "type": "story",
-  "status": "in_progress",
+  "status": "closed",
   "priority": 1,
   "assignee": null,
   "creator": null,
@@ -36,17 +36,32 @@
         "model": "Claude Sonnet 5.5",
         "name": "W2 G2 Functions Agent"
       }
+    },
+    {
+      "id": "3060319e-6ad6-4a8a-99ec-f366b580b08e",
+      "author": "home",
+      "text": "PR #41 was independently reviewed in-session with no blocking findings; focused function/browser checks and TypeScript checks passed, and GitHub CI was green. It merged into `develop` as d9831a5 on 2026-10-10. Closing this story.",
+      "created_at": "2026-10-10T13:54:47.626098Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "codex",
+        "model": "GPT-5",
+        "name": "Sierrendipity handoff"
+      }
     }
   ],
   "created_at": "2026-10-07T12:27:55.990845Z",
-  "updated_at": "2026-10-09T20:29:15.647520Z",
-  "closed_at": null,
+  "updated_at": "2026-10-10T13:54:53.061465Z",
+  "closed_at": "2026-10-10T13:54:53.061424Z",
   "agent": {
     "platform": "claude_code",
     "model": "Claude Sonnet 5.5",
     "name": "Curriculum Board Agent"
   },
-  "right_now_summary": "PR #41 implements function inputs, rule banners, checks, and table exercises, with 1,876 scenarios passing.",
-  "right_now_updated_at": "2026-10-09T20:29:17.046707Z",
-  "custom": {}
+  "right_now_summary": "G2 is implemented, reviewed, tested, and merged into develop.",
+  "right_now_updated_at": "2026-10-10T13:54:54.855075Z",
+  "custom": {
+    "project_label": "SIE",
+    "source": "shared"
+  }
 }
