@@ -10,29 +10,36 @@ Feature: Lesson c1/07 A Rule for x plays end to end
 
   Scenario: Running the two cards at x = 1 finishes the first scene without naming f(x)
     Given the coach lab shows lesson "c1/07-a-rule-for-x"
-    When I select Run
-    And I select Run
+    When I press Step
+    And I press Step
     Then the coach confirms "The rule took 1 and gave 2."
-    And the rule banner says "Box a0 holds 2. This is the same as the rule."
+    And the rule banner shows no values
 
   Scenario: Typing 7 for x makes the box show 50 and names the function
     Given the coach lab shows lesson "c1/07-a-rule-for-x" at the scene "fifty"
     When I type 7 for x
     Then the rule banner shows "f(7) = 7·7 + 1 = 50"
-    When I select Run
-    And I select Run
-    Then box "a0" shows 50
-    And the coach confirms "This rule is f(x) = x·x + 1, the rule you know from Algebra 2."
+    When I press Step
+    And I press Step
+    Then the coach confirms "This rule is f(x) = x·x + 1, the rule you know from Algebra 2."
 
   Scenario: A run that misses 50 says what to change
     Given the coach lab shows lesson "c1/07-a-rule-for-x" at the scene "fifty"
     When I type 5 for x
-    And I select Run
-    And I select Run
+    And I press Step
+    And I press Step
     Then the missed-goal help says "The box does not show 50."
     When I select Try again
     Then there is no missed-goal help
     And the lesson shows the step count 0
+
+  Scenario: The banner gives no table answers during the table scene
+    Given the coach lab shows lesson "c1/07-a-rule-for-x" at the scene "table"
+    Then the rule banner shows no values
+
+  Scenario: The banner gives no answer during the guess scene
+    Given the coach lab shows lesson "c1/07-a-rule-for-x" at the scene "call-it"
+    Then the rule banner shows no values
 
   Scenario: The table with the right values finishes the lesson
     Given the coach lab shows lesson "c1/07-a-rule-for-x" at the scene "table"

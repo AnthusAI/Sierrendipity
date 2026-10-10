@@ -47,14 +47,16 @@ const AUTO: Record<string, (w: WebWorld) => Promise<void>> = {
     await control(w, "step").click();
   },
   run: async (w) => {
-    await named(w, "Run").click();
-    await named(w, "Run").click();
+    await control(w, "step").click();
+    await control(w, "step").click();
   },
   fifty: async (w) => {
     await w.page.getByLabel("Number for x in f(x)").fill("7");
-    await named(w, "Run").click();
-    await named(w, "Run").click();
+    await w.page.getByLabel("Number for x in f(x)").press("Enter");
+    await control(w, "step").click();
+    await control(w, "step").click();
   },
+  "call-it": async (w) => answer(w, "17"),
   place: async (w) => answer(w, "4"),
   "find-answer": async (w) => void (await coachId(w, "band:rd").click()),
   bands: async (w) => void (await coachId(w, "band:rd").click()),

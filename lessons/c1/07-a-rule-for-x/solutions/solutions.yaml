@@ -1,6 +1,7 @@
 solutions:
   - file: good.s
-    earns: [pass]
+    earns: [pass, called-it]
+    predictions: { a0: [17] }
     note: The starter itself.
   - file: wrong-no-plus.s
     earns: []
