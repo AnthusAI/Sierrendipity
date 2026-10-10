@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "8e660e45-4cb0-47a7-bbc4-dcf31f932b89",
+  "issue_id": "SIE-4fce0177-7d45-4396-9c7d-c399e535cb29",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T12:28:05.975Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "G4: D13 call-bookmark diagram (M)",
+    "description": "A diagram view that shows a call as a bookmark: where the machine will come back to.\nAcceptance:\n- Given a program with a call, the D13 diagram shows the bookmark and the return point.\n- It updates as steps run and has a reduced-motion caption.\n- A lesson scene can request D13.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-9119cbf4-aa57-4d05-b231-4ff62b11ae1c",
+    "labels": [
+      "engine-gap,curriculum"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Curriculum Board Agent"
+    }
+  }
+}

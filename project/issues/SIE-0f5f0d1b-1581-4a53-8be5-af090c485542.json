@@ -1,0 +1,27 @@
+{
+  "id": "SIE-0f5f0d1b-1581-4a53-8be5-af090c485542",
+  "title": "Custom cards in lessons (builder with save: true), Gallery save from the coach",
+  "description": "Carries G3 (SIE-974c74). Acceptance: a scene with builder and save: true lets the student save two cards as one named card; Show me can demonstrate it; the card is saved to the Gallery.",
+  "type": "story",
+  "status": "open",
+  "priority": 1,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-eb52a088-3bf6-4cef-9715-d718f6636911",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:46:58.844717Z",
+  "updated_at": "2026-10-07T15:46:58.844744Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The lesson builder needs to save two student cards as one named card in the Gallery.",
+  "right_now_updated_at": "2026-10-07T15:47:00.634095Z",
+  "custom": {}
+}

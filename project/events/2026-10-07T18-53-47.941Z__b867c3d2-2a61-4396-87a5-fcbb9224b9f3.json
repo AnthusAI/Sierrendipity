@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "event_id": "b867c3d2-2a61-4396-87a5-fcbb9224b9f3",
+  "issue_id": "SIE-4ef8b460-2324-49f4-8d56-8249c3d9d5a9",
+  "event_type": "comment_added",
+  "occurred_at": "2026-10-07T18:53:47.941Z",
+  "actor_id": "home",
+  "payload": {
+    "comment_id": "dc40e36a-2ae1-4c36-bc33-ca970f5cf86d",
+    "comment_author": "home",
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "RM W1b Panels"
+    }
+  }
+}

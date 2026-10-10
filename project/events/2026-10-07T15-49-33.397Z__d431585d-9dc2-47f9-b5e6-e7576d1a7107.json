@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "d431585d-9dc2-47f9-b5e6-e7576d1a7107",
+  "issue_id": "SIE-5c96c0c5-bec5-4426-9b37-75f851da8600",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T15:49:33.397Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Source edit mode, optimization toggle, live compile with recorded starter",
+    "description": "Acceptance: student edits C and compiles live; starter plays from the recorded answer; -O0 and -Og side by side; saved-source message when the cloud is down.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 3,
+    "assignee": null,
+    "parent": "SIE-8c5f31f9-75f3-4856-9f19-029fe9d0397d",
+    "labels": [
+      "real-machine"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Real Machine Board Agent"
+    }
+  }
+}

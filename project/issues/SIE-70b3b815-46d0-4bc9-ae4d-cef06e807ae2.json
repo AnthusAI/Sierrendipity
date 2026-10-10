@@ -1,0 +1,25 @@
+{
+  "id": "SIE-70b3b815-46d0-4bc9-ae4d-cef06e807ae2",
+  "title": "M13: Rust curriculum: learn Rust by seeing what it compiles to",
+  "description": "Intent: As the maintainer and the student, I want to learn Rust through the same machine-level lens as C: ownership, borrowing, Option/Result, enums and match, overflow and bounds checks, traits and generics, iterators, shown in the Compilation Explorer (what costs instructions and what compiles to nothing). Depends on Rust practice runs (SIE-02cf3a) and Rust in the explorer. Includes: Rust versions of the Course 4/5 lessons, a 'Rust for C programmers' track for the maintainer, side-by-side C and Rust compiled output lessons, and Rust practice problems in the Workshop.",
+  "type": "epic",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "labels": [],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-06T22:28:43.566975Z",
+  "updated_at": "2026-10-06T22:28:43.567016Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity-orchestrator"
+  },
+  "right_now_summary": "The curriculum will teach Rust by comparing its code with the machine instructions it produces.",
+  "right_now_updated_at": "2026-10-06T22:28:44.882774Z",
+  "custom": {}
+}

@@ -1,0 +1,50 @@
+{
+  "id": "SIE-e8c91813-9ff5-4d5a-9ac2-ccef5abae556",
+  "title": "M11: Self-guided lesson player and Course 1 (the tool is the tutor)",
+  "description": "Intent: As a total beginner, I want a tool that teaches me how a computer works from machine code up, with animated diagrams, a coach that guides and helps when I am stuck, and very easy early sessions, so that I can learn alone and gain confidence. Design: docs/course-1-design.md. Includes: instruction cards over the real RV32IM words (describe(word)), a lesson step library and authoring CLI, a scrubbable timeline and live animated machine diagrams, a scene engine and coach (spotlight, predictions, wrong-answer replies, hint ladder, Show me), drag-and-drop card builder, bit lamps, pixel display, progress and mastery, course path, Gallery and Deck, then the 13 Course 1 lessons. Excludes: later courses. Sequencing: build the smallest vertical slice (lesson 1 alone) and pilot lessons 1 to 4 with the student before authoring the rest. DoD: the student completes Course 1 alone; every lesson's reference solution passes its Gherkin checks in CI.",
+  "type": "epic",
+  "status": "in_progress",
+  "priority": 1,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "labels": [],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "85077656-1a4f-4bbe-a767-bb585140bd37",
+      "author": "home",
+      "text": "Decision (maintainer, 2026-10-06): build all of M11 before piloting (no pilot gate); the UI overhaul (M10) comes first. Wave 1 (pure libraries that do not touch web/: E1 describe, E4 timeline, E2 step library, E3 lesson loader and CLI, E12 progress core) starts now in parallel with M10. Wave 2 (diagram kit, scene engine and coach UI, cards, builder, lamps, pixel display, help, path/Gallery/Deck) starts after M10 merges. Wave 3: author the 13 Course 1 lessons with reference solutions and ghosts. The pilot task stays on the board as an optional check.",
+      "created_at": "2026-10-06T19:25:23.959708Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-orchestrator"
+      }
+    },
+    {
+      "id": "e3b05978-4c0a-4217-b214-50c61a528ff1",
+      "author": "home",
+      "text": "Maintainer insight (2026-10-06): the student is in Algebra 2 and knows functions as the heart of math; the curriculum should show functions are the heart of programming. Recorded in docs/course-1-design.md as the functions throughline: boxes as variables, cards as operations, function tables lead to loops, composition as chained custom cards, the pixel screen as a coordinate grid (Graph Machine boss replaces Picture Machine), piecewise as branches, domain as undefined/overflow, sequences as loops and recursion, binary as a polynomial, and the machine itself as a one-step state function. Counting by hand was replaced by Multiply, Make your own card, Use it again.",
+      "created_at": "2026-10-06T19:51:19.690023Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-orchestrator"
+      }
+    }
+  ],
+  "created_at": "2026-10-06T19:10:23.257743Z",
+  "updated_at": "2026-10-06T19:51:19.690048Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity-orchestrator"
+  },
+  "right_now_summary": "The UI overhaul comes first while the team builds M11’s core libraries in parallel.",
+  "right_now_updated_at": "2026-10-07T12:30:03.994260Z",
+  "custom": {}
+}

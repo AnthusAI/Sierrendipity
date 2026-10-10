@@ -1,0 +1,27 @@
+{
+  "id": "SIE-dea30205-0c61-4f4f-8299-71cda4a28e21",
+  "title": "Cloud terminal panel in lessons",
+  "description": "Acceptance: a program run on the cloud computer shows its output in a terminal panel with a where-it-ran label; keyboard operable; STE clean.",
+  "type": "story",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-043aea98-36fa-41f4-bbb8-aab7b39c3961",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:47:42.571524Z",
+  "updated_at": "2026-10-07T15:47:42.571552Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The cloud terminal panel feature has no recent activity.",
+  "right_now_updated_at": "2026-10-07T15:47:44.594952Z",
+  "custom": {}
+}

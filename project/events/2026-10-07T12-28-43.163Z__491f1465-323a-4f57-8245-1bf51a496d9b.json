@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "491f1465-323a-4f57-8245-1bf51a496d9b",
+  "issue_id": "SIE-c915855d-2d7e-4106-ac16-a197cbfff553",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T12:28:43.163Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "G11: Explorer stage inside lessons (M)",
+    "description": "The Compilation Explorer can be a stage in a lesson, with scene control over the view.\nAcceptance:\n- Given a lesson scene with an explorer stage, it shows source, RV32 and bytes.\n- A scene can spotlight a line and ask a question about it.\n- Works offline of the lesson player chrome limits (no extra panels).",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 3,
+    "assignee": null,
+    "parent": "SIE-9ad60edb-9dd2-456e-aab4-81d03ccec6a6",
+    "labels": [
+      "engine-gap,curriculum"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Curriculum Board Agent"
+    }
+  }
+}

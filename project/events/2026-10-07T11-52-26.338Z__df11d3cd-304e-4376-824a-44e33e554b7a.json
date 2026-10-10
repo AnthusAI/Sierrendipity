@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "event_id": "df11d3cd-304e-4376-824a-44e33e554b7a",
+  "issue_id": "SIE-8d128f1b-5451-4ffe-bd60-dd24f8901bf4",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T11:52:26.338Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "M11 Wave 1: c1/06 multiply and c1/07 a-rule-for-x, with G2 and G1",
+    "description": "Part of M11 (SIE-e8c918). Lessons: c1/06 multiply (a card multiplies two boxes; widget: box picker). c1/07 a-rule-for-x (a list of cards is a rule f(x)=x*x+1; table ask for x=1,2,3; predict f(4)=17). Engine: G2 (most important), G1. Decision: functions before binary. A lesson that adds a widget teaches no new math idea.",
+    "issue_type": "epic",
+    "status": "open",
+    "priority": 1,
+    "assignee": null,
+    "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+    "labels": [
+      "M11",
+      "curriculum"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Curriculum Board Agent"
+    }
+  }
+}

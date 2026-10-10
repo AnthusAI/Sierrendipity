@@ -1,0 +1,53 @@
+{
+  "id": "SIE-e17de114-3890-4bef-ae3f-2b68e49720f8",
+  "title": "M11 Wave 0: pilot c1/01-05 with the student, plus G13 guardian report",
+  "description": "Part of M11 (SIE-e8c918); epics cannot nest, so this wave sits beside it and relates-to it. Riskiest wave: the cards may feel babyish. Test: does the student choose Next lesson unprompted. Scope: pilot lessons 01-05 (SIE-93b32f) and G13. Rule: rewrite a lesson if more than 20 percent of goals need rung 3 or Show me. Plan: docs/curriculum-next.md.",
+  "type": "epic",
+  "status": "closed",
+  "priority": 1,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "labels": [
+    "M11",
+    "curriculum"
+  ],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "6ab0b375-ec33-42fc-a750-08435bc48647",
+      "author": "home",
+      "text": "Scope change from the educator review. Source: docs/reviews/2026-10-07-educator-review.md; follow-up epic SIE-2f17ee. Wave 0 now includes the S-effort follow-ups (SIE-b6366c R2, SIE-e8b3f1 R3, SIE-abddd5 R5, SIE-f3a064 R6, SIE-0da803 R8, SIE-ea3c06 R9, SIE-fb30b4 R11) before more lessons are authored, and the pilot (SIE-93b32f) gates new authoring. G13 guardian report is SIE-ca6273.",
+      "created_at": "2026-10-07T12:29:25.655735Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Curriculum Board Agent"
+      }
+    },
+    {
+      "id": "2f4fc29d-90e1-4ba1-859a-46be27d3ddcb",
+      "author": "home",
+      "text": "superseded by SIE-9aa4ca. Old M11 Wave 0 is replaced by RM W0; G13 and the pilot moved there.",
+      "created_at": "2026-10-07T15:51:20.616979Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Real Machine Board Agent"
+      }
+    }
+  ],
+  "created_at": "2026-10-07T11:52:21.388146Z",
+  "updated_at": "2026-10-07T15:51:23.844309Z",
+  "closed_at": "2026-10-07T15:51:23.844266Z",
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Curriculum Board Agent"
+  },
+  "right_now_summary": "RM W0 now covers the pilot and G13 guardian report, replacing this wave.",
+  "right_now_updated_at": "2026-10-07T15:51:25.951988Z",
+  "custom": {}
+}

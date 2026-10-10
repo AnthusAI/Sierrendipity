@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "event_id": "1edb2b7b-6677-46ce-8874-b80914bb336e",
+  "issue_id": "SIE-b6366c86-1ff3-4101-b86a-64e5518240db",
+  "event_type": "comment_added",
+  "occurred_at": "2026-10-07T13:30:22.409Z",
+  "actor_id": "home",
+  "payload": {
+    "comment_id": "d4c0246c-36e8-4096-88fc-e0ea7d170312",
+    "comment_author": "home",
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Review Quick Fixes Agent"
+    }
+  }
+}

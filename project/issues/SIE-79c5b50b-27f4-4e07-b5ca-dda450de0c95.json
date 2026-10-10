@@ -1,0 +1,52 @@
+{
+  "id": "SIE-79c5b50b-27f4-4e07-b5ca-dda450de0c95",
+  "title": "R7: One optional challenge per lesson; unlock edits after the goal; stars on the end card (S)",
+  "description": "Effort: S.\n\n**Problem.** Walls are narrow; edits are locked after the goal.\n**Evidence.** Only another-way (02) and below-zero (08) are open; the student is not told a star exists; the coach end card shows no stars; lock: [edit, drag, toggle] in lessons 3, 5, 6, 8.\n**Change.** One 'Try this too' line per lesson stated at the start (e.g. lesson 2: biggest number a card can hold; spinner -2048 to 2047); unlock edits once the goal is met; show stars on the end card.\n**Acceptance.**\n- Given any lesson, then it states one optional challenge at the start.\n- When the goal is met, then edits are unlocked.\n- The end card shows stars earned.",
+  "type": "story",
+  "status": "in_progress",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-2f17ee43-d05a-465d-bf60-bd7e58cd141a",
+  "labels": [
+    "curriculum,review"
+  ],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "3ca8982d-aa11-4bd1-a8b6-1244bc70d53e",
+      "author": "home",
+      "text": "PR #36: stars now show on the end card. Skipped: optional challenge per lesson and unlock edits after the goal (no scene follows a goal; needs a new scene or engine state).",
+      "created_at": "2026-10-07T13:30:49.856881Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Review Quick Fixes Agent"
+      }
+    },
+    {
+      "id": "28c436b7-1b97-4a89-abb4-a709eb2c49a2",
+      "author": "home",
+      "text": "Mapping: R7 (partial) stays under SIE-2f17ee; its optional challenge and stars apply to every new lesson in RM W2 onward (SIE-eb52a0).",
+      "created_at": "2026-10-07T15:55:07.736417Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Real Machine Board Agent"
+      }
+    }
+  ],
+  "created_at": "2026-10-07T12:27:12.223023Z",
+  "updated_at": "2026-10-07T15:55:07.736451Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Curriculum Board Agent"
+  },
+  "right_now_summary": "Stars now appear on the end card, but optional challenges and post-goal edits still need work.",
+  "right_now_updated_at": "2026-10-07T15:55:09.354289Z",
+  "custom": {}
+}

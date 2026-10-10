@@ -1,0 +1,38 @@
+{
+  "id": "SIE-1bb7691e-5ba0-404c-a879-a11ad266ff98",
+  "title": "Measure Fargate cold start with the larger runner image and add an ECR lifecycle rule",
+  "description": "The runner image grew from 688 MB to 898 MB with the RISC-V toolchain. Measure session cold start before and after, and add an ECR lifecycle rule (or cdk gc) so old CDK image assets do not accumulate; keep idle cost under 1 USD per month.",
+  "type": "chore",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-745728ee-aa3c-4dae-8b9c-09f47d9c18e4",
+  "labels": [],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "98be4337-fe8d-4fcb-9455-d8996015efa9",
+      "author": "home",
+      "text": "Measured on 2026-10-06 after the Rust deploy: runner image 1.47 GB (was 0.9 GB); a fresh Fargate task (0.5 vCPU, 1 GB) took 42 s to become healthy (about 20 s before Rust). Learn lessons run in the browser and are unaffected; only Workspace and Explore wait. Options: lazy/seekable image pulls, a separate on-demand Rust image, or warming the backend when Learn opens.",
+      "created_at": "2026-10-07T00:31:50.427685Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-orchestrator"
+      }
+    }
+  ],
+  "created_at": "2026-10-06T18:40:47.461552Z",
+  "updated_at": "2026-10-07T00:31:50.427712Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity-orchestrator"
+  },
+  "right_now_summary": "Fargate cold start rose to 42 seconds with the larger Rust runner image; image cleanup is still needed.",
+  "right_now_updated_at": "2026-10-07T00:31:52.191130Z",
+  "custom": {}
+}

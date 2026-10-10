@@ -1,0 +1,40 @@
+{
+  "id": "SIE-e8b3f165-82a8-4acc-b716-1700f375d07f",
+  "title": "R3: Cut read-and-Continue tours; at most one Continue scene per lesson (S)",
+  "description": "Effort: S. Do first.\n\n**Problem.** Reading replaces doing.\n**Evidence.** Lesson 1 scenes meet, the-card, the-box, did-it, big-idea are Continue-only (one action in six scenes); about half of scenes in 01-05 are Continue-only; lesson 5 spends two scenes on 'its name is a label' and the log.\n**Change.** Merge each tour line into the scene that needs it (say next to the action); keep one closing line as doneSay. Lesson 1 becomes two scenes (card, Run) plus one line about where the course goes.\n**Acceptance.**\n- Given lessons 1-5, then each has at most one Continue-only scene.\n- Time to first action is under 20 s per lesson.\n- npm run lesson -- check --all passes.",
+  "type": "story",
+  "status": "closed",
+  "priority": 1,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-2f17ee43-d05a-465d-bf60-bd7e58cd141a",
+  "labels": [
+    "curriculum,review"
+  ],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "1cb10c3d-70be-4bd8-8bd4-6f9ef236b04d",
+      "author": "home",
+      "text": "PR #36: lesson 1 is two scenes; lessons 2-5 merged tour lines into goal scenes; lesson 2 keeps its single optional Continue scene. The final doneSay now also shows on the end card.",
+      "created_at": "2026-10-07T13:30:29.277805Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Review Quick Fixes Agent"
+      }
+    }
+  ],
+  "created_at": "2026-10-07T12:26:50.061295Z",
+  "updated_at": "2026-10-07T13:31:22.723398Z",
+  "closed_at": "2026-10-07T13:31:22.723360Z",
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Curriculum Board Agent"
+  },
+  "right_now_summary": "PR #36 merges tour lines into action scenes for lessons 1–5 and keeps one optional Continue scene in lesson 2.",
+  "right_now_updated_at": "2026-10-07T13:31:24.019867Z",
+  "custom": {}
+}

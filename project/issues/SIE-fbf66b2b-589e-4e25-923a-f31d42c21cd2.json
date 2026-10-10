@@ -3,23 +3,60 @@
   "title": "M9: Machine code and assembly lessons (machine, assembly, then C)",
   "description": "Intent: As the student, I want the first programming lessons to start with machine code, then move up to assembly, then to C, so that I understand what the computer actually does before using higher-level languages. Includes: a teaching instruction set with an emulator, an assembler and disassembler, Monaco language support (syntax highlighting, hover docs, error markers) for both machine code and assembly, a stepping view (registers, memory, program counter, flags) in the IDE, runnable examples for lessons, and a path from assembly lessons to C lessons. Excludes: full real-world ISAs (x86-64, ARM64) for now; showing compiler-generated assembly for C is a possible later lesson. Open design decision recorded in a comment: which instruction set. DoD: the student can type machine code (bytes) and assembly in the IDE, run and single-step it, see registers and memory change, and the same program works in both forms; every behavior has a passing Gherkin spec.",
   "type": "epic",
-  "status": "open",
+  "status": "in_progress",
   "priority": 1,
   "assignee": null,
   "creator": null,
   "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
   "labels": [],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "4b0964ef-ce12-4248-b548-b53ee3629fc4",
+      "author": "home",
+      "text": "Direction (2026-10-06): ISA is RISC-V RV32IM (fixed 32-bit, no compressed) so machine code, assembly and compiled C share the same instructions; custom toy CPU dropped. Compilation Explorer = linked source, assembly, machine code and bit fields, with an in-browser TypeScript emulator. An outside review (opus) agreed with the idea but advised a short pedagogy pilot and a corpus/toolchain spike; the maintainer chose to build the whole vertical slice now (library, /explain endpoint, web UI) and take the pilot in parallel. Rust and C++ in the explorer are deferred. Detailed plan and curriculum design are in progress.",
+      "created_at": "2026-10-06T16:24:57.331038Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-orchestrator"
+      }
+    },
+    {
+      "id": "8d964332-b6ce-4f9d-b847-c78b77867874",
+      "author": "home",
+      "text": "Slice A merged (PRs #13, #14): @sierrendipity/explorer — RV32IM decoder with bit fields, assembler, machine-code parser, and an emulator with step back, breakpoints and the Linux ecall ABI. Verified against independent references: two review rounds (encodings and emulator semantics vs a BigInt reference), GNU as and objdump differential on 255 words, and the official riscv-tests (48 of 48 rv32ui/rv32um, fence_i and ma_data skipped by design). Slices B (/explain + runtime) and C (web UI) in progress.",
+      "created_at": "2026-10-06T17:50:58.150110Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-orchestrator"
+      }
+    },
+    {
+      "id": "a8c905e4-2be5-45a5-a9c4-3bc446a9ad54",
+      "author": "home",
+      "text": "Vertical slice merged and deployed (PRs #13-#16, 2026-10-06): explorer library (verified against GNU as/objdump and riscv-tests), POST /explain with a freestanding RV32 runtime, and the web explorer (assembly, machine code, stepping, registers/memory, Bits card, C Explore linked highlighting). Real end-to-end check on Fargate passed. Remaining for the slice: the maintainer's check of the UI in a real browser, then lessons and the pedagogy pilot. Plan: docs/m9-plan.md; curriculum: docs/curriculum-design.md.",
+      "created_at": "2026-10-06T18:40:42.528181Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-orchestrator"
+      }
+    }
+  ],
   "created_at": "2026-10-06T16:02:17.056164Z",
-  "updated_at": "2026-10-06T16:02:17.056202Z",
+  "updated_at": "2026-10-06T18:40:42.528250Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity-orchestrator"
   },
-  "right_now_summary": "The lesson path and custom instruction set are being designed before implementation begins.",
-  "right_now_updated_at": "2026-10-06T16:02:19.450879Z",
+  "right_now_summary": "The RV32IM explorer is deployed; browser checks, lessons, and a student pilot remain.",
+  "right_now_updated_at": "2026-10-06T18:41:03.575391Z",
   "custom": {}
 }

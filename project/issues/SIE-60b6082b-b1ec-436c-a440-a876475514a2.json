@@ -1,0 +1,25 @@
+{
+  "id": "SIE-60b6082b-b1ec-436c-a440-a876475514a2",
+  "title": "Spike: flash a bare-metal image to a real ESP32-C3 from the browser with esptool-js",
+  "description": "Web Serial in Chrome or Edge only. Build the image on the runner, flash from the browser, blink an LED. Document board, cable and browser requirements, and failure modes (permissions, boot mode).",
+  "type": "task",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-0ad8dc6d-b9c7-4a3d-9ca6-a46ab20f12c6",
+  "labels": [],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-06T19:32:47.452002Z",
+  "updated_at": "2026-10-06T19:32:47.452031Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity-orchestrator"
+  },
+  "right_now_summary": "The team is testing browser-based flashing of a bare-metal ESP32-C3 and documenting setup and failures.",
+  "right_now_updated_at": "2026-10-06T19:32:49.236625Z",
+  "custom": {}
+}

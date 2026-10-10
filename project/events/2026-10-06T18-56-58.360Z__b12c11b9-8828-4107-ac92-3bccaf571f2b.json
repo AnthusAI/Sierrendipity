@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "b12c11b9-8828-4107-ac92-3bccaf571f2b",
+  "issue_id": "SIE-fdcefeea-9341-4729-a714-ed81441e9b4d",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T18:56:58.360Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Colors follow the system light or dark setting",
+    "description": "As the student, I want the app to match my system's light or dark mode without a toggle in the main UI.\n\nFeature: System color mode\n  Scenario: Dark system preference\n    Given the system prefers a dark color scheme\n    When I open the IDE\n    Then the interface uses the dark palette\n  Scenario: The system preference changes while open\n    Given the IDE is open in light mode following the system\n    When the system switches to dark\n    Then the interface switches to the dark palette without a reload",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-8bbb526d-501d-4fae-941e-a71d4a611735",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-orchestrator"
+    }
+  }
+}

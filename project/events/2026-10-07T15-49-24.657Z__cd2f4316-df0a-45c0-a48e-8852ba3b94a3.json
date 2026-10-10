@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "cd2f4316-df0a-45c0-a48e-8852ba3b94a3",
+  "issue_id": "SIE-feb3235a-0c77-49d1-87f6-30fb82ae401d",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T15:49:24.657Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "symbols in /explain",
+    "description": "Acceptance: /explain returns symbols; spec in the runner image.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 3,
+    "assignee": null,
+    "parent": "SIE-8c5f31f9-75f3-4856-9f19-029fe9d0397d",
+    "labels": [
+      "real-machine"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Real Machine Board Agent"
+    }
+  }
+}

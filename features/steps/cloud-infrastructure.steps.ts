@@ -1,7 +1,10 @@
 import { Given, Then, setDefaultTimeout } from "@cucumber/cucumber";
 import assert from "node:assert/strict";
+import * as fs from "node:fs";
+import * as path from "node:path";
 import { App } from "aws-cdk-lib";
 import { Template } from "aws-cdk-lib/assertions";
+import { GITHUB_MAIN_SUBJECT, ROLE_NAME, SITE_BUCKET_NAME, SITE_DISTRIBUTION_ID, SierrendipityGitHubDeployStack } from "../../infra/lib/github-deploy-stack";
 import { SierrendipityStack } from "../../infra/lib/stack";
 
 // Synthesizing bundles three Lambdas with esbuild and stages the runner image asset.
@@ -10,6 +13,9 @@ setDefaultTimeout(120_000);
 type Res = { Type: string; Properties?: any };
 let template: Template;
 let cache: Template | undefined;
+let app: App;
+let currentApp: App;
+let githubDeployTemplate: Template;
 
 const resources = (type: string): [string, Res][] =>
   Object.entries(template.findResources(type)) as [string, Res][];
@@ -20,10 +26,21 @@ const only = <T>(items: T[]): T => {
 
 Given("the Sierrendipity stack is synthesized", () => {
   // No AWS access is needed: the default VPC lookup falls back to dummy values.
-  cache ??= Template.fromStack(
-    new SierrendipityStack(new App(), "Sierrendipity", { env: { account: "123456789012", region: "us-east-1" } }),
-  );
+  if (!cache) {
+    app = new App();
+    cache = Template.fromStack(new SierrendipityStack(app, "Sierrendipity", { env: { account: "123456789012", region: "us-east-1" } }));
+  }
   template = cache;
+  currentApp = app;
+});
+
+Given("the Sierrendipity GitHub deploy stack is synthesized", () => {
+  const githubApp = new App();
+  githubDeployTemplate = Template.fromStack(
+    new SierrendipityGitHubDeployStack(githubApp, "SierrendipityGitHubDeploy", {
+      env: { account: "123456789012", region: "us-east-1" },
+    }),
+  );
 });
 
 const taskSg = () => only(resources("AWS::EC2::SecurityGroup").filter(([, r]) => /runner task/i.test(r.Properties.GroupDescription)));
@@ -180,4 +197,162 @@ Then("the budget topic accepts publishes only from this account", () => {
   const policy = only(resources("AWS::SNS::TopicPolicy"))[1].Properties.PolicyDocument.Statement;
   const budget = policy.find((s: any) => s.Principal?.Service === "budgets.amazonaws.com");
   assert.ok(budget.Condition.StringEquals["aws:SourceAccount"]);
+});
+
+// ---- Custom domain ----
+Given("the Sierrendipity stack is synthesized without a custom domain", () => {
+  currentApp = new App({ context: { siteDomain: "" } });
+  template = Template.fromStack(
+    new SierrendipityStack(currentApp, "Sierrendipity", { env: { account: "123456789012", region: "us-east-1" } }),
+  );
+});
+
+const distributionConfig = () => only(resources("AWS::CloudFront::Distribution"))[1].Properties.DistributionConfig;
+/** The deployed `config.json` lives in a staged asset directory of the synthesized cloud assembly. */
+const configJson = (): { text: string; redirectUri: string } => {
+  const dir = currentApp.synth().directory;
+  const file = fs
+    .readdirSync(dir)
+    .map((d) => path.join(dir, d, "config.json"))
+    .find((f) => fs.existsSync(f));
+  assert.ok(file, "config.json is staged as an asset");
+  const text = fs.readFileSync(file, "utf8");
+  // Deploy-time tokens appear as <<marker>> placeholders, so the file is not always valid JSON.
+  const redirectUri = /"redirectUri":\s*"?([^",}]*)/.exec(text)?.[1] ?? "";
+  return { text, redirectUri };
+};
+
+Then("there is a DNS-validated certificate for {string} in hosted zone {string}", (domain: string, zone: string) => {
+  const cert = only(resources("AWS::CertificateManager::Certificate"))[1].Properties;
+  assert.equal(cert.DomainName, domain);
+  assert.equal(cert.ValidationMethod, "DNS");
+  assert.equal(cert.DomainValidationOptions[0].HostedZoneId, zone);
+});
+
+Then("CloudFront serves {string} with that certificate and a TLS 1.2 minimum", (domain: string) => {
+  const c = distributionConfig();
+  assert.deepEqual(c.Aliases, [domain]);
+  const certId = only(resources("AWS::CertificateManager::Certificate"))[0];
+  assert.equal(c.ViewerCertificate.AcmCertificateArn.Ref, certId);
+  assert.equal(c.ViewerCertificate.SslSupportMethod, "sni-only");
+  assert.equal(c.ViewerCertificate.MinimumProtocolVersion, "TLSv1.2_2021");
+});
+
+Then("Route 53 aliases {string} to CloudFront with A and AAAA records in that zone", (domain: string) => {
+  const distId = only(resources("AWS::CloudFront::Distribution"))[0];
+  const records = resources("AWS::Route53::RecordSet");
+  assert.deepEqual(records.map(([, r]) => r.Properties.Type).sort(), ["A", "AAAA"]);
+  for (const [, r] of records) {
+    assert.equal(r.Properties.Name, `${domain}.`);
+    assert.equal(r.Properties.HostedZoneId, "Z02552332GG6AM25SFP73");
+    assert.equal(r.Properties.AliasTarget.DNSName["Fn::GetAtt"][0], distId);
+  }
+});
+
+Then("the app client allows {string} with and without a trailing slash", (url: string) => {
+  const p = only(resources("AWS::Cognito::UserPoolClient"))[1].Properties;
+  for (const urls of [p.CallbackURLs, p.LogoutURLs]) {
+    assert.ok(urls.includes(url), url);
+    assert.ok(urls.includes(`${url}/`), `${url}/`);
+  }
+});
+
+Then("the app client still allows the CloudFront site and localhost:5173", () => {
+  const p = only(resources("AWS::Cognito::UserPoolClient"))[1].Properties;
+  for (const urls of [p.CallbackURLs, p.LogoutURLs]) {
+    assert.ok(urls.includes("http://localhost:5173/") && urls.includes("http://localhost:5173"));
+    assert.ok(JSON.stringify(urls).includes("DomainName"), "references the distribution domain");
+  }
+});
+
+Then("both function URLs allow the origin {string}", (origin: string) => {
+  const urls = resources("AWS::Lambda::Url");
+  assert.equal(urls.length, 2);
+  for (const [, u] of urls) assert.ok(u.Properties.Cors.AllowOrigins.includes(origin), origin);
+});
+
+Then("the runtime config redirects to {string}", (uri: string) => {
+  assert.equal(configJson().redirectUri, uri);
+});
+
+Then("the stack outputs the custom domain URL", () => {
+  assert.equal(template.toJSON().Outputs.CustomDomainUrl.Value, "https://sierrendipity.anth.us");
+});
+
+Then("there is no certificate, DNS record or CloudFront alias", () => {
+  template.resourceCountIs("AWS::CertificateManager::Certificate", 0);
+  template.resourceCountIs("AWS::Route53::RecordSet", 0);
+  const c = distributionConfig();
+  assert.ok(!c.Aliases?.length);
+  assert.ok(!c.ViewerCertificate?.AcmCertificateArn);
+  assert.ok(!("CustomDomainUrl" in template.toJSON().Outputs));
+});
+
+Then("the runtime config redirects to the CloudFront site", () => {
+  // The CloudFront domain is a deploy-time token, so the staged file holds a placeholder for it.
+  const { text } = configJson();
+  assert.match(text, /"redirectUri":\s*<<marker:[^>]*>>/);
+  assert.ok(!text.includes("anth.us"));
+});
+
+Then("the app client allows only the CloudFront site and localhost:5173", () => {
+  const p = only(resources("AWS::Cognito::UserPoolClient"))[1].Properties;
+  for (const urls of [p.CallbackURLs, p.LogoutURLs]) {
+    assert.equal(urls.length, 4);
+    assert.ok(!JSON.stringify(urls).includes("anth.us"));
+  }
+});
+
+Then("the GitHub deploy role trusts only the Sierrendipity main branch", () => {
+  assert.equal(GITHUB_MAIN_SUBJECT, "repo:AnthusAI@152415604/Sierrendipity@1407197360:ref:refs/heads/main");
+  const role = only(
+    (Object.entries(githubDeployTemplate.findResources("AWS::IAM::Role")) as [string, Res][]).filter(
+      ([, resource]) => resource.Properties?.RoleName === ROLE_NAME,
+    ),
+  )[1].Properties;
+  const statement = role.AssumeRolePolicyDocument.Statement[0];
+  assert.deepEqual(statement.Principal.Federated, {
+    "Fn::Join": ["", ["arn:", { Ref: "AWS::Partition" }, ":iam::123456789012:oidc-provider/token.actions.githubusercontent.com"]],
+  });
+  assert.deepEqual(statement.Condition, {
+    StringEquals: {
+      "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+      "token.actions.githubusercontent.com:sub": GITHUB_MAIN_SUBJECT,
+    },
+  });
+});
+
+Then("the GitHub deploy role may publish only unprotected site assets, invalidate the site cache and read stack status", () => {
+  const [roleId] = only(
+    (Object.entries(githubDeployTemplate.findResources("AWS::IAM::Role")) as [string, Res][]).filter(
+      ([, resource]) => resource.Properties?.RoleName === ROLE_NAME,
+    ),
+  );
+  const policies = Object.entries(githubDeployTemplate.findResources("AWS::IAM::Policy")) as [string, Res][];
+  const policy = only(policies.filter(([, resource]) => JSON.stringify(resource.Properties?.Roles).includes(roleId)))[1].Properties;
+  const statements = policy.PolicyDocument.Statement;
+  const list = only(statements.filter((statement: any) => statement.Sid === "ListSierrendipitySiteAssets"));
+  assert.deepEqual(list.Action.sort(), ["s3:GetBucketLocation", "s3:ListBucket"]);
+  assert.match(JSON.stringify(list.Resource), new RegExp(SITE_BUCKET_NAME));
+  const publish = only(statements.filter((statement: any) => statement.Sid === "PublishSierrendipitySiteAssets"));
+  assert.deepEqual(publish.Action.sort(), ["s3:AbortMultipartUpload", "s3:DeleteObject", "s3:GetObject", "s3:PutObject"]);
+  assert.match(JSON.stringify(publish.Resource), new RegExp(SITE_BUCKET_NAME));
+  const protect = only(statements.filter((statement: any) => statement.Sid === "ProtectRuntimeConfigurationAndDeploymentRecords"));
+  assert.equal(protect.Effect, "Deny");
+  assert.deepEqual(protect.Action.sort(), ["s3:AbortMultipartUpload", "s3:DeleteObject", "s3:PutObject"]);
+  assert.match(JSON.stringify(protect.Resource), /config\.json/);
+  assert.match(JSON.stringify(protect.Resource), /deployments/);
+  const invalidate = only(statements.filter((statement: any) => statement.Sid === "InvalidateSierrendipitySiteCache"));
+  assert.deepEqual(invalidate.Action, "cloudfront:CreateInvalidation");
+  assert.match(JSON.stringify(invalidate.Resource), new RegExp(SITE_DISTRIBUTION_ID));
+  const read = only(statements.filter((statement: any) => statement.Sid === "ReadSierrendipityStackStatus"));
+  assert.deepEqual(read.Action.sort(), ["cloudformation:DescribeStackEvents", "cloudformation:DescribeStacks"]);
+  assert.deepEqual(read.Resource, {
+    "Fn::Join": ["", ["arn:", { Ref: "AWS::Partition" }, ":cloudformation:us-east-1:123456789012:stack/Sierrendipity/*"]],
+  });
+});
+
+Then("the GitHub deploy role targets the existing production site", () => {
+  assert.equal(SITE_BUCKET_NAME, "sierrendipity-sitebucket397a1860-ylhnjttg8nz0");
+  assert.equal(SITE_DISTRIBUTION_ID, "E1O1EHD0LKT7W6");
 });

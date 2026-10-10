@@ -1,0 +1,20 @@
+{
+  "id": "SIE-0d23c8d7-27d6-4f69-bc1b-4dbd6cef8fb1",
+  "title": "Registers panel: c1/04 six-theme screenshot spec and reg: alias",
+  "description": "Deferred from SIE-4ef8b4 in PR 39: screenshot spec for c1/04 across six theme and mode combinations; reg:<name> alias beside box:<name>.",
+  "type": "story",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-fd7b2ee2-94bd-4d3a-aeee-ace3372b3b2e",
+  "labels": [],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T19:59:35.066600Z",
+  "updated_at": "2026-10-07T19:59:35.066644Z",
+  "closed_at": null,
+  "right_now_summary": "The c1/04 screenshot spec and reg:<name> alias are awaiting implementation.",
+  "right_now_updated_at": "2026-10-07T19:59:37.233648Z",
+  "custom": {}
+}

@@ -1,0 +1,7 @@
+{
+  "id": "demo-toggle",
+  "events": [
+    { "at": 0, "type": "point", "target": "lamp:20" },
+    { "at": 900, "type": "toggle", "card": 0, "bit": 20 }
+  ]
+}

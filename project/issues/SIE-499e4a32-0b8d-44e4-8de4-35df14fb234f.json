@@ -1,0 +1,25 @@
+{
+  "id": "SIE-499e4a32-0b8d-44e4-8de4-35df14fb234f",
+  "title": "Run a short pedagogy pilot with the student before building more lessons",
+  "description": "Per the outside review and curriculum design: a one to two week pilot (paper CPU, lesson 1.1 on the explorer, a multiply loop, and a C-first contrast session in Compiler Explorer). Measure bonuses attempted unprompted, prediction accuracy, explain-back, want-another-one. Decide machine-code-first vs C-first from the evidence.",
+  "type": "task",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-fbf66b2b-589e-4e25-923a-f31d42c21cd2",
+  "labels": [],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-06T18:40:59.575434Z",
+  "updated_at": "2026-10-06T18:40:59.575469Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity-orchestrator"
+  },
+  "right_now_summary": "The team is preparing a one- to two-week student pilot to test lesson order and learning outcomes.",
+  "right_now_updated_at": "2026-10-06T18:41:01.516127Z",
+  "custom": {}
+}

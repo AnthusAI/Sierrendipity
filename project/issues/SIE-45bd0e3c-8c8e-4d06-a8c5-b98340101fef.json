@@ -1,0 +1,27 @@
+{
+  "id": "SIE-45bd0e3c-8c8e-4d06-a8c5-b98340101fef",
+  "title": "Memory panel at width 4 with mem: ids",
+  "description": "Acceptance: shelves of 4 bytes linked to Program rows; mem: ids resolve; lesson-density table with headers; machine-code bytes of her own function visible.",
+  "type": "story",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-fd3dd9b2-bdbf-4e23-bbf1-44d7cad3c537",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:47:57.312617Z",
+  "updated_at": "2026-10-07T15:47:57.312641Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The memory panel is being set up to show four-byte shelves, resolved mem: IDs, and machine-code bytes.",
+  "right_now_updated_at": "2026-10-07T15:47:59.711375Z",
+  "custom": {}
+}

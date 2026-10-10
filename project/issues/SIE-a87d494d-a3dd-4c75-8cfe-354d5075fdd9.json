@@ -1,0 +1,27 @@
+{
+  "id": "SIE-a87d494d-a3dd-4c75-8cfe-354d5075fdd9",
+  "title": "RM W6 Typing: editor stage, assembler messages in STE, Output panel, c2/01-03",
+  "description": "Real-machine plan (docs/real-machine-curriculum.md section 6). Each wave ships alone and ends with lessons on the path. Contents: the editor stage (lazy Monaco or a textbox), assembler messages in STE, the Output panel, register vocabulary; c2/01-03. Riskiest assumption: typing assembly is not a wall after 22 lessons of cards. Guardian playtest question: Errors per line typed, and does she fix them from the message alone?",
+  "type": "epic",
+  "status": "open",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:45:57.211156Z",
+  "updated_at": "2026-10-07T15:45:57.211180Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The team is building the editor, assembler feedback, output panel, and lesson checks for c2/01-03.",
+  "right_now_updated_at": "2026-10-07T15:49:06.853322Z",
+  "custom": {}
+}

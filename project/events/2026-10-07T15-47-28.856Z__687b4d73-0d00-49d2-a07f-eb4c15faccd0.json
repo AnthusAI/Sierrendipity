@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "687b4d73-0d00-49d2-a07f-eb4c15faccd0",
+  "issue_id": "SIE-0c63ddda-b9bd-43f5-a707-2508c5394ccd",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T15:47:28.856Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Differential spec: explorer emulator vs native gcc vs qemu",
+    "description": "features/lessons/differential-cloud.feature, @linux-only, run with npm run test:linux in the runner image. Acceptance:\n- for every C program in lessons/**/source/ and lessons/corpus/, /explain at -O0 and -Og run in the explorer Machine, native gcc on the runner, and the /explain ELF in qemu-riscv32 give the same output and exit code (five runs)\n- a second scenario fails when any recorded /explain answer is stale (byte-for-byte match on recompile)\n- known differences (long, printf %f, sizeof(void *), HashMap) are avoided or tested on purpose",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-043aea98-36fa-41f4-bbb8-aab7b39c3961",
+    "labels": [
+      "real-machine"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Real Machine Board Agent"
+    }
+  }
+}

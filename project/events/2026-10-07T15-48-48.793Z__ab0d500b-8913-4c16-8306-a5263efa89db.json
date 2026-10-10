@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "ab0d500b-8913-4c16-8306-a5263efa89db",
+  "issue_id": "SIE-d5bfe15f-7fed-4667-babb-81acb044f46c",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T15:48:48.793Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Editor stage (lazy Monaco or plain textbox)",
+    "description": "Carries G9 (SIE-d36ef6) in simplified form. Acceptance: one-line editor in a lesson; lazy loaded; assembler errors shown in STE.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 3,
+    "assignee": null,
+    "parent": "SIE-a87d494d-a3dd-4c75-8cfe-354d5075fdd9",
+    "labels": [
+      "real-machine"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Real Machine Board Agent"
+    }
+  }
+}

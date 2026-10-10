@@ -2,7 +2,34 @@ import { devBackend, type Config } from "./config";
 import { parseSse } from "./sse";
 
 export type BackendStatus = "starting" | "ready" | "error";
-export type Language = "python" | "c" | "cpp";
+export type Language = "python" | "c" | "cpp" | "rust" | "asm" | "machine";
+/** Languages that run on the backend; the two RISC-V languages run entirely in the browser. */
+export type BackendLanguage = "python" | "c" | "cpp" | "rust";
+
+export interface ExplainRequest {
+  language: "c" | "rust";
+  files: { path: string; content: string }[];
+  optLevel?: "O0" | "Og";
+  /** Rust only: keep the overflow and bounds checks (the runner's default is off). */
+  checks?: boolean;
+}
+
+export interface ExplainInstruction {
+  index: number;
+  addr: number;
+  word: number;
+  origin: "user" | "runtime";
+  function: string;
+  src?: { path: string; line: number; column: number };
+}
+
+export interface ExplainResponse {
+  status: "ok" | "compile_error" | "link_error" | "time_limit_exceeded" | "output_limit_exceeded" | "internal_error";
+  compileOutput: string;
+  program?: { image: string; loadAddress: number; entry: number; stackTop: number; memorySize: number };
+  instructions?: ExplainInstruction[];
+  lineMap?: Record<string, number[]>;
+}
 
 export type RunEvent =
   | { type: "compile"; output: string; ok: boolean }
@@ -10,7 +37,7 @@ export type RunEvent =
   | { type: "exit"; status: string; exitCode?: number | null; signal?: string | null; wallMs?: number };
 
 export interface RunRequest {
-  language: Language;
+  language: BackendLanguage;
   files: { path: string; content: string }[];
   entry?: string;
 }
@@ -136,6 +163,13 @@ export class Backend {
     const { runId } = await response.json();
     sessionStorage.setItem(LAST_RUN_KEY, runId);
     return runId;
+  }
+
+  /** Compile C or Rust and describe the result instruction by instruction (POST /explain, same session as runs). */
+  async explain(request: ExplainRequest): Promise<ExplainResponse> {
+    const response = await this.postJson("/explain", request);
+    if (!response.ok) throw new Error(`could not explain the program: HTTP ${response.status}`);
+    return response.json();
   }
 
   async sendStdin(runId: string, data: string, eof = false) {

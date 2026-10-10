@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "event_id": "125b40c5-b39d-4baa-a1b4-9243bbbab449",
+  "issue_id": "SIE-9119cbf4-aa57-4d05-b231-4ff62b11ae1c",
+  "event_type": "comment_added",
+  "occurred_at": "2026-10-07T15:52:24.214Z",
+  "actor_id": "home",
+  "payload": {
+    "comment_id": "6db9efdd-6898-4272-97be-cf8a53091fc8",
+    "comment_author": "home",
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Real Machine Board Agent"
+    }
+  }
+}

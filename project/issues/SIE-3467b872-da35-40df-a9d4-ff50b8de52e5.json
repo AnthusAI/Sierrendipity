@@ -1,0 +1,25 @@
+{
+  "id": "SIE-3467b872-da35-40df-a9d4-ff50b8de52e5",
+  "title": "Virtual ESP32-C3 board: memory-mapped GPIO, timer and UART in the emulator",
+  "description": "Feature: Virtual board\n  Scenario: Writing the GPIO register lights the LED\n    Given a program that stores 1 to the C3 GPIO output register\n    When it runs on the virtual board\n    Then the LED on the board is lit",
+  "type": "story",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-0ad8dc6d-b9c7-4a3d-9ca6-a46ab20f12c6",
+  "labels": [],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-06T19:32:36.908514Z",
+  "updated_at": "2026-10-06T19:32:36.908541Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity-orchestrator"
+  },
+  "right_now_summary": "The virtual ESP32-C3 board still needs GPIO, timer, and UART emulation.",
+  "right_now_updated_at": "2026-10-06T19:32:37.982657Z",
+  "custom": {}
+}

@@ -1,0 +1,27 @@
+{
+  "id": "SIE-1aa4aab4-ec1c-4b15-9917-9dc313365980",
+  "title": "Stack panel with frame phrases",
+  "description": "Acceptance: panel draws frames; phrase 'the stack is N frames deep'; accessible table.",
+  "type": "story",
+  "status": "open",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-9513600d-6fbf-4558-9248-4707c1a0987e",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:49:12.630417Z",
+  "updated_at": "2026-10-07T15:49:12.630439Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The team is defining a stack panel that shows frames, depth, and an accessible table.",
+  "right_now_updated_at": "2026-10-07T15:49:14.261480Z",
+  "custom": {}
+}

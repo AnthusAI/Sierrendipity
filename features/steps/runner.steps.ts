@@ -22,6 +22,14 @@ type Req = { language: string; entry?: string; files: { path: string; content: s
 let request: Req;
 let response: { status: number; body: RunResult };
 
+/** The latest runner response, shared with the other step files (explain.steps.ts). */
+export function setResponse(r: { status: number; body: unknown }): void {
+  response = r as typeof response;
+}
+export function getResponse(): { status: number; body: unknown } {
+  return response;
+}
+
 Before(() => {
   request = { language: "", files: [], limits: {} };
 });
@@ -46,9 +54,9 @@ After(() => {
   for (const name of Object.keys(CLOUD_ENV)) delete process.env[name];
 });
 
-const languages: Record<string, string> = { "C++": "cpp", C: "c", Python: "python" };
+const languages: Record<string, string> = { "C++": "cpp", C: "c", Python: "python", Rust: "rust" };
 
-Given(/^an? (C\+\+|C|Python) project$/, (name: string) => {
+Given(/^an? (C\+\+|C|Python|Rust) project$/, (name: string) => {
   request.language = languages[name];
 });
 
@@ -69,7 +77,7 @@ Given("the request field {string} set to the number {int}", (field: string, valu
 });
 
 Given("the stdin {string}", (input: string) => {
-  request.stdin = input;
+  request.stdin = input.replace(/\\n/g, "\n");
 });
 
 Given("a time limit of {int} ms", (ms: number) => {
@@ -103,6 +111,15 @@ Then("the program output is {string}", (output: string) => {
 
 Then("the compiler output mentions {string}", (text: string) => {
   assert.match(response.body.compile?.output ?? "", new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+});
+
+Then("the compiler output does not mention {string}", (text: string) => {
+  assert.ok(!(response.body.compile?.output ?? "").includes(text), response.body.compile?.output);
+});
+
+Then("the program error output mentions {string}", (text: string) => {
+  const stderr = (response.body.run as { stderr?: string } | undefined)?.stderr ?? "";
+  assert.ok(stderr.includes(text), stderr);
 });
 
 Then("the program was not executed", () => {
@@ -204,6 +221,19 @@ Then("no sleep process is left running", () => {
       }
     });
   assert.ok(!names.includes("sleep"), "a sleep process survived");
+});
+
+Then("no process of a sandbox user is left running", () => {
+  const owners = readdirSync("/proc")
+    .filter((d) => /^\d+$/.test(d))
+    .map((d) => {
+      try {
+        return Number(/^Uid:\s+(\d+)/m.exec(readFileSync(`/proc/${d}/status`, "utf8"))?.[1]);
+      } catch {
+        return 0;
+      }
+    });
+  assert.ok(!owners.some((uid) => uid >= 20000), "a sandbox user's process survived");
 });
 
 Then("no files owned by sandbox users remain", () => {

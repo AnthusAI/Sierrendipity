@@ -1,0 +1,27 @@
+{
+  "id": "SIE-fd7b2ee2-94bd-4d3a-aeee-ace3372b3b2e",
+  "title": "RM W1 One machine, first panels: Session, Registers panel, glass strip, c1/02 04 05",
+  "description": "Real-machine plan (docs/real-machine-curriculum.md section 6). Each wave ships alone and ends with lessons on the path. Contents: Session in the explorer; lesson Live over it; RealStage without the shadow timeline; the Registers panel (box skin) and the glass strip; c1/02, 04 and 05 updated. FIRST SHIPPABLE WAVE after the pilot. Riskiest assumption: one component can be the 3-box lesson look and the 32-register IDE table without making either worse. Guardian playtest question: In c1/02, does she notice the grey line change, and what does she say it is?",
+  "type": "epic",
+  "status": "open",
+  "priority": 1,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:45:29.113911Z",
+  "updated_at": "2026-10-07T15:45:29.113932Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The team is building shared machine panels and updating c1/02, c1/04, and c1/05 to use them.",
+  "right_now_updated_at": "2026-10-07T19:59:44.096089Z",
+  "custom": {}
+}

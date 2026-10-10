@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "3670a51b-6064-4915-8945-7e1d9e330d6d",
+  "issue_id": "SIE-a18f8d24-1e6c-457a-8a77-9771f0c7bc88",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T12:27:55.990Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "G2: Function input, rule banner, function checks (f(3) is 10) and a table ask (M, most important)",
+    "description": "Most important gap: it enables the function throughline (R1 follow-ups).\nAcceptance:\n- Given a lesson with a function card, the student can enter x and see the result in the box.\n- A rule banner shows the rule, e.g. f(x) = x squared plus 1.\n- A check 'f(3) is 10' can be written in lesson.yaml and is run by the loader and the browser.\n- A 'table' ask has the student fill x and f(x) rows; wrong cells get a specific reply.\n- Covered by Gherkin features under features/.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 1,
+    "assignee": null,
+    "parent": "SIE-8d128f1b-5451-4ffe-bd60-dd24f8901bf4",
+    "labels": [
+      "engine-gap,curriculum"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Curriculum Board Agent"
+    }
+  }
+}

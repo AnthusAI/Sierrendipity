@@ -1,0 +1,50 @@
+{
+  "id": "SIE-02cf3a13-ae09-41de-8847-e601c543c706",
+  "title": "M9.8: Rust on RV32 in the explorer (no_std) and native Rust practice language",
+  "description": "Rust via rustc --emit asm,obj and a no_std runtime crate for the emulator; native Rust as a fourth practice language later. See docs/m9-plan.md for costs (about 590 MB image growth) and noise caveats.",
+  "type": "epic",
+  "status": "in_progress",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "labels": [],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "88301ff4-2696-4f4d-97a6-7343a590b3d5",
+      "author": "home",
+      "text": "Decision (maintainer, 2026-10-06): Rust is first class and goes in with everything else; the maintainer also wants to learn Rust. Plan: (1) Rust as a fourth native practice language in the shared runner image (rustc only, no cargo), (2) Rust in the Compilation Explorer on riscv32im-unknown-none-elf with a small no_std runtime crate (println, read_line, alloc via a bump allocator), (3) a Rust curriculum track (see M13). Image growth (about 590 MB) is accepted; measure cold start (SIE-1bb769) and mitigate if needed.",
+      "created_at": "2026-10-06T22:28:38.902144Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-orchestrator"
+      }
+    },
+    {
+      "id": "f89fdb4f-c99f-4190-9d52-2ddc4356cd27",
+      "author": "home",
+      "text": "Live verification (2026-10-06, real Fargate task via the deployed proxy): native Rust /run compiled and ran f(7) = 50 in 0.67 s; Rust /explain returned 6185 instructions in 1.8 s; the returned image ran in the explorer emulator printing f(7) = 50 with exit 0; demangled user functions main::main and main::square.",
+      "created_at": "2026-10-07T00:31:56.845396Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "claude-sonnet-5-5",
+        "name": "Sierrendipity-orchestrator"
+      }
+    }
+  ],
+  "created_at": "2026-10-06T18:41:05.578331Z",
+  "updated_at": "2026-10-07T00:31:56.845428Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity-orchestrator"
+  },
+  "right_now_summary": "Rust support is merged and live checks pass in the runner and explorer, with size and safety work remaining.",
+  "right_now_updated_at": "2026-10-07T00:31:58.623582Z",
+  "custom": {}
+}

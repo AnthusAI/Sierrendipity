@@ -1,0 +1,53 @@
+{
+  "id": "SIE-9ad60edb-9dd2-456e-aab4-81d03ccec6a6",
+  "title": "M11 Wave 7: Course 4 C, c4/01-03, with G10 and G11",
+  "description": "Part of M11 (SIE-e8c918). c4/01 glass-box (Explorer in lesson). c4/02 write-f-in-c (editor C plus compile harness). c4/03 same-c-more-work (-O0 versus -Og). Engine: G10, G11.",
+  "type": "epic",
+  "status": "closed",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "labels": [
+    "M11",
+    "curriculum"
+  ],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "4494f9a9-cc9a-47e9-b36e-fef67e805c50",
+      "author": "home",
+      "text": "Scope change from the educator review. Source: docs/reviews/2026-10-07-educator-review.md; follow-up epic SIE-2f17ee. No change in order; stays P3. Gaps: G10 (SIE-30e18a), G11 (SIE-c91585).",
+      "created_at": "2026-10-07T12:29:49.114054Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Curriculum Board Agent"
+      }
+    },
+    {
+      "id": "f6b56035-a9f5-44b0-be16-4618ba4f351c",
+      "author": "home",
+      "text": "superseded by SIE-8c5f31. Old M11 Wave 7 (Course 4 C, c4/01-03) maps to RM W8 (c4/01-05).",
+      "created_at": "2026-10-07T15:54:44.051249Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Real Machine Board Agent"
+      }
+    }
+  ],
+  "created_at": "2026-10-07T11:52:46.918957Z",
+  "updated_at": "2026-10-07T15:54:47.893870Z",
+  "closed_at": "2026-10-07T15:54:47.893802Z",
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Curriculum Board Agent"
+  },
+  "right_now_summary": "Scope changed after educator review, and this item was replaced by a new W8 plan with updated child work.",
+  "right_now_updated_at": "2026-10-07T15:54:49.322206Z",
+  "custom": {}
+}

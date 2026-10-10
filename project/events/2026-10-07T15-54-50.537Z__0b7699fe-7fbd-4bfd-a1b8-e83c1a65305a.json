@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "event_id": "0b7699fe-7fbd-4bfd-a1b8-e83c1a65305a",
+  "issue_id": "SIE-fa98902a-d33c-4cba-9f1d-2d1d750085b1",
+  "event_type": "field_updated",
+  "occurred_at": "2026-10-07T15:54:50.537Z",
+  "actor_id": "home",
+  "payload": {
+    "changes": {
+      "priority": {
+        "from": 3,
+        "to": 4
+      }
+    }
+  }
+}

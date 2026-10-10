@@ -1,0 +1,5 @@
+solutions:
+  - file: good.hex
+    earns: [pass]
+  - file: wrong.hex
+    earns: []

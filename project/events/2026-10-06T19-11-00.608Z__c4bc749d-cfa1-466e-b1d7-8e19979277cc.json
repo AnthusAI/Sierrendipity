@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "c4bc749d-cfa1-466e-b1d7-8e19979277cc",
+  "issue_id": "SIE-3601d789-2c17-4077-927f-b43085c3deb8",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T19:11:00.608Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "E6: Scene engine and coach: narration, spotlight, until conditions, predictions, wrong-answer replies (L)",
+    "description": "Feature: Coach\n  Scenario: A scene advances when its condition holds\n  Scenario: An anticipated wrong prediction gets its own reply",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-e8c91813-9ff5-4d5a-9ac2-ccef5abae556",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-orchestrator"
+    }
+  }
+}

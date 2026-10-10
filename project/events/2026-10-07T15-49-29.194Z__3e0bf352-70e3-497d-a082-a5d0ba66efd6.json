@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "3e0bf352-70e3-497d-a082-a5d0ba66efd6",
+  "issue_id": "SIE-ca506f4f-76e4-49d4-928a-514cc7d709bb",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T15:49:29.194Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Session.heap and Heap panel",
+    "description": "Acceptance: heap holds N blocks phrase; second malloc block at first plus 16; panel accessible.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 3,
+    "assignee": null,
+    "parent": "SIE-8c5f31f9-75f3-4856-9f19-029fe9d0397d",
+    "labels": [
+      "real-machine"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Real Machine Board Agent"
+    }
+  }
+}

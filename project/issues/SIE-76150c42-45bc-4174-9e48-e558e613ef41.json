@@ -1,0 +1,25 @@
+{
+  "id": "SIE-76150c42-45bc-4174-9e48-e558e613ef41",
+  "title": "E10: Pixel display view over shelves 1024 to 1279 (S)",
+  "description": "Feature: Pixel display\n  Scenario: A byte of 3 at 1024 lights the top-left pixel green",
+  "type": "story",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-e8c91813-9ff5-4d5a-9ac2-ccef5abae556",
+  "labels": [],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-06T19:11:31.467371Z",
+  "updated_at": "2026-10-06T19:11:31.467400Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity-orchestrator"
+  },
+  "right_now_summary": "The team is defining how byte 3 at address 1024 lights the top-left pixel green.",
+  "right_now_updated_at": "2026-10-06T19:11:33.116527Z",
+  "custom": {}
+}

@@ -1,0 +1,6 @@
+{
+  "id": "demo-answer-band",
+  "events": [
+    { "at": 0, "type": "point", "target": "band:rd" }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "id": "SIE-8d128f1b-5451-4ffe-bd60-dd24f8901bf4",
+  "title": "M11 Wave 1: c1/06 multiply and c1/07 a-rule-for-x, with G2 and G1",
+  "description": "Part of M11 (SIE-e8c918). Lessons: c1/06 multiply (a card multiplies two boxes; widget: box picker). c1/07 a-rule-for-x (a list of cards is a rule f(x)=x*x+1; table ask for x=1,2,3; predict f(4)=17). Engine: G2 (most important), G1. Decision: functions before binary. A lesson that adds a widget teaches no new math idea.",
+  "type": "epic",
+  "status": "closed",
+  "priority": 1,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "labels": [
+    "M11",
+    "curriculum"
+  ],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "b7f9bf25-2eda-47fb-8c3d-0ab1495ba587",
+      "author": "home",
+      "text": "Scope change from the educator review. Source: docs/reviews/2026-10-07-educator-review.md; follow-up epic SIE-2f17ee. The function lessons come first: c1/06-09 are now In order, Multiply, Make your own card, Use it again (SIE-148870 R1), built first with the existing builder, Save as card and Gallery. G2 (SIE-a18f8d, most important) and G1 (SIE-3d2389) follow. Priority P1.",
+      "created_at": "2026-10-07T12:29:29.292221Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Curriculum Board Agent"
+      }
+    },
+    {
+      "id": "3a883da8-10c1-4b69-bff3-2a36a042cfb0",
+      "author": "home",
+      "text": "superseded by SIE-eb52a0. Old M11 Wave 1 (c1/06-07, G2, G1) maps to RM W2; G2 moved, G1 closed.",
+      "created_at": "2026-10-07T15:51:47.874952Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Real Machine Board Agent"
+      }
+    }
+  ],
+  "created_at": "2026-10-07T11:52:26.338419Z",
+  "updated_at": "2026-10-07T15:51:50.221238Z",
+  "closed_at": "2026-10-07T15:51:50.221197Z",
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Curriculum Board Agent"
+  },
+  "right_now_summary": "The plan now starts with function lessons using the existing builder; box picker work was superseded.",
+  "right_now_updated_at": "2026-10-07T15:51:51.477600Z",
+  "custom": {}
+}

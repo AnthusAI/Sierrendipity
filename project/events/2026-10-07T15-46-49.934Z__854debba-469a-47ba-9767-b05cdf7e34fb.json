@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "854debba-469a-47ba-9767-b05cdf7e34fb",
+  "issue_id": "SIE-01efc74e-b4c4-42b5-9837-4bd8aac53a08",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T15:46:49.934Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Machine panels framework and ui.panels lesson block (tabs deprecated)",
+    "description": "Lessons configure panels through ui.panels; a panel in a scene's show must be configured there; tabs is deprecated. Acceptance:\n- web/src/machine/* holds the panels and a useSession hook\n- RealStage renders panels from ui.panels\n- lesson check fails on a show of an unconfigured panel\n- needs: cloud is parsed (used in W3)\n- UI strings in web/src/machine/ pass the STE checker through a small spec that collects exported strings",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 1,
+    "assignee": null,
+    "parent": "SIE-fd7b2ee2-94bd-4d3a-aeee-ace3372b3b2e",
+    "labels": [
+      "real-machine"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Real Machine Board Agent"
+    }
+  }
+}

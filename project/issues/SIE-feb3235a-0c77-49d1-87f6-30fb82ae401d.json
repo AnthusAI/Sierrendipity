@@ -1,0 +1,27 @@
+{
+  "id": "SIE-feb3235a-0c77-49d1-87f6-30fb82ae401d",
+  "title": "symbols in /explain",
+  "description": "Acceptance: /explain returns symbols; spec in the runner image.",
+  "type": "story",
+  "status": "open",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-8c5f31f9-75f3-4856-9f19-029fe9d0397d",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:49:24.657476Z",
+  "updated_at": "2026-10-07T15:49:24.657503Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The team is defining how `/explain` should return symbols from the runner image.",
+  "right_now_updated_at": "2026-10-07T15:49:26.398577Z",
+  "custom": {}
+}

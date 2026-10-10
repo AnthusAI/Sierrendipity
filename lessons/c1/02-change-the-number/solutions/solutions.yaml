@@ -1,0 +1,20 @@
+solutions:
+  - file: good.hex
+    earns: [pass]
+    note: The number on the card spun from 5 to 9.
+  - file: another-way.hex
+    earns: [another-way]
+    note: A different number, 4. Earns the bonus but not the goal, since the box must show 9 to pass.
+  - file: unchanged.hex
+    earns: []
+    note: The card as it came, so the box shows 5.
+  - file: wrong-no-card.hex
+    earns: []
+    note: The card was removed, so the box stays 0 and there is nothing to change.
+  - file: wrong-two-cards.hex
+    earns: []
+    note: A second card was added instead of changing the number; the bonus wants the one card changed.
+  - file: forever.s
+    earns: []
+    capped: true
+    note: A card that jumps to itself; only the step cap stops it.

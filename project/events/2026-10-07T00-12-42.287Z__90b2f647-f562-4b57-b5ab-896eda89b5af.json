@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "90b2f647-f562-4b57-b5ab-896eda89b5af",
+  "issue_id": "SIE-e70f95a9-1e1b-4524-8375-0d2f3606546d",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T00:12:42.287Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Explain responses: compact encoding so Rust and larger programs fit under the caps",
+    "description": "Rust programs using sort, u128 or {:#x} run 25k-32k instructions and end as output_limit_exceeded (cap 20000 instructions, 4 MB; about 130 bytes of JSON per instruction). Use a function-name table and compact fields to shrink the response, then raise the instruction cap; update the web client.",
+    "issue_type": "task",
+    "status": "open",
+    "priority": 3,
+    "assignee": null,
+    "parent": "SIE-02cf3a13-ae09-41de-8847-e601c543c706",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-orchestrator"
+    }
+  }
+}

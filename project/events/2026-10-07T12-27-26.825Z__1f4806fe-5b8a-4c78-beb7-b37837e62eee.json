@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "1f4806fe-5b8a-4c78-beb7-b37837e62eee",
+  "issue_id": "SIE-fb30b4a7-5969-4cd7-8d84-8ce52adfd11e",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T12:27:26.825Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "R11: Fix README and doc drift (Python still listed, Python window lessons, Workshop 'from week one') (S)",
+    "description": "Effort: S. Do first.\n\n**Problem.** Docs disagree with the course design.\n**Evidence.** README.md says 'Languages: Python, C, C++'; curriculum-design.md still plans Python window lessons and a Workshop 'from week one', against course-1-design.md ('No Python lessons'; Workshop starts with C in Course 4). Also state the review's rule fix: 'one action', not 'a small idea'.\n**Change.** Align README.md and curriculum-design.md with course-1-design.md; amend the 'ONE new idea' rule to 'ONE action'.\n**Acceptance.**\n- README no longer lists Python as a platform language for lessons.\n- curriculum-design.md has no Python window lessons and the Workshop starts with C in Course 4.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 1,
+    "assignee": null,
+    "parent": "SIE-2f17ee43-d05a-465d-bf60-bd7e58cd141a",
+    "labels": [
+      "docs,review"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Curriculum Board Agent"
+    }
+  }
+}

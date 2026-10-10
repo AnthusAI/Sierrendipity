@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "253d7084-d83e-4f3b-b306-cc8f8a550e64",
+  "issue_id": "SIE-de183ce4-d5d4-4cb1-be3d-02ab07ba13ce",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T19:11:37.111Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "E11: Stuck detection, hint ladder and the Show me ghost player (M)",
+    "description": "Feature: Help\n  Scenario: Two failed checks offer a nudge\n  Scenario: Show me replays a solution and returns control",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-e8c91813-9ff5-4d5a-9ac2-ccef5abae556",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-orchestrator"
+    }
+  }
+}

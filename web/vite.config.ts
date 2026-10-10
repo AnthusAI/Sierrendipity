@@ -1,4 +1,6 @@
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
+import { fileURLToPath } from "node:url";
 import { defineConfig, type Plugin } from "vite";
 
 // In production /config.json is deployed next to the app. In dev, serve one that points at
@@ -14,6 +16,7 @@ const devConfig = (): Plugin => ({
 });
 
 export default defineConfig({
-  plugins: [react(), devConfig()],
+  plugins: [react(), tailwindcss(), devConfig()],
+  resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
   build: { chunkSizeWarningLimit: 4000 },
 });

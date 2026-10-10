@@ -18,6 +18,9 @@ const PTY_RUN = path.join(__dirname, "..", "launcher", "pty-run.py");
 
 const FIRST_UID = 20001;
 // The compiler needs far more address space than student code; this only stops a runaway compile.
+// Measured for rustc 1.99 (LLVM): hello world needs about 512 MB, a 2.5k-line program 512 MB and a
+// generics-heavy one 640 MB; below that rustc dies, or hangs until the compile time limit. 1.5 GB
+// leaves more than 2x headroom for both gcc and rustc.
 const COMPILE_MEMORY_BYTES = 1536 * 1024 * 1024;
 // Files a run leaves in the shared scratch areas; the run directory lives in /tmp too.
 const SCRATCH = ["/tmp", "/var/tmp", "/dev/shm"];
@@ -67,9 +70,10 @@ export function terminalCommand(command: string[], memoryLimitMb: number, timeLi
 }
 
 /** The compiler needs /tmp and processes, so no seccomp filter, but it keeps the uid and a memory bound. */
-export function compilerCommand(command: string[], uid: number): string[] {
+export function compilerCommand(command: string[], uid: number, opts: { seccomp?: boolean } = {}): string[] {
   if (!isLinux) return command;
-  return [LAUNCHER, `--uid=${uid}`, "--no-seccomp", `--as=${COMPILE_MEMORY_BYTES}`, "--", ...command];
+  const filter = opts.seccomp ? [] : ["--no-seccomp"];
+  return [LAUNCHER, `--uid=${uid}`, ...filter, `--as=${COMPILE_MEMORY_BYTES}`, "--", ...command];
 }
 
 /** Kill every process of the run's uid, including ones that escaped the process group. */

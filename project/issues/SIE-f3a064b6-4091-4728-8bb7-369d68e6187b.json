@@ -1,0 +1,40 @@
+{
+  "id": "SIE-f3a064b6-4091-4728-8bb7-369d68e6187b",
+  "title": "R6: Fade instructions and spotlights from lesson 4 (S)",
+  "description": "Effort: S. Do first.\n\n**Problem.** Every goal comes with step instructions and a spotlight.\n**Evidence.** Lesson 5 fill and watch-add say 'Select Run two times' / 'Select Run' with spotlight: button:step.\n**Change.** From lesson 4 state only the goal; show the spotlight only after the first hint (the engine already does this after Skip the tour).\n**Acceptance.**\n- Given a goal in lesson 4 or later, then no step instruction and no spotlight show at first.\n- When the student asks for hint 1, then the spotlight shows.\n- Rung 3 or Show me is under 20 percent of goals in the pilot.",
+  "type": "story",
+  "status": "closed",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-2f17ee43-d05a-465d-bf60-bd7e58cd141a",
+  "labels": [
+    "curriculum,review"
+  ],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "a2dbe8cd-002d-4e14-943b-acb474f7bde3",
+      "author": "home",
+      "text": "PR #36: new ui.spotlightAfterHint; lessons 4-8 state only the goal and spotlight appears after hint 1. Spec in coach.feature and stage-lessons.",
+      "created_at": "2026-10-07T13:30:45.127374Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Review Quick Fixes Agent"
+      }
+    }
+  ],
+  "created_at": "2026-10-07T12:27:07.537792Z",
+  "updated_at": "2026-10-07T13:31:36.430487Z",
+  "closed_at": "2026-10-07T13:31:36.430455Z",
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Curriculum Board Agent"
+  },
+  "right_now_summary": "Lessons 4–8 now show only the goal, with the spotlight appearing after the first hint.",
+  "right_now_updated_at": "2026-10-07T13:31:37.430298Z",
+  "custom": {}
+}

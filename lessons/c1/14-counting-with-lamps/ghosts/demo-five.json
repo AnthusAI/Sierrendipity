@@ -1,0 +1,8 @@
+{
+  "id": "demo-five",
+  "events": [
+    { "at": 0, "type": "point", "target": "lamp:2" },
+    { "at": 900, "type": "toggle", "card": 0, "bit": 22 },
+    { "at": 1800, "type": "press", "control": "step" }
+  ]
+}

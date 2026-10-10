@@ -1,0 +1,7 @@
+{
+  "id": "demo-type",
+  "events": [
+    { "at": 0, "type": "point", "target": "card:0" },
+    { "at": 900, "type": "type", "text": "9" }
+  ]
+}

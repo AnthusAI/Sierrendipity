@@ -1,0 +1,57 @@
+id: c1/01-press-the-button
+title: Your First Instruction
+minutes: 3
+concepts:
+  introduces: [cards]
+  requires: []
+# One new idea (a card tells the machine what to do), one action (press Step), one card.
+# The machine starts small: one box, no pointing arrow, no hex. Cannot be failed.
+boxes: [a0]
+pointer: false
+hideEnd: true
+starter:
+  hex: ["0x00500513"]   # put 5 in box a0
+tabs: [cards]
+# The first lesson shows only what its one idea needs: a card, a box and one button. Back, Reset, the log,
+# the end marker and the box's register name arrive in later lessons, when they matter.
+ui:
+  controls: [step]
+  stepLabel: Run
+  log: false
+  deskTitle: false
+  endMarker: false
+  boxNames: false
+  spotlight: ring
+scenes:
+  - id: the-card
+    say: "A computer does exactly what each instruction says, and this card says: put 5 in the box. Select Continue."
+    show: [cards, boxes]
+    spotlight: "card:0"
+    lock: [step, edit, drag, toggle]
+
+  - id: press-step
+    say: Select Run. The computer follows the instruction.
+    show: [cards, boxes]
+    spotlight: "button:step"
+    until:
+      - the machine has taken at least 1 step
+    hints:
+      - Find the Run button above the card.
+      - The card is an instruction. The Run button makes the computer follow it.
+      - Select Run one time. Then look at the box.
+    showMe: demo-step
+    doneSay: "The box now holds 5. Soon you will make your own card, like f(x) = x squared plus 1."
+    lock: [edit, drag, toggle]
+nowYouCan:
+  - Make a computer follow an instruction.
+  - See what an instruction does to a box.
+warmups:
+  - id: one-card
+    concept: cards
+    question: The number on the card is 2 less than 9. After you select Run, what does the box show?
+    program:
+      asm: |
+        addi a0, zero, 7
+    target: a0
+    expected: 7
+

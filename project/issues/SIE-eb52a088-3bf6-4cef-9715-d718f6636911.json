@@ -1,0 +1,27 @@
+{
+  "id": "SIE-eb52a088-3bf6-4cef-9715-d718f6636911",
+  "title": "RM W2 Functions: c1/06-09, custom cards, function checks, Gallery save, table widget",
+  "description": "Real-machine plan (docs/real-machine-curriculum.md section 6). Each wave ships alone and ends with lessons on the path. Contents: c1/06-09; custom cards in lessons; function checks; Gallery save from the coach; table widget. Riskiest assumption: saving a custom card is one action for her, not three. Guardian playtest question: After c1/08, without help: 'What does your card give for 3?' and 'Make a card for 2x + 1.'",
+  "type": "epic",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:45:32.186226Z",
+  "updated_at": "2026-10-07T15:45:32.186253Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "Custom cards work in lessons; function checks are being added, while Gallery save and the table widget need work.",
+  "right_now_updated_at": "2026-10-10T13:54:56.827627Z",
+  "custom": {}
+}

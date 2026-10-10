@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "8e78d7f4-d4ea-4bfd-a0de-123e16e09214",
+  "issue_id": "SIE-1f09cb5b-82a4-4d55-ac2b-27df28e380e9",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T12:26:55.262Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "R4: Remove the lesson 6 cliff: lamps before flip, one new control per lesson, Run label consistent (S to M)",
+    "description": "Effort: S to M (a 'number only' lens in D5 may need code).\n\n**Problem.** Too many new elements at once.\n**Evidence.** The flip lens in lesson 6 shows bands, hex 0x13, 'first box zero', 2^20 to 2^31 and '1049875'; the same lesson adds Back, Reset, 'The desk', 'the end of the list', the log, and renames Run to Step. Drafts 06-08 have no ui block.\n**Change.** Order lamps (07) before flip (06); a 'number only' flip lens in the first flip lesson, bands in the 'inside the number' lesson; add a ui block to drafts 06-08 that keeps Run and introduces one control per lesson with one line.\n**Acceptance.**\n- Given the lamps lesson comes first, when the flip lesson opens, then only the number band shows.\n- Given lessons 6-8 drafts, then the button reads Run in all of them.\n- Each lesson introduces at most one new control.\n- No Show me is needed in the flip lesson in the pilot.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 1,
+    "assignee": null,
+    "parent": "SIE-2f17ee43-d05a-465d-bf60-bd7e58cd141a",
+    "labels": [
+      "curriculum,review"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Curriculum Board Agent"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "id": "SIE-5c96c0c5-bec5-4426-9b37-75f851da8600",
+  "title": "Source edit mode, optimization toggle, live compile with recorded starter",
+  "description": "Acceptance: student edits C and compiles live; starter plays from the recorded answer; -O0 and -Og side by side; saved-source message when the cloud is down.",
+  "type": "story",
+  "status": "open",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-8c5f31f9-75f3-4856-9f19-029fe9d0397d",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:49:33.397078Z",
+  "updated_at": "2026-10-07T15:49:33.397128Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The team is building live C editing with recorded playback, -O0/-Og builds, and offline saves.",
+  "right_now_updated_at": "2026-10-07T15:49:35.824157Z",
+  "custom": {}
+}

@@ -1,0 +1,40 @@
+{
+  "id": "SIE-974c7488-07c1-4285-9a28-e94551cb9940",
+  "title": "G3: Custom cards in lesson format; move buildProgram into lesson-core (M; supersedes E14 SIE-576777)",
+  "description": "Supersedes E14 (SIE-576777): carry its scope here.\nAcceptance:\n- Given a lesson, a custom (saved) card can be a step input and a goal output in lesson.yaml.\n- buildProgram lives in lesson-core and is shared by CI and the browser.\n- Saved cards round-trip to the Gallery.\n- E14 is closed or linked as superseded.",
+  "type": "story",
+  "status": "open",
+  "priority": 1,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-eb52a088-3bf6-4cef-9715-d718f6636911",
+  "labels": [
+    "engine-gap,curriculum"
+  ],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "2a642d44-ec2a-405c-a684-db318583c6dd",
+      "author": "home",
+      "text": "Kept and re-parented to RM W2 (SIE-eb52a0): custom cards in lessons are needed by c1/08. Implemented by SIE-0f5f0d.",
+      "created_at": "2026-10-07T15:51:58.080550Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Real Machine Board Agent"
+      }
+    }
+  ],
+  "created_at": "2026-10-07T12:28:00.371599Z",
+  "updated_at": "2026-10-07T15:51:58.080575Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Curriculum Board Agent"
+  },
+  "right_now_summary": "Custom cards now work in lessons, and buildProgram is shared through lesson-core.",
+  "right_now_updated_at": "2026-10-07T15:52:00.395316Z",
+  "custom": {}
+}

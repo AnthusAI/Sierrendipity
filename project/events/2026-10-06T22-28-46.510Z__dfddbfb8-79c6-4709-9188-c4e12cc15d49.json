@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "dfddbfb8-79c6-4709-9188-c4e12cc15d49",
+  "issue_id": "SIE-4954af31-9510-43fe-b9f7-4b0fa12b54d1",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T22:28:46.510Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Run Rust projects as a fourth practice language (rustc in the shared runner image)",
+    "description": "Feature: Rust practice runs\n  Scenario: Compile and run a Rust program with stdin\n    Given a Rust project that reads a name and greets it\n    When the project is run\n    Then the output is the greeting\n  Scenario: A panic is reported as a runtime error with exit code 101\n  Scenario: A compile error shows file and line",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-02cf3a13-ae09-41de-8847-e601c543c706",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-orchestrator"
+    }
+  }
+}

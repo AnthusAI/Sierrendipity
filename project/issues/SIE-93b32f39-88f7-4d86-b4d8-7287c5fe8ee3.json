@@ -1,0 +1,50 @@
+{
+  "id": "SIE-93b32f39-88f7-4d86-b4d8-7287c5fe8ee3",
+  "title": "Pilot lessons 1 to 4 with the student alone and measure before authoring the rest",
+  "description": "Instrument time per scene, idle over 60 s, hint rung and Show me use, prediction accuracy, resets, quit points, Next versus Stop, and an in-app too-easy/just-right/too-hard prompt plus one explain-back per lesson. Rule: if more than 20 percent of goals need rung 3 or Show me, or a lesson is abandoned twice, rewrite it first.",
+  "type": "task",
+  "status": "open",
+  "priority": 1,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-9aa4ca8e-822c-4bf7-9b5e-47a4e2d15716",
+  "labels": [],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "72d2d89e-e427-423a-a7f1-fb4a15f217a3",
+      "author": "home",
+      "text": "Wave 0 playtest questions from the educator review (guardian section). One 15-minute session on lessons 01-05; keep the progress export. Settles the review's open disagreements (simplicity against challenge). Questions:\n1. In lessons 1 to 4, does she read the coach text, or select Continue without reading?\n2. Is she bored by lessons 1 to 5? At which lesson does she first look interested?\n3. Does she guess 57 for 5 + 7, or anything like it? (If not, the misconception list targets younger learners.)\n4. Does she type numbers in the card spinner, use plus and minus, or not find either?\n5. In lesson 6, what does she say the lamps are? Does she use the total line to answer?\n6. Does she try any bonus without being told it exists?\n7. Does she want to make something to show you? What would she want to make?\n8. Does she notice that Run became Step in lesson 6, and does it confuse her?\n9. Does she say f(x) or function by herself at any point?\n10. After how many minutes does she want to stop?\nEvidence to also pull from G13 (SIE-ca6273) once built: prediction accuracy (target 60-85 percent), rung 3 / Show me share (under 20 percent), time to first action (under 20 s). Questions 5 and 8 apply to the drafts only at ?draft=1.",
+      "created_at": "2026-10-07T12:30:00.113026Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Curriculum Board Agent"
+      }
+    },
+    {
+      "id": "7d070553-e010-4bda-9793-052e380c3d1f",
+      "author": "home",
+      "text": "Re-parented to new W0 (SIE-9aa4ca); it gates all later authoring.",
+      "created_at": "2026-10-07T15:51:13.391781Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Real Machine Board Agent"
+      }
+    }
+  ],
+  "created_at": "2026-10-06T19:11:56.789278Z",
+  "updated_at": "2026-10-07T15:51:13.391821Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "claude-sonnet-5-5",
+    "name": "Sierrendipity-orchestrator"
+  },
+  "right_now_summary": "A student is testing lessons 1–4 alone while the team measures learning behavior before writing the rest.",
+  "right_now_updated_at": "2026-10-07T15:51:16.416114Z",
+  "custom": {}
+}

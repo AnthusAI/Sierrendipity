@@ -1,0 +1,27 @@
+{
+  "id": "SIE-ffe41dac-bd46-4204-b7f1-776b1e37a21a",
+  "title": "The IDE on Session and panels, with step-back cap message",
+  "description": "Acceptance: Inspector.tsx and Ide.tsx use the shared panels; step-back cap shows a message.",
+  "type": "story",
+  "status": "open",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-8c5f31f9-75f3-4856-9f19-029fe9d0397d",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:49:38.154896Z",
+  "updated_at": "2026-10-07T15:49:38.154926Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The IDE is being updated to share panels and show a message when stepping back reaches its cap.",
+  "right_now_updated_at": "2026-10-07T15:49:42.069566Z",
+  "custom": {}
+}

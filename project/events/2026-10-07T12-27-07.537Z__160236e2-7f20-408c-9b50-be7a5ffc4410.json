@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "160236e2-7f20-408c-9b50-be7a5ffc4410",
+  "issue_id": "SIE-f3a064b6-4091-4728-8bb7-369d68e6187b",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T12:27:07.537Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "R6: Fade instructions and spotlights from lesson 4 (S)",
+    "description": "Effort: S. Do first.\n\n**Problem.** Every goal comes with step instructions and a spotlight.\n**Evidence.** Lesson 5 fill and watch-add say 'Select Run two times' / 'Select Run' with spotlight: button:step.\n**Change.** From lesson 4 state only the goal; show the spotlight only after the first hint (the engine already does this after Skip the tour).\n**Acceptance.**\n- Given a goal in lesson 4 or later, then no step instruction and no spotlight show at first.\n- When the student asks for hint 1, then the spotlight shows.\n- Rung 3 or Show me is under 20 percent of goals in the pilot.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-2f17ee43-d05a-465d-bf60-bd7e58cd141a",
+    "labels": [
+      "curriculum,review"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Curriculum Board Agent"
+    }
+  }
+}

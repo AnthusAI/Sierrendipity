@@ -4,7 +4,16 @@ export const LANGUAGES: { id: Language; label: string; monaco: string }[] = [
   { id: "python", label: "Python", monaco: "python" },
   { id: "c", label: "C", monaco: "c" },
   { id: "cpp", label: "C++", monaco: "cpp" },
+  { id: "rust", label: "Rust", monaco: "rust" },
+  { id: "asm", label: "RISC-V assembly", monaco: "riscv-asm" },
+  { id: "machine", label: "Machine code", monaco: "riscv-machine" },
 ];
+
+/** True for the languages that run in the in-browser emulator instead of on the backend. */
+export const isRiscv = (language: Language) => language === "asm" || language === "machine";
+
+/** True for the languages the Compilation Explorer compiles on the backend (Explore, then run in the emulator). */
+export const isCompiled = (language: Language) => language === "c" || language === "rust";
 
 export interface Workspace {
   files: Record<string, string>;
@@ -24,7 +33,35 @@ export interface Store {
   projects: Record<string, Project>;
 }
 
+const ASM_STARTER = `# Prints "Hello" with the write system call, then exits with code 0.
+# System calls: put the number in a7, arguments in a0..a2, then ecall.
+#   write: a7 = 64, a0 = file descriptor (1 = terminal), a1 = address, a2 = length
+#   read:  a7 = 63, a0 = 0 (keyboard),                    a1 = address, a2 = size
+#   exit:  a7 = 93, a0 = exit code
+        li   t0, 0x6c6c6548 # the bytes "Hell" (stored little-endian)
+        sw   t0, -8(sp)     # put them in memory just below the stack pointer
+        li   t0, 0x0a6f     # the bytes "o" and a newline
+        sw   t0, -4(sp)
+        li   a0, 1          # file descriptor 1: the terminal
+        addi a1, sp, -8     # address of the text
+        li   a2, 6          # number of bytes
+        li   a7, 64         # write
+        ecall
+        li   a0, 0          # exit code 0
+        li   a7, 93         # exit
+        ecall
+`;
+
+const MACHINE_STARTER = `# Machine code: one 32-bit word per entry, written in hex (0x...) or binary (0b...).
+# Everything after a # is a comment; words may be separated by spaces or new lines.
+0x00000513   # addi a0, zero, 0     a0 = 0 (the exit code)
+0x05d00893   # addi a7, zero, 93    a7 = 93 (the exit system call)
+0x00000073   # ecall                exit(a0)
+`;
+
 const STARTERS: Record<Language, Record<string, string>> = {
+  asm: { "main.s": ASM_STARTER },
+  machine: { "main.hex": MACHINE_STARTER },
   python: {
     "main.py": 'name = input("Name: ")\nprint(f"Hello, {name}!")\n',
   },
@@ -35,6 +72,11 @@ const STARTERS: Record<Language, Record<string, string>> = {
   cpp: {
     "main.cpp":
       '#include <iostream>\n#include <string>\n\nint main() {\n  std::string name;\n  std::cout << "Name: ";\n  std::cin >> name;\n  std::cout << "Hello, " << name << "!\\n";\n  return 0;\n}\n',
+  },
+  // Rust's stdout is not flushed when the program reads stdin, so the prompt needs an explicit flush.
+  rust: {
+    "main.rs":
+      'use std::io::{self, Write};\n\nfn main() {\n    print!("Name: ");\n    io::stdout().flush().unwrap();\n    let mut name = String::new();\n    io::stdin().read_line(&mut name).unwrap();\n    println!("Hello, {}!", name.trim());\n}\n',
   },
 };
 

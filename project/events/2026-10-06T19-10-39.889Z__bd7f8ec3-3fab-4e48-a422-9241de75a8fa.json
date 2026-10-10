@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "bd7f8ec3-3fab-4e48-a422-9241de75a8fa",
+  "issue_id": "SIE-cf44cad9-357a-4c27-814a-cdcedc6e1333",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T19:10:39.889Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "E3: Lesson format, loader and authoring CLI that runs reference solutions (M)",
+    "description": "Feature: Lesson authoring\n  Scenario: Every lesson's reference solution passes its checks\n  Scenario: A solution that earns undeclared stars fails the build",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-e8c91813-9ff5-4d5a-9ac2-ccef5abae556",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-orchestrator"
+    }
+  }
+}

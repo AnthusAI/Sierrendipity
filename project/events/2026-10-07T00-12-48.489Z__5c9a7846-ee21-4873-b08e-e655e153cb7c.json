@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "5c9a7846-ee21-4873-b08e-e655e153cb7c",
+  "issue_id": "SIE-f0c85164-9a9e-431f-8adc-430156143845",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T00:12:48.489Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Emulator: guard against stack overflow and spec 429 on Rust explain",
+    "description": "The emulator has a 64 KiB stack with no overflow guard; a runaway recursion corrupts memory silently. Add a guard that faults with a friendly message. Also spec the 429 concurrency path for Rust explain (shares route code with C).",
+    "issue_type": "task",
+    "status": "open",
+    "priority": 3,
+    "assignee": null,
+    "parent": "SIE-02cf3a13-ae09-41de-8847-e601c543c706",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-orchestrator"
+    }
+  }
+}

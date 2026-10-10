@@ -1,0 +1,27 @@
+{
+  "id": "SIE-8c5f31f9-75f3-4856-9f19-029fe9d0397d",
+  "title": "RM W8 C through glass, the heap, capstone 2: c4/01-05",
+  "description": "Real-machine plan (docs/real-machine-curriculum.md section 6). Each wave ships alone and ends with lessons on the path. Contents: Source edit, the optimization toggle, symbols in /explain, Session.heap, the Heap panel; the IDE moved to Session and panels; c4/01-05. Riskiest assumption: the -O0 listing is readable in a 480 px column with runtime hidden. Guardian playtest question: Does she predict which listing is longer, and does she choose to open her capstone in the Workspace?",
+  "type": "epic",
+  "status": "open",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:46:05.188155Z",
+  "updated_at": "2026-10-07T15:46:05.188181Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The team is reviewing the lessons and building live C editing, heap tools, symbols, and shared IDE panels.",
+  "right_now_updated_at": "2026-10-07T15:53:32.964722Z",
+  "custom": {}
+}

@@ -1,0 +1,27 @@
+{
+  "id": "SIE-55fd4cf5-4ef5-4556-a4d2-842b128f39ef",
+  "title": "Lesson-reachable cloud connection: pre-warm and emulator fallback",
+  "description": "Pre-warmed task for lessons with needs: cloud. Acceptance, with a mock backend that starts in 30 s:\n- PathPage calls warm() when the current or next lesson has needs: cloud, and the lesson calls it on open; never for every Learn page\n- c1/11 offers [Run it here] after 20 s on the emulator with the recorded image\n- the pass check is the same either way\n- the output label says where the program ran ('Ran on the RISC-V machine in your browser')\n- offline: cloud lesson plays from the recorded answer and the emulator with the honest message",
+  "type": "story",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-043aea98-36fa-41f4-bbb8-aab7b39c3961",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:47:33.238154Z",
+  "updated_at": "2026-10-07T15:47:33.238195Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The team is defining cloud pre-warming and an emulator fallback for lessons that need cloud access.",
+  "right_now_updated_at": "2026-10-07T15:47:34.521381Z",
+  "custom": {}
+}

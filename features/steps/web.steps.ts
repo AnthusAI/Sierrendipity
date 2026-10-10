@@ -7,13 +7,7 @@ import type { WebWorld } from "../support/web-world.ts";
 const terminal = (w: WebWorld) => w.page.getByRole("region", { name: "Terminal" });
 const button = (w: WebWorld, name: string) => w.page.getByRole("button", { name, exact: true });
 const treeItem = (w: WebWorld, file: string) => w.page.getByRole("treeitem", { name: file, exact: true });
-const languages = "Python|C\\+\\+|C";
-
-// Playwright's prompt()/confirm() dialogs: answer the next one, then click.
-async function answering(w: WebWorld, answer: string | null, click: () => Promise<unknown>) {
-  w.page.once("dialog", (dialog) => (answer === null ? dialog.accept() : dialog.accept(answer)));
-  await click();
-}
+const languages = "RISC-V assembly|Machine code|Python|C\\+\\+|Rust|C";
 
 // Backend and sign-in
 
@@ -109,11 +103,11 @@ When("I press the key {string} in the terminal", async function (this: WebWorld,
 });
 
 When("I try to create the file {string}", async function (this: WebWorld, file: string) {
-  await answering(this, file, () => button(this, "New file").click());
+  await this.answeringDialog(file, () => button(this, "New file").click());
 });
 
 When("I try to rename the file {string} to {string}", async function (this: WebWorld, from: string, to: string) {
-  await answering(this, to, () => button(this, `Rename ${from}`).click());
+  await this.answeringDialog(to, () => button(this, `Rename ${from}`).click());
 });
 
 Then("I see the sign-in screen", async function (this: WebWorld) {
@@ -150,6 +144,7 @@ When("Google sends me back with a valid code for {string}", async function (this
   this.mock.requireControlToken(this.idToken);
   const state = this.authorizeUrl!.searchParams.get("state");
   await this.page.goto(`${this.appUrl}/callback?code=code-1&state=${state}`);
+  await this.toWorkspace();
 });
 
 Then("the IDE shows I am signed in as {string}", async function (this: WebWorld, email: string) {
@@ -179,21 +174,21 @@ Then("I see the message {string}", async function (this: WebWorld, text: string)
 // Projects and files
 
 When(new RegExp(`^I create a project "([^"]*)" in (${languages})$`), async function (this: WebWorld, name: string, language: string) {
-  await answering(this, name, () => button(this, "New project").click());
+  await this.answeringDialog(name, () => button(this, "New project").click());
   await this.page.getByLabel("Language").selectOption({ label: language });
 });
 
 When("I create the file {string}", async function (this: WebWorld, file: string) {
-  await answering(this, file, () => button(this, "New file").click());
+  await this.answeringDialog(file, () => button(this, "New file").click());
   await treeItem(this, file).waitFor();
 });
 
 When("I rename the file {string} to {string}", async function (this: WebWorld, from: string, to: string) {
-  await answering(this, to, () => button(this, `Rename ${from}`).click());
+  await this.answeringDialog(to, () => button(this, `Rename ${from}`).click());
 });
 
 When("I delete the file {string}", async function (this: WebWorld, file: string) {
-  await answering(this, null, () => button(this, `Delete ${file}`).click());
+  await this.answeringDialog(null, () => button(this, `Delete ${file}`).click());
 });
 
 When("I open the file {string}", async function (this: WebWorld, file: string) {
@@ -228,13 +223,28 @@ Then("the editor shows {string}", async function (this: WebWorld, text: string) 
   await this.page.locator(".monaco-editor .view-lines").filter({ hasText: text }).waitFor();
 });
 
+Then("the editor highlights the Rust keyword {string}", async function (this: WebWorld, keyword: string) {
+  // Monaco wraps each token in a span whose class is mtk<N>; plain text is mtk1, keywords are not.
+  const token = this.page.locator(".monaco-editor .view-line span span").getByText(keyword, { exact: true }).first();
+  await token.waitFor();
+  const className = (await token.getAttribute("class")) ?? "";
+  if (!/mtk\d+/.test(className) || /\bmtk1\b/.test(className)) throw new Error(`"${keyword}" is not highlighted: ${className}`);
+});
+
 // Running
 
 When("I press Run", async function (this: WebWorld) {
   await button(this, "Run").click();
 });
 
-When("I press Stop", async function (this: WebWorld) {
+Then("the backend received a {string} run request with the file {string}", async function (this: WebWorld, language: string, file: string) {
+  const last = this.mock.runRequests.at(-1);
+  if (!last || last.language !== language || !last.files.some((f) => f.path === file)) {
+    throw new Error(`unexpected run request: ${JSON.stringify(last)}`);
+  }
+});
+
+When("I press Stop",async function (this: WebWorld) {
   await button(this, "Stop").click();
 });
 

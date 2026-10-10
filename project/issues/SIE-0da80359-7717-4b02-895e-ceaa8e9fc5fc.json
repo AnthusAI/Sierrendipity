@@ -1,0 +1,40 @@
+{
+  "id": "SIE-0da80359-7717-4b02-895e-ceaa8e9fc5fc",
+  "title": "R8: Honest end card: 'You ran' vs 'You made'; qualify the lamps line (S)",
+  "description": "Effort: S. Do first.\n\n**Problem.** The end card claims the student made things she did not.\n**Evidence.** Lesson 1 'You made: Put 5 in the box' (starter card); lesson 7 'You can make any number this way' with six lamps (max 63).\n**Change.** 'You ran' for starter cards, 'You made' only for edited or built cards; qualify the lamps line ('any number up to 63').\n**Acceptance.**\n- Given an unedited starter card, then the end card says 'You ran'.\n- Given an edited or built card, then it says 'You made'.\n- Given six lamps, then the claim says up to 63.",
+  "type": "story",
+  "status": "closed",
+  "priority": 1,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-2f17ee43-d05a-465d-bf60-bd7e58cd141a",
+  "labels": [
+    "curriculum,review"
+  ],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "994db20c-77f8-4569-9ca0-e8cf6a5e08b6",
+      "author": "home",
+      "text": "PR #36: end card says 'You ran' for unedited starter cards, 'You made' after edits; lamps claim now 'up to 63'.",
+      "created_at": "2026-10-07T13:30:55.037109Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Review Quick Fixes Agent"
+      }
+    }
+  ],
+  "created_at": "2026-10-07T12:27:15.516844Z",
+  "updated_at": "2026-10-07T13:31:40.946430Z",
+  "closed_at": "2026-10-07T13:31:40.946397Z",
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Curriculum Board Agent"
+  },
+  "right_now_summary": "PR #36 updates end cards to say “You ran” or “You made” and limits the lamps claim to 63.",
+  "right_now_updated_at": "2026-10-07T13:31:42.266661Z",
+  "custom": {}
+}

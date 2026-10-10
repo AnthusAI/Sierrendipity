@@ -1,0 +1,40 @@
+{
+  "id": "SIE-30e18acd-519f-4db6-960a-bac11cea8d3b",
+  "title": "G10: Compiled-language lesson harness (L)",
+  "description": "A lesson harness that compiles student C with the runner and checks results in lessons.\nAcceptance:\n- Given a C lesson, the harness compiles, runs and checks expected output or registers.\n- npm run lesson -- check runs the reference solution through it.\n- Compile errors reach the student in STE.",
+  "type": "story",
+  "status": "closed",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-9ad60edb-9dd2-456e-aab4-81d03ccec6a6",
+  "labels": [
+    "engine-gap,curriculum"
+  ],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "9bd779f0-4f70-494e-a0e8-f4827b32d255",
+      "author": "home",
+      "text": "superseded by SIE-043aea. G10 compiled-language harness is replaced by the recorded-compile harness SIE-31b7b9 (narrow, W3) and the Source edit mode story SIE-5c96c0 (W8).",
+      "created_at": "2026-10-07T15:54:25.807648Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Real Machine Board Agent"
+      }
+    }
+  ],
+  "created_at": "2026-10-07T12:28:39.200981Z",
+  "updated_at": "2026-10-07T15:54:29.922176Z",
+  "closed_at": "2026-10-07T15:54:29.922124Z",
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Curriculum Board Agent"
+  },
+  "right_now_summary": "This harness is replaced by a recorded-compile harness and a Source edit mode story.",
+  "right_now_updated_at": "2026-10-07T15:54:31.247621Z",
+  "custom": {}
+}

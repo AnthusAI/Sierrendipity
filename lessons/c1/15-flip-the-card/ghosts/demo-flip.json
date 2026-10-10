@@ -1,0 +1,6 @@
+{
+  "id": "demo-flip",
+  "events": [
+    { "at": 0, "type": "point", "target": "flip" }
+  ]
+}

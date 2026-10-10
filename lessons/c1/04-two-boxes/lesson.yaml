@@ -1,0 +1,73 @@
+id: c1/04-two-boxes
+title: Two Boxes
+minutes: 3
+concepts:
+  introduces: [two-boxes]
+  requires: [cards, numbers-on-cards, last-wins]
+# One new idea (a second box, a1, keeps its own number), one action (change one card).
+boxes: [a0, a1]
+pointer: false
+hideEnd: true
+starter:
+  hex: ["0x00400513", "0x00600593"]   # put 4 in box a0, put 6 in box a1
+tabs: [cards]
+ui:
+  controls: [step, reset]
+  resetLabel: Start again
+  log: false
+  deskTitle: false
+  endMarker: false
+  boxNames: true
+  glass: true
+  spotlight: ring
+  spotlightAfterHint: true
+scenes:
+  - id: run
+    glassNamed: true
+    say: "A box is like a variable: it has a name and holds a number. Make box a0 hold 4 and box a1 hold 6."
+    show: [cards, boxes]
+    spotlight: "button:step"
+    until:
+      - the machine has taken at least 2 steps
+      - box a0 holds 4
+      - box a1 holds 6
+    hints:
+      - Which button makes the machine follow a card?
+      - Each selection follows one card. Each card fills its own box.
+      - Select Step two times. Box a0 receives 4. Box a1 receives 6.
+    showMe: demo-step-twice
+    ifMissed: Box a0 must hold 4 and box a1 must hold 6. Select Try again, then select Step two times.
+    doneSay: Each card filled its own box.
+    lock: [edit, drag, toggle]
+
+  - id: change
+    say: Change one card so that box a1 holds 9. Box a0 keeps its number.
+    show: [cards, boxes]
+    spotlight: "card:1"
+    until:
+      - the student edited a card
+      - the machine has taken at least 2 steps
+      - box a0 holds 4
+      - box a1 holds 9
+    hints:
+      - Which card fills box a1?
+      - Each card fills the box it names. Look at the second card.
+      - Change the number on the second card to 9. Then select Step two times.
+    showMe: demo-spin-second
+    ifMissed: The machine ran, but box a0 must hold 4 and box a1 must hold 9. Make card 1 say 4 and card 2 say 9. Select Start again to put the first cards back.
+    doneSay: You changed one card, and only one box changed. Each box keeps its own number.
+    lock: [drag, toggle]
+nowYouCan:
+  - Tell the boxes apart by their names.
+  - Change the card that fills the box you want.
+warmups:
+  - id: fill-two
+    concept: two-boxes
+    question: "The cards say: put 1 in box a0. Put 2 in box a1. Put 8 in box a0. What does box a1 hold at the end?"
+    program:
+      asm: |
+        addi a0, zero, 1
+        addi a1, zero, 2
+        addi a0, zero, 8
+    target: a1
+    expected: 2

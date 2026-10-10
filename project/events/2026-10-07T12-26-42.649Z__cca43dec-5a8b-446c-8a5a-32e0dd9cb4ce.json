@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "cca43dec-5a8b-446c-8a5a-32e0dd9cb4ce",
+  "issue_id": "SIE-148870e8-5501-4290-b965-e111b67a4c70",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T12:26:42.649Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "R1: Put the function lessons back (c1/06-09: In order, Multiply, Make your own card, Use it again) (M)",
+    "description": "Effort: M (content, not engine). Do first.\n\n**Problem.** The throughline (functions, f(x) from Algebra 2) is missing; the student makes nothing.\n**Evidence.** course-1-design.md lines 43-46 plan 'In order', 'Multiply', 'Make your own card' (f(x) = x squared plus 1, 50 for 7), 'Use it again'; lessons/c1 has none; the builder and Save as card exist (docs/ui-design.md); /learn/gallery says 'Nothing here yet' after eight lessons.\n**Change.** Author four lessons as c1/06-09 using the existing builder, Save as card and Gallery; move flip, lamps and fields after them (design line 50 order). Save the custom card to the Gallery. Reach Make your own card by lesson 8 at the latest.\n**Acceptance (Gherkin-able).**\n- Given the path, when the catalog loads, then lessons 6-9 are In order, Multiply, Make your own card, Use it again.\n- When the student finishes Make your own card, then the card is in the Gallery.\n- Given no Show me, when asked 'What does your card give for 3?' and 'Make a card for 2x + 1', then both are answered.\nNote: engine gaps G2/G3 (SIE-8d128f, SIE-4174f5) widen this later; first version uses what exists.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 1,
+    "assignee": null,
+    "parent": "SIE-2f17ee43-d05a-465d-bf60-bd7e58cd141a",
+    "labels": [
+      "curriculum,review"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Curriculum Board Agent"
+    }
+  }
+}

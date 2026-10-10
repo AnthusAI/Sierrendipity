@@ -1,0 +1,40 @@
+{
+  "id": "SIE-e7123a35-1823-4365-9e22-1168dff80353",
+  "title": "Update lessons c1/02, c1/04, c1/05 for the real components",
+  "description": "Acceptance:\n- c1/02 has the optional 'Try this too' line after the goal (bonus spot-it)\n- c1/04 draws its boxes with the Registers panel in box skin\n- c1/05 has one doneSay sentence naming 'add a2, a0, a1', log narrated from Timeline.diff\n- npm run lesson -- check --all is green, STE clean",
+  "type": "story",
+  "status": "in_progress",
+  "priority": 1,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-fd7b2ee2-94bd-4d3a-aeee-ace3372b3b2e",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "3106c3fb-3497-4d48-b08f-d227bdd75e5c",
+      "author": "home",
+      "text": "W1 step B started on feature/rm-w1b-panels: RegistersPanel in web/src/machine (box skin, used by MachineView), ui.glass opt-in glass strip, c1/02 04 05 opted in.",
+      "created_at": "2026-10-07T18:54:06.491065Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "RM W1b Panels"
+      }
+    }
+  ],
+  "created_at": "2026-10-07T15:46:54.318505Z",
+  "updated_at": "2026-10-07T18:54:06.491097Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "Lessons c1/02, c1/04, and c1/05 are being updated with real components and checked.",
+  "right_now_updated_at": "2026-10-07T18:54:08.337072Z",
+  "custom": {}
+}

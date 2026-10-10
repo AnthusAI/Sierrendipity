@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "d193dd76-1385-4d73-8e46-afe03fd8be0d",
+  "issue_id": "SIE-043aea98-36fa-41f4-bbb8-aab7b39c3961",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T15:45:35.302Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "RM W3 The cloud in lessons: CloudProvider, compile harness, differential spec, c1/10-11",
+    "description": "Real-machine plan (docs/real-machine-curriculum.md section 6). Each wave ships alone and ends with lessons on the path. Contents: CloudProvider; compile harness with recorded answers; Source (read-only), Program rows with captions, cloud terminal; pre-warm and fallback; the differential spec; c1/10-11. Riskiest assumption: the cold start is hidden by pre-warm, and 'the compiler wrote my cards' is a wow, not a shrug. Guardian playtest question: Time from Compile to result, and her words when the words match.",
+    "issue_type": "epic",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+    "labels": [
+      "real-machine"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Real Machine Board Agent"
+    }
+  }
+}

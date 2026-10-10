@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "612480cd-0234-490a-acc4-81d3ac70c9d8",
+  "issue_id": "SIE-2f17ee43-d05a-465d-bf60-bd7e58cd141a",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T12:26:13.542Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Educator review follow-up (2026-10-07)",
+    "description": "Follows the ranked recommendations of docs/reviews/2026-10-07-educator-review.md (user decision: follow the review). One story per recommendation. S-effort stories and the function lessons (R1) go first; R10 (pilot) gates new lesson authoring. Engine gaps G1-G13 live under their wave epics.",
+    "issue_type": "epic",
+    "status": "open",
+    "priority": 1,
+    "assignee": null,
+    "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+    "labels": [
+      "curriculum"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Curriculum Board Agent"
+    }
+  }
+}

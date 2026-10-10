@@ -1,0 +1,40 @@
+{
+  "id": "SIE-0eccff60-8e17-406a-9b5c-ffbbf813a5f7",
+  "title": "G12: Alternates and side rooms in lesson.yaml (M)",
+  "description": "lesson.yaml can declare alternate paths and optional side rooms (also carries R7 challenges).\nAcceptance:\n- Given an alternate, the loader validates it and the player offers it after the goal.\n- A side room is optional, skippable and does not block the next lesson.\n- Progress records visits.",
+  "type": "story",
+  "status": "open",
+  "priority": 4,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-8c5f31f9-75f3-4856-9f19-029fe9d0397d",
+  "labels": [
+    "engine-gap,curriculum"
+  ],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "22672dac-afec-436f-b26c-79355543fc8c",
+      "author": "home",
+      "text": "Kept as low priority under RM W8 (SIE-8c5f31): needed only for the optional side room 'f in Rust' after c4/05 (guardian decision 7). Close if the side room is dropped.",
+      "created_at": "2026-10-07T15:53:30.405801Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Real Machine Board Agent"
+      }
+    }
+  ],
+  "created_at": "2026-10-07T12:28:48.022089Z",
+  "updated_at": "2026-10-07T15:53:30.405837Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Curriculum Board Agent"
+  },
+  "right_now_summary": "The optional side room remains low priority and may be dropped.",
+  "right_now_updated_at": "2026-10-07T15:53:31.486084Z",
+  "custom": {}
+}

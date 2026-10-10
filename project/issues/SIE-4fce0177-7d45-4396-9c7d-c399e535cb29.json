@@ -1,0 +1,40 @@
+{
+  "id": "SIE-4fce0177-7d45-4396-9c7d-c399e535cb29",
+  "title": "G4: D13 call-bookmark diagram (M)",
+  "description": "A diagram view that shows a call as a bookmark: where the machine will come back to.\nAcceptance:\n- Given a program with a call, the D13 diagram shows the bookmark and the return point.\n- It updates as steps run and has a reduced-motion caption.\n- A lesson scene can request D13.",
+  "type": "story",
+  "status": "closed",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-9119cbf4-aa57-4d05-b231-4ff62b11ae1c",
+  "labels": [
+    "engine-gap,curriculum"
+  ],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "23c798c8-f458-4e53-97f5-8a57bb750016",
+      "author": "home",
+      "text": "superseded by SIE-22eed3. G4 (D13 call bookmark) is never built; the real Registers panel with ra replaces it (SIE-2e6e1d).",
+      "created_at": "2026-10-07T15:52:13.362434Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Real Machine Board Agent"
+      }
+    }
+  ],
+  "created_at": "2026-10-07T12:28:05.975107Z",
+  "updated_at": "2026-10-07T15:52:17.761072Z",
+  "closed_at": "2026-10-07T15:52:17.761031Z",
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Curriculum Board Agent"
+  },
+  "right_now_summary": "The D13 call-bookmark diagram was replaced by the Registers panel showing the return address.",
+  "right_now_updated_at": "2026-10-07T15:52:20.269638Z",
+  "custom": {}
+}

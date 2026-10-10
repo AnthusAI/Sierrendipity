@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "80c8b9b4-a33b-4ab7-a4d9-610a3a63e8b7",
+  "issue_id": "SIE-499e4a32-0b8d-44e4-8de4-35df14fb234f",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T18:40:59.575Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Run a short pedagogy pilot with the student before building more lessons",
+    "description": "Per the outside review and curriculum design: a one to two week pilot (paper CPU, lesson 1.1 on the explorer, a multiply loop, and a C-first contrast session in Compiler Explorer). Measure bonuses attempted unprompted, prediction accuracy, explain-back, want-another-one. Decide machine-code-first vs C-first from the evidence.",
+    "issue_type": "task",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-fbf66b2b-589e-4e25-923a-f31d42c21cd2",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-orchestrator"
+    }
+  }
+}

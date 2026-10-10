@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "47ba0f43-0db4-4d11-b97a-3fe82206f56f",
+  "issue_id": "SIE-e8b3f165-82a8-4acc-b716-1700f375d07f",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T12:26:50.061Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "R3: Cut read-and-Continue tours; at most one Continue scene per lesson (S)",
+    "description": "Effort: S. Do first.\n\n**Problem.** Reading replaces doing.\n**Evidence.** Lesson 1 scenes meet, the-card, the-box, did-it, big-idea are Continue-only (one action in six scenes); about half of scenes in 01-05 are Continue-only; lesson 5 spends two scenes on 'its name is a label' and the log.\n**Change.** Merge each tour line into the scene that needs it (say next to the action); keep one closing line as doneSay. Lesson 1 becomes two scenes (card, Run) plus one line about where the course goes.\n**Acceptance.**\n- Given lessons 1-5, then each has at most one Continue-only scene.\n- Time to first action is under 20 s per lesson.\n- npm run lesson -- check --all passes.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 1,
+    "assignee": null,
+    "parent": "SIE-2f17ee43-d05a-465d-bf60-bd7e58cd141a",
+    "labels": [
+      "curriculum,review"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Curriculum Board Agent"
+    }
+  }
+}

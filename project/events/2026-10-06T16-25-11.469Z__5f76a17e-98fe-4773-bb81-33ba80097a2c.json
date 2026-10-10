@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "5f76a17e-98fe-4773-bb81-33ba80097a2c",
+  "issue_id": "SIE-60583a5f-267d-4dd6-a708-fee766518cf5",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T16:25:11.469Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Write and step RISC-V assembly in the browser",
+    "description": "As the student, I want to type RISC-V assembly, run it, and step through it watching registers and memory.\n\nFeature: Assembly in the browser\n  Scenario: Run and step\n    Given a program that adds two numbers and prints the result\n    When I run it\n    Then the terminal shows the result\n    When I step back\n    Then the registers return to their previous values\n  Scenario: A syntax error is marked\n    Given an assembly line with an unknown instruction\n    Then the editor marks that line with the error",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-fbf66b2b-589e-4e25-923a-f31d42c21cd2",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-orchestrator"
+    }
+  }
+}

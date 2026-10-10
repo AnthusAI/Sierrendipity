@@ -1,0 +1,27 @@
+{
+  "id": "SIE-31b7b91d-6cef-45e5-8792-6c6cf5e9f2b2",
+  "title": "Recorded compile results: lesson compile harness",
+  "description": "Acceptance:\n- npm run lesson -- compile <id> writes lessons/<id>/compiled/*.json with the /explain response and a hash of source, flags and toolchain version\n- lesson check fails on a stale hash\n- the player shows the recorded answer at once and the live answer when ready\n- browser caches /explain answers by source hash",
+  "type": "story",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-043aea98-36fa-41f4-bbb8-aab7b39c3961",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:47:24.262748Z",
+  "updated_at": "2026-10-07T15:47:24.262777Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The lesson compile harness is being built to record answers, detect stale results, and speed playback.",
+  "right_now_updated_at": "2026-10-07T15:47:26.219496Z",
+  "custom": {}
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "9ca4d2da-e937-4e0e-b110-9599dc454081",
+  "issue_id": "SIE-993d3ad8-04ca-4595-b34d-3b4f672f0397",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T15:47:03.822Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "Function checks in the step table",
+    "description": "Carries G2 (SIE-a18f8d). Acceptance:\n- 'the card \"f\" gives 50 for 7' and 'the function f gives 50 for 7' are in the step table, with specs for pass, fail and a step cap\n- the checker runs them over the reference solutions",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 1,
+    "assignee": null,
+    "parent": "SIE-eb52a088-3bf6-4cef-9715-d718f6636911",
+    "labels": [
+      "real-machine"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Real Machine Board Agent"
+    }
+  }
+}

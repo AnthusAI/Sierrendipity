@@ -1,0 +1,63 @@
+id: c1/02-change-the-number
+title: Change the Number
+minutes: 3
+concepts:
+  introduces: [numbers-on-cards]
+  requires: [cards]
+# One new idea (a card carries a number you can change), one action (change the number), one card.
+boxes: [a0]
+pointer: false
+hideEnd: true
+starter:
+  hex: ["0x00500513"]   # put 5 in box a0
+tabs: [cards]
+ui:
+  controls: [step, reset]
+  stepLabel: Run
+  resetLabel: Start again
+  log: false
+  deskTitle: false
+  endMarker: false
+  boxNames: false
+  glass: true
+  spotlight: ring
+scenes:
+  - id: change
+    say: "This card has a number you can change. Use the plus button to change it to 9, then select Run."
+    show: [cards, boxes]
+    spotlight: "card:0"
+    until:
+      - the student edited a card
+      - the machine has taken at least 1 step
+      - the box shows 9
+    ifMissed: The box shows the number from the card, but the goal is 9. Change the number on the card to 9, then select Run.
+    hints:
+      - Which number on the card goes into the box?
+      - The box shows the number from the card. Change the card first.
+      - Use the plus button on the card until it shows 9. Then select Run.
+    showMe: demo-spin
+    doneSay: You changed the card, and the box showed the new number.
+    lock: [drag, toggle]
+
+  - id: another
+    say: Try a different number, then select Run. Under the card is the machine's own text for it.
+    show: [cards, boxes]
+    skippable: true
+    glassNamed: true
+
+  - id: spot-it
+    say: Which part of that text changes when you change the number?
+    show: [cards, boxes]
+    skippable: true
+nowYouCan:
+  - Change the number on a card.
+  - Make the box show the number you want.
+warmups:
+  - id: change-the-six
+    concept: numbers-on-cards
+    question: A card puts 6 in the box. You add 4 to the number on the card. After you select Run, what does the box hold?
+    program:
+      asm: |
+        addi a0, zero, 10
+    target: a0
+    expected: 10

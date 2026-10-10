@@ -1,0 +1,27 @@
+{
+  "id": "SIE-e4c6c306-8e7c-4a97-bb0e-62e1f0b3c5c9",
+  "title": "Output panel in lessons",
+  "description": "Acceptance: ecall print output appears in a panel; accessible; specified in Gherkin.",
+  "type": "story",
+  "status": "open",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-a87d494d-a3dd-4c75-8cfe-354d5075fdd9",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:48:58.991884Z",
+  "updated_at": "2026-10-07T15:48:58.991911Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The lesson output panel is being defined to show ecall print output accessibly.",
+  "right_now_updated_at": "2026-10-07T15:49:00.974291Z",
+  "custom": {}
+}

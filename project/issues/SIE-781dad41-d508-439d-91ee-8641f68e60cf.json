@@ -1,0 +1,36 @@
+{
+  "id": "SIE-781dad41-d508-439d-91ee-8641f68e60cf",
+  "title": "Record production deployment provenance and verify the live release",
+  "description": "## Purpose\n\nMake each production deployment auditable and independently verifiable instead of inferring its source branch from a local checkout.\n\n## Verified gap\n\nThe current CDK/CloudFormation stack records successful manual updates but not the Git branch or commit SHA that produced them.\n\n## Acceptance\n\n- The deployment workflow records the exact `main` SHA, branch, release version when present, and GitHub Actions run URL in durable deploy evidence.\n- After CDK completes, it verifies the `Sierrendipity` CloudFormation stack reaches `UPDATE_COMPLETE` and checks the live site/config endpoint.\n- The record identifies whether a deployment was manual or GitHub Actions-driven.\n- A maintainer can answer which revision is live from retained evidence without consulting a developer workstation.\n\n## Guardrail\n\nDo not expose OAuth, session, or AWS credentials in workflow logs or provenance.",
+  "type": "task",
+  "status": "open",
+  "priority": 1,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-a87ccc8f-2b32-47fa-8829-bcde84a9b2b0",
+  "labels": [
+    "delivery",
+    "observability"
+  ],
+  "dependencies": [
+    {
+      "target": "SIE-1bb857d2-8e11-4de9-a494-6130b241ceac",
+      "type": "relates-to"
+    }
+  ],
+  "comments": [],
+  "created_at": "2026-10-10T13:53:04.369937Z",
+  "updated_at": "2026-10-10T13:53:39.231313Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "codex",
+    "model": "GPT-5",
+    "name": "Sierrendipity handoff"
+  },
+  "right_now_summary": "The deployment workflow must record its source and verify the live release.",
+  "right_now_updated_at": "2026-10-10T13:53:40.287934Z",
+  "custom": {
+    "project_label": "SIE",
+    "source": "shared"
+  }
+}

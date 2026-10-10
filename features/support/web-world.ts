@@ -22,7 +22,7 @@ let shared: Promise<{ browser: Browser; app: Server; appUrl: string }> | undefin
 function sharedWeb() {
   shared ??= (async () => {
     await new Promise<void>((resolve, reject) =>
-      execFile("npm", ["run", "build", "-w", "web"], { cwd: root }, (error, _out, err) =>
+      execFile("npm", ["run", "build", "-w", "web"], { cwd: root, env: { ...process.env, VITE_DEV_TOOLS: "1" } }, (error, _out, err) =>
         error ? reject(new Error(`web build failed:\n${err}`)) : resolve(),
       ),
     );
@@ -54,10 +54,42 @@ export class WebWorld extends World {
   authorizeUrl?: URL;
   tokenBody?: URLSearchParams;
   idToken?: string;
+  /** Computed colors noted earlier in a scenario, to compare against later. */
+  noted: Record<string, string> = {};
+  pageErrors: string[] = [];
 
-  async open(config: Record<string, unknown>) {
+  /**
+   * Click something that opens one of the app's dialogs (they replaced window.prompt/confirm), type
+   * `answer` into its text box when given, and press its confirm button (Create, Rename or Delete).
+   */
+  async answeringDialog(answer: string | null, click: () => Promise<unknown>) {
+    await click();
+    const dialog = this.page.getByRole("dialog");
+    await dialog.waitFor();
+    if (answer !== null) await dialog.getByRole("textbox").fill(answer);
+    await dialog.getByRole("button", { name: /^(Create|Rename|Delete)$/ }).click();
+    await dialog.waitFor({ state: "detached" });
+  }
+
+  /** Open the app; `path` defaults to the Workspace, where the IDE specs live (the landing page is Learn). */
+  async open(config: Record<string, unknown>, path = "/workspace") {
     await this.page.route("**/config.json", (route) => route.fulfill({ json: config }));
-    await this.page.goto(this.appUrl);
+    await this.page.goto(`${this.appUrl}${path}`);
+  }
+
+  /** After sign-in a student lands on Learn: step into the Workspace, where the IDE specs continue. */
+  async toWorkspace() {
+    const nav = this.page.getByRole("navigation", { name: "Areas" });
+    const signIn = this.page.getByRole("heading", { name: "Sign in to Sierrendipity" });
+    await nav.or(signIn).waitFor();
+    const run = this.page.getByRole("button", { name: "Run", exact: true });
+    if ((await nav.isVisible()) && !(await run.isVisible())) await nav.getByRole("link", { name: "Workspace", exact: true }).click();
+  }
+
+  /** Open the developer component lab (/lab); `query` is e.g. "?testclock". */
+  async openLab(query = "") {
+    await this.page.goto(`${this.appUrl}/lab${query}`);
+    await this.page.getByRole("heading", { name: "Component lab" }).waitFor();
   }
 }
 
@@ -69,6 +101,7 @@ Before({ tags: "@web", timeout: 180_000 }, async function (this: WebWorld) {
   this.context = await browser.newContext();
   this.page = await this.context.newPage();
   this.page.setDefaultTimeout(15_000);
+  this.page.on("pageerror", (error) => this.pageErrors.push(error.message));
 });
 
 After({ tags: "@web" }, async function (this: WebWorld) {

@@ -1,0 +1,27 @@
+{
+  "id": "SIE-8b499a8d-dda3-4323-a5d5-1b8ce1eb6f07",
+  "title": "Assembler errors in STE",
+  "description": "Acceptance: a spec lists every assembler message and runs the STE checker over it.",
+  "type": "story",
+  "status": "open",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-a87d494d-a3dd-4c75-8cfe-354d5075fdd9",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:48:54.196230Z",
+  "updated_at": "2026-10-07T15:48:54.196269Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The team needs to list every assembler message and run the STE checker on them.",
+  "right_now_updated_at": "2026-10-07T15:48:56.135142Z",
+  "custom": {}
+}

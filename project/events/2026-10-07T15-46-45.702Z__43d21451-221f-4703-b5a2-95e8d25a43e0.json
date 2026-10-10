@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "43d21451-221f-4703-b5a2-95e8d25a43e0",
+  "issue_id": "SIE-f548a6a7-c014-4313-ac25-632c19ffb382",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T15:46:45.702Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "The glass strip",
+    "description": "Acceptance:\n- c1/02 shows 'addi a0, zero, 9 · 0x00900513' after the student spins to 9\n- it is aria-hidden while the lesson does not name it\n- it passes the contrast spec",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 1,
+    "assignee": null,
+    "parent": "SIE-fd7b2ee2-94bd-4d3a-aeee-ace3372b3b2e",
+    "labels": [
+      "real-machine"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Real Machine Board Agent"
+    }
+  }
+}

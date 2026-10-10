@@ -1,0 +1,53 @@
+{
+  "id": "SIE-edce9a2c-9c0f-469c-b38f-efc1e5bf8d2f",
+  "title": "M11 Wave 6: Course 2 typed assembly, c2/01-05, with G8, G9 and D12",
+  "description": "Part of M11 (SIE-e8c918). c2/01 cards-have-short-names (asm chip on card faces). c2/02 type-one-line (editor slot). c2/03 write-f (label, ret; editor region). c2/04 two-inputs. c2/05 a-function-calls-a-function (save ra; D12 stack view, part of G6 but needed here). Engine: G8, G9.",
+  "type": "epic",
+  "status": "closed",
+  "priority": 3,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-f5e9d3ab-7b28-4e71-be42-92473b3e2065",
+  "labels": [
+    "M11",
+    "curriculum"
+  ],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "7442841f-ab6b-446b-96bd-68c302443f5a",
+      "author": "home",
+      "text": "Scope change from the educator review. Source: docs/reviews/2026-10-07-educator-review.md; follow-up epic SIE-2f17ee. No change in order; stays P3. Gaps: G6b D12 (SIE-7063b5), G8 (SIE-18b207), G9 (SIE-d36ef6).",
+      "created_at": "2026-10-07T12:29:46.087343Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Curriculum Board Agent"
+      }
+    },
+    {
+      "id": "f93e0cb3-c907-4ffb-826a-687f708a8680",
+      "author": "home",
+      "text": "superseded by SIE-a87d49. Old M11 Wave 6 (Course 2 typed assembly) maps to RM W6 (c2/01-03) and RM W7 (stack, c3).",
+      "created_at": "2026-10-07T15:54:18.247964Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Real Machine Board Agent"
+      }
+    }
+  ],
+  "created_at": "2026-10-07T11:52:43.760625Z",
+  "updated_at": "2026-10-07T15:54:22.540725Z",
+  "closed_at": "2026-10-07T15:54:22.540687Z",
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Curriculum Board Agent"
+  },
+  "right_now_summary": "This work was superseded; its assembly, stack, and editor pieces were replaced or dropped.",
+  "right_now_updated_at": "2026-10-07T15:54:24.472317Z",
+  "custom": {}
+}

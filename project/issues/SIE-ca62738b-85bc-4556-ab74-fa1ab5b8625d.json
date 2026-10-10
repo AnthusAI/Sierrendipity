@@ -1,0 +1,40 @@
+{
+  "id": "SIE-ca62738b-85bc-4556-ab74-fa1ab5b8625d",
+  "title": "G13: Guardian report from ProgressStore events (M)",
+  "description": "A guardian report built from ProgressStore events, to answer the Wave 0 playtest questions with evidence.\nAcceptance:\n- Given a progress export, the report lists per lesson: time to first action, Continue-only count, prediction accuracy, rung 3 / Show me share, challenges tried, abandonments.\n- It contains no personal data beyond the local student name.\n- It is available from a settings or guardian page and as an export file.",
+  "type": "story",
+  "status": "open",
+  "priority": 1,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-9aa4ca8e-822c-4bf7-9b5e-47a4e2d15716",
+  "labels": [
+    "engine-gap,curriculum"
+  ],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "04630694-b15f-4084-b1c5-ee5bf0a48f38",
+      "author": "home",
+      "text": "Re-parented to new W0 (SIE-9aa4ca). Real-machine plan: guardian report stays; it reads ProgressStore events during the pilot.",
+      "created_at": "2026-10-07T15:51:09.441949Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "claude_code",
+        "model": "Claude Sonnet 5.5",
+        "name": "Real Machine Board Agent"
+      }
+    }
+  ],
+  "created_at": "2026-10-07T12:28:53.237438Z",
+  "updated_at": "2026-10-07T15:51:09.441971Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Curriculum Board Agent"
+  },
+  "right_now_summary": "The guardian report will read ProgressStore events and remain available in the pilot.",
+  "right_now_updated_at": "2026-10-07T15:51:10.448782Z",
+  "custom": {}
+}

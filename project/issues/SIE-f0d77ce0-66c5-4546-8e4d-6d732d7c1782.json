@@ -3,23 +3,48 @@
   "title": "Deploy from GitHub Actions with an OIDC role instead of manual cdk deploy",
   "description": "Today the stack is deployed by hand with the legacy SSO profile. Add an IAM OIDC provider/role for this repo and a deploy workflow (cdk diff on PRs, deploy after a release), modeled on Chatticus's github-deploy-stack. Also set branch protection on develop and main requiring specs, commitlint, typecheck.",
   "type": "task",
-  "status": "open",
+  "status": "in_progress",
   "priority": 3,
   "assignee": null,
   "creator": null,
   "parent": "SIE-2b76fcaf-f14b-4459-b580-a9f64738827c",
   "labels": [],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "d27be97d-a436-4a9e-b19e-87114be14ac2",
+      "author": "home",
+      "text": "Handoff update (2026-10-10): verified that Actions currently run CI and Semantic Release only; production remains manual `AWS_PROFILE=legacy npx cdk deploy`. The account already has the GitHub Actions OIDC provider and CDK bootstrap v32, but no repository-scoped deploy role was identified yet. New coordination epic SIE-a87ccc and workflow task SIE-1bb857 record the requested goal. Do not create or alter IAM/OIDC grants until the exact role trust and least-privilege resource policy have explicit action-time approval.",
+      "created_at": "2026-10-10T13:54:58.016091Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "codex",
+        "model": "GPT-5",
+        "name": "Sierrendipity handoff"
+      }
+    },
+    {
+      "id": "364073fb-c60b-42c0-aeff-6bd1d4fc9eca",
+      "author": "home",
+      "text": "Handoff update (2026-10-10): verified that Actions currently run CI and Semantic Release only; production remains manual `AWS_PROFILE=legacy npx cdk deploy`. The account already has the GitHub Actions OIDC provider and CDK bootstrap v32, but no repository-scoped deploy role was identified yet. New coordination epic SIE-a87ccc and workflow task SIE-1bb857 record the requested goal. Do not create or alter IAM/OIDC grants until the exact role trust and least-privilege resource policy have explicit action-time approval.",
+      "created_at": "2026-10-10T13:55:19.544472Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "codex",
+        "model": "GPT-5",
+        "name": "Sierrendipity handoff"
+      }
+    }
+  ],
   "created_at": "2026-10-06T15:46:40.438904Z",
-  "updated_at": "2026-10-06T15:46:40.438948Z",
+  "updated_at": "2026-10-10T13:55:19.544500Z",
   "closed_at": null,
   "agent": {
     "platform": "claude_code",
     "model": "claude-sonnet-5-5",
     "name": "Sierrendipity-orchestrator"
   },
-  "right_now_summary": "No recent activity is recorded on the OIDC deployment setup or required branch protections.",
-  "right_now_updated_at": "2026-10-06T15:46:42.747952Z",
+  "right_now_summary": "Production deploys remain manual; the OIDC role and GitHub Actions deployment workflow still need approval and setup.",
+  "right_now_updated_at": "2026-10-10T13:55:20.920354Z",
   "custom": {}
 }

@@ -1,0 +1,126 @@
+id: c1/16-inside-the-number
+title: Inside the Number
+minutes: 5
+draft: true
+concepts:
+  introduces: [fields]
+  requires: [card-flip, binary-lamps]
+# One new idea (a card's lamps are split into bands with jobs), one action (flip one lamp to change the job).
+boxes: [a0, a1, a2]
+pointer: false
+hideEnd: true
+starter:
+  hex: ["0x00900513", "0x00200593", "0x00b50633"]   # put 9 in a0, put 2 in a1, add a0 and a1 into a2
+tabs: [cards, lamps]
+ui:
+  controls: [step, reset]
+  resetLabel: Start again
+  log: true
+  deskTitle: false
+  endMarker: false
+  boxNames: true
+  spotlight: ring
+  spotlightAfterHint: true
+onWrongDefault:
+  say: Try it. Watch box a2.
+  goto: flip
+scenes:
+  - id: look
+    say: A whole card is 32 lamps, not only a small number. Colored bands split the lamps into jobs.
+    show: [D8]
+    bands: { card: 2 }
+    spotlight: "diagram:D8"
+    lock: [step, edit, drag, toggle]
+
+  - id: find-answer
+    say: Each band has a label. Which band names the box for the answer?
+    show: [D8]
+    bands: { card: 2 }
+    ask:
+      kind: click-target
+      question: Select the band that names the box for the answer.
+      target: "band:rd"
+    hints:
+      - Read the labels on the bands. One of them is about the answer.
+      - One band says "answer goes in box". It names box a2.
+      - Select the band that says "answer goes in box".
+    onWrong:
+      - match: "band:rs1"
+        say: That band names the first box to read. The answer goes in a different box.
+        goto: find-answer
+      - match: "band:rs2"
+        say: That band names the second box to read. The answer goes in a different box.
+        goto: find-answer
+      - match: "band:opcode"
+        say: That band says which type of job this is. Look for the band about the answer box.
+        goto: find-answer
+      - match: "band:funct3"
+        say: That band picks the exact job. Look for the band that names the answer box.
+        goto: find-answer
+      - match: "band:funct7"
+        say: That band picks the exact job too. Look for the band that names the answer box.
+        goto: find-answer
+    showMe: demo-answer-band
+    lock: [edit, drag, toggle]
+
+  - id: predict
+    say: Lamp 30 is in the exact job band. It picks between add and its opposite.
+    show: [D1, D8]
+    bands: { card: 2 }
+    ask:
+      kind: choice
+      question: With lamp 30 on, what will the card say?
+      choices: [Add, Subtract, Multiply]
+      answer: 1
+    hints:
+      - Which job is the opposite of add?
+      - The opposite of add is subtract.
+      - With lamp 30 on, the card says Subtract.
+    showMe: demo-flip-bit
+    lock: [edit, drag, toggle]
+
+  - id: flip
+    say: Switch on lamp 30 of the add card. Make box a2 hold 7.
+    show: [D1, D8]
+    bands: { card: 2, allowedBits: [30] }
+    spotlight: "lamp:30"
+    until:
+      - the machine has taken at least 3 steps
+      - box a2 holds 7
+      - the program differs from the starter by exactly 1 bit
+    hints:
+      - Which lamp turns Add into Subtract?
+      - Lamp 30 is in the band called exact job. Only that lamp can be switched.
+      - Switch on lamp 30, then select Step three times.
+    showMe: demo-flip-bit
+    doneSay: One lamp turned Add into Subtract, and box a2 holds 7.
+    lock: [edit, drag]
+
+  - id: below-zero
+    say: "Bonus question: can a box go below zero? Change the 9 on card 1 to 0, then select Step three times."
+    show: [D1]
+    lock: [drag, toggle]
+nowYouCan:
+  - See the bands inside a card.
+  - Flip one lamp to change a card's job.
+warmups:
+  - id: sub-nine-two
+    concept: fields
+    question: Box a0 holds 9 and box a1 holds 2. After a subtract card, what does box a2 hold?
+    program:
+      asm: |
+        addi a0, zero, 9
+        addi a1, zero, 2
+        sub a2, a0, a1
+    target: a2
+    expected: 7
+  - id: sub-eight-three
+    concept: fields
+    question: Box a0 holds 8 and box a1 holds 3. After a subtract card, what does box a2 hold?
+    program:
+      asm: |
+        addi a0, zero, 8
+        addi a1, zero, 3
+        sub a2, a0, a1
+    target: a2
+    expected: 5

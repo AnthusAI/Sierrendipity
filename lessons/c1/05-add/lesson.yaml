@@ -1,0 +1,97 @@
+id: c1/05-add
+title: Add
+minutes: 4
+concepts:
+  introduces: [add]
+  requires: [cards, two-boxes]
+# One new idea (a card can add two boxes into a third), one action (predict, then watch).
+boxes: [a0, a1, a2]
+pointer: false
+hideEnd: true
+starter:
+  hex: ["0x00500513", "0x00700593", "0x00b50633"]   # put 5 in a0, put 7 in a1, add a0 and a1 into a2
+tabs: [cards]
+ui:
+  controls: [step, reset]
+  resetLabel: Start again
+  log: true
+  deskTitle: false
+  endMarker: false
+  boxNames: true
+  glass: true
+  spotlight: ring
+  spotlightAfterHint: true
+onWrongDefault:
+  say: Watch box a2.
+  goto: watch-add
+scenes:
+  - id: fill
+    glassNamed: true
+    say: A log below the boxes lists each change. Make box a0 hold 5 and box a1 hold 7.
+    show: [cards, boxes]
+    spotlight: "button:step"
+    until:
+      - the machine has taken at least 2 steps
+      - box a0 holds 5
+      - box a1 holds 7
+    hints:
+      - Which button follows the next card?
+      - Each selection follows one card. The first two cards fill boxes.
+      - Select Step two times. Box a0 receives 5. Box a1 receives 7.
+    showMe: demo-step-twice
+    doneSay: Boxes a0 and a1 hold numbers now.
+    lock: [edit, drag, toggle]
+
+  - id: predict
+    say: "A third box, a2, is on the screen. The next card is a rule, like a2 = a0 + a1 in algebra."
+    show: [cards, boxes]
+    spotlight: "box:a2"
+    ask:
+      kind: number
+      question: What does box a2 hold after the add card?
+      target: a2
+      answer: 12
+    hints:
+      - Which two boxes does the add card use?
+      - To add is to put two amounts together. For example, 2 and 3 make 5.
+      - Box a0 holds 5 and box a1 holds 7. The total is 12.
+    lock: [edit, drag, toggle]
+
+  - id: watch-add
+    say: Make box a2 hold the total. Box a2 is empty at first.
+    show: [cards, boxes]
+    spotlight: "button:step"
+    until:
+      - the machine has taken at least 3 steps
+      - box a2 holds 12
+    hints:
+      - Which button follows the add card?
+      - The add card reads a0 and a1. It writes box a2.
+      - Select Step. Box a2 changes to 12.
+    showMe: demo-step
+    doneSay: Box a2 now holds 12, so a2 = a0 + a1. The machine's own text for this card is add a2, a0, a1.
+    lock: [edit, drag, toggle]
+nowYouCan:
+  - Add two boxes into a third.
+  - Guess a result, then check it.
+warmups:
+  - id: add-three-four
+    concept: add
+    question: Box a0 holds 3 and box a1 holds 4. After the add card, what does box a2 hold?
+    program:
+      asm: |
+        addi a0, zero, 3
+        addi a1, zero, 4
+        add a2, a0, a1
+    target: a2
+    expected: 7
+  - id: add-two-six
+    concept: add
+    question: Box a0 holds 2 and box a1 holds 6. After the add card, what does box a2 hold?
+    program:
+      asm: |
+        addi a0, zero, 2
+        addi a1, zero, 6
+        add a2, a0, a1
+    target: a2
+    expected: 8

@@ -1,0 +1,51 @@
+id: x1/04-reveal
+title: Stage fixture, a prediction after the reveal
+minutes: 3
+draft: true
+# A test fixture (draft: never listed in the course). Its first scene lets the student run the card before
+# the question is asked, so a late answer is not a real prediction.
+concepts:
+  introduces: [cards]
+  requires: []
+boxes: [a0]
+pointer: false
+hideEnd: true
+starter:
+  hex: ["0x00500513"]   # put 5 in box a0
+tabs: [cards]
+onWrongDefault:
+  say: Watch the box.
+  goto: run
+scenes:
+  - id: look
+    say: This card puts a number in the box. Select Continue.
+    show: [cards, boxes]
+
+  - id: predict
+    say: What does the box hold after the card runs?
+    show: [cards, boxes]
+    ask:
+      kind: number
+      question: What does the box hold after the card runs?
+      target: a0
+      answer: 5
+    hints:
+      - Which number is on the card?
+      - The card puts its number in the box.
+      - The card puts 5 in the box.
+    lock: [edit, drag, toggle]
+
+  - id: run
+    say: Select Step. Look at the box.
+    show: [cards, boxes]
+    until:
+      - the machine has taken at least 1 step
+      - the box shows 5
+    hints:
+      - Which button follows the card?
+      - One selection follows one card.
+      - Select Step one time.
+    doneSay: The box holds 5.
+    lock: [edit, drag, toggle]
+nowYouCan:
+  - Guess what a card will do.

@@ -1,11 +1,13 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 
 // A small in-repo mock of the Control, Proxy and Runner APIs in docs/architecture.md, served from
-// one origin. It runs a fake program chosen from the submitted source:
+// one origin. It runs a fake program chosen from the submitted source (the same for every language,
+// Python, C, C++ and Rust alike; POST /runs bodies are recorded in `runRequests`):
 //   "#error <text>"   -> compile error "main.cpp:1:2: error: <text>"
 //   "while True"      -> prints "still running" and waits for Stop
 //   more than 1 file  -> prints "files: <names>"
 //   anything else     -> prints "Name: ", reads a line, prints "Hello, <line>!"
+// POST /explain answers with the canned compilation below ("#error <text>" -> compile_error).
 // Standalone for manual smoke tests: `npx tsx features/support/mock-backend.ts [port] [startMs]`.
 
 export const SESSION_TOKEN = "mock-session-token";
@@ -23,21 +25,154 @@ interface Run {
   onStdin?: (line: string) => void;
 }
 
+// A small RV32 program, hand-assembled once and pasted here so the mock needs no assembler. The C it
+// stands for (the specs paste it into the editor):
+//   1 int putchar(int c);          6   }
+//   2 int main(void) {             7   putchar('0' + sum);
+//   3   int sum = 0;               8   return 0;
+//   4   for (int i = 1; ...) {     9 }
+//   5     sum += i;
+// [word, function, source line (0 = runtime)]. It prints "6" through putchar's write ecall and exits 0.
+const PROGRAM: [number, string, number][] = [
+  [0x030000ef, "_start", 0], // jal ra, main
+  [0x05d00893, "_start", 0], // addi a7, zero, 93
+  [0x00000073, "_start", 0], // ecall
+  [0xff010113, "putchar", 0], // addi sp, sp, -16
+  [0x00a107a3, "putchar", 0], // sb a0, 15(sp)
+  [0x00100513, "putchar", 0], // addi a0, zero, 1
+  [0x00f10593, "putchar", 0], // addi a1, sp, 15
+  [0x00100613, "putchar", 0], // addi a2, zero, 1
+  [0x04000893, "putchar", 0], // addi a7, zero, 64
+  [0x00000073, "putchar", 0], // ecall
+  [0x01010113, "putchar", 0], // addi sp, sp, 16
+  [0x00008067, "putchar", 0], // jalr zero, 0(ra)
+  [0xfe010113, "main", 2], // addi sp, sp, -32
+  [0x00112e23, "main", 2], // sw ra, 28(sp)
+  [0x00812c23, "main", 2], // sw s0, 24(sp)
+  [0x02010413, "main", 2], // addi s0, sp, 32
+  [0xfe042623, "main", 3], // sw zero, -20(s0)
+  [0x00100793, "main", 4], // addi a5, zero, 1
+  [0xfef42423, "main", 4], // sw a5, -24(s0)
+  [0x0200006f, "main", 4], // jal zero, 32
+  [0xfec42703, "main", 5], // lw a4, -20(s0)
+  [0xfe842783, "main", 5], // lw a5, -24(s0)
+  [0x00f707b3, "main", 5], // add a5, a4, a5
+  [0xfef42623, "main", 5], // sw a5, -20(s0)
+  [0xfe842783, "main", 4], // lw a5, -24(s0)
+  [0x00178793, "main", 4], // addi a5, a5, 1
+  [0xfef42423, "main", 4], // sw a5, -24(s0)
+  [0xfe842703, "main", 4], // lw a4, -24(s0)
+  [0x00300793, "main", 4], // addi a5, zero, 3
+  [0xfce7dee3, "main", 4], // bge a5, a4, -36
+  [0xfec42783, "main", 7], // lw a5, -20(s0)
+  [0x03078793, "main", 7], // addi a5, a5, 48
+  [0x00078513, "main", 7], // addi a0, a5, 0
+  [0xf89ff0ef, "main", 7], // jal ra, -120
+  [0x00000513, "main", 8], // addi a0, zero, 0
+  [0x01c12083, "main", 9], // lw ra, 28(sp)
+  [0x01812403, "main", 9], // lw s0, 24(sp)
+  [0x02010113, "main", 9], // addi sp, sp, 32
+  [0x00008067, "main", 9], // jalr zero, 0(ra)
+];
+
+type MockInstruction = { word: number; fn: string; path: string; line: number }; // line 0 = runtime
+
+/** "// big" in the source: 20,000 nops (4 per C line) then exit(0). */
+function bigProgram(): MockInstruction[] {
+  const list: MockInstruction[] = Array.from({ length: 20_000 }, (_, i) => ({ word: 0x13, fn: "main", path: "main.c", line: 1 + (i >> 2) }));
+  list.push({ word: 0x05d00893, fn: "main", path: "main.c", line: 5001 }, { word: 0x73, fn: "main", path: "main.c", line: 5001 });
+  return list;
+}
+
+// The same program as Rust: demangled names (`main::main`, `std::io::_print`), the Rust lines of
+//   1 fn main() {  2 let mut sum = 0;  3 for i in 1..=3 {  4 sum += i;  6 println!("{}", sum);  7 }
+// and a few runtime rows (formatting machinery) after the code, as the real runner lists them.
+const RUST_NAMES: Record<string, string> = { putchar: "std::io::_print", main: "main::main" };
+const RUST_LINES: Record<number, number> = { 2: 1, 3: 2, 4: 3, 5: 4, 7: 6, 8: 7, 9: 7 };
+const RUST_RUNTIME: [number, string][] = [
+  [0x40b50533, "core::fmt::Formatter::pad"], // sub a0, a0, a1
+  [0x00008067, "core::fmt::Formatter::pad"], // jalr zero, 0(ra)
+  [0x40b50533, "<std::io::Stdout as core::fmt::Write>::write_str"],
+  [0x00008067, "<std::io::Stdout as core::fmt::Write>::write_str"],
+];
+
+function rustProgram(): MockInstruction[] {
+  const list: MockInstruction[] = PROGRAM.map(([word, fn, line]) => ({
+    word,
+    fn: RUST_NAMES[fn] ?? fn,
+    path: "main.rs",
+    line: line === 0 ? 0 : RUST_LINES[line],
+  }));
+  for (const [word, fn] of RUST_RUNTIME) list.push({ word, fn, path: "main.rs", line: 0 });
+  return list;
+}
+
+function explain(files: { path: string; content: string }[], language = "c") {
+  const source = files.map((f) => f.content).join("\n");
+  const rust = language === "rust";
+  const error = rust ? /compile_error!\("(.*?)"\)/.exec(source) : /#error (.*)/.exec(source);
+  if (error) {
+    return { status: "compile_error", compileOutput: rust ? `error: ${error[1]}\n --> main.rs:1:1\n` : `main.c:1:2: error: ${error[1]}\n` };
+  }
+  if (source.includes("// noprogram")) return { status: "ok", compileOutput: "" };
+  const big = source.includes("// big");
+  const runtimeOnly = source.includes("// runtimeonly");
+  const twoFiles = files.length > 1;
+  const list: MockInstruction[] = rust
+    ? rustProgram()
+    : big
+    ? bigProgram()
+    : PROGRAM.map(([word, fn, line]) => ({
+        word,
+        fn,
+        // With two files, the loop body (C line 5) lives in util.c line 1.
+        path: twoFiles && line === 5 ? "util.c" : "main.c",
+        line: twoFiles && line === 5 ? 1 : runtimeOnly ? 0 : line,
+      }));
+  const image = Buffer.alloc(list.length * 4);
+  list.forEach(({ word }, i) => image.writeUInt32LE(word, i * 4));
+  const lineMap: Record<string, number[]> = {};
+  const instructions = list.map(({ word, fn, path, line }, index) => {
+    if (line) (lineMap[`${path}:${line}`] ??= []).push(index);
+    return {
+      index,
+      addr: index * 4,
+      word,
+      origin: line ? "user" : "runtime",
+      function: fn,
+      ...(line ? { src: { path, line, column: 1 } } : {}),
+    };
+  });
+  return {
+    status: "ok",
+    compileOutput: "",
+    program: { image: image.toString("base64"), loadAddress: 0, entry: 0, stackTop: 0x20000, memorySize: 0x20000 },
+    instructions,
+    lineMap,
+  };
+}
+
 export interface MockBackend {
   url: string;
   /** When set, /session requires `Bearer <token>` and runner calls require the session token. */
   requireControlToken(token: string): void;
   /** While true, /session reports the unknown state "failed". */
   setSessionFailing(failing: boolean): void;
+  /** Every POST /runs body so far, so specs can check the language and files the IDE sent. */
+  runRequests: { language: string; files: { path: string; content: string }[] }[];
+  /** Every POST /explain body so far. */
+  explainRequests: { language: string; files: { path: string; content: string }[]; optLevel?: string; checks?: boolean }[];
   close(): Promise<void>;
 }
 
-export async function startMockBackend(options: { startDelayMs?: number; port?: number } = {}): Promise<MockBackend> {
+export async function startMockBackend(options: { startDelayMs?: number; port?: number; host?: string } = {}): Promise<MockBackend> {
   const startDelayMs = options.startDelayMs ?? 0;
   let startedAt: number | undefined;
   let controlToken: string | undefined;
   let sessionFailing = false;
   const runs = new Map<string, Run>();
+  const runRequests: MockBackend["runRequests"] = [];
+  const explainRequests: MockBackend["explainRequests"] = [];
   let nextRun = 1;
 
   const emit = (run: Run, type: string, data: unknown) => {
@@ -110,11 +245,20 @@ export async function startMockBackend(options: { startDelayMs?: number; port?: 
     if (request.method === "POST" && path === "/runs") {
       if ([...runs.values()].some((r) => !r.done)) return json(response, 409, { error: "a run is active" });
       const body = await readJson(request);
+      runRequests.push({ language: body.language, files: body.files });
       const runId = `run-${nextRun++}`;
       const run: Run = { events: [], done: false, subscribers: new Set() };
       runs.set(runId, run);
       json(response, 202, { runId });
       return setTimeout(() => program(run, body.files), 50);
+    }
+
+    if (request.method === "POST" && path === "/explain") {
+      const body = await readJson(request);
+      // "// slow" in the source: answer after a delay (for the specs about stale results).
+      if (body.files.some((f: { content: string }) => f.content.includes("// slow"))) await new Promise((r) => setTimeout(r, 1500));
+      explainRequests.push({ language: body.language, files: body.files, optLevel: body.optLevel, checks: body.checks });
+      return json(response, 200, explain(body.files, body.language));
     }
 
     const match = /^\/runs\/([^/]+)\/(events|stdin|stop)$/.exec(path);
@@ -145,12 +289,14 @@ export async function startMockBackend(options: { startDelayMs?: number; port?: 
   const server: Server = createServer((request, response) => {
     handle(request, response).catch((error) => json(response, 500, { error: String(error) }));
   });
-  await new Promise<void>((resolve) => server.listen(options.port ?? 0, "127.0.0.1", resolve));
+  await new Promise<void>((resolve) => server.listen(options.port ?? 0, options.host ?? "127.0.0.1", resolve));
   const address = server.address();
   if (typeof address !== "object" || address === null) throw new Error("no address");
 
   return {
     url: `http://127.0.0.1:${address.port}`,
+    runRequests,
+    explainRequests,
     requireControlToken: (token) => {
       controlToken = token;
     },
@@ -168,7 +314,7 @@ export async function startMockBackend(options: { startDelayMs?: number; port?: 
 
 if (require.main === module) {
   const port = Number(process.argv[2] ?? 8787);
-  startMockBackend({ port, startDelayMs: Number(process.argv[3] ?? 5000) }).then((mock) =>
+  startMockBackend({ port, host: process.env.MOCK_HOST, startDelayMs: Number(process.argv[3] ?? 5000) }).then((mock) =>
     console.log(`mock backend on ${mock.url}`),
   );
 }

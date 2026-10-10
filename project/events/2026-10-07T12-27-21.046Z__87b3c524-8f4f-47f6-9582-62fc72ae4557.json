@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "87b3c524-8f4f-47f6-9582-62fc72ae4557",
+  "issue_id": "SIE-ea3c06ad-a30c-41ee-b718-dd53a93ec73b",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T12:27:21.046Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "R9: Coach and warm-up button text in plain English (STE chrome) (S)",
+    "description": "Effort: S. Do first.\n\n**Problem.** UI chrome breaks the project's own STE rule (no contractions).\n**Evidence.** CoachPanel.tsx and WarmupCard.tsx: 'Let's watch', 'Let's see why', 'I'm fine', 'Want a nudge?', 'Got it', 'Skip the tour?'; docs/lesson-format.md requires no contractions. Empty box shows '–' but lesson 5 says 'starts at 0'.\n**Change.** 'Watch why', 'I am fine', 'Do you want a hint?', 'Close'; show an empty box as 0 or say 'empty' everywhere; extend the STE check to UI strings in web/src.\n**Acceptance.**\n- Given web/src chrome strings, then the STE check finds no contractions.\n- The empty box reads the same in every lesson.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 1,
+    "assignee": null,
+    "parent": "SIE-2f17ee43-d05a-465d-bf60-bd7e58cd141a",
+    "labels": [
+      "curriculum,review"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Curriculum Board Agent"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "59cf3f9b-50db-4150-a32a-c2982b2897c8",
+  "issue_id": "SIE-00e1e10e-07c5-473a-b09f-59e6edd8ec86",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T19:11:50.213Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "E13: Course path, Now-you-can card, Gallery and Instruction Deck (M)",
+    "description": "Feature: Course path\n  Scenario: The path shows exactly one Continue action",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-e8c91813-9ff5-4d5a-9ac2-ccef5abae556",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-orchestrator"
+    }
+  }
+}

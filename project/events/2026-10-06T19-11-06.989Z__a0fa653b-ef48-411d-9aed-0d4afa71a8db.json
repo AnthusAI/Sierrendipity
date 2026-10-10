@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "event_id": "a0fa653b-ef48-411d-9aed-0d4afa71a8db",
+  "issue_id": "SIE-c42ab214-45f3-4af6-83ea-0259facaaee5",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-06T19:11:06.989Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "E7: Cards view and card editor with number spinners (M)",
+    "description": "Feature: Cards\n  Scenario: Changing a card's number changes the word in memory",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-e8c91813-9ff5-4d5a-9ac2-ccef5abae556",
+    "labels": [],
+    "agent": {
+      "platform": "claude_code",
+      "model": "claude-sonnet-5-5",
+      "name": "Sierrendipity-orchestrator"
+    }
+  }
+}

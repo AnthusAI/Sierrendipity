@@ -1,0 +1,27 @@
+{
+  "id": "SIE-d290b000-f9b0-4c28-8eb5-7b976274a705",
+  "title": "Lessons c1/12-16 (re-cut of drafts 06-08, plus memory and pc)",
+  "description": "Acceptance: counting with lamps, flip the card, inside the number, your card in memory, the arrow has a number (reg:pc); check --all green, STE clean.",
+  "type": "story",
+  "status": "open",
+  "priority": 2,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-fd3dd9b2-bdbf-4e23-bbf1-44d7cad3c537",
+  "labels": [
+    "real-machine"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-07T15:48:07.540341Z",
+  "updated_at": "2026-10-07T15:48:07.540378Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "claude_code",
+    "model": "Claude Sonnet 5.5",
+    "name": "Real Machine Board Agent"
+  },
+  "right_now_summary": "The lesson re-cut covers counting, cards, memory, and the program counter, with all checks expected to pass.",
+  "right_now_updated_at": "2026-10-07T15:48:09.604352Z",
+  "custom": {}
+}

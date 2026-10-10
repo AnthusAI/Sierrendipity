@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "225bae2e-11f8-4762-b52c-42586c55ac41",
+  "issue_id": "SIE-b9f9ea6e-6e55-43e9-b670-3d46f07e8379",
+  "event_type": "issue_created",
+  "occurred_at": "2026-10-07T15:48:03.047Z",
+  "actor_id": "home",
+  "payload": {
+    "title": "retires: retire a diagram after the real panel replaces it",
+    "description": "Acceptance: a lesson can declare retires for a diagram; later lessons do not offer it; spec for D5, D8, D6, D3.",
+    "issue_type": "story",
+    "status": "open",
+    "priority": 2,
+    "assignee": null,
+    "parent": "SIE-fd3dd9b2-bdbf-4e23-bbf1-44d7cad3c537",
+    "labels": [
+      "real-machine"
+    ],
+    "agent": {
+      "platform": "claude_code",
+      "model": "Claude Sonnet 5.5",
+      "name": "Real Machine Board Agent"
+    }
+  }
+}

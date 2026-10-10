@@ -1,0 +1,1 @@
+loop: jal zero, loop
