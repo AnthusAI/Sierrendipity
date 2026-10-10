@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "event_id": "0bde6e96-b993-415b-9e54-7300b35161f9",
+  "issue_id": "SIE-f0d77ce0-66c5-4546-8e4d-6d732d7c1782",
+  "event_type": "comment_added",
+  "occurred_at": "2026-10-10T13:55:19.544Z",
+  "actor_id": "home",
+  "payload": {
+    "comment_id": "364073fb-c60b-42c0-aeff-6bd1d4fc9eca",
+    "comment_author": "home",
+    "agent": {
+      "platform": "codex",
+      "model": "GPT-5",
+      "name": "Sierrendipity handoff"
+    }
+  }
+}
