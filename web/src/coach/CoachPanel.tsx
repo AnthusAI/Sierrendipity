@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from "react";
-import { ArrowRight, XCircle } from "lucide-react";
+import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type MouseEvent } from "react";
+import { ArrowRight, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { LessonEngine, PlayerState } from "./engine";
 import type { LessonInfo } from "../lessons";
@@ -32,6 +32,26 @@ function useFocusOnAppear(active: boolean, selector: string) {
     // Only when the question appears or goes away.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
+}
+
+/** Confetti pieces: where each flies (px), how far it spins, and which theme colour it has. Pure CSS, decoration only. */
+const CONFETTI = [
+  [-70, -60, 200, "success"], [60, -70, -160, "primary"], [-30, -90, 120, "pc-mark"], [90, -30, 240, "link"],
+  [-95, -20, -200, "pc-mark"], [20, -100, 180, "success"], [75, 10, -120, "primary"],
+  [-50, 20, 160, "link"], [40, 40, -220, "success"], [-85, 35, 100, "primary"], [100, -60, -140, "pc-mark"],
+  [-15, -70, 260, "link"], [55, -95, 90, "success"], [-105, -50, -90, "pc-mark"], [10, 55, 210, "primary"],
+  [80, 40, -180, "link"], [-65, 55, 130, "success"], [0, -110, -250, "primary"],
+] as const;
+
+function Confetti({ kind }: { kind: "goal" | "lesson" }) {
+  const pieces = kind === "lesson" ? CONFETTI : CONFETTI.slice(0, 7);
+  return (
+    <span aria-hidden data-confetti>
+      {pieces.map(([dx, dy, spin, color], i) => (
+        <i key={i} style={{ "--dx": `${dx}px`, "--dy": `${dy}px`, "--spin": `${spin}deg`, backgroundColor: `var(--${color})`, animationDelay: `${i * 25}ms` } as CSSProperties} />
+      ))}
+    </span>
+  );
 }
 
 /** A double-click's second click lands on whatever the first one revealed: help is never spent by it. */
@@ -214,6 +234,14 @@ export function CoachPanel({ state, engine, next, onNext, onStop }: Props) {
   const suggestStop = state.stopSuggested && phase !== "done";
   useFocusOnAppear(state.nudgeOffer, "[data-coach-nudge] button");
   useFocusOnAppear(state.skipTourAsk, "[data-coach-skip-tour] [data-coach-primary]");
+  const wasCelebrating = useRef(false);
+  useEffect(() => {
+    if (wasCelebrating.current && !state.celebrating) {
+      const active = document.activeElement as HTMLElement | null;
+      if (!(active && TYPING.includes(active.tagName))) document.querySelector<HTMLElement>("[data-coach-panel] [data-coach-primary]")?.focus({ preventScroll: true });
+    }
+    wasCelebrating.current = state.celebrating;
+  }, [state.celebrating]);
   useFocusOnAppear(suggestStop, "[data-coach-stop-suggestion] button");
   return (
     <aside data-coach-panel aria-label="Coach" className="relative z-50 flex flex-col gap-3 rounded-lg border bg-card p-4 text-card-foreground shadow-sm md:col-start-2 md:row-start-1">
@@ -229,6 +257,15 @@ export function CoachPanel({ state, engine, next, onNext, onStop }: Props) {
           <span data-coach-announce className="sr-only">
             {state.announce}
           </span>
+        )}
+        {state.celebration && (phase === "scene" || phase === "done") && (
+          <div data-coach-celebrate={state.celebration.kind} role="status" className="animate-pop relative rounded-md border-4 border-success bg-success-bg p-3 text-success-fg">
+            <Confetti kind={state.celebration.kind} />
+            <p className="flex items-center gap-2 font-semibold">
+              <CheckCircle aria-hidden className="size-5 shrink-0 text-success" />
+              {state.celebration.kind === "lesson" ? "Right! The lesson is done." : "Right!"}
+            </p>
+          </div>
         )}
         {state.nextGoal && phase === "scene" && (
           <p data-coach-next-goal className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide">
@@ -342,7 +379,8 @@ export function CoachPanel({ state, engine, next, onNext, onStop }: Props) {
 
       {phase === "scene" && <AskUi state={state} engine={engine} />}
 
-      {phase === "scene" && state.waiting === "continue" && (
+      {phase === "scene" && state.waiting === "continue" && state.celebrating && <div aria-hidden className="h-9" />}
+      {phase === "scene" && state.waiting === "continue" && !state.celebrating && (
         <Button data-coach-primary className="self-start" onClick={() => engine.continue()}>
           Continue
         </Button>
@@ -389,6 +427,8 @@ export function CoachPanel({ state, engine, next, onNext, onStop }: Props) {
           </p>
           {state.end.stars.length > 0 && <p data-coach-stars>Stars: {state.end.stars.join(", ")}.</p>}
           {state.stopSuggested && <p>You have been at this a while, so this is a good place to stop.</p>}
+          {state.celebrating && <div aria-hidden className="h-9" />}
+          {!state.celebrating && (
           <div className="flex flex-wrap gap-2">
             {next && (
               <Button data-coach-primary variant={state.stopSuggested ? "outline" : "default"} onClick={() => onNext?.(next.id)}>
@@ -399,6 +439,7 @@ export function CoachPanel({ state, engine, next, onNext, onStop }: Props) {
               Stop here
             </Button>
           </div>
+          )}
         </section>
       )}
       {state.stopped && <p data-coach-stopped>Stopped here. Your progress is saved, and the next lesson will be waiting.</p>}
