@@ -1,7 +1,7 @@
 {
   "id": "SIE-a87ccc8f-2b32-47fa-8829-bcde84a9b2b0",
   "title": "Production delivery: frequent validated main releases",
-  "description": "## Intent\n\nAs the maintainer, I want green, reviewed work promoted to `main` frequently and each approved `main` release delivered automatically to production, so that the public coding tutor stays current without a coding agent needing personal AWS login.\n\n## Verified current state (2026-10-10)\n\n- CI runs for pull requests and pushes to `develop` and `main`; it has no AWS credentials or deploy step.\n- Semantic Release runs after successful CI on `main`; it creates releases only and does not deploy.\n- Production is a manual CDK deployment: `cd infra && AWS_PROFILE=legacy npx cdk deploy` in account 335163751677 / `us-east-1`.\n- The `Sierrendipity` CloudFormation stack was `UPDATE_COMPLETE` at 2026-10-10 00:02 UTC. CloudFormation does not record a Git branch or SHA, so the source revision of that deployment is unverified. Do not attribute it to the active feature branch.\n\n## Target\n\n- Promote validated changes to `main` frequently under an explicit branch-protection policy.\n- Automatically deploy the exact approved `main` revision only after its required CI and release conditions pass.\n- Record deploy provenance (commit SHA, branch, workflow run, and stack outcome) so production attribution is verifiable.\n\n## Scope and guardrails\n\nThis epic plans and coordinates delivery work. Existing task SIE-f0d77c owns the OIDC/CDK deployment implementation and must be reused rather than duplicated. Do not create or alter persistent AWS IAM/OIDC grants, GitHub environments, or branch protections without explicit action-time authorization.\n\n## Definition of done\n\nA verified `main` promotion produces one audited GitHub deployment run for that exact SHA; the production stack update succeeds; and the resulting branch/SHA/workflow evidence is discoverable without inference.",
+  "description": "## Intent\n\nPromote green, reviewed work to main frequently and automatically deliver validated static-site revisions without a coding agent using personal AWS credentials.\n\n## Delivered static-site automation (2026-10-10)\n\n- Main revision 1fb623a07670357e4e8124b20f6fdab67848ed41 was promoted by PR #18.\n- GitHub Actions run https://github.com/AnthusAI/Sierrendipity/actions/runs/38065921757 passed all required tests plus GitHub OIDC, exact web build publish, CloudFront invalidation, and live provenance verification.\n- https://sierrendipity.anth.us/deployment.json publicly serves the same main SHA.\n\n## Current scope\n\n- Validated pushes to main automatically deploy static website content only.\n- The workflow uses the narrow GitHub OIDC role and does not store long-lived AWS credentials.\n- Backend, runner, and broader CDK/infrastructure deployments remain human-operated and need separate approval and planning.\n\n## Guardrails\n\nDo not broaden the delivery role, create persistent credentials, change branch protections, or automate backend/runner/infrastructure delivery without explicit action-time authorization.",
   "type": "epic",
   "status": "in_progress",
   "priority": 1,
@@ -29,15 +29,15 @@
     }
   ],
   "created_at": "2026-10-10T13:51:53.614039Z",
-  "updated_at": "2026-10-10T16:24:54.105197Z",
+  "updated_at": "2026-10-10T16:26:55.919696Z",
   "closed_at": null,
   "agent": {
     "platform": "codex",
     "model": "GPT-5",
     "name": "Sierrendipity handoff"
   },
-  "right_now_summary": "Static site releases now deploy automatically from validated main revisions with verified public provenance.",
-  "right_now_updated_at": "2026-10-10T16:24:55.478067Z",
+  "right_now_summary": "Validated main revisions now deploy the static site automatically; infrastructure and backend releases remain manual.",
+  "right_now_updated_at": "2026-10-10T16:26:56.929408Z",
   "custom": {
     "project_label": "SIE",
     "source": "shared"
