@@ -51,6 +51,7 @@ Then(
 
 Then("it defines the jobs {string}, {string}, {string} and {string}", (a: string, b: string, c: string, d: string) => {
   assertJobs([a, b, c, d]);
+  assert.match(workflow, /^  commitlint:\n    if: github\.event_name == 'pull_request' && github\.base_ref == 'develop'$/m);
 });
 
 Then("it defines the jobs {string} and {string}", (a: string, b: string) => {
