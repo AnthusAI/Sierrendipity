@@ -23,8 +23,8 @@
     "model": "GPT-5",
     "name": "Sierrendipity handoff"
   },
-  "right_now_summary": "The deployment workflow awaits AWS OIDC access and provenance checks before shipping validated changes to production.",
-  "right_now_updated_at": "2026-10-10T13:53:45.609946Z",
+  "right_now_summary": "The deployment workflow awaits AWS OIDC access and provenance checks before delivering validated main revisions.",
+  "right_now_updated_at": "2026-10-10T13:57:51.347080Z",
   "custom": {
     "project_label": "SIE",
     "source": "shared"

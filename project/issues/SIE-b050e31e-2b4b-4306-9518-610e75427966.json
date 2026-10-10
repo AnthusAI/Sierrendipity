@@ -1,0 +1,31 @@
+{
+  "id": "SIE-b050e31e-2b4b-4306-9518-610e75427966",
+  "title": "Approved main revisions deploy through short-lived GitHub identity",
+  "description": "As the maintainer, I want a validated `main` revision to deploy to production through GitHub OIDC, so that routine coding work never depends on a personal AWS login.\n\n## Gherkin\n\n```gherkin\nFeature: Production delivery from main\n\n  Scenario: A validated main revision is deployed with a short-lived identity\n    Given a trusted push of revision SHA to the main branch\n    And the required CI checks for that revision have succeeded\n    When the production delivery workflow runs\n    Then it assumes only the repository-scoped GitHub OIDC deploy role\n    And it deploys that exact revision to the Sierrendipity stack\n    And it records the branch, SHA, workflow run, and live verification result\n\n  Scenario: Untrusted pull-request code cannot deploy production\n    Given a pull request from any branch or fork\n    When CI runs for that pull request\n    Then no production deployment job runs\n    And no AWS deployment credentials are requested\n```\n\nImplementation is split between the workflow task SIE-1bb857 and the existing OIDC role task SIE-f0d77c.",
+  "type": "story",
+  "status": "in_progress",
+  "priority": 1,
+  "assignee": null,
+  "creator": null,
+  "parent": "SIE-a87ccc8f-2b32-47fa-8829-bcde84a9b2b0",
+  "labels": [
+    "delivery",
+    "security"
+  ],
+  "dependencies": [],
+  "comments": [],
+  "created_at": "2026-10-10T13:57:36.910850Z",
+  "updated_at": "2026-10-10T13:57:49.242703Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "codex",
+    "model": "GPT-5",
+    "name": "Sierrendipity handoff"
+  },
+  "right_now_summary": "The deployment workflow still needs to deliver validated main revisions through the repository’s short-lived GitHub",
+  "right_now_updated_at": "2026-10-10T13:57:50.301206Z",
+  "custom": {
+    "project_label": "SIE",
+    "source": "shared"
+  }
+}
