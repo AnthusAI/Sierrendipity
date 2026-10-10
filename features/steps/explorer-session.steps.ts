@@ -114,9 +114,9 @@ Then("the session agrees with the checker on every solution of every Course 1 an
       const startRegs = fn ? { [fn.inputs[0]!]: DEFAULT_FUNCTION_INPUT } : undefined;
       const functionBoxes = fn ? { name: fn.name, input: fn.inputs[0]!, output: fn.output } : undefined;
       const events = lesson.scenes.flatMap((sc) => (sc.ask?.kind === "table" ? [{ type: "table" as const, inputs: sc.ask.inputs }] : []));
-      const direct = runProgram(decl.words, { maxSteps: cap, predictions: decl.predictions, starter: lesson.starter.words, hideEnd: lesson.hideEnd, events, ...(startRegs ? { startRegs, functionBoxes } : {}) });
-      const live = startLive(decl.words, { hideEnd: lesson.hideEnd, ...(startRegs ? { startRegs } : {}) });
-      live.facts = { predictions: decl.predictions, starter: lesson.starter.words, events, ...(functionBoxes ? { functionBoxes } : {}) };
+      const direct = runProgram(decl.words, { maxSteps: cap, predictions: decl.predictions, starter: lesson.starter.words, hideEnd: lesson.hideEnd, events, tail: decl.tail ?? [], usedCards: decl.usedCards ?? [], ...(startRegs ? { startRegs, functionBoxes } : {}) });
+      const live = startLive(decl.words, { hideEnd: lesson.hideEnd, tail: decl.tail ?? [], ...(startRegs ? { startRegs } : {}) });
+      live.facts = { usedCards: decl.usedCards ?? [], predictions: decl.predictions, starter: lesson.starter.words, events, ...(functionBoxes ? { functionBoxes } : {}) };
       const startState = live.machine.state;
       while (pressStep(live));
       const through = liveRunOf(live);

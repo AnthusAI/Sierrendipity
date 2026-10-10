@@ -53,6 +53,8 @@ export interface SessionOptions {
   hideEnd?: boolean;
   /** Registers (number to value) that hold a value before the first step, and again after reset. */
   startRegs?: Record<number, number>;
+  /** How many words follow the end marker (custom card bodies); they are not cards. Default 0. */
+  tail?: number;
 }
 
 const EMPTY_STEPS: StepResult[] = [];
@@ -76,7 +78,7 @@ export class Session {
     this.program = program;
     this.hideEnd = opts.hideEnd === true;
     const words = program.image.length / 4;
-    this.cards = this.hideEnd ? words - 1 : words;
+    this.cards = (this.hideEnd ? words - 1 : words) - (opts.tail ?? 0);
     const machine = new Machine({ memorySize: program.memorySize });
     machine.load(program.image, program.loadAddress, program.entry);
     if (opts.startRegs) machine.setStartRegs(opts.startRegs);

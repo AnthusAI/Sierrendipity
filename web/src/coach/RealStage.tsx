@@ -1,7 +1,7 @@
 import { describe } from "@sierrendipity/explorer";
 import type { ReactNode } from "react";
 import { CardFace } from "../cards/CardFace";
-import { cardToWord, wordToCard } from "../cards/model";
+import { cardToWord, wordToCard, type Card, type CustomCard } from "../cards/model";
 import { GlassStrip, RulePanel, wordHex as hex } from "../machine";
 import { HeartbeatView, MachineView, PixelDisplay, PointerWalk, useMachineTimeline } from "../diagrams";
 import { PlayerControls } from "./PlayerControls";
@@ -14,10 +14,18 @@ const WIDGETS = ["D3", "D4", "D5", "D6", "D7", "D8", "D9", "builder"];
 
 
 /** One card of the list: a real face with a number spinner, or a plain face for a word that is not a Course 1 card. */
-function Face({ word, index, count, current, locked, plain, glass, glassNamed, registerNames, onEdit }: { word: number; index: number; count: number; current: boolean; locked: boolean; plain: boolean; glass: boolean; glassNamed: boolean; registerNames: boolean; onEdit: (card: number, word: number) => void }) {
+function Face({ word, program, index, count, current, locked, plain, glass, glassNamed, registerNames, onEdit }: { word: number; program?: { card: Card; customCards: CustomCard[] }; index: number; count: number; current: boolean; locked: boolean; plain: boolean; glass: boolean; glassNamed: boolean; registerNames: boolean; onEdit: (card: number, word: number) => void }) {
   const strip = glass ? <GlassStrip word={word} index={index} named={glassNamed} registerNames={registerNames} /> : null;
-  const card = wordToCard(word);
   const highlight = current ? "border-foreground ring-2 ring-foreground" : "";
+  if (program) {
+    return (
+      <>
+        <CardFace card={program.card} customCards={program.customCards} position={{ index, count }} className={highlight} />
+        {strip}
+      </>
+    );
+  }
+  const card = wordToCard(word);
   if (!card) {
     const text = plain ? plainBoxes(describe(word, { vocabulary: "boxes" }).text) : describe(word, { vocabulary: "boxes" }).text;
     return (
@@ -55,7 +63,7 @@ function Face({ word, index, count, current, locked, plain, glass, glassNamed, r
  * diagram disagreeing with the player) and sends every change back through `onEditStarter` / `onReplaceCards`.
  * Controls are the player's own. A locked control stays in place, says "Not yet" and does nothing.
  */
-export function RealStage({ lesson, live, scene, onEditStarter, onReplaceCards, onSetFunctionInput, controls }: StageProps) {
+export function RealStage({ lesson, live, scene, onEditStarter, onReplaceCards, onReplaceProgram, onSetFunctionInput, controls }: StageProps) {
   const timeline = useMachineTimeline(live.cards, { session: live.session, boxes: lesson.boxes, pointer: lesson.pointer });
 
   const sceneIndex = lesson.scenes.findIndex((s) => s.id === scene.id);
@@ -80,7 +88,7 @@ export function RealStage({ lesson, live, scene, onEditStarter, onReplaceCards, 
         coachIds
         stacked
         quiet={{ log: lesson.ui?.log, deskTitle: lesson.ui?.deskTitle, endMarker: lesson.ui?.endMarker, boxNames: lesson.ui?.boxNames }}
-        renderCard={(word, i, state) => <Face word={word} index={i} count={live.cards.length} current={state.current} locked={editLocked} plain={lesson.ui?.boxNames === false} glass={lesson.ui?.glass === true} glassNamed={glassNamed} registerNames={lesson.ui?.boxNames !== false} onEdit={edit} />}
+        renderCard={(word, i, state) => <Face word={word} {...(live.program?.cards[i]?.kind === "custom" ? { program: { card: live.program.cards[i]!, customCards: live.program.customCards } } : {})} index={i} count={live.cards.length} current={state.current} locked={editLocked} plain={lesson.ui?.boxNames === false} glass={lesson.ui?.glass === true} glassNamed={glassNamed} registerNames={lesson.ui?.boxNames !== false} onEdit={edit} />}
       />,
     );
   }
@@ -92,7 +100,7 @@ export function RealStage({ lesson, live, scene, onEditStarter, onReplaceCards, 
   if (show.has("D8")) parts.push(<BandsPanel key="D8" spec={scene.bands ?? { card: 0 }} cards={live.cards} readOnly={toggleLocked} onEdit={onEditStarter} />);
   if (show.has("D7") && scene.carry) parts.push(<CarryPanel key="D7" a={scene.carry.a} b={scene.carry.b} />);
   if (show.has("builder") && scene.tray) {
-    parts.push(<BuilderPanel key="builder" cards={live.cards} tray={scene.tray} hideEnd={live.hideEnd} readOnly={dragLocked || live.demo} onReplace={onReplaceCards} />);
+    parts.push(<BuilderPanel key="builder" cards={live.cards} tray={scene.tray} hideEnd={live.hideEnd} readOnly={dragLocked || live.demo} onReplace={onReplaceCards} onReplaceProgram={onReplaceProgram} {...(live.program ? { program: live.program } : {})} {...(scene.save ? { save: scene.save } : {})} />);
   }
 
   return (

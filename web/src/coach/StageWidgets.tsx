@@ -1,5 +1,5 @@
 import { describe } from "@sierrendipity/explorer";
-import type { FlipSpec, LampSpec } from "@sierrendipity/lesson-core";
+import type { CustomCard, FlipSpec, LampSpec, SaveSpec } from "@sierrendipity/lesson-core";
 import { lazy, Suspense, useEffect, useMemo, useRef } from "react";
 import { cardToWord, wordToCard, type Card } from "../cards/model";
 import type { TrayItem } from "../cards/ProgramBuilder";
@@ -151,8 +151,9 @@ function trayOf(words: number[], hideEnd: boolean): TrayItem[] {
 }
 
 /** `builder`: drag cards from the tray into the program. The program becomes the player's cards. */
-export function BuilderPanel({ cards: words, tray, hideEnd, readOnly, onReplace }: { cards: number[]; tray: number[]; hideEnd: boolean; readOnly: boolean; onReplace: (words: number[]) => void }) {
+export function BuilderPanel({ cards: words, tray, hideEnd, readOnly, onReplace, program, save, onReplaceProgram }: { cards: number[]; tray: number[]; hideEnd: boolean; readOnly: boolean; onReplace: (words: number[]) => void; program?: { cards: Card[]; customCards: CustomCard[] }; save?: SaveSpec; onReplaceProgram?: (cards: Card[], customCards: CustomCard[]) => void }) {
   const { cards, produced } = useBuilderCards(words);
+  const newestCustomCards = useRef<CustomCard[] | null>(null);
   const items = useMemo(() => trayOf(tray, hideEnd), [tray, hideEnd]);
   const root = useRef<HTMLDivElement>(null);
   // Locked (or being demonstrated by the ghost): still drawn, but nothing in it can be reached or changed.
@@ -161,7 +162,23 @@ export function BuilderPanel({ cards: words, tray, hideEnd, readOnly, onReplace 
   }, [readOnly]);
   return (
     <div ref={root} data-builder data-locked={readOnly || undefined} className="rounded-lg border bg-card p-4 text-card-foreground">
-      {cards === null ? (
+      {program && onReplaceProgram ? (
+        <Suspense fallback={<p>Loading the builder.</p>}>
+          <ProgramBuilder
+            cards={program.cards}
+            tray={items}
+            hideEnd={hideEnd}
+            coachIds
+            customCards={program.customCards}
+            {...(save ? { onCustomCardsChange: (next: CustomCard[]) => (newestCustomCards.current = next), saveRule: save } : {})}
+            onChange={(next) => {
+              const customCards = newestCustomCards.current ?? program.customCards;
+              newestCustomCards.current = null;
+              onReplaceProgram(next, customCards);
+            }}
+          />
+        </Suspense>
+      ) : cards === null ? (
         <p>These cards cannot be shown in the builder.</p>
       ) : (
         <Suspense fallback={<p>Loading the builder.</p>}>

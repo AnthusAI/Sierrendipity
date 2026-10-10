@@ -9,6 +9,7 @@
     ".": "./src/index.ts",
     "./loader": "./src/loader.ts",
     "./check": "./src/check.ts",
+    "./cards": "./src/cards/index.ts",
     "./node": "./src/node/index.ts"
   },
   "scripts": {

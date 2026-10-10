@@ -1,0 +1,55 @@
+id: x1/06-custom-card
+title: Stage fixture, make your own card
+minutes: 4
+draft: true
+# A test fixture (draft: never listed in the course). The student selects the two cards and saves them as
+# one card named Square-plus-one. The list then calls that card. The rule f(x) = x·x + 1 still holds.
+concepts:
+  introduces: [cards]
+  requires: []
+boxes: [a0]
+pointer: false
+hideEnd: true
+ui: { controls: [step, back, reset], resetLabel: Start again }
+function:
+  name: f
+  inputs: [a0]
+  output: a0
+  rule: "f(x) = x·x + 1"
+starter:
+  asm: |
+    mul a0, a0, a0
+    addi a0, a0, 1
+tabs: [cards]
+scenes:
+  - id: make
+    say: Select the two cards. Then save them as one card.
+    show: [builder, D1]
+    tray: ["mul a0, a0, a0", "addi a0, a0, 1"]
+    save: { min: 2, max: 2, name: Square-plus-one }
+    spotlight: tray
+    until:
+      - the program uses the card "Square-plus-one"
+    hints:
+      - Use Select above the program.
+      - Select card 1 and card 2. Then use Save as card.
+      - The two cards become the card Square-plus-one.
+    showMe: demo-save
+    doneSay: You made a card.
+
+  - id: use
+    say: Set x to 3. Then select Step.
+    show: [builder, D1]
+    tray: ["mul a0, a0, a0", "addi a0, a0, 1"]
+    until:
+      - the machine made at least 1 call
+      - every call returned
+      - f(3) is 10
+    hints:
+      - Look at the rule above the boxes.
+      - Type 3 for x. Select Step.
+      - Type 3 for x. Select Step two times.
+    lock: [drag, toggle]
+    doneSay: The new card did the work.
+nowYouCan:
+  - Make a card from other cards.
