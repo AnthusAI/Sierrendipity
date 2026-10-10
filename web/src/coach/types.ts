@@ -29,6 +29,10 @@ export interface LiveView {
   hideEnd: boolean;
   /** True while the ghost is demonstrating on a copy: controls are inert. */
   demo: boolean;
+  /** The x of the lesson's function, when the lesson has one. */
+  functionInput?: number;
+  /** The scene fixed x: the banner shows it and does not let the student change it. */
+  functionInputLocked?: boolean;
 }
 
 /** The scene being played, as far as the stage cares. */
@@ -45,6 +49,8 @@ export interface StageScene {
   flip?: FlipSpec;
   carry?: { a: number; b: number };
   tray?: number[];
+  /** The scene asks a question: the banner must not show values that would answer it. */
+  asking?: boolean;
 }
 
 /** How a card was changed: a spinner (`edit`, the default) or a lamp (`toggle`). A scene may lock one and not the other. */
@@ -73,6 +79,8 @@ export interface StageProps {
   onEditStarter(card: number, word: number, via?: EditVia): void;
   /** Replace the whole list of cards (the program builder: drag, reorder, remove). Locked by the scene's `drag`. */
   onReplaceCards(words: number[]): void;
+  /** Set x for the lesson's function (the rule banner's input). Locked by the scene's `edit`. */
+  onSetFunctionInput(x: number): void;
   controls: StageControls;
 }
 

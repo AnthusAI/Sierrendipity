@@ -114,3 +114,16 @@ Feature: One session drives every view of the machine
 
   Scenario: The session agrees with running straight through on every Course 1 and x1 solution
     Then the session agrees with the checker on every solution of every Course 1 and x1 lesson
+
+  Scenario: A session can start with a value in a register, and Reset brings it back
+    Given a session with register a0 starting at 7 for the program
+      """
+      mul a0, a0, a0
+      addi a0, a0, 1
+      ebreak
+      """
+    Then the session register a0 is 7
+    When I step the session 2 times
+    Then the session register a0 is 50
+    When I reset the session
+    Then the session register a0 is 7

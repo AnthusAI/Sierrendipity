@@ -51,6 +51,8 @@ export interface SessionOptions {
   maxSteps?: number;
   /** The last word of the program is a hidden end marker: it runs by itself after the last visible card. */
   hideEnd?: boolean;
+  /** Registers (number to value) that hold a value before the first step, and again after reset. */
+  startRegs?: Record<number, number>;
 }
 
 const EMPTY_STEPS: StepResult[] = [];
@@ -77,6 +79,7 @@ export class Session {
     this.cards = this.hideEnd ? words - 1 : words;
     const machine = new Machine({ memorySize: program.memorySize });
     machine.load(program.image, program.loadAddress, program.entry);
+    if (opts.startRegs) machine.setStartRegs(opts.startRegs);
     this.maxSteps = opts.maxSteps ?? DEFAULT_MAX_STEPS;
     this.timeline = new Timeline(machine, { maxSteps: this.maxSteps });
     this.machine = this.makeView();

@@ -1,4 +1,6 @@
 import {
+  DEFAULT_FUNCTION_INPUT,
+  MAX_FUNCTION_INPUT,
   earnedStars,
   liveRunOf,
   parseStep,
@@ -7,6 +9,7 @@ import {
   registerNumber,
   runChecks,
   startLive,
+  tableExpected,
   type Ask,
   type GhostEvent,
   type Live,
@@ -81,6 +84,8 @@ export interface PlayerState {
   stopSuggested: boolean;
   skipTourAsk: boolean;
   ask: Ask | null;
+  /** The name of the lesson's function (for the table ask's column and cell names), or null. */
+  functionName: string | null;
   end: { verb: "ran" | "made"; made: string[]; values: string[]; stars: string[]; nowYouCan: string[] } | null;
   stopped: boolean;
 }
@@ -101,6 +106,8 @@ export class LessonEngine {
   private readonly listeners = new Set<() => void>();
 
   private cards: number[];
+  /** The x of the lesson's function, set by the student above the boxes (a lesson without a function ignores it). */
+  private functionInput = DEFAULT_FUNCTION_INPUT;
   private live: Live;
   private demo: Live | null = null;
   /** Runs already recorded as attempts, keyed by scene and cards, so Back and Reset never add attempts. */
@@ -148,8 +155,9 @@ export class LessonEngine {
     this.userId = opts.userId ?? "local";
     this.isVisible = opts.isVisible ?? (() => typeof document === "undefined" || document.visibilityState !== "hidden");
     this.cards = [...lesson.starter.words];
+    this.functionInput = lesson.function ? lesson.scenes[0]?.input ?? DEFAULT_FUNCTION_INPUT : DEFAULT_FUNCTION_INPUT;
     this.live = this.build(this.cards);
-    this.live.facts = { starter: [...lesson.starter.words], predictions: {}, events: [] };
+    this.live.facts = { starter: [...lesson.starter.words], predictions: {}, events: [], ...functionFactsOf(lesson, this.functionInput) };
     this.detector = new StuckDetector(this.clock.now());
     this.mastery = this.hasMastery();
     if (this.mastery && lesson.scenes.some((s) => s.skippable)) this.phase = "quick-offer";
@@ -329,6 +337,33 @@ export class LessonEngine {
     this.resolveAnswer(this.holds([ask.query], liveRunOf(this.live)), "no", !finished(this.live));
   }
 
+  /** The student sets x for the lesson's function: the machine starts again with the input box holding it. */
+  setFunctionInput(x: number): void {
+    if (!this.lesson.function || !this.canAct("edit") || this.scene()?.input !== undefined) return;
+    if (!Number.isInteger(x) || Math.abs(x) > MAX_FUNCTION_INPUT || x === this.functionInput) return;
+    this.touch();
+    this.functionInput = x;
+    this.live = this.build(this.cards, this.live.facts);
+    this.afterRun(false);
+  }
+
+  /** Answer a table prediction: one number for each input, in the order of the ask's inputs. */
+  answerTable(values: number[]): void {
+    const ask = this.scene()?.ask;
+    if (!ask || ask.kind !== "table" || this.phase !== "scene" || values.length !== ask.inputs.length || !values.every(Number.isInteger)) return;
+    this.touch();
+    const expected = tableExpected(this.lesson, ask.inputs);
+    const row = ask.inputs.findIndex((_, k) => values[k] !== expected[k]);
+    if (row < 0) {
+      (this.live.facts.events ??= []).push({ type: "table", inputs: [...ask.inputs] });
+      this.recordRun(liveRunOf(this.live), true);
+      this.resolveAnswer(true, "table", !finished(this.live));
+      return;
+    }
+    const x = ask.inputs[row]!;
+    this.resolveAnswer(false, [`${x}:${values[row]}`, `${x}`], !finished(this.live), `Row x = ${x}: you wrote ${values[row]}.`);
+  }
+
   // Help
 
   hint(): void {
@@ -438,8 +473,10 @@ export class LessonEngine {
   }
 
   private build(cards: number[], facts?: Live["facts"]): Live {
-    const live = startLive(cards, { hideEnd: this.lesson.hideEnd });
+    const fn = this.lesson.function;
+    const live = startLive(cards, { hideEnd: this.lesson.hideEnd, ...(fn ? { startRegs: { [fn.inputs[0]!]: this.functionInput } } : {}) });
     if (facts) live.facts = facts;
+    if (fn) live.facts.functionInput = this.functionInput;
     return live;
   }
 
@@ -474,7 +511,7 @@ export class LessonEngine {
 
   /** The last scene with a goal on the machine: where an unfinished or wrong run counts as an attempt. */
   private goalScene(): number {
-    for (let i = this.lesson.scenes.length - 1; i >= 0; i--) if (this.lesson.scenes[i]!.until.length > 0) return i;
+    for (let i = this.lesson.scenes.length - 1; i >= 0; i--) if (this.lesson.scenes[i]!.until.length > 0 || this.lesson.scenes[i]!.ask?.kind === "table") return i;
     return -1;
   }
 
@@ -482,12 +519,12 @@ export class LessonEngine {
    * Record a finished run as an attempt, once per scene and cards: always in the goal scene, elsewhere only
    * when it earns a bonus not yet earned. Back and Reset never add attempts, and a pass counts only here.
    */
-  private recordRun(run: LessonRun): void {
+  private recordRun(run: LessonRun, force = false): void {
     const key = `${this.sceneIndex}|${this.cards.join(",")}`;
     if (this.recorded.has(key)) return;
     const stars = earnedStars(runChecks(this.lesson.checks, run));
     const newBonus = stars.some((s) => s !== "pass" && !this.bonusSeen.has(s));
-    if (this.sceneIndex !== this.goalScene() && !newBonus) return;
+    if (this.sceneIndex !== this.goalScene() && !newBonus && !(force && stars.includes("pass"))) return;
     this.recorded.add(key);
     for (const s of stars) this.bonusSeen.add(s);
     this.safe(() => this.store?.recordAttempt(this.userId, this.lesson.id, { passed: stars.includes("pass"), stars, cards: run.cards, steps: run.steps, concepts: this.lesson.concepts.introduces, cardsUsed: stars.includes("pass") ? cardsUsed(this.cards) : [] }));
@@ -522,7 +559,7 @@ export class LessonEngine {
   }
 
   /** `genuine`: the guess was made before the machine showed the answer. Anything later is not a prediction. */
-  private resolveAnswer(correct: boolean, given: string | number, genuine: boolean): void {
+  private resolveAnswer(correct: boolean, given: string | number | string[], genuine: boolean, said?: string): void {
     const scene = this.scene()!;
     if (genuine) this.safe(() => this.store?.recordEvent(this.userId, { type: "prediction", lessonId: this.lesson.id, correct, concepts: this.lesson.concepts.introduces }));
     if (correct) {
@@ -531,9 +568,9 @@ export class LessonEngine {
       return;
     }
     this.trigger(this.detector.failedCheck());
-    const match = scene.onWrong.find((w) => w.match === given);
+    const match = Array.isArray(given) ? given.map((key) => scene.onWrong.find((w) => String(w.match) === key)).find(Boolean) : scene.onWrong.find((w) => w.match === given);
     const explanation = match?.say ?? this.lesson.onWrongDefault ?? DEFAULT_WRONG;
-    const reply = scene.ask?.kind === "number" ? `You said ${given}. ${explanation}` : explanation;
+    const reply = said ? `${said} ${explanation}` : scene.ask?.kind === "number" ? `You said ${given}. ${explanation}` : explanation;
     const gotoId = match ? match.goto : this.lesson.onWrongDefaultGoto;
     const target = gotoId ? this.lesson.scenes.findIndex((x) => x.id === gotoId) : this.sceneIndex + 1;
     if (target >= 0 && target < this.lesson.scenes.length && target !== this.sceneIndex) {
@@ -569,6 +606,15 @@ export class LessonEngine {
     if (scene.lock.includes("edit") && this.cards.some((w, k) => w !== this.lesson.starter.words[k])) {
       this.cards = [...this.lesson.starter.words];
       this.live = this.build(this.cards, this.live.facts);
+    }
+    // In a function lesson a scene that fixes x, or asks a question, starts the machine again at that x, so the answer is not already on screen.
+    const fn = this.lesson.function;
+    if (fn && (scene.input !== undefined || scene.ask)) {
+      const x = scene.input ?? this.functionInput;
+      if (x !== this.functionInput || this.live.session.steps > 0) {
+        this.functionInput = x;
+        this.live = this.build(this.cards, this.live.facts);
+      }
     }
     this.awaitingEdit = this.nextGoal && finished(this.live) && !scene.lock.includes("edit") && !this.holds(scene.until, liveRunOf(this.live));
     // The goal may already hold (the student got there early): do not make them do it again.
@@ -702,6 +748,7 @@ export class LessonEngine {
       editFirst: this.awaitingEdit && !demo && finished(live) ? this.editFirstNote(scene) : null,
       hideEnd: this.lesson.hideEnd,
       demo,
+      ...(this.lesson.function ? { functionInput: this.functionInput, functionInputLocked: this.scene()?.input !== undefined } : {}),
     };
   }
 
@@ -747,6 +794,7 @@ export class LessonEngine {
       stopSuggested: this.stopSuggested,
       skipTourAsk: this.skipTourAsk && !!spotlight,
       ask: showing?.ask ?? null,
+      functionName: this.lesson.function?.name ?? null,
       end: this.phase === "done" ? this.endCard() : null,
       stopped: this.stopped,
     };
@@ -771,6 +819,12 @@ export class LessonEngine {
   private emit(): void {
     for (const cb of [...this.listeners]) cb();
   }
+}
+
+/** The function's boxes as facts of a run, so `f(3) is 10` can run the program fresh. Nothing for a lesson without a function. */
+function functionFactsOf(lesson: PublishedLesson, input: number): Pick<Live["facts"], "functionBoxes" | "functionInput"> {
+  const fn = lesson.function;
+  return fn ? { functionBoxes: { name: fn.name, input: fn.inputs[0]!, output: fn.output }, functionInput: input } : {};
 }
 
 function demoCards(live: Live): number[] {

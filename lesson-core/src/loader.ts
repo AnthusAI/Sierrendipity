@@ -30,6 +30,7 @@ import {
   type SolutionDecl,
   type Warmup,
 } from "./lesson";
+import { functionProblems, parseFunction, parseSceneInput, parseTableAsk } from "./loader-function";
 import { registerNumber, STOP_WORD } from "./steps/run";
 import { featureProblems } from "./steps/checks";
 import { lessonSteProblems } from "./ste";
@@ -208,7 +209,7 @@ function parseScene(raw: unknown, i: number, ctx: SceneCtx, errors: string[]): S
   if (typeof id !== "string" || !/^[a-z0-9-]+$/.test(id)) return void errors.push(`scenes[${i}]: id must be a lowercase slug`);
   const w = `scene "${id}"`;
   const n = errors.length;
-  unknownKeys(raw, ["id", "say", "doneSay", "ifMissed", "show", "spotlight", "ask", "until", "onWrong", "hints", "showMe", "lock", "skippable", "glassNamed", "lamps", "bands", "flip", "carry", "tray"], w, errors);
+  unknownKeys(raw, ["id", "say", "doneSay", "ifMissed", "show", "spotlight", "ask", "until", "onWrong", "hints", "showMe", "lock", "skippable", "glassNamed", "lamps", "bands", "flip", "carry", "tray", "input"], w, errors);
 
   const say = raw.say;
   if (!isStr(say)) errors.push(`${w}: say must be non-empty text`);
@@ -265,6 +266,7 @@ function parseScene(raw: unknown, i: number, ctx: SceneCtx, errors: string[]): S
     }
   }
   const tray = needs("tray", "builder") ? parseTray(raw.tray, w, errors) : undefined;
+  const sceneInput = parseSceneInput(raw.input, w, errors);
   let ask: Ask | undefined;
   if (raw.ask !== undefined) {
     ask = parseAsk(raw.ask, w, errors);
@@ -354,6 +356,7 @@ function parseScene(raw: unknown, i: number, ctx: SceneCtx, errors: string[]): S
     ...(flip ? { flip } : {}),
     ...(carry ? { carry } : {}),
     ...(tray ? { tray } : {}),
+    ...(sceneInput !== undefined ? { input: sceneInput } : {}),
   };
 }
 
@@ -380,6 +383,8 @@ function parseAsk(raw: unknown, w: string, errors: string[]): Ask | undefined {
       if (!(typeof raw.target === "string" && TARGET_PATTERN.test(raw.target))) return void errors.push(`${w}: ask target must look like "box:a2"`);
       return { kind: "click-target", question, target: raw.target };
     }
+    case "table":
+      return parseTableAsk(raw, question, w, errors);
     default: {
       unknownKeys(raw, ["kind", "question", "query"], `${w}: ask`, errors);
       if (!isStr(raw.query)) return void errors.push(`${w}: ask query must be a step phrase`);
@@ -451,6 +456,7 @@ export function loadLesson(files: Record<string, string>, opts: LoadOptions = {}
   const stars = new Set(feature?.scenarios.flatMap((s) => (s.tags.includes("pass") ? ["pass"] : s.tags.filter((t) => t.startsWith("star=")).map((t) => t.slice(5)))) ?? []);
   const solutions = parseSolutions(files, stars, lesson?.hideEnd === true, errors);
   if (lesson) lessonLimits(lesson, solutions, errors);
+  if (lesson) errors.push(...functionProblems(lesson, feature));
   if (lesson) errors.push(...lessonSteProblems(lesson as Lesson));
   if (lesson) {
     const ids = new Set(lesson.scenes.map((s) => s.id));
@@ -464,7 +470,7 @@ export function loadLesson(files: Record<string, string>, opts: LoadOptions = {}
 function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set<string> | undefined, dir: string | undefined, errors: string[]): Omit<Lesson, "solutions" | "checks"> | undefined {
   const n = errors.length;
   if (!isObj(raw)) return void errors.push("lesson.yaml: must be a mapping");
-  unknownKeys(raw, ["id", "title", "minutes", "concepts", "boxes", "pointer", "hideEnd", "ui", "earlyLesson", "draft", "onWrongDefault", "starter", "tabs", "scenes", "nowYouCan", "warmups", "sideRooms"], "lesson.yaml", errors);
+  unknownKeys(raw, ["id", "title", "minutes", "concepts", "boxes", "pointer", "hideEnd", "ui", "function", "earlyLesson", "draft", "onWrongDefault", "starter", "tabs", "scenes", "nowYouCan", "warmups", "sideRooms"], "lesson.yaml", errors);
 
   if (!isStr(raw.id) || !/^[a-z0-9]+\/[a-z0-9-]+$/.test(raw.id)) errors.push('lesson.yaml: id must look like "c1/01-press-the-button"');
   else if (dir !== undefined && raw.id !== dir) errors.push(`lesson.yaml: id "${raw.id}" does not match the directory "${dir}"`);
@@ -491,6 +497,7 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
   if (isStrList(boxes)) boxes.forEach((b, i) => { if (boxes.indexOf(b) !== i) errors.push(`lesson.yaml: duplicate box "${b}" in boxes`); });
   for (const key of ["pointer", "hideEnd", "earlyLesson", "draft"] as const) if (raw[key] !== undefined && typeof raw[key] !== "boolean") errors.push(`lesson.yaml: ${key} must be true or false`);
   const ui = parseUi(raw.ui, errors);
+  const lessonFunction = parseFunction(raw.function, isStrList(boxes) ? boxes : [], errors);
   const hideEnd = raw.hideEnd === true;
   const endProblem = (p: Program | undefined, where: string): void => {
     if (hideEnd && p && p.words.at(-1) === STOP_WORD) errors.push(`${where}: with hideEnd the end marker is added for you; remove the final Stop card (ebreak)`);
@@ -611,6 +618,7 @@ function parseLessonYaml(raw: unknown, ghosts: Record<string, Ghost>, known: Set
     pointer: raw.pointer === true,
     hideEnd,
     ...(ui ? { ui } : {}),
+    ...(lessonFunction ? { function: lessonFunction } : {}),
     earlyLesson: raw.earlyLesson !== false,
     draft: raw.draft === true,
     ...(onWrongDefault ? { onWrongDefault } : {}),

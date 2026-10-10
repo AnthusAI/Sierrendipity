@@ -2,7 +2,7 @@ import { Given, Then, When } from "@cucumber/cucumber";
 import assert from "node:assert/strict";
 import { join } from "node:path";
 import { assemble, fromWords, Machine, registerName, rowAt, Session } from "@sierrendipity/explorer";
-import { DEFAULT_MAX_STEPS, earnedStars, LIVE_MAX_STEPS, liveRunOf, pressBack, pressStep, runChecks, runProgram, startLive } from "@sierrendipity/lesson-core";
+import { DEFAULT_FUNCTION_INPUT, DEFAULT_MAX_STEPS, earnedStars, LIVE_MAX_STEPS, liveRunOf, pressBack, pressStep, registerNumber, runChecks, runProgram, startLive } from "@sierrendipity/lesson-core";
 import { loadLesson } from "@sierrendipity/lesson-core/loader";
 import { LESSONS_ROOT, listLessonIds, readConcepts, readLessonDir } from "@sierrendipity/lesson-core/node";
 
@@ -30,6 +30,10 @@ Given("a session limited to {int} steps for the program", (maxSteps: number, sou
 });
 Given("a session with a hidden end for the program", (source: string) => {
   session = new Session(fromWords([...wordsOf(source), 0x00100073]), { hideEnd: true });
+});
+
+Given("a session with register a0 starting at {int} for the program", (value: number, source: string) => {
+  session = new Session(fromWords(wordsOf(source)), { startRegs: { 10: value } });
 });
 
 When("I step the session {int} times", (count: number) => {
@@ -106,9 +110,13 @@ Then("the session agrees with the checker on every solution of every Course 1 an
     for (const decl of lesson.solutions) {
       const where = `${id} ${decl.file}`;
       const cap = decl.maxSteps ?? DEFAULT_MAX_STEPS;
-      const direct = runProgram(decl.words, { maxSteps: cap, predictions: decl.predictions, starter: lesson.starter.words, hideEnd: lesson.hideEnd });
-      const live = startLive(decl.words, { hideEnd: lesson.hideEnd });
-      live.facts = { predictions: decl.predictions, starter: lesson.starter.words };
+      const fn = lesson.function;
+      const startRegs = fn ? { [fn.inputs[0]!]: DEFAULT_FUNCTION_INPUT } : undefined;
+      const functionBoxes = fn ? { name: fn.name, input: fn.inputs[0]!, output: fn.output } : undefined;
+      const events = lesson.scenes.flatMap((sc) => (sc.ask?.kind === "table" ? [{ type: "table" as const, inputs: sc.ask.inputs }] : []));
+      const direct = runProgram(decl.words, { maxSteps: cap, predictions: decl.predictions, starter: lesson.starter.words, hideEnd: lesson.hideEnd, events, ...(startRegs ? { startRegs, functionBoxes } : {}) });
+      const live = startLive(decl.words, { hideEnd: lesson.hideEnd, ...(startRegs ? { startRegs } : {}) });
+      live.facts = { predictions: decl.predictions, starter: lesson.starter.words, events, ...(functionBoxes ? { functionBoxes } : {}) };
       const startState = live.machine.state;
       while (pressStep(live));
       const through = liveRunOf(live);
@@ -130,6 +138,7 @@ Then("the session agrees with the checker on every solution of every Course 1 an
 
       const reference = new Machine({ memorySize: 65536 });
       reference.load(fromWords(live.words).image, 0, 0);
+      if (fn) reference.setStartRegs({ [registerNumber(fn.inputs[0]!)!]: DEFAULT_FUNCTION_INPUT });
       const history = live.session.history();
       for (const [i, step] of history.entries()) {
         const expected = reference.step();

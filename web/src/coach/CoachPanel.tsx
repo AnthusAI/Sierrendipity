@@ -93,10 +93,79 @@ function NumberAsk({ state, engine }: { state: PlayerState; engine: LessonEngine
   );
 }
 
+function TableAsk({ state, engine }: { state: PlayerState; engine: LessonEngine }) {
+  const ask = state.ask!;
+  const inputs = ask.kind === "table" ? ask.inputs : [];
+  const name = state.functionName ?? "f";
+  const [texts, setTexts] = useState<string[]>(() => inputs.map(() => ""));
+  const [message, setMessage] = useState<string | null>(null);
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    const values = texts.map(parseWholeNumber);
+    const bad = values.findIndex((v) => v === null);
+    if (bad >= 0) return setMessage(`Row x = ${inputs[bad]}: type a whole number, like 12.`);
+    setMessage(null);
+    engine.answerTable(values as number[]);
+  };
+  const edit = (row: number, next: string) => {
+    setTexts((old) => old.map((t, k) => (k === row ? next.slice(0, 12) : t)));
+    setMessage(null);
+  };
+  return (
+    <form data-coach-ask data-table-ask onSubmit={submit} className="space-y-2" aria-label="Your table">
+      <p id="coach-question" className="font-medium">
+        {ask.question}
+      </p>
+      <table className="w-full table-fixed border-collapse text-left" aria-describedby="coach-question">
+        <caption className="sr-only">One row for each x. Type the value for each row.</caption>
+        <thead>
+          <tr>
+            <th scope="col" className="w-1/3 py-1 pr-2 font-medium">
+              x
+            </th>
+            <th scope="col" className="py-1 font-medium">
+              {name}(x)
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {inputs.map((x, row) => (
+            <tr key={x}>
+              <th scope="row" className="py-1 pr-2 font-normal tabular-nums">
+                {x}
+              </th>
+              <td className="py-1">
+                <input
+                  data-coach-primary={row === 0 || undefined}
+                  data-table-cell={x}
+                  aria-label={`${name}(${x})`}
+                  aria-describedby="coach-table-hint"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  value={texts[row] ?? ""}
+                  onChange={(e) => edit(row, e.currentTarget.value)}
+                  className="h-9 w-full min-w-0 rounded-md border border-input bg-background px-2 text-lg tabular-nums text-foreground"
+                />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p id="coach-table-hint" role="status" data-coach-answer-hint className="min-h-5 text-sm">
+        {message}
+      </p>
+      <Button type="submit" className="h-11 md:h-8">
+        Answer
+      </Button>
+    </form>
+  );
+}
+
 function AskUi({ state, engine }: { state: PlayerState; engine: LessonEngine }) {
   const ask = state.ask;
   if (!ask) return null;
   if (ask.kind === "number") return <NumberAsk state={state} engine={engine} />;
+  if (ask.kind === "table") return <TableAsk key={state.sceneKey} state={state} engine={engine} />;
   if (ask.kind === "choice")
     return (
       <div data-coach-ask role="group" aria-label={ask.question} className="space-y-2">

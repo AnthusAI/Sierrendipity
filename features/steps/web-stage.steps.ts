@@ -13,6 +13,7 @@ const PROGRESS_KEY = "sierrendipity:progress:local";
 
 const player = (w: WebWorld) => w.page.locator("[data-lesson-player]");
 const stageRoot = (w: WebWorld) => w.page.locator("[data-stage-scene]");
+const control = (w: WebWorld, id: string) => w.page.locator(`[data-lesson-player] [data-coach-id="button:${id}"]`);
 const named = (w: WebWorld, name: string) => player(w).getByRole("button", { name, exact: true });
 const coachId = (w: WebWorld, id: string) => player(w).locator(`[data-coach-id="${id}"]`);
 const lamp = (w: WebWorld, bit: number) => coachId(w, `lamp:${bit}`).first().locator("button");
@@ -29,6 +30,22 @@ interface Opening {
 
 /** What a student would do to get past the scene that is not the one the spec is about. */
 const AUTO: Record<string, (w: WebWorld) => Promise<void>> = {
+  enter: async (w) => {
+    await w.page.getByLabel("Number for x in f(x)").fill("3");
+    await w.page.getByLabel("Number for x in f(x)").press("Enter");
+    await control(w, "step").click();
+    await control(w, "step").click();
+  },
+  guess: async (w) => answer(w, "10"),
+  see: async (w) => {
+    await control(w, "step").click();
+    await control(w, "step").click();
+  },
+  again: async (w) => answer(w, "26"),
+  "see-again": async (w) => {
+    await control(w, "step").click();
+    await control(w, "step").click();
+  },
   place: async (w) => answer(w, "4"),
   "find-answer": async (w) => void (await coachId(w, "band:rd").click()),
   bands: async (w) => void (await coachId(w, "band:rd").click()),
