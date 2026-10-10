@@ -10,7 +10,7 @@ Feature: Release automation
     And it does not publish to npm
     And the git plugin commits "CHANGELOG.md", "package.json" and "package-lock.json" with "[skip ci]"
 
-  Scenario: CI runs the specs, commit lint, Linux runner specs and type checks
+  Scenario: CI runs the specs, feature-PR commit lint, Linux runner specs and type checks
     Given the CI workflow
     Then it defines the jobs "specs", "commitlint", "runner-linux" and "typecheck"
     And it runs on pull requests and on pushes to "develop" and "main"
