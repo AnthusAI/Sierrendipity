@@ -10,7 +10,7 @@ concepts:
 boxes: [a0]
 pointer: false
 hideEnd: true
-ui: { controls: [step, back, reset], stepLabel: Run, resetLabel: Start again }
+ui: { controls: [step, back, reset], resetLabel: Start again }
 function:
   name: f
   inputs: [a0]
@@ -38,7 +38,7 @@ scenes:
     doneSay: You made a card.
 
   - id: use
-    say: Set x to 3. Then select Run.
+    say: Set x to 3. Then select Step.
     show: [builder, D1]
     tray: ["mul a0, a0, a0", "addi a0, a0, 1"]
     until:
@@ -47,8 +47,8 @@ scenes:
       - f(3) is 10
     hints:
       - Look at the rule above the boxes.
-      - Type 3 for x. Select Run.
-      - Type 3 for x. Select Run two times.
+      - Type 3 for x. Select Step.
+      - Type 3 for x. Select Step two times.
     lock: [drag, toggle]
     doneSay: The new card did the work.
 nowYouCan:
