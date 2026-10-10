@@ -1,0 +1,19 @@
+solutions:
+  - file: good.s
+    earns: [pass, called-it]
+    predictions: { a0: [17] }
+    note: The starter itself.
+  - file: wrong-no-plus.s
+    earns: []
+    note: Adds 0 instead of 1, so f(3) is 9.
+  - file: wrong-doubles.s
+    earns: []
+    note: Adds the box to itself instead of multiplying, so f(3) is 7.
+  - file: goal-fifty.s
+    earns: []
+    scenes: [fifty]
+    note: The cards as they run after the student types 7 for x.
+  - file: forever.s
+    earns: []
+    capped: true
+    note: A card that jumps to itself; only the step cap stops it.
