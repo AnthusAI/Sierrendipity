@@ -11,7 +11,8 @@ Feature: The real stage is keyboard operable, readable and fits every window
     When I press the Enter key
     Then box "a0" shows 5
     And the Now you can card is shown
-    And the focus is on "Next lesson, about 3 min"
+    When the celebration ends
+    Then the focus is on "Next lesson, about 3 min"
 
   Scenario: Lesson 06 is played with the keyboard alone
     Given the coach lab shows lesson "c1/14-counting-with-lamps"

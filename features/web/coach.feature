@@ -16,7 +16,8 @@ Feature: The coach plays the lessons
     And the coach confirms "f(x) = x squared plus 1"
     And the Now you can card lists "Make a computer follow an instruction."
     And the Now you can card shows what I ran, "Put 5 in the box"
-    And the Now you can card offers "Next lesson, about 3 min" and "Stop here"
+    When the celebration ends
+    Then the Now you can card offers "Next lesson, about 3 min" and "Stop here"
 
   Scenario: Lesson 01 is playable with the keyboard alone
     Given the coach lab shows lesson "c1/01-press-the-button"
@@ -25,7 +26,8 @@ Feature: The coach plays the lessons
     Then the focus is on "Run"
     When I press the Enter key
     Then the Now you can card is shown
-    And the focus is on "Next lesson, about 3 min"
+    When the celebration ends
+    Then the focus is on "Next lesson, about 3 min"
 
   Scenario: Lesson 02 asks for the number 9 and rewards another way
     Given the coach lab shows lesson "c1/02-change-the-number"
