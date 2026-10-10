@@ -11,6 +11,7 @@ interface Player {
   lesson: PublishedLesson;
   engine: LessonEngine;
   store: MemoryProgressStore;
+  clock: ReturnType<typeof createTestClock>;
 }
 let player: Player;
 
@@ -26,9 +27,10 @@ Given("the player starts the lesson {string}", (id: string) => {
   assert.ok(loaded.ok, loaded.ok ? "" : loaded.errors.join("\n"));
   const lesson = publishLesson(loaded.lesson);
   const store = new MemoryProgressStore();
-  const engine = new LessonEngine(lesson, { store, userId: "local", clock: createTestClock(), isVisible: () => true });
+  const clock = createTestClock();
+  const engine = new LessonEngine(lesson, { store, userId: "local", clock, isVisible: () => true });
   engine.start();
-  player = { lesson, engine, store };
+  player = { lesson, engine, store, clock };
 });
 
 When("the player saves the cards {int} to {int} as the card {string}", (from: number, to: number, name: string) => {
@@ -71,4 +73,8 @@ Then("the coach shows no help for a missed goal", () => assert.equal(state().mis
 Then("the coach confirmation says {string}", (text: string) => assert.ok((state().doneLine ?? "").includes(text), String(state().doneLine)));
 Then("the list holds {int} cards", (n: number) => assert.equal(program().cards.length, n));
 Then("the Step button is called {string}", (label: string) => assert.equal(player.lesson.ui?.stepLabel ?? "Step", label));
-When("the player continues", () => player.engine.continue());
+// The celebration of a reached goal holds the way on back for a moment: let it end first.
+When("the player continues", () => {
+  player.clock.advance(2000);
+  player.engine.continue();
+});
