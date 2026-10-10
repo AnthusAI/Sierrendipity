@@ -273,6 +273,32 @@ const rectOf = (w: WebWorld, selector: string) =>
     return { x: r.x, y: r.y, width: r.width, height: r.height };
   });
 
+When("I scroll the lesson by {int} pixels, the spotlight is still on {string} in the next frame", async function (this: WebWorld, pixels: number, target: string) {
+  await this.page.setViewportSize({ width: 900, height: 300 });
+  await this.page.locator(`[data-coach-spotlight][data-target="${target}"]`).waitFor();
+  const result = await this.page.evaluate(
+    ([px, id]) =>
+      new Promise<{ moved: number; lag: number }>((resolve) => {
+        const el = document.querySelector<HTMLElement>(`[data-coach-id="${id}"]`)!;
+        let scroller: HTMLElement | null = el;
+        while (scroller && !(/(auto|scroll)/.test(getComputedStyle(scroller).overflowY) && scroller.scrollHeight > scroller.clientHeight)) scroller = scroller.parentElement;
+        const before = el.getBoundingClientRect().top;
+        if (scroller) scroller.scrollTop += px as number;
+        else window.scrollBy(0, px as number);
+        // The scroll event runs before the next frame's callbacks, so one frame later the frame must already be in place.
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            const ring = document.querySelector("[data-coach-spotlight]")!.getBoundingClientRect();
+            const now = el.getBoundingClientRect();
+            resolve({ moved: Math.abs(now.top - before), lag: Math.abs(ring.top - (now.top - 6)) });
+          }),
+        );
+      }),
+    [pixels, target] as [number, string],
+  );
+  assert.ok(result.moved > 20, `the page did not scroll (target moved ${result.moved}px)`);
+  assert.ok(result.lag <= 1, `the spotlight trails its target by ${result.lag}px`);
+});
 Then("the spotlight surrounds {string}", async function (this: WebWorld, target: string) {
   await this.page.locator(`[data-coach-spotlight][data-target="${target}"]`).waitFor();
   const slack = 16;

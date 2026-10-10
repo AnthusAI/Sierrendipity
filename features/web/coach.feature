@@ -81,6 +81,11 @@ Feature: The coach plays the lessons
     Then the stored progress of "c1/03-last-one-wins" has passed with the bonus "called-it"
     And the stored progress of "c1/03-last-one-wins" asked 1 prediction and got 1 right
 
+  Scenario: The spotlight stays on its target while the page scrolls
+    Given the coach lab shows lesson "c1/03-last-one-wins"
+    Then the spotlight surrounds "box:a0"
+    When I scroll the lesson by 150 pixels, the spotlight is still on "box:a0" in the next frame
+
   Scenario: Lesson 04 changes one card so that box a1 holds 9
     Given the coach lab shows lesson "c1/04-two-boxes"
     Then there is no spotlight
