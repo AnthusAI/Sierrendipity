@@ -6,24 +6,34 @@ import { assembleOrThrow, world } from "./lesson-fixtures";
 let cards: number[] = [];
 let boxes: FunctionBoxes | undefined;
 let events: LessonEvent[] = [];
+let startedWith: number | undefined;
 let rule: ParsedRule;
 let ruleError: string | undefined;
 let phraseResult: { ok: boolean; message: string };
 
 function rerun(): void {
-  world.run = runProgram(cards, { events, ...(boxes ? { functionBoxes: boxes } : {}) });
+  world.run = runProgram(cards, { events, ...(boxes ? { functionBoxes: boxes } : {}), ...(startedWith !== undefined ? { functionInput: startedWith } : {}) });
 }
 
 Given("the function program {string} named {word} from box {word} to box {word}", (source: string, name: string, input: string, output: string) => {
   cards = assembleOrThrow(source);
   boxes = { name, input, output };
   events = [];
+  startedWith = undefined;
+  rerun();
+});
+Given("the function program {string} named {word} from box {word} to box {word} started with x = {int}", (source: string, name: string, input: string, output: string, x: number) => {
+  cards = assembleOrThrow(source);
+  boxes = { name, input, output };
+  events = [];
+  startedWith = x;
   rerun();
 });
 Given("the program {string} with no function", (source: string) => {
   cards = assembleOrThrow(source);
   boxes = undefined;
   events = [];
+  startedWith = undefined;
   rerun();
 });
 Given("the student filled the table for {string} on the function program", (list: string) => {
@@ -69,4 +79,7 @@ Then("the rule is refused saying {string}", (message: string) => {
 
 Then("the rule status for box {word} is {string} when finished is {word}, the box holds {int} and the rule gives {int}", (output: string, text: string, finished: string, held: number, expected: number) => {
   assert.equal(ruleStatus(output, finished === "true", held, expected), text);
+});
+Then("the rule status for box {word} after a {word} with the box at {int} is {string}", (output: string, trouble: string, held: number, text: string) => {
+  assert.equal(ruleStatus(output, false, held, 0, trouble as "fault" | "limit" | "too-big"), text);
 });

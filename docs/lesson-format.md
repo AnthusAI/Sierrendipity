@@ -36,7 +36,7 @@ boxes: [a0]                 # the only boxes (registers) the machine shows; more
 pointer: false              # show the arrow at the card being run (the program counter); default false
 hideEnd: true               # hide the Stop card, see below; default false
 draft: true                 # optional, default false: a draft lesson, see "Draft lessons" below
-ui: { controls: [step], stepLabel: Run }          # optional, what the stage shows; see "The ui block"
+ui: { controls: [step], stepLabel: Run }          # optional (Run only for a one-card starter), what the stage shows; see "The ui block"
 function: { name: f, inputs: [a0], output: a0, rule: "f(x) = x·x + 1" }   # optional; see "Functions"
 starter: { hex: ["0x00500513"] }                  # or { asm: "addi a0, zero, 5" }
 tabs: [cards]               # cards lamps hex assembly boxes shelves screen output
@@ -104,7 +104,7 @@ full machine. Unknown keys and wrong types are errors.
 | Key | Values | Default | Meaning |
 | --- | --- | --- | --- |
 | `controls` | list of `step`, `back`, `reset` (no repeats; must include `step`) | all three | The buttons under the title. A scene may not spotlight `button:back` or `button:reset` when the list hides it |
-| `stepLabel` | short text, at most 20 characters | Step | The name of the Step button (for example `Run`) |
+| `stepLabel` | short text, at most 20 characters | Step | The name of the Step button. The label `Run` is only for a starter of one card (c1/01, c1/02): the loader rejects `stepLabel: Run` when the starter has more than one card, because one press runs one card. From two cards on, leave it out so the button is called Step, and introduce the name once, in the first scene of the first lesson that has two cards (c1/03: "With two cards, the button is now called Step. Each Step runs one card.") |
 | `resetLabel` | short text, at most 20 characters | Reset | The name of the Reset button (for example `Start again`) |
 | `log` | true or false | true | The "What just happened" log |
 | `deskTitle` | true or false | true | The "The desk" heading |
@@ -115,7 +115,9 @@ full machine. Unknown keys and wrong types are errors.
 | `spotlightAfterHint` | boolean | false | Goal and question scenes show their spotlight only after the first hint |
 
 When Back is hidden, a run that misses the goal points at Reset (the `resetLabel`) instead of Back, and the idle Run button says "Select Start again first" until the student starts again. Reset is disabled, with the reason "Nothing to start again yet", until the machine has run something.
-Use the same label for a button in every sentence of the lesson: if `stepLabel` is `Run`, the text says "Run".
+Use the same label for a button in every sentence of the lesson: if `stepLabel` is `Run`, the text says "Run"; otherwise it says "Step". The coach panel, the idle notes and the Show me narration use the lesson's own button names.
+
+**A new goal is marked.** When a scene completes and the next scene has a goal, the coach panel shows a "Next goal" label (an arrow icon and words, never colour alone) above the new text. If that scene needs a card changed while the machine has already finished, its spotlight shows at once (even with `spotlightAfterHint`) and the idle Step button says what to do: "Change the number on card 2 first" (taken from a `card:<n>` spotlight, else "Change a number first").
 
 ### Simplified Technical English (STE)
 
@@ -167,7 +169,9 @@ The checker is in `lesson-core/src/ste.ts`.
   goal is still not met. It says what the machine did and what to change. The coach shows it as
   `[data-coach-missed]` with a "Try again" button; "Try again" resets the machine to the start and keeps the
   cards as the student left them, then moves keyboard focus to the Run (Step) button (`engine.tryAgain()`). A scene
-  with `ask` cannot have `ifMissed`. Limits: at most 3 sentences and 45 words.
+  with `ask` cannot have `ifMissed`. When the cards are not the starter cards, the same box also shows
+  "Start again", which puts the starter cards back and starts the machine over (`engine.restoreCards()`), so a
+  goal that no edit of the current cards can reach never traps the student. Limits: at most 3 sentences and 45 words.
 - `onWrongDefault` is text, or `{ say, goto }`. `goto` names the scene that reveals the answer; the checker
   requires it when the scene after an `ask` does not wait on the machine (`until`).
 - The player locks Step, Back, Reset and Edit in `ask` scenes (the prediction comes before the reveal), restores the
@@ -195,8 +199,22 @@ Both boxes must be in `boxes`. The block turns on four things:
   (`f(7) = 7·7 + 1 = 50`) and a polite status line that says in words whether the output box holds the
   value of the rule (never colour alone). It reads the shared `Session`, so Step, Back and Reset update it.
   The student sets x in the banner (a whole number from -99999 to 99999, default `DEFAULT_FUNCTION_INPUT`, 1);
-  the machine then starts again with the input box holding x (`startLive(..., { startRegs })`). The box is
-  read-only in a scene that locks `edit`, and in every `ask` scene. A scene may spotlight `banner:rule`.
+  the number counts when the student presses Enter or leaves the box, never key by key, and text that is not a
+  whole number gets a plain message and changes nothing. The machine then starts again with the input box
+  holding x (`startLive(..., { startRegs })`). The box is read-only in a scene that locks `edit`, in every `ask`
+  scene and in a scene with `input`. While a scene asks a question the banner shows the rule only (no
+  numbers, no status), so it cannot give the answer away. When a step of the rule does not fit in a box (for
+  example `f(46341)` for `x·x + 1`) the banner says `f(46341) is too big for a box` instead of an equation. The
+  status line also says when the program faulted or was stopped by the step limit. A scene may spotlight
+  `banner:rule`.
+- **A scene can fix x:** `input: 3` on a scene. On entry the player sets x to 3 (the machine starts again if x
+  changes) and locks the box; the checker judges that scene at x = 3 (number asks, `until` phrases, reference
+  solutions). Use it for any ask whose answer depends on x. A scene that waits for the student to type x says
+  `x is 3` in `until`; the checker judges it at x = 3. In a lesson with a function, a scene with a number ask, or
+  with a box phrase in `until`, must do one of these (the loader refuses it otherwise), because the checker and the
+  player would judge it at different x. A scene with `input` or any `ask` starts the machine again on entry, so the
+  answer is not already on screen; the first scene's `input` is applied from the start. A table answer records
+  the pass if the lesson's `@pass` facts hold, even when later scenes have goals.
   `lesson-core` renders the text as pure functions: `ruleText`, `ruleSubstitution`, `ruleValue`, `ruleStatus`.
 - **Function phrases** in `until`, `checks.feature` and ask queries (see the step vocabulary).
 - **The table ask:** `ask: { kind: table, question: "...", inputs: [1, 2, 3], target: a0 }`. The student fills one
@@ -208,7 +226,7 @@ Both boxes must be in `boxes`. The block turns on four things:
   `onWrongDefault`. The reply starts with `Row x = 2: you wrote 4.` The loader rejects a match that is not a row
   of the table or that is the right answer.
 - **The rule check.** `npm run lesson -- check` fails when the rule disagrees with the program on a listed input.
-  The listed inputs are the `inputs` of the table asks and the numbers in function phrases (`f(3) is 10`), or
+  The listed inputs are the `inputs` of the table asks, the numbers in function phrases (`f(3) is 10`, decimal, hex or binary, and the outer input of `f(f(2))`) and `x is N`, or
   1, 2 and 3 when the lesson lists none. The programs are every reference solution that earns `pass`, and the
   starter when the lesson has a table (the table's answers come from it).
 
@@ -390,6 +408,7 @@ or `0b` binary; box comparisons are modulo 2^32, so `-1` and `4294967295` are th
 | `the timeline is at step N` | timeline position |
 | `the program counter is N` | pc |
 | `f(3) is 10` | the program run on a fresh machine with the input box set to 3 leaves 10 in the output box (the name is the lesson's `function.name`; at most 1,000 steps; needs a `function` block) |
+| `x is 3` | the x the machine started with (the input box) is 3: use it in `until` when the student must set x themselves, because `f(3) is 10` is true of the starter before the student does anything |
 | `f(f(2)) is 26` | the same, with the first result fed back in as the input |
 | `the student filled the table for 1, 2, 3` | the student answered a table ask over these inputs correctly (a `table` event) |
 
@@ -428,7 +447,7 @@ scenario names, tags or step texts, so our subset cannot drift from real Gherkin
 
 ## The sample lessons
 
-`lessons/c1/` holds five complete sample lessons, each with one new idea, one student action and at most three
+`lessons/c1/` holds six complete sample lessons, each with one new idea, one student action and at most three
 cards (all with `hideEnd: true`, no pointer arrow, no hex):
 
 | Lesson | Idea and action | Cards | Boxes | Stars |
@@ -438,18 +457,19 @@ cards (all with `hideEnd: true`, no pointer arrow, no hex):
 | `03-last-one-wins` | a later card replaces the box; predict 8 (a wrong guess gets "You said N" and a pointer to watch) | put 3, put 8 in a0 | a0 | pass, called-it |
 | `04-two-boxes` | boxes keep their own numbers; change one card so a1 holds 9 | put 4 in a0, put 6 in a1 | a0, a1 | pass |
 | `05-add` | a card can add two boxes; predict 12 | put 5, put 7, add into a2 | a0, a1, a2 | pass, called-it |
+| `06-multiply` | a card can multiply, and one box can be used twice; predict 49 (7 times 7). Bonus: change the first number so a1 holds 81 | put 7 in a0, multiply a0 by a0 into a1 | a0, a1 | pass, called-it, nine-times-nine |
 
 Each has solutions including deliberately wrong ones and a never-ending one that proves the step cap.
 
-Three more lessons are **drafts** (`draft: true`, not on the path; play them at `/learn/c1/07-flip-the-card?draft=1`
+Three more lessons are **drafts** (`draft: true`, not on the path; play them at `/learn/c1/15-flip-the-card?draft=1`
 in a dev or test build) and prove the new visuals. They follow the same rules (one idea, one action, at most three
 cards, at most two short sentences per scene, three free hints, a friendly `doneSay`):
 
 | Lesson | Idea and action | Cards | Uses |
 | --- | --- | --- | --- |
-| `06-counting-with-lamps` | lamps are switches worth 1, 2, 4 ...; make 5, 7, 12 and 42 with `of: number` lamps, with an optional carry peek | put 1 in a0 | `D4` with `allowedBits` and `target`, `D7` carry |
-| `07-flip-the-card` | a card is one big number; flip it to its lamps, then click the card that matches each lamp pattern | put 1, put 2, put 3 in a0 | `D5` flip, `D4` lamps, `click-target` on cards |
-| `08-inside-the-number` | the lamps of a card are bands with jobs; click the band that names the answer box, choose what lamp 30 makes the card say, then flip lamp 30 to turn add into subtract (a2 becomes 7); bonus `below-zero` shows -2 | put 9, put 2, add into a2 | `D8` bands, `click-target` on `band:rd`, `bands.allowedBits` |
+| `14-counting-with-lamps` | lamps are switches worth 1, 2, 4 ...; make 5, 7, 12 and 42 with `of: number` lamps, with an optional carry peek | put 1 in a0 | `D4` with `allowedBits` and `target`, `D7` carry |
+| `15-flip-the-card` | a card is one big number; flip it to its lamps, then click the card that matches each lamp pattern | put 1, put 2, put 3 in a0 | `D5` flip, `D4` lamps, `click-target` on cards |
+| `16-inside-the-number` | the lamps of a card are bands with jobs; click the band that names the answer box, choose what lamp 30 makes the card say, then flip lamp 30 to turn add into subtract (a2 becomes 7); bonus `below-zero` shows -2 | put 9, put 2, add into a2 | `D8` bands, `click-target` on `band:rd`, `bands.allowedBits` |
 
 `lessons/x1/` holds three more drafts that are test fixtures for the real stage: one scene for every picture
 (`01-diagrams`), the lamps, flip, bands and carry (`02-lamps`), and the builder with its Show me ghost (`03-builder`).

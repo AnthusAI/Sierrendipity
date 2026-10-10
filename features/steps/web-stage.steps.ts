@@ -13,6 +13,7 @@ const PROGRESS_KEY = "sierrendipity:progress:local";
 
 const player = (w: WebWorld) => w.page.locator("[data-lesson-player]");
 const stageRoot = (w: WebWorld) => w.page.locator("[data-stage-scene]");
+const control = (w: WebWorld, id: string) => w.page.locator(`[data-lesson-player] [data-coach-id="button:${id}"]`);
 const named = (w: WebWorld, name: string) => player(w).getByRole("button", { name, exact: true });
 const coachId = (w: WebWorld, id: string) => player(w).locator(`[data-coach-id="${id}"]`);
 const lamp = (w: WebWorld, bit: number) => coachId(w, `lamp:${bit}`).first().locator("button");
@@ -31,8 +32,19 @@ interface Opening {
 const AUTO: Record<string, (w: WebWorld) => Promise<void>> = {
   enter: async (w) => {
     await w.page.getByLabel("Number for x in f(x)").fill("3");
-    await named(w, "Run").click();
-    await named(w, "Run").click();
+    await w.page.getByLabel("Number for x in f(x)").press("Enter");
+    await control(w, "step").click();
+    await control(w, "step").click();
+  },
+  guess: async (w) => answer(w, "10"),
+  see: async (w) => {
+    await control(w, "step").click();
+    await control(w, "step").click();
+  },
+  again: async (w) => answer(w, "26"),
+  "see-again": async (w) => {
+    await control(w, "step").click();
+    await control(w, "step").click();
   },
   run: async (w) => {
     await named(w, "Run").click();
@@ -52,11 +64,11 @@ const AUTO: Record<string, (w: WebWorld) => Promise<void>> = {
   "match-three": async (w) => void (await coachId(w, "card:1").click()),
   "make-five": async (w) => {
     await lamp(w, 2).click();
-    await named(w, "Run").click();
+    await named(w, "Step").click();
   },
   "make-seven": async (w) => {
     await lamp(w, 1).click();
-    await named(w, "Run").click();
+    await named(w, "Step").click();
   },
 };
 

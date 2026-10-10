@@ -1,0 +1,10 @@
+{
+  "id": "demo-twist",
+  "events": [
+    { "at": 0, "type": "point", "target": "card:0" },
+    { "at": 900, "type": "spin", "card": 0, "to": 9438483 },
+    { "at": 1800, "type": "point", "target": "button:step" },
+    { "at": 2700, "type": "press", "control": "step" },
+    { "at": 3600, "type": "press", "control": "step" }
+  ]
+}

@@ -13,7 +13,6 @@ starter:
 tabs: [cards]
 ui:
   controls: [step, reset]
-  stepLabel: Run
   resetLabel: Start again
   log: false
   deskTitle: false
@@ -35,8 +34,9 @@ scenes:
     hints:
       - Which button makes the machine follow a card?
       - Each selection follows one card. Each card fills its own box.
-      - Select Run two times. Box a0 receives 4. Box a1 receives 6.
+      - Select Step two times. Box a0 receives 4. Box a1 receives 6.
     showMe: demo-step-twice
+    ifMissed: Box a0 must hold 4 and box a1 must hold 6. Select Try again, then select Step two times.
     doneSay: Each card filled its own box.
     lock: [edit, drag, toggle]
 
@@ -52,8 +52,9 @@ scenes:
     hints:
       - Which card fills box a1?
       - Each card fills the box it names. Look at the second card.
-      - Change the number on the second card to 9. Then select Run two times.
+      - Change the number on the second card to 9. Then select Step two times.
     showMe: demo-spin-second
+    ifMissed: The machine ran, but box a0 must hold 4 and box a1 must hold 9. Make card 1 say 4 and card 2 say 9. Select Start again to put the first cards back.
     doneSay: You changed one card, and only one box changed. Each box keeps its own number.
     lock: [drag, toggle]
 nowYouCan:

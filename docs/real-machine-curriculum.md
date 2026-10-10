@@ -328,7 +328,7 @@ Loader rules (in `lesson-core/src/lesson.ts`):
 New step phrases (one table, `lesson-core/src/steps/table.ts`):
 
 - `register pc holds 8`
-- `the card "f" gives 50 for 7` and `the function f gives 50 for 7` (function checks: run the body from a fresh
+- `f(7) is 50` (shipped as the phrase `f(3) is 10`; the lesson's `function` block names f; function checks: run the body from a fresh
   machine with a0 = input, at most 1,000 steps)
 - `the stack is N frames deep` and `the stack was at least N frames deep`
 - `the heap holds N blocks`
@@ -372,14 +372,14 @@ Notes for the table:
 - "Real" lists the real components on the stage; **bold** marks a component that is new in that lesson.
 - Every lesson has one new idea, one action, at most 4 minutes (the two capstones say why they may be longer),
   and at most one new control.
-- The existing drafts 06-08 move to c1/12-14. They are drafts, so renumbering costs no progress data.
+- The existing drafts 06-08 are now c1/14-16 (counting-with-lamps, flip-the-card, inside-the-number); c1/06 is Multiply (published, see below). They are drafts, so renumbering costs no progress data.
 - Each prediction needs one inference, and the answer is never printed on the screen (review recommendation 2).
 
 | Id | Title | New idea | The one action | Real components | Diagram retired or kept | Engine work |
 |---|---|---|---|---|---|---|
 | c1/06-in-order | In Order | a program is a sequence; order changes the result | drag three cards into an order so a2 holds 12 (a Parsons problem) | glass strip, Registers (box skin) | D1 kept; builder (exists) | builder in a lesson (exists in `x1/03`) |
 | c1/07-multiply | Multiply | a card can multiply; a box may be used twice | predict a0 after "multiply a0 by a0" with 7 (49), then run | same | D1 kept | none |
-| c1/08-make-your-own-card | Make Your Own Card | two cards can become one named card: a function | select two cards and save them as **f** (x squared plus 1); put 7 in, receive 50 | custom card with "Peek inside"; **Gallery** save | D1 kept | custom cards in lessons; function check `the card "f" gives 50 for 7`; Gallery save from the coach |
+| c1/08-make-your-own-card | Make Your Own Card | two cards can become one named card: a function | select two cards and save them as **f** (x squared plus 1); put 7 in, receive 50 | custom card with "Peek inside"; **Gallery** save | D1 kept | custom cards in lessons; function check `f(7) is 50`; Gallery save from the coach |
 | c1/09-use-it-again | Use It Again | the same function works for any input | predict f(3) (10), then run; the stage fills a table x, f(x) | Timeline counts "N cards, M steps" | D1 kept | table widget (S); step count line |
 | c1/10-the-cloud-writes-cards | A Computer Writes Cards | a compiler is a program that writes cards from code | choose whether the compiler's cards for `return x * x + 1;` will match her f; select **Compile** | **Source** (read-only, one line visible), **Program** rows with card captions, compile status; **first time the cloud is used; first time she reads real assembly** (`mul a0, a0, a0`, `addi a0, a0, 1`, `jalr zero, 0(ra)`) | D1 kept beside; no diagram retired | compile harness: `program.c`, `recorded`, live `/explain` through `CloudProvider`; word-by-word "same" marks |
 | c1/11-run-it-on-the-cloud | The Cloud Computer | a real computer runs the same function many times, fast | predict what it prints for f(4) (17), then select **Run on the cloud computer** | **Cloud terminal**; **first program run on the real cloud VM** | none | `needs: cloud` pre-warm; fallback run in the emulator with an honest label |
@@ -395,7 +395,7 @@ Notes for the table:
 | c1/21-round-and-round | Round and Round | a loop: few cards, many steps (code versus process) | predict the number of steps before running a 4-card loop that fills a table of f | **Timeline** scrubber, Memory | none | none (timeline exists) |
 | c1/22-graph-machine | The Graph Machine (capstone 1) | a loop draws a function on the screen | choose her own rule as a card and plot it for x = 0 to 15 | Screen, Memory, Timeline; **saved to the Gallery with all its levels** | none | Gallery item with cards, words and screen; may take 6 minutes, because a capstone is a project, not a step |
 | c2/01-type-a-card | Type a Card | an instruction is text you can type | type `addi a0, zero, 5` and run it; the card appears from the text | **Editor** (one line, lazy Monaco or a plain textbox), assembler errors in STE; **first time she types real code** | D1 retired in Course 2: Registers switch to register words | editor stage; STE error text for the assembler |
-| c2/02-write-f | Write f | a function in assembly has a label, a body and `ret` | type the two body lines of `f:` so `f(7)` gives 50 | Editor, Program, Registers | none | function check `the function f gives 50 for 7` |
+| c2/02-write-f | Write f | a function in assembly has a label, a body and `ret` | type the two body lines of `f:` so `f(7)` gives 50 | Editor, Program, Registers | none | function check `f(7) is 50` |
 | c2/03-say-a-number | Say a Number | the machine can ask the system to print (ecall) | change one line so it prints the digit of f(2) | **Output panel** | none | Output panel in a lesson |
 | c3/01-f-of-g | f of g | a function that calls a function must save its bookmark on the stack (f(g(x))) | predict what happens when `ra` is not saved (a fault exhibit), then add the two save lines | **Stack panel**; **first time she sees a stack frame** | D12 is never built | frames from `Session.frames`; `the stack is N frames deep` |
 | c3/02-deeper | Deeper | each call has its own frame; recursion (sum to n) | predict the deepest stack for n = 4, then scrub the timeline to check | Stack, Timeline | none | none new |
@@ -583,7 +583,7 @@ Each wave can ship on its own and ends with lessons on the path.
 - Story: custom cards in lessons. Acceptance: a scene with `builder` and `save: true` lets the student save two
   cards as one named card; Show me can demonstrate it; the card is saved to the Gallery.
 - Story: function checks. Acceptance:
-  - `the card "f" gives 50 for 7` and `the function f gives 50 for 7` are in the step table, with specs for
+  - `f(7) is 50` and `f(f(2)) is 26` are in the step table, with specs for
     pass, fail and a step cap;
   - the checker runs them over the reference solutions.
 - Story: lessons c1/06-09. Acceptance: `npm run lesson -- check --all` is green, STE is clean, at most one new

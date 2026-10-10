@@ -1,0 +1,45 @@
+{
+  "id": "SIE-a87ccc8f-2b32-47fa-8829-bcde84a9b2b0",
+  "title": "Production delivery: frequent validated main releases",
+  "description": "## Intent\n\nPromote green, reviewed work to main frequently and automatically deliver validated static-site revisions without a coding agent using personal AWS credentials.\n\n## Delivered static-site automation (2026-10-10)\n\n- Main revision 1fb623a07670357e4e8124b20f6fdab67848ed41 was promoted by PR #18.\n- GitHub Actions run https://github.com/AnthusAI/Sierrendipity/actions/runs/38065921757 passed all required tests plus GitHub OIDC, exact web build publish, CloudFront invalidation, and live provenance verification.\n- https://sierrendipity.anth.us/deployment.json publicly serves the same main SHA.\n\n## Current scope\n\n- Validated pushes to main automatically deploy static website content only.\n- The workflow uses the narrow GitHub OIDC role and does not store long-lived AWS credentials.\n- Backend, runner, and broader CDK/infrastructure deployments remain human-operated and need separate approval and planning.\n\n## Guardrails\n\nDo not broaden the delivery role, create persistent credentials, change branch protections, or automate backend/runner/infrastructure delivery without explicit action-time authorization.",
+  "type": "epic",
+  "status": "in_progress",
+  "priority": 1,
+  "assignee": null,
+  "creator": null,
+  "parent": null,
+  "labels": [
+    "delivery",
+    "aws",
+    "ci"
+  ],
+  "dependencies": [],
+  "comments": [
+    {
+      "id": "6e12b503-b4b5-497b-9c5a-94566f905d16",
+      "author": "home",
+      "text": "Milestone delivered 2026-10-10: validated main revision 1fb623a07670357e4e8124b20f6fdab67848ed41 was promoted by PR #18 and deployed automatically. GitHub Actions run https://github.com/AnthusAI/Sierrendipity/actions/runs/38065921757 passed all required tests plus production OIDC, site publish, CloudFront invalidation, and live provenance verification. https://sierrendipity.anth.us/deployment.json serves the same main SHA. The completed automation covers static website content only. Keep this epic in progress for separately approved backend, runner, and broader CDK/infrastructure delivery automation.",
+      "created_at": "2026-10-10T16:24:54.105175Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "codex",
+        "model": "GPT-5",
+        "name": "/root"
+      }
+    }
+  ],
+  "created_at": "2026-10-10T13:51:53.614039Z",
+  "updated_at": "2026-10-10T16:26:55.919696Z",
+  "closed_at": null,
+  "agent": {
+    "platform": "codex",
+    "model": "GPT-5",
+    "name": "Sierrendipity handoff"
+  },
+  "right_now_summary": "Validated main revisions now deploy the static site automatically; infrastructure and backend releases remain manual.",
+  "right_now_updated_at": "2026-10-10T16:26:56.929408Z",
+  "custom": {
+    "project_label": "SIE",
+    "source": "shared"
+  }
+}

@@ -130,6 +130,7 @@ export function LessonPlayer({ lesson, store = null, userId = "local", clock = r
     ...(scene?.flip ? { flip: scene.flip } : {}),
     ...(scene?.carry ? { carry: scene.carry } : {}),
     ...(scene?.tray ? { tray: scene.tray } : {}),
+    ...(scene?.ask ? { asking: true } : {}),
   };
   const fallback = () => {
     const r = stageRef.current?.getBoundingClientRect();
@@ -137,7 +138,7 @@ export function LessonPlayer({ lesson, store = null, userId = "local", clock = r
   };
 
   return (
-    <div data-lesson-player data-lesson={lesson.id} className="grid gap-4 md:grid-cols-[minmax(0,1fr)_20rem]">
+    <div data-lesson-player data-lesson={lesson.id} data-missed={state.phase === "scene" && state.missed ? "true" : undefined} className="grid gap-4 md:grid-cols-[minmax(0,1fr)_20rem]">
       {/* The coach comes first in the page order, so a keyboard or screen reader meets it before the machine. */}
       <CoachPanel state={state} engine={engine} next={next} onNext={onNext} onStop={onStop} />
       <section ref={stageRef} aria-label={`${lesson.title}: the machine`} className="min-w-0 rounded-lg border bg-background p-4 md:col-start-1 md:row-start-1">

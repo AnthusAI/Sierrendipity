@@ -1,0 +1,26 @@
+solutions:
+  - file: good.hex
+    earns: [pass, called-it]
+    predictions: { a1: [49] }
+    note: The first number changed to 9, with a correct first guess of 49 for the starter.
+  - file: good-asm.s
+    earns: [pass, called-it]
+    predictions: { a1: [49] }
+    note: The same two cards written as assembly.
+  - file: good-wrong-guess.hex
+    earns: [pass]
+    predictions: { a1: [14, 49] }
+    note: The anticipated wrong guess of 14 first, so no Called it.
+  - file: unchanged.hex
+    earns: []
+    note: The starter as it came; box a1 holds 49, but the goal is 81.
+  - file: wrong-add.hex
+    earns: []
+    note: Adds a0 to itself, so box a1 holds 18.
+  - file: wrong-no-multiply.hex
+    earns: []
+    note: Only the put card, so box a1 stays 0.
+  - file: forever.s
+    earns: []
+    capped: true
+    note: A card that jumps to itself; only the step cap stops it.

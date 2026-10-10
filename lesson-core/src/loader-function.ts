@@ -1,5 +1,5 @@
 import type { Feature } from "./gherkin/parse";
-import { parseRule, tableExpected, type LessonFunction } from "./function";
+import { MAX_FUNCTION_INPUT, parseRule, tableExpected, type LessonFunction } from "./function";
 import { MAX_TABLE_ROWS, type Ask, type Lesson } from "./lesson";
 import { registerNumber } from "./steps/run";
 
@@ -7,8 +7,10 @@ type Obj = Record<string, unknown>;
 const isObj = (v: unknown): v is Obj => typeof v === "object" && v !== null && !Array.isArray(v);
 
 /** A step phrase that names a function, such as `f(3) is 10` or `Then f(f(2)) is 26`. */
-export const FUNCTION_PHRASE = /^(?:(?:given|when|then|and|but)\s+)?([a-z][a-z0-9]*)\(/i;
-const FUNCTION_ARGUMENT = /\(\s*(-?\d+)\s*\)/;
+export const FUNCTION_PHRASE = /^(?:(?:given|when|then|and|but)\s+)?(?:([a-z][a-z0-9]*)\(|x is )/i;
+const FUNCTION_ARGUMENT = /\(\s*(-?(?:0[xX][0-9a-fA-F_]+|0[bB][01_]+|\d+))\s*\)\)?\s+is\b/;
+const BOX_PHRASE = /^(?:(?:given|when|then|and|but)\s+)?(?:box\s|the box\b|shelf\s|memory\s)/i;
+const NESTED_PHRASE = /^[a-z][a-z0-9]*\(\s*[a-z][a-z0-9]*\(/i;
 
 /** Validate the `function` block of lesson.yaml: one input box, one output box and a rule that can be evaluated. */
 export function parseFunction(input: unknown, boxes: string[], errors: string[]): LessonFunction | undefined {
@@ -39,8 +41,8 @@ export function parseFunction(input: unknown, boxes: string[], errors: string[])
 export function parseTableAsk(raw: Obj, question: string, where: string, errors: string[]): Ask | undefined {
   for (const key of Object.keys(raw)) if (!["kind", "question", "inputs", "target"].includes(key)) errors.push(`${where}: ask: unknown key "${key}"`);
   const inputs = raw.inputs;
-  if (!Array.isArray(inputs) || inputs.length < 1 || inputs.length > MAX_TABLE_ROWS || !inputs.every((v) => Number.isInteger(v))) {
-    return void errors.push(`${where}: ask inputs must be a list of 1 to ${MAX_TABLE_ROWS} whole numbers`);
+  if (!Array.isArray(inputs) || inputs.length < 1 || inputs.length > MAX_TABLE_ROWS || !inputs.every((v) => Number.isInteger(v) && Math.abs(v as number) <= MAX_FUNCTION_INPUT)) {
+    return void errors.push(`${where}: ask inputs must be a list of 1 to ${MAX_TABLE_ROWS} whole numbers, each from -${MAX_FUNCTION_INPUT} to ${MAX_FUNCTION_INPUT}`);
   }
   if (new Set(inputs).size !== inputs.length) return void errors.push(`${where}: ask inputs must not repeat a number`);
   if (!(typeof raw.target === "string" && registerNumber(raw.target) !== undefined)) return void errors.push(`${where}: ask target: no box called '${String(raw.target)}'`);
@@ -49,8 +51,26 @@ export function parseTableAsk(raw: Obj, question: string, where: string, errors:
 
 /** The numbers a step phrase such as `f(3) is 10` or `f(f(2)) is 26` feeds to the function. */
 export function phraseInputs(phrase: string): number[] {
-  const m = FUNCTION_ARGUMENT.exec(phrase.replace(/^(?:given|when|then|and|but)\s+/i, ""));
-  return m ? [Number(m[1])] : [];
+  const bare = phrase.replace(/^(?:given|when|then|and|but)\s+/i, "");
+  const xIs = /^x is\s+(-?(?:0[xX][0-9a-fA-F_]+|0[bB][01_]+|\d+))$/i.exec(bare);
+  const m = xIs ?? FUNCTION_ARGUMENT.exec(bare);
+  if (!m) return [];
+  const text = m[1]!.replace(/_/g, "");
+  const negative = text.startsWith("-");
+  const value = Number(negative ? text.slice(1) : text);
+  return [(negative ? -value : value) | 0];
+}
+
+/** True for a phrase like `f(f(2)) is 26`: its outer input is the rule applied to the inner one. */
+export function isNestedPhrase(phrase: string): boolean {
+  return NESTED_PHRASE.test(phrase.replace(/^(?:given|when|then|and|but)\s+/i, ""));
+}
+
+/** Check a scene's `input` (x fixed for the scene): a whole number in range, and the lesson must have a function. */
+export function parseSceneInput(raw: unknown, where: string, errors: string[]): number | undefined {
+  if (raw === undefined) return undefined;
+  if (!(Number.isInteger(raw) && Math.abs(raw as number) <= MAX_FUNCTION_INPUT)) return void errors.push(`${where}: input must be a whole number from -${MAX_FUNCTION_INPUT} to ${MAX_FUNCTION_INPUT}`);
+  return raw as number;
 }
 
 /** The function phrases used by a lesson: every `until`, every ask query and every step of checks.feature. */
@@ -74,6 +94,23 @@ export function functionProblems(lesson: Omit<Lesson, "solutions" | "checks">, f
       const names = [...phrase.replace(/^(?:given|when|then|and|but)\s+/i, "").matchAll(/\b([a-z][a-z0-9]*)\(/gi)].map((m) => m[1]!);
       for (const name of names) if (name !== fn.name) problems.push(`${where}: "${phrase}" names ${name} but the function is called ${fn.name}`);
     }
+  }
+  for (const { where, phrase } of phrasesOf(lesson, undefined)) {
+    if (/^(?:(?:given|when|then|and|but)\s+)?x is /i.test(phrase.trim())) {
+      const x = phraseInputs(phrase)[0];
+      if (x === undefined || Math.abs(x) > MAX_FUNCTION_INPUT) problems.push(`${where}: "${phrase}": x must be a whole number from -${MAX_FUNCTION_INPUT} to ${MAX_FUNCTION_INPUT}`);
+    }
+  }
+  if (fn) {
+    for (const scene of lesson.scenes) {
+      const phrases = [...scene.until, ...(scene.ask?.kind === "machine-query" ? [scene.ask.query] : [])];
+      const dependsOnBox = scene.ask?.kind === "number" || phrases.some((p) => BOX_PHRASE.test(p.trim()));
+      const fixesX = scene.input !== undefined || scene.until.some((p) => /^(?:(?:given|when|then|and|but)\s+)?x is /i.test(p.trim()));
+      if (dependsOnBox && !fixesX) problems.push(`scene "${scene.id}": in a lesson with a function this scene depends on a box, so it must say which x it is judged at: give it input: N, or an until phrase "x is N"`);
+    }
+  }
+  for (const scene of lesson.scenes) {
+    if (scene.input !== undefined && !fn) problems.push(`scene "${scene.id}": input needs a function block in lesson.yaml`);
   }
   for (const scene of lesson.scenes) {
     const ask = scene.ask;
