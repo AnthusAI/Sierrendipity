@@ -14,17 +14,30 @@
     "ci"
   ],
   "dependencies": [],
-  "comments": [],
+  "comments": [
+    {
+      "id": "6e12b503-b4b5-497b-9c5a-94566f905d16",
+      "author": "home",
+      "text": "Milestone delivered 2026-10-10: validated main revision 1fb623a07670357e4e8124b20f6fdab67848ed41 was promoted by PR #18 and deployed automatically. GitHub Actions run https://github.com/AnthusAI/Sierrendipity/actions/runs/38065921757 passed all required tests plus production OIDC, site publish, CloudFront invalidation, and live provenance verification. https://sierrendipity.anth.us/deployment.json serves the same main SHA. The completed automation covers static website content only. Keep this epic in progress for separately approved backend, runner, and broader CDK/infrastructure delivery automation.",
+      "created_at": "2026-10-10T16:24:54.105175Z",
+      "comment_type": "default",
+      "agent": {
+        "platform": "codex",
+        "model": "GPT-5",
+        "name": "/root"
+      }
+    }
+  ],
   "created_at": "2026-10-10T13:51:53.614039Z",
-  "updated_at": "2026-10-10T13:53:42.119535Z",
+  "updated_at": "2026-10-10T16:24:54.105197Z",
   "closed_at": null,
   "agent": {
     "platform": "codex",
     "model": "GPT-5",
     "name": "Sierrendipity handoff"
   },
-  "right_now_summary": "The deployment workflow awaits AWS OIDC access and provenance checks before delivering validated main revisions.",
-  "right_now_updated_at": "2026-10-10T13:57:51.347080Z",
+  "right_now_summary": "Static site releases now deploy automatically from validated main revisions with verified public provenance.",
+  "right_now_updated_at": "2026-10-10T16:24:55.478067Z",
   "custom": {
     "project_label": "SIE",
     "source": "shared"
