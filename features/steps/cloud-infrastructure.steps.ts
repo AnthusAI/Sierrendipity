@@ -4,6 +4,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { App } from "aws-cdk-lib";
 import { Template } from "aws-cdk-lib/assertions";
+import { GITHUB_MAIN_SUBJECT, ROLE_NAME, SierrendipityGitHubDeployStack } from "../../infra/lib/github-deploy-stack";
 import { SierrendipityStack } from "../../infra/lib/stack";
 
 // Synthesizing bundles three Lambdas with esbuild and stages the runner image asset.
@@ -14,6 +15,7 @@ let template: Template;
 let cache: Template | undefined;
 let app: App;
 let currentApp: App;
+let githubDeployTemplate: Template;
 
 const resources = (type: string): [string, Res][] =>
   Object.entries(template.findResources(type)) as [string, Res][];
@@ -30,6 +32,15 @@ Given("the Sierrendipity stack is synthesized", () => {
   }
   template = cache;
   currentApp = app;
+});
+
+Given("the Sierrendipity GitHub deploy stack is synthesized", () => {
+  const githubApp = new App();
+  githubDeployTemplate = Template.fromStack(
+    new SierrendipityGitHubDeployStack(githubApp, "SierrendipityGitHubDeploy", {
+      env: { account: "123456789012", region: "us-east-1" },
+    }),
+  );
 });
 
 const taskSg = () => only(resources("AWS::EC2::SecurityGroup").filter(([, r]) => /runner task/i.test(r.Properties.GroupDescription)));
@@ -290,4 +301,47 @@ Then("the app client allows only the CloudFront site and localhost:5173", () => 
     assert.equal(urls.length, 4);
     assert.ok(!JSON.stringify(urls).includes("anth.us"));
   }
+});
+
+Then("the GitHub deploy role trusts only the Sierrendipity main branch", () => {
+  const role = only(
+    (Object.entries(githubDeployTemplate.findResources("AWS::IAM::Role")) as [string, Res][]).filter(
+      ([, resource]) => resource.Properties?.RoleName === ROLE_NAME,
+    ),
+  )[1].Properties;
+  const statement = role.AssumeRolePolicyDocument.Statement[0];
+  assert.equal(statement.Principal.Federated, "arn:aws:iam::123456789012:oidc-provider/token.actions.githubusercontent.com");
+  assert.deepEqual(statement.Condition, {
+    StringEquals: {
+      "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+      "token.actions.githubusercontent.com:sub": GITHUB_MAIN_SUBJECT,
+    },
+  });
+});
+
+Then("the GitHub deploy role may publish only site assets, invalidate the site cache and read stack status", () => {
+  const role = only(
+    (Object.entries(githubDeployTemplate.findResources("AWS::IAM::Role")) as [string, Res][]).filter(
+      ([, resource]) => resource.Properties?.RoleName === ROLE_NAME,
+    ),
+  )[1].Properties;
+  const statements = role.Policies[0].PolicyDocument.Statement;
+  const list = only(statements.filter((statement: any) => statement.Sid === "ListSierrendipitySiteAssets"));
+  assert.deepEqual(list.Action.sort(), ["s3:GetBucketLocation", "s3:ListBucket"]);
+  assert.match(JSON.stringify(list.Resource), /SierrendipitySiteBucketName/);
+  const publish = only(statements.filter((statement: any) => statement.Sid === "PublishSierrendipitySiteAssets"));
+  assert.deepEqual(publish.Action.sort(), ["s3:AbortMultipartUpload", "s3:DeleteObject", "s3:GetObject", "s3:PutObject"]);
+  assert.match(JSON.stringify(publish.Resource), /SierrendipitySiteBucketName/);
+  const invalidate = only(statements.filter((statement: any) => statement.Sid === "InvalidateSierrendipitySiteCache"));
+  assert.deepEqual(invalidate.Action, "cloudfront:CreateInvalidation");
+  assert.match(JSON.stringify(invalidate.Resource), /SierrendipitySiteDistributionId/);
+  const read = only(statements.filter((statement: any) => statement.Sid === "ReadSierrendipityStackStatus"));
+  assert.deepEqual(read.Action.sort(), ["cloudformation:DescribeStackEvents", "cloudformation:DescribeStacks"]);
+  assert.match(read.Resource, /^arn:aws:cloudformation:us-east-1:123456789012:stack\/Sierrendipity\/\*$/);
+});
+
+Then("the Sierrendipity stack exports the site deployment targets", () => {
+  const outputs = template.toJSON().Outputs;
+  assert.equal(outputs.SiteBucketName.Export.Name, "SierrendipitySiteBucketName");
+  assert.equal(outputs.SiteDistributionId.Export.Name, "SierrendipitySiteDistributionId");
 });

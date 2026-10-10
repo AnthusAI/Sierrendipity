@@ -67,3 +67,22 @@ Then("it is triggered by the completion of the {string} workflow", (wf: string) 
   assert.ok(workflow.includes(`workflows: ["${wf}"]`));
   assert.ok(workflow.includes("types: [completed]"));
 });
+
+Then("the production deployment job uses GitHub OIDC only for validated main pushes", () => {
+  assert.match(workflow, /^  deploy-production:/m);
+  const deploy = workflow.slice(workflow.indexOf("  deploy-production:"));
+  assert.match(deploy, /^    if: github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'$/m);
+  assert.match(deploy, /^    needs: \[specs, runner-linux, typecheck\]$/m);
+  assert.match(deploy, /^    permissions:\n      contents: read\n      id-token: write$/m);
+  assert.match(deploy, /uses: aws-actions\/configure-aws-credentials@v4/);
+  assert.match(deploy, /role-to-assume: arn:aws:iam::335163751677:role\/SierrendipityGitHubProductionDeploy/);
+  assert.match(deploy, /npm run build -w web/);
+  assert.match(deploy, /aws s3 sync web\/dist/);
+  assert.match(deploy, /--exclude config\.json/);
+  assert.match(deploy, /--exclude 'deployments\/\*'/);
+  assert.match(deploy, /aws cloudfront create-invalidation/);
+  assert.match(deploy, /\| aws s3 cp -/);
+  assert.doesNotMatch(deploy, /cdk deploy/);
+  assert.match(deploy, /aws cloudformation describe-stacks --stack-name Sierrendipity/);
+  assert.match(deploy, /curl --fail --show-error --retry 5 https:\/\/sierrendipity\.anth\.us\/config\.json/);
+});

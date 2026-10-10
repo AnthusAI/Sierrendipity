@@ -80,3 +80,56 @@ jobs:
       - run: npx tsc -p runner --noEmit
       - run: npx tsc -p explorer --noEmit
       - run: npm run typecheck -w web
+
+  deploy-production:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [specs, runner-linux, typecheck]
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    concurrency:
+      group: sierrendipity-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build -w web
+
+      - name: Configure AWS credentials through GitHub OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::335163751677:role/SierrendipityGitHubProductionDeploy
+          aws-region: us-east-1
+
+      - name: Resolve the production site targets
+        id: site
+        run: |
+          site_bucket="$(aws cloudformation describe-stacks --stack-name Sierrendipity --query \"Stacks[0].Outputs[?OutputKey=='SiteBucketName'].OutputValue\" --output text)"
+          distribution_id="$(aws cloudformation describe-stacks --stack-name Sierrendipity --query \"Stacks[0].Outputs[?OutputKey=='SiteDistributionId'].OutputValue\" --output text)"
+          test -n "$site_bucket" && test "$site_bucket" != "None"
+          test -n "$distribution_id" && test "$distribution_id" != "None"
+          echo "bucket=$site_bucket" >> "$GITHUB_OUTPUT"
+          echo "distribution=$distribution_id" >> "$GITHUB_OUTPUT"
+
+      - name: Publish the exact validated web build
+        run: |
+          aws s3 sync web/dist "s3://${{ steps.site.outputs.bucket }}" --delete --exclude config.json --exclude 'deployments/*'
+          printf '{"source":"github-actions","sha":"%s","branch":"%s","workflow":"%s/%s/actions/runs/%s"}\n' \
+            "${{ github.sha }}" "${{ github.ref_name }}" "${{ github.server_url }}" "${{ github.repository }}" "${{ github.run_id }}" \
+            | aws s3 cp - "s3://${{ steps.site.outputs.bucket }}/deployments/${{ github.sha }}.json" --content-type application/json
+          aws s3 cp "s3://${{ steps.site.outputs.bucket }}/deployments/${{ github.sha }}.json" "s3://${{ steps.site.outputs.bucket }}/deployments/latest.json" --content-type application/json
+          aws cloudfront create-invalidation --distribution-id "${{ steps.site.outputs.distribution }}" --paths '/*'
+
+      - name: Verify the live production stack
+        run: |
+          aws cloudformation describe-stacks --stack-name Sierrendipity --query 'Stacks[0].{Status:StackStatus,Updated:LastUpdatedTime,Outputs:Outputs}' --output json
+          curl --fail --show-error --retry 5 https://sierrendipity.anth.us/config.json
